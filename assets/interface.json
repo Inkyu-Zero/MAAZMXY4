@@ -1,9 +1,9 @@
-{
+﻿{
   "interface_version": 2,
   "name": "MAA造梦西游4",
   "label": "MAAZMXY4",
   "github": "https://github.com/Inkyu-Zero/MAAZMXY4",
-  "version": "0.3",
+  "version": "0.4",
   "controller": [
     {
       "name": "桌面端",
