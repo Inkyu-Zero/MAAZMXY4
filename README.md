@@ -1,4 +1,13 @@
+<!-- markdownlint-disable MD033 MD041 -->
+<p align="center">
+  <img alt="LOGO" src="https://cdn.jsdelivr.net/gh/Inkyu-Zero/MAAZMXY4@main/docs/images/icon.png" width="256" height="256" />
+</p>
+
+<div align="center">
+
 # MAA造梦西游4 (MAAZMXY4)
+
+</div>
 
 基于 **MaaFramework** 的《造梦西游4》自动化脚本，运行在 **造梦盒子** 客户端上。
 
