@@ -910,10 +910,10 @@
             "type": "Click"
         },
         "next": [
-            "点击须弥山"
+            "点击世界"
         ],
         "on_error": [
-            "点击须弥山"
+            "点击世界"
         ],
         "recognition": {
             "param": {
@@ -1024,6 +1024,34 @@
         },
         "next": [
             "点击南瞻部洲"
+        ],
+        "on_error": [
+            "领取完毕"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "世界1.png",
+                    "世界2.png",
+                    "世界3.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 5000
+    },
+    "点击世界": {
+        "$__mpe_code": {
+            "position": {
+                "x": 585,
+                "y": 263
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "点击须弥山"
         ],
         "on_error": [
             "领取完毕"
