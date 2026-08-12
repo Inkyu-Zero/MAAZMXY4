@@ -56,6 +56,20 @@
         "领取宠物养成并重新采集",
         "领取坐骑养成并重新采集"
       ]
+    },
+    {
+      "name": "清日常",
+      "entry": "清日常入口",
+      "description": "每一项可单独开关。\n\n- 识别到对应按钮 → 点击进入 → 扫荡 → 点右上角「叉」关闭\n- 识别不到按钮 → 跳过该项继续下一项（当天已扫过也能正常跳过）\n- 界面不在（识别不到「世界」）→ 直接结束，不报错",
+      "option": [
+        "扫荡竞技场",
+        "打斗宠大会",
+        "扫荡守护须弥山",
+        "扫荡噩梦诛仙四剑",
+        "噩梦四剑扫荡次数",
+        "扫荡噩梦冥河老祖",
+        "噩梦冥河老祖扫荡次数"
+      ]
     }
   ],
   "option": {
@@ -282,6 +296,79 @@
         { "name": "Yes", "pipeline_override": { "坐骑入口": { "next": ["点击坐骑养成"] } } },
         { "name": "No",  "pipeline_override": { "坐骑入口": { "next": ["领取完毕"] } } }
       ]
+    },
+    "扫荡竞技场": {
+      "type": "switch",
+      "label": "扫荡竞技场",
+      "default_case": "Yes",
+      "cases": [
+        { "name": "Yes", "pipeline_override": { "竞技场入口": { "next": ["竞技场点击日常活动"] } } },
+        { "name": "No",  "pipeline_override": { "竞技场入口": { "next": ["斗宠大会入口"] } } }
+      ]
+    },
+    "打斗宠大会": {
+      "type": "switch",
+      "label": "打斗宠大会",
+      "default_case": "Yes",
+      "cases": [
+        { "name": "Yes", "pipeline_override": { "斗宠大会入口": { "next": ["斗宠大会点击日常活动"] } } },
+        { "name": "No",  "pipeline_override": { "斗宠大会入口": { "next": ["扫荡守护须弥山入口"] } } }
+      ]
+    },
+    "扫荡守护须弥山": {
+      "type": "switch",
+      "label": "扫荡守护须弥山",
+      "default_case": "Yes",
+      "cases": [
+        { "name": "Yes", "pipeline_override": { "扫荡守护须弥山入口": { "next": ["守护须弥山点击日常活动"] } } },
+        { "name": "No",  "pipeline_override": { "扫荡守护须弥山入口": { "next": ["扫荡噩梦诛仙四剑入口"] } } }
+      ]
+    },
+    "扫荡噩梦诛仙四剑": {
+      "type": "switch",
+      "label": "扫荡噩梦诛仙四剑",
+      "default_case": "Yes",
+      "cases": [
+        { "name": "Yes", "pipeline_override": { "扫荡噩梦诛仙四剑入口": { "next": ["扫荡噩梦主线四剑点击地图"] } } },
+        { "name": "No",  "pipeline_override": { "扫荡噩梦诛仙四剑入口": { "next": ["扫荡噩梦冥河老祖入口"] } } }
+      ]
+    },
+    "噩梦四剑扫荡次数": {
+      "type": "input",
+      "inputs": [
+        {
+          "name": "噩梦四剑扫荡次数",
+          "pipeline_type": "int",
+          "default": "1",
+          "verify": "^[1-9][0-9]*$"
+        }
+      ],
+      "pipeline_override": {
+        "开始噩梦诛仙四剑扫荡": { "repeat": "{噩梦四剑扫荡次数}" }
+      }
+    },
+    "扫荡噩梦冥河老祖": {
+      "type": "switch",
+      "label": "扫荡噩梦冥河老祖",
+      "default_case": "Yes",
+      "cases": [
+        { "name": "Yes", "pipeline_override": { "扫荡噩梦冥河老祖入口": { "next": ["扫荡噩梦冥河老祖点击世界"] } } },
+        { "name": "No",  "pipeline_override": { "扫荡噩梦冥河老祖入口": { "next": ["清日常完成"] } } }
+      ]
+    },
+    "噩梦冥河老祖扫荡次数": {
+      "type": "input",
+      "inputs": [
+        {
+          "name": "噩梦冥河老祖扫荡次数",
+          "pipeline_type": "int",
+          "default": "1",
+          "verify": "^[1-9][0-9]*$"
+        }
+      ],
+      "pipeline_override": {
+        "开始噩梦冥河老祖扫荡": { "repeat": "{噩梦冥河老祖扫荡次数}" }
+      }
     }
   }
 }

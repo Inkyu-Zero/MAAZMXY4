@@ -1,52 +1,34 @@
 {
-    "$__mpe_config_领取奖励": {
+    "$__mpe_config_清日常": {
         "$__mpe_code": {
             "coordinateMode": "absolute-v1",
-            "filePath": "C:\\Users\\k1508\\Desktop\\Maa\\MAAPE\\runtime\\resource\\pipeline\\领取奖励.json",
-            "filename": "领取奖励",
-            "isDeleted": true,
-            "isModifiedExternally": false,
-            "lastSyncTime": 1786538589611,
+            "filename": "清日常",
             "prefix": "",
             "savedViewport": {
-                "x": -1425,
-                "y": 165,
-                "zoom": 1.06
+                "x": 922,
+                "y": -114,
+                "zoom": 0.86
             },
             "version": "v1.7.6"
         }
     },
-    "vip每日入口": {
+    "关闭竞技场": {
         "$__mpe_code": {
             "position": {
-                "x": 298,
-                "y": 389
-            }
-        },
-        "next": [
-            "点击vip"
-        ],
-        "on_error": [
-            "暑假入口"
-        ],
-        "timeout": 5000
-    },
-    "vip每日关闭叉": {
-        "$__mpe_code": {
-            "position": {
-                "x": 2277,
-                "y": 359
+                "x": 1864,
+                "y": 390
             }
         },
         "action": {
             "type": "Click"
         },
         "next": [
-            "暑假入口"
+            "斗宠大会入口"
         ],
         "on_error": [
-            "暑假入口"
+            "斗宠大会入口"
         ],
+        "post_delay": 1500,
         "recognition": {
             "param": {
                 "template": [
@@ -57,116 +39,46 @@
         },
         "timeout": 4000
     },
-    "vip每日领取": {
+    "噩梦诛仙四剑切至噩梦": {
         "$__mpe_code": {
             "position": {
-                "x": 1634,
-                "y": 103
+                "x": 9247,
+                "y": 491
             }
         },
         "action": {
             "type": "Click"
         },
+        "max_hit": 1,
         "next": [
-            "vip每日领取确定",
-            "vip每日关闭叉"
-        ],
-        "on_error": [
-            "vip每日关闭叉"
+            "点击噩梦不周山"
         ],
         "recognition": {
             "param": {
                 "template": [
-                    "vip每日奖励.png"
+                    "切至噩梦.png"
                 ]
             },
             "type": "TemplateMatch"
-        },
-        "timeout": 8000
+        }
     },
-    "vip每日领取确定": {
+    "城东扫荡叉": {
         "$__mpe_code": {
             "position": {
-                "x": 1900,
-                "y": 189
+                "x": 6644,
+                "y": 545
             }
         },
         "action": {
             "type": "Click"
         },
         "next": [
-            "vip每日关闭叉"
+            "点击城北"
         ],
         "on_error": [
-            "vip每日关闭叉"
+            "点击城北"
         ],
-        "recognition": {
-            "param": {
-                "template": [
-                    "确定.png"
-                ]
-            },
-            "type": "TemplateMatch"
-        },
-        "timeout": 4000
-    },
-    "十五天登录领取": {
-        "$__mpe_code": {
-            "position": {
-                "x": 10814,
-                "y": -79
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "next": [
-            "登录关闭叉"
-        ],
-        "on_error": [
-            "登录关闭叉"
-        ],
-        "recognition": {
-            "param": {
-                "template": [
-                    "十五天登录领取.png"
-                ]
-            },
-            "type": "TemplateMatch"
-        },
-        "timeout": 4000
-    },
-    "坐骑入口": {
-        "$__mpe_code": {
-            "position": {
-                "x": 14321,
-                "y": 115
-            }
-        },
-        "next": [
-            "点击坐骑养成"
-        ],
-        "on_error": [
-            "领取完毕"
-        ],
-        "timeout": 5000
-    },
-    "坐骑关闭叉": {
-        "$__mpe_code": {
-            "position": {
-                "x": 16184,
-                "y": 67
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "next": [
-            "领取完毕"
-        ],
-        "on_error": [
-            "领取完毕"
-        ],
+        "post_delay": 2500,
         "recognition": {
             "param": {
                 "template": [
@@ -177,205 +89,23 @@
         },
         "timeout": 4000
     },
-    "坐骑采集1": {
+    "城北扫荡叉": {
         "$__mpe_code": {
             "position": {
-                "x": 15412,
-                "y": 447
+                "x": 7790,
+                "y": 660
             }
         },
         "action": {
             "type": "Click"
         },
         "next": [
-            "坐骑采集2"
+            "守护须弥山叉"
         ],
         "on_error": [
-            "坐骑关闭叉"
+            "守护须弥山叉"
         ],
-        "post_delay": 1000,
-        "recognition": {
-            "param": {
-                "template": [
-                    "采集按钮.png"
-                ],
-                "threshold": 0.8
-            },
-            "type": "TemplateMatch"
-        },
-        "timeout": 3000
-    },
-    "坐骑采集2": {
-        "$__mpe_code": {
-            "position": {
-                "x": 15301,
-                "y": 454
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "next": [
-            "坐骑采集3"
-        ],
-        "on_error": [
-            "坐骑关闭叉"
-        ],
-        "post_delay": 1000,
-        "recognition": {
-            "param": {
-                "template": [
-                    "采集按钮.png"
-                ],
-                "threshold": 0.8
-            },
-            "type": "TemplateMatch"
-        },
-        "timeout": 3000
-    },
-    "坐骑采集3": {
-        "$__mpe_code": {
-            "position": {
-                "x": 15315,
-                "y": 480
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "next": [
-            "坐骑关闭叉"
-        ],
-        "on_error": [
-            "坐骑关闭叉"
-        ],
-        "post_delay": 1000,
-        "recognition": {
-            "param": {
-                "template": [
-                    "采集按钮.png"
-                ],
-                "threshold": 0.8
-            },
-            "type": "TemplateMatch"
-        },
-        "timeout": 3000
-    },
-    "坐骑领取1": {
-        "$__mpe_code": {
-            "position": {
-                "x": 15353,
-                "y": 168
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "next": [
-            "坐骑领取2"
-        ],
-        "on_error": [
-            "坐骑采集1"
-        ],
-        "post_delay": 1000,
-        "recognition": {
-            "param": {
-                "template": [
-                    "领取按钮.png"
-                ],
-                "threshold": 0.8
-            },
-            "type": "TemplateMatch"
-        },
-        "timeout": 3000
-    },
-    "坐骑领取2": {
-        "$__mpe_code": {
-            "position": {
-                "x": 15262,
-                "y": 350
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "next": [
-            "坐骑领取3"
-        ],
-        "on_error": [
-            "坐骑采集1"
-        ],
-        "post_delay": 1000,
-        "recognition": {
-            "param": {
-                "template": [
-                    "领取按钮.png"
-                ],
-                "threshold": 0.8
-            },
-            "type": "TemplateMatch"
-        },
-        "timeout": 3000
-    },
-    "坐骑领取3": {
-        "$__mpe_code": {
-            "position": {
-                "x": 15286,
-                "y": 368
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "next": [
-            "坐骑采集1"
-        ],
-        "on_error": [
-            "坐骑关闭叉"
-        ],
-        "post_delay": 1000,
-        "recognition": {
-            "param": {
-                "template": [
-                    "领取按钮.png"
-                ],
-                "threshold": 0.8
-            },
-            "type": "TemplateMatch"
-        },
-        "timeout": 3000
-    },
-    "宠物入口": {
-        "$__mpe_code": {
-            "position": {
-                "x": 11671,
-                "y": 183
-            }
-        },
-        "next": [
-            "点击宠物养成"
-        ],
-        "on_error": [
-            "坐骑入口"
-        ],
-        "timeout": 5000
-    },
-    "宠物关闭叉": {
-        "$__mpe_code": {
-            "position": {
-                "x": 13585,
-                "y": 109
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "next": [
-            "坐骑入口"
-        ],
-        "on_error": [
-            "坐骑入口"
-        ],
+        "post_delay": 2500,
         "recognition": {
             "param": {
                 "template": [
@@ -386,205 +116,23 @@
         },
         "timeout": 4000
     },
-    "宠物采集1": {
+    "城南扫荡叉": {
         "$__mpe_code": {
             "position": {
-                "x": 12473,
-                "y": 575
+                "x": 5553,
+                "y": 482
             }
         },
         "action": {
             "type": "Click"
         },
         "next": [
-            "宠物采集2"
+            "点击城东"
         ],
         "on_error": [
-            "宠物关闭叉"
+            "点击城东"
         ],
-        "post_delay": 1000,
-        "recognition": {
-            "param": {
-                "template": [
-                    "采集按钮.png"
-                ],
-                "threshold": 0.8
-            },
-            "type": "TemplateMatch"
-        },
-        "timeout": 3000
-    },
-    "宠物采集2": {
-        "$__mpe_code": {
-            "position": {
-                "x": 12098,
-                "y": 551
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "next": [
-            "宠物采集3"
-        ],
-        "on_error": [
-            "宠物关闭叉"
-        ],
-        "post_delay": 1000,
-        "recognition": {
-            "param": {
-                "template": [
-                    "采集按钮.png"
-                ],
-                "threshold": 0.8
-            },
-            "type": "TemplateMatch"
-        },
-        "timeout": 3000
-    },
-    "宠物采集3": {
-        "$__mpe_code": {
-            "position": {
-                "x": 12789,
-                "y": 650
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "next": [
-            "宠物关闭叉"
-        ],
-        "on_error": [
-            "宠物关闭叉"
-        ],
-        "post_delay": 1000,
-        "recognition": {
-            "param": {
-                "template": [
-                    "采集按钮.png"
-                ],
-                "threshold": 0.8
-            },
-            "type": "TemplateMatch"
-        },
-        "timeout": 3000
-    },
-    "宠物领取1": {
-        "$__mpe_code": {
-            "position": {
-                "x": 12811,
-                "y": -59
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "next": [
-            "宠物领取2"
-        ],
-        "on_error": [
-            "宠物采集1"
-        ],
-        "post_delay": 1000,
-        "recognition": {
-            "param": {
-                "template": [
-                    "领取按钮.png"
-                ],
-                "threshold": 0.8
-            },
-            "type": "TemplateMatch"
-        },
-        "timeout": 3000
-    },
-    "宠物领取2": {
-        "$__mpe_code": {
-            "position": {
-                "x": 12523,
-                "y": 261
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "next": [
-            "宠物领取3"
-        ],
-        "on_error": [
-            "宠物采集1"
-        ],
-        "post_delay": 1000,
-        "recognition": {
-            "param": {
-                "template": [
-                    "领取按钮.png"
-                ],
-                "threshold": 0.8
-            },
-            "type": "TemplateMatch"
-        },
-        "timeout": 3000
-    },
-    "宠物领取3": {
-        "$__mpe_code": {
-            "position": {
-                "x": 13097,
-                "y": 344
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "next": [
-            "宠物采集1"
-        ],
-        "on_error": [
-            "宠物关闭叉"
-        ],
-        "post_delay": 1000,
-        "recognition": {
-            "param": {
-                "template": [
-                    "领取按钮.png"
-                ],
-                "threshold": 0.8
-            },
-            "type": "TemplateMatch"
-        },
-        "timeout": 3000
-    },
-    "暑假入口": {
-        "$__mpe_code": {
-            "position": {
-                "x": 2638,
-                "y": 345
-            }
-        },
-        "next": [
-            "点击暑假来就送"
-        ],
-        "on_error": [
-            "登录入口"
-        ],
-        "timeout": 5000
-    },
-    "暑假关闭叉": {
-        "$__mpe_code": {
-            "position": {
-                "x": 4632,
-                "y": 272
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "next": [
-            "登录入口"
-        ],
-        "on_error": [
-            "登录入口"
-        ],
+        "post_delay": 2500,
         "recognition": {
             "param": {
                 "template": [
@@ -595,238 +143,45 @@
         },
         "timeout": 4000
     },
-    "暑假领取": {
+    "守护须弥山叉": {
         "$__mpe_code": {
             "position": {
-                "x": 3942,
-                "y": 75
+                "x": 8096,
+                "y": 661
             }
         },
         "action": {
             "type": "Click"
         },
         "next": [
-            "暑假关闭叉"
+            "扫荡噩梦诛仙四剑入口"
         ],
         "on_error": [
-            "暑假关闭叉"
+            "扫荡噩梦诛仙四剑入口"
         ],
+        "post_delay": 1500,
         "recognition": {
             "param": {
                 "template": [
-                    "暑假来就送奖励.png"
+                    "叉.png"
                 ]
             },
             "type": "TemplateMatch"
         },
         "timeout": 4000
     },
-    "点击vip": {
+    "守护须弥山点击日常活动": {
         "$__mpe_code": {
             "position": {
-                "x": 1145,
-                "y": 271
+                "x": 4405,
+                "y": 427
             }
         },
         "action": {
             "type": "Click"
         },
         "next": [
-            "vip每日领取",
-            "vip每日关闭叉"
-        ],
-        "on_error": [
-            "暑假入口"
-        ],
-        "recognition": {
-            "param": {
-                "template": [
-                    "vip.png"
-                ]
-            },
-            "type": "TemplateMatch"
-        },
-        "timeout": 5000
-    },
-    "点击世界": {
-        "$__mpe_code": {
-            "position": {
-                "x": 585,
-                "y": 263
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "next": [
-            "点击须弥山"
-        ],
-        "on_error": [
-            "领取完毕"
-        ],
-        "recognition": {
-            "param": {
-                "template": [
-                    "世界1.png",
-                    "世界2.png",
-                    "世界3.png"
-                ]
-            },
-            "type": "TemplateMatch"
-        },
-        "timeout": 5000
-    },
-    "点击冒险": {
-        "$__mpe_code": {
-            "position": {
-                "x": 8615,
-                "y": 68
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "next": [
-            "骰子领取",
-            "骰子关闭叉"
-        ],
-        "on_error": [
-            "宠物入口"
-        ],
-        "recognition": {
-            "param": {
-                "template": [
-                    "冒险.png"
-                ]
-            },
-            "type": "TemplateMatch"
-        },
-        "timeout": 5000
-    },
-    "点击十五天登录": {
-        "$__mpe_code": {
-            "position": {
-                "x": 10537,
-                "y": 89
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "next": [
-            "十五天登录领取",
-            "登录关闭叉"
-        ],
-        "on_error": [
-            "点击须弥山"
-        ],
-        "recognition": {
-            "param": {
-                "template": [
-                    "十五天登录.png"
-                ]
-            },
-            "type": "TemplateMatch"
-        },
-        "timeout": 5000
-    },
-    "点击南瞻部洲": {
-        "$__mpe_code": {
-            "position": {
-                "x": 831,
-                "y": 250
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "next": [
-            "vip每日入口"
-        ],
-        "on_error": [
-            "点击须弥山"
-        ],
-        "recognition": {
-            "param": {
-                "template": [
-                    "南瞻部洲.png"
-                ]
-            },
-            "type": "TemplateMatch"
-        },
-        "timeout": 5000
-    },
-    "点击坐骑养成": {
-        "$__mpe_code": {
-            "position": {
-                "x": 15292,
-                "y": -144
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "next": [
-            "坐骑领取1",
-            "坐骑采集1"
-        ],
-        "on_error": [
-            "坐骑关闭叉"
-        ],
-        "post_delay": 2000,
-        "recognition": {
-            "param": {
-                "template": [
-                    "坐骑养成.png"
-                ]
-            },
-            "type": "TemplateMatch"
-        },
-        "timeout": 4000
-    },
-    "点击宠物养成": {
-        "$__mpe_code": {
-            "position": {
-                "x": 12419,
-                "y": -230
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "next": [
-            "宠物领取1",
-            "宠物采集1"
-        ],
-        "on_error": [
-            "宠物关闭叉"
-        ],
-        "post_delay": 2000,
-        "recognition": {
-            "param": {
-                "template": [
-                    "宠物养成.png"
-                ]
-            },
-            "type": "TemplateMatch"
-        },
-        "timeout": 4000
-    },
-    "点击日常活动": {
-        "$__mpe_code": {
-            "position": {
-                "x": 8390,
-                "y": 131
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "next": [
-            "点击冒险"
-        ],
-        "on_error": [
-            "宠物入口"
+            "点击守护须弥山"
         ],
         "recognition": {
             "param": {
@@ -838,96 +193,714 @@
         },
         "timeout": 5000
     },
-    "点击暑假来就送": {
+    "开始噩梦冥河老祖扫荡": {
         "$__mpe_code": {
             "position": {
-                "x": 3476,
-                "y": 267
+                "x": 12566,
+                "y": 970
             }
         },
         "action": {
             "type": "Click"
         },
         "next": [
-            "暑假领取",
-            "暑假关闭叉"
+            "扫荡噩梦冥河老祖叉"
         ],
-        "on_error": [
-            "登录入口"
-        ],
+        "post_delay": 2000,
         "recognition": {
             "param": {
                 "template": [
-                    "暑假来就送.png"
+                    "开始扫荡.png"
                 ]
             },
             "type": "TemplateMatch"
         },
-        "timeout": 5000
+        "repeat": 1,
+        "repeat_delay": 2000
     },
-    "点击联盟": {
+    "开始噩梦诛仙四剑扫荡": {
         "$__mpe_code": {
             "position": {
-                "x": 5984,
-                "y": 204
+                "x": 9798,
+                "y": 832
             }
         },
         "action": {
             "type": "Click"
         },
         "next": [
-            "点击联盟贡献"
+            "扫荡噩梦诛仙四剑叉"
         ],
-        "on_error": [
-            "骰子入口"
-        ],
+        "post_delay": 2000,
         "recognition": {
             "param": {
                 "template": [
-                    "联盟.png"
+                    "开始扫荡.png"
                 ]
             },
             "type": "TemplateMatch"
         },
-        "timeout": 5000
+        "repeat": 1,
+        "repeat_delay": 2000
     },
-    "点击联盟贡献": {
+    "开始城东扫荡": {
         "$__mpe_code": {
             "position": {
-                "x": 6264,
-                "y": 9
+                "x": 6373,
+                "y": 564
             }
         },
         "action": {
             "type": "Click"
         },
         "next": [
-            "联盟领取"
+            "城东扫荡取消处理"
+        ],
+        "on_error": [
+            "城东扫荡叉"
+        ],
+        "post_delay": 2000,
+        "recognition": {
+            "param": {
+                "template": [
+                    "开始扫荡.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 2500
+    },
+    "城东扫荡取消处理": {
+        "$__mpe_code": {
+            "position": {
+                "x": 6457,
+                "y": 568
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "城东扫荡叉"
+        ],
+        "on_error": [
+            "城东扫荡叉"
+        ],
+        "recognition": {
+            "param": {
+                "order_by": "Score",
+                "template": [
+                    "取消.png"
+                ],
+                "threshold": 0.75
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 2000
+    },
+    "开始城北扫荡": {
+        "$__mpe_code": {
+            "position": {
+                "x": 7512,
+                "y": 643
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "城北扫荡取消处理"
+        ],
+        "on_error": [
+            "城北扫荡叉"
+        ],
+        "post_delay": 2000,
+        "recognition": {
+            "param": {
+                "template": [
+                    "开始扫荡.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 2500
+    },
+    "城北扫荡取消处理": {
+        "$__mpe_code": {
+            "position": {
+                "x": 7596,
+                "y": 647
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "城北扫荡叉"
+        ],
+        "on_error": [
+            "城北扫荡叉"
+        ],
+        "recognition": {
+            "param": {
+                "order_by": "Score",
+                "template": [
+                    "取消.png"
+                ],
+                "threshold": 0.75
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 2000
+    },
+    "开始城南扫荡": {
+        "$__mpe_code": {
+            "position": {
+                "x": 5276,
+                "y": 516
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "城南扫荡取消处理"
+        ],
+        "on_error": [
+            "城南扫荡叉"
+        ],
+        "post_delay": 2000,
+        "recognition": {
+            "param": {
+                "template": [
+                    "开始扫荡.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 2500
+    },
+    "城南扫荡取消处理": {
+        "$__mpe_code": {
+            "position": {
+                "x": 5360,
+                "y": 520
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "城南扫荡叉"
+        ],
+        "on_error": [
+            "城南扫荡叉"
+        ],
+        "recognition": {
+            "param": {
+                "order_by": "Score",
+                "template": [
+                    "取消.png"
+                ],
+                "threshold": 0.75
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 2000
+    },
+    "扫荡噩梦主线四剑点击地图": {
+        "$__mpe_code": {
+            "position": {
+                "x": 8679,
+                "y": 704
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "扫荡噩梦诛仙四剑点击西牛贺洲"
         ],
         "recognition": {
             "param": {
                 "template": [
-                    "联盟贡献.png"
+                    "世界1.png",
+                    "世界2.png"
                 ]
             },
             "type": "TemplateMatch"
         }
     },
-    "点击须弥山": {
+    "扫荡噩梦冥河老祖入口": {
         "$__mpe_code": {
             "position": {
-                "x": 5668,
-                "y": 218
+                "x": 10373,
+                "y": 875
+            }
+        },
+        "next": [
+            "扫荡噩梦冥河老祖点击世界"
+        ]
+    },
+    "扫荡噩梦冥河老祖切至噩梦": {
+        "$__mpe_code": {
+            "position": {
+                "x": 11452,
+                "y": 1044
             }
         },
         "action": {
             "type": "Click"
         },
         "next": [
-            "联盟入口"
+            "扫荡噩梦冥河老祖左拉地图"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "切至噩梦.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        }
+    },
+    "扫荡噩梦冥河老祖叉": {
+        "$__mpe_code": {
+            "position": {
+                "x": 12877,
+                "y": 965
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "清日常完成"
         ],
         "on_error": [
-            "领取完毕"
+            "清日常完成"
+        ],
+        "post_delay": 1500,
+        "recognition": {
+            "param": {
+                "template": [
+                    "叉.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 4000
+    },
+    "扫荡噩梦冥河老祖左拉地图": {
+        "$__mpe_code": {
+            "position": {
+                "x": 11744,
+                "y": 932
+            }
+        },
+        "action": {
+            "param": {
+                "begin": [
+                    854,
+                    534,
+                    30,
+                    35
+                ],
+                "duration": [
+                    1000
+                ],
+                "end": [
+                    [
+                        160,
+                        484,
+                        29,
+                        33
+                    ]
+                ]
+            },
+            "type": "Swipe"
+        },
+        "next": [
+            "点击噩梦血河池"
+        ]
+    },
+    "扫荡噩梦冥河老祖点击世界": {
+        "$__mpe_code": {
+            "position": {
+                "x": 10660,
+                "y": 850
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "扫荡噩梦冥河老祖点击幽冥血海"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "世界1.png",
+                    "世界2.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        }
+    },
+    "扫荡噩梦冥河老祖点击幽冥血海": {
+        "$__mpe_code": {
+            "position": {
+                "x": 10926,
+                "y": 872
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "扫荡噩梦冥河老祖识别噩梦"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "幽冥血海.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        }
+    },
+    "扫荡噩梦冥河老祖点击扫荡": {
+        "$__mpe_code": {
+            "position": {
+                "x": 12305,
+                "y": 944
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "开始噩梦冥河老祖扫荡"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "扫荡.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        }
+    },
+    "扫荡噩梦冥河老祖识别噩梦": {
+        "$__mpe_code": {
+            "position": {
+                "x": 11183,
+                "y": 882
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "扫荡噩梦冥河老祖左拉地图"
+        ],
+        "on_error": [
+            "扫荡噩梦冥河老祖切至噩梦"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "切至主线.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 2000
+    },
+    "扫荡噩梦诛仙四剑入口": {
+        "$__mpe_code": {
+            "position": {
+                "x": 8384,
+                "y": 723
+            }
+        },
+        "next": [
+            "扫荡噩梦主线四剑点击地图"
+        ]
+    },
+    "扫荡噩梦诛仙四剑叉": {
+        "$__mpe_code": {
+            "position": {
+                "x": 10068,
+                "y": 828
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "扫荡噩梦冥河老祖入口"
+        ],
+        "on_error": [
+            "扫荡噩梦冥河老祖入口"
+        ],
+        "post_delay": 1500,
+        "recognition": {
+            "param": {
+                "template": [
+                    "叉.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 4000
+    },
+    "扫荡噩梦诛仙四剑点击西牛贺洲": {
+        "$__mpe_code": {
+            "position": {
+                "x": 8944,
+                "y": 714
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "点击噩梦不周山",
+            "噩梦诛仙四剑切至噩梦"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "西牛贺洲.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        }
+    },
+    "扫荡守护须弥山入口": {
+        "$__mpe_code": {
+            "position": {
+                "x": 4105,
+                "y": 487
+            }
+        },
+        "next": [
+            "守护须弥山点击日常活动"
+        ]
+    },
+    "扫荡竞技场": {
+        "$__mpe_code": {
+            "position": {
+                "x": 1614,
+                "y": 393
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "关闭竞技场"
+        ],
+        "recognition": {
+            "param": {
+                "roi": [
+                    1069,
+                    300,
+                    30,
+                    30
+                ]
+            },
+            "type": "DirectHit"
+        },
+        "repeat": 10,
+        "repeat_delay": 1500
+    },
+    "斗宠大会入口": {
+        "$__mpe_code": {
+            "position": {
+                "x": 2118,
+                "y": 459
+            }
+        },
+        "next": [
+            "斗宠大会点击日常活动"
+        ]
+    },
+    "斗宠大会循环": {
+        "$__mpe_code": {
+            "position": {
+                "x": 2957,
+                "y": 495
+            }
+        },
+        "next": [
+            "斗宠大会挑战",
+            "斗宠大会结束叉"
+        ]
+    },
+    "斗宠大会挑战": {
+        "$__mpe_code": {
+            "position": {
+                "x": 3211,
+                "y": 436
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "max_hit": 10,
+        "next": [
+            "斗宠大会胜利返回"
+        ],
+        "on_error": [
+            "斗宠大会结束叉"
+        ],
+        "pre_delay": 3000,
+        "recognition": {
+            "param": {
+                "roi": [
+                    1040,
+                    285,
+                    45,
+                    40
+                ]
+            },
+            "type": "DirectHit"
+        },
+        "timeout": 15000
+    },
+    "斗宠大会点击日常活动": {
+        "$__mpe_code": {
+            "position": {
+                "x": 2379,
+                "y": 422
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "点击斗宠大会"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "日常活动.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 5000
+    },
+    "斗宠大会结束叉": {
+        "$__mpe_code": {
+            "position": {
+                "x": 3803,
+                "y": 459
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "扫荡守护须弥山入口"
+        ],
+        "on_error": [
+            "扫荡守护须弥山入口"
+        ],
+        "post_delay": 1500,
+        "recognition": {
+            "param": {
+                "template": [
+                    "叉.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 4000
+    },
+    "斗宠大会胜利返回": {
+        "$__mpe_code": {
+            "position": {
+                "x": 3512,
+                "y": 443
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "斗宠大会循环"
+        ],
+        "on_error": [
+            "斗宠大会结束叉"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "斗宠大会胜利返回.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 8000
+    },
+    "清日常入口": {
+        "$__mpe_code": {
+            "position": {
+                "x": -141,
+                "y": 376
+            }
+        },
+        "next": [
+            "清日常点击世界",
+            "清日常点击须弥山"
+        ]
+    },
+    "清日常完成": {
+        "$__mpe_code": {
+            "position": {
+                "x": 13157,
+                "y": 1036
+            }
+        }
+    },
+    "清日常点击世界": {
+        "$__mpe_code": {
+            "position": {
+                "x": 128,
+                "y": 203
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "清日常点击须弥山"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "世界1.png",
+                    "世界2.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        }
+    },
+    "清日常点击须弥山": {
+        "$__mpe_code": {
+            "position": {
+                "x": 420,
+                "y": 376
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "竞技场入口"
         ],
         "recognition": {
             "param": {
@@ -936,238 +909,304 @@
                 ]
             },
             "type": "TemplateMatch"
-        },
-        "timeout": 5000
-    },
-    "登录入口": {
-        "$__mpe_code": {
-            "position": {
-                "x": 9547,
-                "y": 227
-            }
-        },
-        "next": [
-            "点击十五天登录"
-        ],
-        "on_error": [
-            "点击须弥山"
-        ],
-        "timeout": 5000
-    },
-    "登录关闭叉": {
-        "$__mpe_code": {
-            "position": {
-                "x": 11384,
-                "y": 156
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "next": [
-            "点击世界"
-        ],
-        "on_error": [
-            "点击世界"
-        ],
-        "recognition": {
-            "param": {
-                "template": [
-                    "叉.png"
-                ]
-            },
-            "type": "TemplateMatch"
-        },
-        "timeout": 4000
-    },
-    "联盟入口": {
-        "$__mpe_code": {
-            "position": {
-                "x": 5079,
-                "y": 321
-            }
-        },
-        "next": [
-            "点击联盟"
-        ],
-        "on_error": [
-            "骰子入口"
-        ],
-        "timeout": 5000
-    },
-    "联盟关闭叉": {
-        "$__mpe_code": {
-            "position": {
-                "x": 7131,
-                "y": 102
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "next": [
-            "骰子入口"
-        ],
-        "on_error": [
-            "骰子入口"
-        ],
-        "recognition": {
-            "param": {
-                "template": [
-                    "叉.png"
-                ]
-            },
-            "type": "TemplateMatch"
-        },
-        "timeout": 4000
-    },
-    "联盟贡献关闭叉": {
-        "$__mpe_code": {
-            "position": {
-                "x": 6805,
-                "y": 115
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "next": [
-            "联盟关闭叉"
-        ],
-        "recognition": {
-            "param": {
-                "template": [
-                    "叉.png"
-                ]
-            },
-            "type": "TemplateMatch"
-        },
-        "timeout": 4000
-    },
-    "联盟领取": {
-        "$__mpe_code": {
-            "position": {
-                "x": 6544,
-                "y": -13
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "next": [
-            "联盟贡献关闭叉"
-        ],
-        "recognition": {
-            "param": {
-                "template": [
-                    "灵魂贡献.png"
-                ]
-            },
-            "type": "TemplateMatch"
-        },
-        "timeout": 4000
-    },
-    "领取奖励入口": {
-        "$__mpe_code": {
-            "position": {
-                "x": 12,
-                "y": 453
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "next": [
-            "点击南瞻部洲"
-        ],
-        "on_error": [
-            "领取完毕"
-        ],
-        "recognition": {
-            "param": {
-                "template": [
-                    "世界1.png",
-                    "世界2.png",
-                    "世界3.png"
-                ]
-            },
-            "type": "TemplateMatch"
-        },
-        "timeout": 5000
-    },
-    "领取完毕": {
-        "$__mpe_code": {
-            "position": {
-                "x": 16954,
-                "y": 184
-            }
         }
     },
-    "骰子入口": {
+    "点击噩梦不周山": {
         "$__mpe_code": {
             "position": {
-                "x": 7563,
-                "y": 281
+                "x": 9254,
+                "y": 796
             }
         },
+        "action": {
+            "type": "Click"
+        },
         "next": [
-            "点击日常活动"
+            "点击噩梦诛仙四剑扫荡"
         ],
-        "on_error": [
-            "宠物入口"
+        "recognition": {
+            "param": {
+                "template": [
+                    "噩梦不周山.png"
+                ],
+                "threshold": 0.95
+            },
+            "type": "TemplateMatch"
+        }
+    },
+    "点击噩梦血河池": {
+        "$__mpe_code": {
+            "position": {
+                "x": 12026,
+                "y": 935
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "扫荡噩梦冥河老祖点击扫荡"
         ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "噩梦血河池.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        }
+    },
+    "点击噩梦诛仙四剑扫荡": {
+        "$__mpe_code": {
+            "position": {
+                "x": 9527,
+                "y": 825
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "开始噩梦诛仙四剑扫荡"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "扫荡.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        }
+    },
+    "点击城东": {
+        "$__mpe_code": {
+            "position": {
+                "x": 5829,
+                "y": 520
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "点击城东扫荡"
+        ],
+        "pre_delay": 1500,
+        "recognition": {
+            "param": {
+                "expected": "城东"
+            },
+            "type": "OCR"
+        }
+    },
+    "点击城东扫荡": {
+        "$__mpe_code": {
+            "position": {
+                "x": 6104,
+                "y": 533
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "开始城东扫荡"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "扫荡.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        },
         "timeout": 5000
     },
-    "骰子关闭叉": {
+    "点击城北": {
         "$__mpe_code": {
             "position": {
-                "x": 9200,
-                "y": 185
+                "x": 6933,
+                "y": 588
             }
         },
         "action": {
             "type": "Click"
         },
         "next": [
-            "宠物入口"
+            "点击城北扫荡"
         ],
-        "on_error": [
-            "宠物入口"
-        ],
+        "pre_delay": 1500,
         "recognition": {
             "param": {
-                "template": [
-                    "叉.png"
-                ]
+                "expected": "城北"
             },
-            "type": "TemplateMatch"
-        },
-        "timeout": 4000
+            "type": "OCR"
+        }
     },
-    "骰子领取": {
+    "点击城北扫荡": {
         "$__mpe_code": {
             "position": {
-                "x": 8894,
-                "y": 1
+                "x": 7242,
+                "y": 611
             }
         },
         "action": {
             "type": "Click"
         },
         "next": [
-            "骰子关闭叉"
-        ],
-        "on_error": [
-            "骰子关闭叉"
+            "开始城北扫荡"
         ],
         "recognition": {
             "param": {
                 "template": [
-                    "冒险骰子.png"
+                    "扫荡.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        }
+    },
+    "点击城南扫荡": {
+        "$__mpe_code": {
+            "position": {
+                "x": 5006,
+                "y": 507
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "开始城南扫荡"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "扫荡.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        }
+    },
+    "点击守护须弥山": {
+        "$__mpe_code": {
+            "position": {
+                "x": 4720,
+                "y": 496
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "点击城南扫荡"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "守护须弥山.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        }
+    },
+    "点击斗宠大会": {
+        "$__mpe_code": {
+            "position": {
+                "x": 2667,
+                "y": 442
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "斗宠大会循环"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "斗宠大会.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        }
+    },
+    "点击竞技场入口": {
+        "$__mpe_code": {
+            "position": {
+                "x": 1124,
+                "y": 369
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "识别未报名"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "竞技场.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        }
+    },
+    "竞技场入口": {
+        "$__mpe_code": {
+            "position": {
+                "x": 651,
+                "y": 434
+            }
+        },
+        "next": [
+            "竞技场点击日常活动"
+        ]
+    },
+    "竞技场点击日常活动": {
+        "$__mpe_code": {
+            "position": {
+                "x": 886,
+                "y": 374
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "点击竞技场入口"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "日常活动.png"
                 ]
             },
             "type": "TemplateMatch"
         },
-        "timeout": 4000
+        "timeout": 5000
+    },
+    "识别未报名": {
+        "$__mpe_code": {
+            "position": {
+                "x": 1351,
+                "y": 385
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "扫荡竞技场"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "未报名.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        }
     }
 }

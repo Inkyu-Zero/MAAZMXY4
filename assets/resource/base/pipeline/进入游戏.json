@@ -123,6 +123,9 @@
         "next": [
             "关闭活动面板"
         ],
+        "on_error": [
+            "结束"
+        ],
         "recognition": {
             "param": {
                 "template": [
@@ -144,6 +147,9 @@
             "type": "Click"
         },
         "next": [
+            "结束"
+        ],
+        "on_error": [
             "结束"
         ],
         "recognition": {
