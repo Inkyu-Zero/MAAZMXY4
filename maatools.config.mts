@@ -6,14 +6,13 @@ const config: FullConfig = {
   interfacePath: 'assets/interface.json',
   check: {
     override: {
-      // 忽略 mpe-config 带来的报错
-      // ignore warning caused by mpe-config
-      // 'mpe-config': 'ignore'
-      // 流水线大量节点 next 与 on_error 指向同一目标（幂等设计），MaaFramework 可正常运行，降级为警告
-      'duplicate-next': 'warning',
-      // 存档{存档序号}.png 等动态图片模板（{变量} 运行时替换），降级为警告
-      'unknown-image': 'warning',
-      'dynamic-image': 'warning'
+      // MaaPE 编辑产生的 $__mpe_code 元数据
+      'mpe-config': 'ignore',
+      // 流水线大量节点 next 与 on_error 指向同一目标（幂等设计），MaaFramework 可正常运行
+      'duplicate-next': 'ignore',
+      // 存档{存档序号}.png 等动态图片模板（{变量} 运行时替换）
+      'unknown-image': 'ignore',
+      'dynamic-image': 'ignore'
     }
   }
 }
