@@ -24,12 +24,12 @@
             }
         },
         "next": [
-            "点击世界"
+            "点击vip"
         ],
         "on_error": [
             "暑假入口"
         ],
-        "timeout": 10000
+        "timeout": 5000
     },
     "vip每日关闭叉": {
         "$__mpe_code": {
@@ -117,7 +117,7 @@
             }
         },
         "next": [
-            "新建节点46"
+            "点击坐骑养成"
         ],
         "on_error": [
             "领取完毕"
@@ -326,7 +326,7 @@
             }
         },
         "next": [
-            "新建节点44"
+            "点击宠物养成"
         ],
         "on_error": [
             "坐骑入口"
@@ -527,260 +527,6 @@
         },
         "timeout": 3000
     },
-    "新建节点36": {
-        "$__mpe_code": {
-            "position": {
-                "x": 2891,
-                "y": 284
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "next": [
-            "新建节点37"
-        ],
-        "recognition": {
-            "param": {
-                "template": [
-                    "世界1.png",
-                    "世界2.png",
-                    "世界3.png"
-                ]
-            },
-            "type": "TemplateMatch"
-        }
-    },
-    "新建节点37": {
-        "$__mpe_code": {
-            "position": {
-                "x": 3136,
-                "y": 218
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "next": [
-            "点击暑假来就送"
-        ],
-        "recognition": {
-            "param": {
-                "template": [
-                    "南瞻部洲.png"
-                ]
-            },
-            "type": "TemplateMatch"
-        }
-    },
-    "新建节点39": {
-        "$__mpe_code": {
-            "position": {
-                "x": 5328,
-                "y": 210
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "next": [
-            "点击须弥山"
-        ],
-        "recognition": {
-            "param": {
-                "template": [
-                    "世界1.png",
-                    "世界2.png",
-                    "世界3.png"
-                ]
-            },
-            "type": "TemplateMatch"
-        }
-    },
-    "新建节点40": {
-        "$__mpe_code": {
-            "position": {
-                "x": 7856,
-                "y": 143
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "next": [
-            "新建节点41"
-        ],
-        "recognition": {
-            "param": {
-                "template": [
-                    "世界1.png",
-                    "世界2.png",
-                    "世界3.png"
-                ]
-            },
-            "type": "TemplateMatch"
-        }
-    },
-    "新建节点41": {
-        "$__mpe_code": {
-            "position": {
-                "x": 8099,
-                "y": 89
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "next": [
-            "点击日常活动"
-        ],
-        "recognition": {
-            "param": {
-                "template": [
-                    "须弥山.png"
-                ]
-            },
-            "type": "TemplateMatch"
-        }
-    },
-    "新建节点42": {
-        "$__mpe_code": {
-            "position": {
-                "x": 9907,
-                "y": 39
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "next": [
-            "新建节点43"
-        ],
-        "recognition": {
-            "param": {
-                "template": [
-                    "世界1.png",
-                    "世界2.png",
-                    "世界3.png"
-                ]
-            },
-            "type": "TemplateMatch"
-        }
-    },
-    "新建节点43": {
-        "$__mpe_code": {
-            "position": {
-                "x": 10186,
-                "y": 95
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "next": [
-            "点击十五天登录"
-        ],
-        "recognition": {
-            "param": {
-                "template": [
-                    "南瞻部洲.png"
-                ]
-            },
-            "type": "TemplateMatch"
-        }
-    },
-    "新建节点44": {
-        "$__mpe_code": {
-            "position": {
-                "x": 11956,
-                "y": 69
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "next": [
-            "新建节点45"
-        ],
-        "recognition": {
-            "param": {
-                "template": [
-                    "世界1.png",
-                    "世界2.png",
-                    "世界3.png"
-                ]
-            },
-            "type": "TemplateMatch"
-        }
-    },
-    "新建节点45": {
-        "$__mpe_code": {
-            "position": {
-                "x": 12158,
-                "y": -150
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "next": [
-            "点击宠物养成"
-        ],
-        "recognition": {
-            "param": {
-                "template": [
-                    "须弥山.png"
-                ]
-            },
-            "type": "TemplateMatch"
-        }
-    },
-    "新建节点46": {
-        "$__mpe_code": {
-            "position": {
-                "x": 14565,
-                "y": 4
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "next": [
-            "新建节点48"
-        ],
-        "recognition": {
-            "param": {
-                "template": [
-                    "世界1.png",
-                    "世界2.png",
-                    "世界3.png"
-                ]
-            },
-            "type": "TemplateMatch"
-        }
-    },
-    "新建节点48": {
-        "$__mpe_code": {
-            "position": {
-                "x": 14909,
-                "y": -94
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "next": [
-            "点击坐骑养成"
-        ],
-        "recognition": {
-            "param": {
-                "template": [
-                    "须弥山.png"
-                ]
-            },
-            "type": "TemplateMatch"
-        }
-    },
     "暑假入口": {
         "$__mpe_code": {
             "position": {
@@ -789,10 +535,10 @@
             }
         },
         "next": [
-            "新建节点36"
+            "点击暑假来就送"
         ],
         "on_error": [
-            "联盟入口"
+            "登录入口"
         ],
         "timeout": 5000
     },
@@ -807,10 +553,10 @@
             "type": "Click"
         },
         "next": [
-            "联盟入口"
+            "登录入口"
         ],
         "on_error": [
-            "联盟入口"
+            "登录入口"
         ],
         "recognition": {
             "param": {
@@ -875,34 +621,6 @@
             "type": "TemplateMatch"
         }
     },
-    "点击世界": {
-        "$__mpe_code": {
-            "position": {
-                "x": 585,
-                "y": 263
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "next": [
-            "点击南瞻部洲"
-        ],
-        "on_error": [
-            "暑假入口"
-        ],
-        "timeout": 5000,
-        "recognition": {
-            "param": {
-                "template": [
-                    "世界1.png",
-                    "世界2.png",
-                    "世界3.png"
-                ]
-            },
-            "type": "TemplateMatch"
-        }
-    },
     "点击冒险": {
         "$__mpe_code": {
             "position": {
@@ -918,7 +636,7 @@
             "骰子关闭叉"
         ],
         "on_error": [
-            "登录入口"
+            "宠物入口"
         ],
         "timeout": 5000,
         "recognition": {
@@ -945,7 +663,7 @@
             "登录关闭叉"
         ],
         "on_error": [
-            "宠物入口"
+            "点击须弥山"
         ],
         "timeout": 5000,
         "recognition": {
@@ -968,10 +686,10 @@
             "type": "Click"
         },
         "next": [
-            "点击vip"
+            "vip每日入口"
         ],
         "on_error": [
-            "暑假入口"
+            "点击须弥山"
         ],
         "timeout": 5000,
         "recognition": {
@@ -1053,7 +771,7 @@
             "点击冒险"
         ],
         "on_error": [
-            "登录入口"
+            "宠物入口"
         ],
         "timeout": 5000,
         "recognition": {
@@ -1080,7 +798,7 @@
             "暑假关闭叉"
         ],
         "on_error": [
-            "联盟入口"
+            "登录入口"
         ],
         "recognition": {
             "param": {
@@ -1151,10 +869,10 @@
             "type": "Click"
         },
         "next": [
-            "点击联盟"
+            "联盟入口"
         ],
         "on_error": [
-            "骰子入口"
+            "领取完毕"
         ],
         "timeout": 5000,
         "recognition": {
@@ -1174,10 +892,10 @@
             }
         },
         "next": [
-            "新建节点42"
+            "点击十五天登录"
         ],
         "on_error": [
-            "宠物入口"
+            "点击须弥山"
         ],
         "timeout": 5000
     },
@@ -1192,10 +910,10 @@
             "type": "Click"
         },
         "next": [
-            "宠物入口"
+            "点击须弥山"
         ],
         "on_error": [
-            "宠物入口"
+            "点击须弥山"
         ],
         "recognition": {
             "param": {
@@ -1215,7 +933,7 @@
             }
         },
         "next": [
-            "新建节点39"
+            "点击联盟"
         ],
         "on_error": [
             "骰子入口"
@@ -1301,9 +1019,26 @@
                 "y": 453
             }
         },
+        "action": {
+            "type": "Click"
+        },
         "next": [
-            "vip每日入口"
-        ]
+            "点击南瞻部洲"
+        ],
+        "on_error": [
+            "领取完毕"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "世界1.png",
+                    "世界2.png",
+                    "世界3.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 5000
     },
     "领取完毕": {
         "$__mpe_code": {
@@ -1321,10 +1056,10 @@
             }
         },
         "next": [
-            "新建节点40"
+            "点击日常活动"
         ],
         "on_error": [
-            "登录入口"
+            "宠物入口"
         ],
         "timeout": 5000
     },
@@ -1339,10 +1074,10 @@
             "type": "Click"
         },
         "next": [
-            "登录入口"
+            "宠物入口"
         ],
         "on_error": [
-            "登录入口"
+            "宠物入口"
         ],
         "recognition": {
             "param": {

@@ -46,7 +46,7 @@
     {
       "name": "领取奖励",
       "entry": "领取奖励入口",
-      "description": "进入游戏后按顺序处理 7 项奖励/活动面板，每一项可单独开关。\n\n- 识别到对应按钮 → 点击领取 → 点右上角「叉」关闭\n- 识别不到按钮 → 直接点「叉」关闭（当天已领过也能正常跳过）",
+      "description": "自动导航到南瞻部洲 / 须弥山，按两组处理 7 项奖励/活动面板，每一项可单独开关。\n\n- 识别到对应按钮 → 点击领取 → 点右上角「叉」关闭\n- 识别不到按钮 → 跳过该项继续下一项（当天已领过也能正常跳过）\n- 界面不在（识别不到「世界」）→ 直接结束，不报错",
       "option": [
         "领取vip每日奖励",
         "领取暑假来就送奖励",
@@ -225,7 +225,7 @@
       "label": "领取vip每日奖励",
       "default_case": "Yes",
       "cases": [
-        { "name": "Yes", "pipeline_override": { "vip每日入口": { "next": ["点击世界"] } } },
+        { "name": "Yes", "pipeline_override": { "vip每日入口": { "next": ["点击vip"] } } },
         { "name": "No",  "pipeline_override": { "vip每日入口": { "next": ["暑假入口"] } } }
       ]
     },
@@ -234,8 +234,8 @@
       "label": "领取暑假来就送奖励",
       "default_case": "Yes",
       "cases": [
-        { "name": "Yes", "pipeline_override": { "暑假入口": { "next": ["新建节点36"] } } },
-        { "name": "No",  "pipeline_override": { "暑假入口": { "next": ["联盟入口"] } } }
+        { "name": "Yes", "pipeline_override": { "暑假入口": { "next": ["点击暑假来就送"] } } },
+        { "name": "No",  "pipeline_override": { "暑假入口": { "next": ["登录入口"] } } }
       ]
     },
     "进行联盟贡献": {
@@ -243,7 +243,7 @@
       "label": "进行联盟贡献",
       "default_case": "Yes",
       "cases": [
-        { "name": "Yes", "pipeline_override": { "联盟入口": { "next": ["新建节点39"] } } },
+        { "name": "Yes", "pipeline_override": { "联盟入口": { "next": ["点击联盟"] } } },
         { "name": "No",  "pipeline_override": { "联盟入口": { "next": ["骰子入口"] } } }
       ]
     },
@@ -252,8 +252,8 @@
       "label": "冒险领取骰子",
       "default_case": "Yes",
       "cases": [
-        { "name": "Yes", "pipeline_override": { "骰子入口": { "next": ["新建节点40"] } } },
-        { "name": "No",  "pipeline_override": { "骰子入口": { "next": ["登录入口"] } } }
+        { "name": "Yes", "pipeline_override": { "骰子入口": { "next": ["点击日常活动"] } } },
+        { "name": "No",  "pipeline_override": { "骰子入口": { "next": ["宠物入口"] } } }
       ]
     },
     "领取十五天登录奖励": {
@@ -261,8 +261,8 @@
       "label": "领取十五天登录奖励",
       "default_case": "Yes",
       "cases": [
-        { "name": "Yes", "pipeline_override": { "登录入口": { "next": ["新建节点42"] } } },
-        { "name": "No",  "pipeline_override": { "登录入口": { "next": ["宠物入口"] } } }
+        { "name": "Yes", "pipeline_override": { "登录入口": { "next": ["点击十五天登录"] } } },
+        { "name": "No",  "pipeline_override": { "登录入口": { "next": ["点击须弥山"] } } }
       ]
     },
     "领取宠物养成并重新采集": {
@@ -270,7 +270,7 @@
       "label": "领取宠物养成并重新采集",
       "default_case": "Yes",
       "cases": [
-        { "name": "Yes", "pipeline_override": { "宠物入口": { "next": ["新建节点44"] } } },
+        { "name": "Yes", "pipeline_override": { "宠物入口": { "next": ["点击宠物养成"] } } },
         { "name": "No",  "pipeline_override": { "宠物入口": { "next": ["坐骑入口"] } } }
       ]
     },
@@ -279,7 +279,7 @@
       "label": "领取坐骑养成并重新采集",
       "default_case": "Yes",
       "cases": [
-        { "name": "Yes", "pipeline_override": { "坐骑入口": { "next": ["新建节点46"] } } },
+        { "name": "Yes", "pipeline_override": { "坐骑入口": { "next": ["点击坐骑养成"] } } },
         { "name": "No",  "pipeline_override": { "坐骑入口": { "next": ["领取完毕"] } } }
       ]
     }
