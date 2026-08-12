@@ -1,43 +1,58 @@
-<!-- markdownlint-disable MD033 MD041 -->
-<p align="center">
-  <img alt="LOGO" src="https://cdn.jsdelivr.net/gh/MaaAssistantArknights/design@main/v1/icons/maa-logo_512x512.png" width="256" height="256" />
-</p>
+# MAA造梦西游4 (MAAZMXY4)
 
-<div align="center">
+基于 **MaaFramework** 的《造梦西游4》自动化脚本，运行在 **造梦盒子** 客户端上。
 
-# MaaPracticeBoilerplate
+> 本项目基于 [MaaFramework](https://github.com/MaaXYZ/MaaFramework) 项目模板创建。
 
-</div>
+## ✨ 功能
 
-本仓库为 [MaaFramework](https://github.com/MaaXYZ/MaaFramework) 所提供的项目模板，开发者可基于此模板直接创建自己的 MaaXXX 项目。
+| 任务 | 说明 |
+|---|---|
+| **进入游戏** | 自动选择账号 → 进入游戏 → 点击开始游戏 → 选择存档 |
+| **刷取灵魂** | 自动刷取灵魂（剑阵+法宝秒杀遁地大盗），支持循环次数、卡死自动重启 |
+| **领取奖励** | 进入游戏后依次处理 7 项奖励/活动，每项可单独开关 |
 
-> **MaaFramework** 是基于图像识别技术、运用 [MAA](https://github.com/MaaAssistantArknights/MaaAssistantArknights) 开发经验去芜存菁、完全重写的新一代自动化黑盒测试框架。
-> 低代码的同时仍拥有高扩展性，旨在打造一款丰富、领先、且实用的开源库，助力开发者轻松编写出更好的黑盒测试程序，并推广普及。
+**领取奖励 7 项**：
+1. 领取 VIP 每日奖励
+2. 领取暑假来就送奖励
+3. 进行联盟贡献
+4. 冒险领取骰子
+5. 领取十五天登录奖励
+6. 领取宠物养成并重新采集
+7. 领取坐骑养成并重新采集
 
-## 即刻开始
+## 📦 使用
 
-**请不要直接克隆本仓库！你应该通过模板创建自己的项目！**  
+从 **Releases** 下载最新版压缩包，解压后运行 `MAA造梦西游4.exe`，在 **MFA 任务管理器** 中配置：
 
-请阅读 [如何开发](./docs/zh_cn/develop/how_to_develop.md)。
+- **账号名称** / **存档序号**（进入游戏用）
+- **循环次数** / **卡死重启**（刷取灵魂用）
+- 7 项奖励开关（领取奖励用）
 
-向本模板仓库提交改动前，请阅读 [PR 规范](./docs/zh_cn/develop/pull_request_guidelines.md)。
+> 游戏需通过 **造梦盒子** 客户端启动，脚本基于窗口截图识别。
 
-## 生态共建
+## 📁 项目结构
 
-MAA 正计划建设为一类项目，而非舟的单一软件。
+```
+assets/
+├── interface.json      # 界面配置（任务、选项、版本、GitHub 自动更新）
+└── resource/base/      # 流水线(pipeline) + 模板图片(image) + OCR模型(model)
+```
 
-若您的项目依赖于 MaaFramework，我们欢迎您将它命名为 MaaXXX, MXA, MAX 等等。当然，这是许可而不是限制，您也可以自由选择其他与 MAA 无关的名字，完全取决于您自己的想法！
+> 根目录的 `interface.json` 和 `resource/` 是本仓库 Release 中随应用分发的本地运行副本，不入库；**脚本以 `assets/` 为规范目录**。
 
-同时，我们也非常欢迎您提出 PR，在 [社区项目列表](https://github.com/MaaXYZ/MaaFramework#%E7%A4%BE%E5%8C%BA%E9%A1%B9%E7%9B%AE) 中添加上您的项目！
+## 🔧 开发
 
-## 常见问题
+- 用 [MaaPE](https://github.com/MaaXYZ/MaaPE) 可视化编辑流水线（`assets/resource/base/pipeline/`）
+- 界面配置在 `assets/interface.json`
+- 资源校验：`npx @nekosu/maa-tools check`（CI 会自动执行）
 
-请阅读 [常见问题](./docs/zh_cn/develop/faq.md)。
+## 📄 版本
 
-## 鸣谢
+- **v0.3** — 当前版本
 
-本项目由 **[MaaFramework](https://github.com/MaaXYZ/MaaFramework)** 强力驱动！
+## 🙏 感谢
 
-感谢以下开发者对本项目作出的贡献（下面链接改成你自己的项目地址）:
-
-[![Contributors](https://contrib.rocks/image?repo=MaaXYZ/MaaFramework&max=1000)](https://github.com/MaaXYZ/MaaFramework/graphs/contributors)
+- [MaaFramework](https://github.com/MaaXYZ/MaaFramework)
+- [MFAAvalonia](https://github.com/MaaXYZ/MFAAvalonia)
+- [MaaPE](https://github.com/MaaXYZ/MaaPE)

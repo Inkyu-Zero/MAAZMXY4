@@ -1,0 +1,1347 @@
+{
+    "$__mpe_config_领取奖励": {
+        "$__mpe_code": {
+            "coordinateMode": "absolute-v1",
+            "filePath": "C:\\Users\\k1508\\Desktop\\Maa\\MAAPE\\runtime\\resource\\pipeline\\领取奖励.json",
+            "filename": "领取奖励",
+            "isDeleted": true,
+            "isModifiedExternally": false,
+            "lastSyncTime": 1786479984948,
+            "prefix": "",
+            "savedViewport": {
+                "x": -11589,
+                "y": 134,
+                "zoom": 0.82
+            },
+            "version": "v1.7.6"
+        }
+    },
+    "vip每日入口": {
+        "$__mpe_code": {
+            "position": {
+                "x": 298,
+                "y": 389
+            }
+        },
+        "next": [
+            "点击世界"
+        ],
+        "on_error": [
+            "暑假入口"
+        ],
+        "timeout": 10000
+    },
+    "vip每日关闭叉": {
+        "$__mpe_code": {
+            "position": {
+                "x": 2215,
+                "y": 320
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "暑假入口"
+        ],
+        "on_error": [
+            "暑假入口"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "叉.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 4000
+    },
+    "vip每日领取": {
+        "$__mpe_code": {
+            "position": {
+                "x": 1634,
+                "y": 103
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "vip每日关闭叉"
+        ],
+        "on_error": [
+            "vip每日关闭叉"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "vip每日奖励.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 4000
+    },
+    "十五天登录领取": {
+        "$__mpe_code": {
+            "position": {
+                "x": 10814,
+                "y": -79
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "登录关闭叉"
+        ],
+        "on_error": [
+            "登录关闭叉"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "十五天登录领取.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 4000
+    },
+    "坐骑入口": {
+        "$__mpe_code": {
+            "position": {
+                "x": 14321,
+                "y": 115
+            }
+        },
+        "next": [
+            "新建节点46"
+        ],
+        "on_error": [
+            "领取完毕"
+        ],
+        "timeout": 5000
+    },
+    "坐骑关闭叉": {
+        "$__mpe_code": {
+            "position": {
+                "x": 16184,
+                "y": 67
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "领取完毕"
+        ],
+        "on_error": [
+            "领取完毕"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "叉.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 4000
+    },
+    "坐骑采集1": {
+        "$__mpe_code": {
+            "position": {
+                "x": 15412,
+                "y": 447
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "坐骑采集2"
+        ],
+        "on_error": [
+            "坐骑采集2"
+        ],
+        "post_delay": 1000,
+        "recognition": {
+            "param": {
+                "template": [
+                    "采集按钮.png"
+                ],
+                "threshold": 0.92
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 3000
+    },
+    "坐骑采集2": {
+        "$__mpe_code": {
+            "position": {
+                "x": 15301,
+                "y": 454
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "坐骑采集3"
+        ],
+        "on_error": [
+            "坐骑采集3"
+        ],
+        "post_delay": 1000,
+        "recognition": {
+            "param": {
+                "template": [
+                    "采集按钮.png"
+                ],
+                "threshold": 0.92
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 3000
+    },
+    "坐骑采集3": {
+        "$__mpe_code": {
+            "position": {
+                "x": 15315,
+                "y": 480
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "坐骑关闭叉"
+        ],
+        "on_error": [
+            "坐骑关闭叉"
+        ],
+        "post_delay": 1000,
+        "recognition": {
+            "param": {
+                "template": [
+                    "采集按钮.png"
+                ],
+                "threshold": 0.92
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 3000
+    },
+    "坐骑领取1": {
+        "$__mpe_code": {
+            "position": {
+                "x": 15353,
+                "y": 168
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "坐骑领取2"
+        ],
+        "on_error": [
+            "坐骑采集1"
+        ],
+        "post_delay": 1000,
+        "recognition": {
+            "param": {
+                "template": [
+                    "领取按钮.png"
+                ],
+                "threshold": 0.92
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 3000
+    },
+    "坐骑领取2": {
+        "$__mpe_code": {
+            "position": {
+                "x": 15262,
+                "y": 350
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "坐骑领取3"
+        ],
+        "on_error": [
+            "坐骑采集1"
+        ],
+        "post_delay": 1000,
+        "recognition": {
+            "param": {
+                "template": [
+                    "领取按钮.png"
+                ],
+                "threshold": 0.92
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 3000
+    },
+    "坐骑领取3": {
+        "$__mpe_code": {
+            "position": {
+                "x": 15286,
+                "y": 368
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "坐骑采集1"
+        ],
+        "on_error": [
+            "坐骑采集1"
+        ],
+        "post_delay": 1000,
+        "recognition": {
+            "param": {
+                "template": [
+                    "领取按钮.png"
+                ],
+                "threshold": 0.92
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 3000
+    },
+    "宠物入口": {
+        "$__mpe_code": {
+            "position": {
+                "x": 11671,
+                "y": 183
+            }
+        },
+        "next": [
+            "新建节点44"
+        ],
+        "on_error": [
+            "坐骑入口"
+        ],
+        "timeout": 5000
+    },
+    "宠物关闭叉": {
+        "$__mpe_code": {
+            "position": {
+                "x": 13585,
+                "y": 109
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "坐骑入口"
+        ],
+        "on_error": [
+            "坐骑入口"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "叉.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 4000
+    },
+    "宠物采集1": {
+        "$__mpe_code": {
+            "position": {
+                "x": 12473,
+                "y": 575
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "宠物采集2"
+        ],
+        "on_error": [
+            "宠物采集2"
+        ],
+        "post_delay": 1000,
+        "recognition": {
+            "param": {
+                "template": [
+                    "采集按钮.png"
+                ],
+                "threshold": 0.92
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 3000
+    },
+    "宠物采集2": {
+        "$__mpe_code": {
+            "position": {
+                "x": 12098,
+                "y": 551
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "宠物采集3"
+        ],
+        "on_error": [
+            "宠物采集3"
+        ],
+        "post_delay": 1000,
+        "recognition": {
+            "param": {
+                "template": [
+                    "采集按钮.png"
+                ],
+                "threshold": 0.92
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 3000
+    },
+    "宠物采集3": {
+        "$__mpe_code": {
+            "position": {
+                "x": 12789,
+                "y": 650
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "宠物关闭叉"
+        ],
+        "on_error": [
+            "宠物关闭叉"
+        ],
+        "post_delay": 1000,
+        "recognition": {
+            "param": {
+                "template": [
+                    "采集按钮.png"
+                ],
+                "threshold": 0.92
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 3000
+    },
+    "宠物领取1": {
+        "$__mpe_code": {
+            "position": {
+                "x": 12811,
+                "y": -59
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "宠物领取2"
+        ],
+        "on_error": [
+            "宠物采集1"
+        ],
+        "post_delay": 1000,
+        "recognition": {
+            "param": {
+                "template": [
+                    "领取按钮.png"
+                ],
+                "threshold": 0.92
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 3000
+    },
+    "宠物领取2": {
+        "$__mpe_code": {
+            "position": {
+                "x": 12523,
+                "y": 261
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "宠物领取3"
+        ],
+        "on_error": [
+            "宠物采集1"
+        ],
+        "post_delay": 1000,
+        "recognition": {
+            "param": {
+                "template": [
+                    "领取按钮.png"
+                ],
+                "threshold": 0.92
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 3000
+    },
+    "宠物领取3": {
+        "$__mpe_code": {
+            "position": {
+                "x": 13097,
+                "y": 344
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "宠物采集1"
+        ],
+        "on_error": [
+            "宠物采集1"
+        ],
+        "post_delay": 1000,
+        "recognition": {
+            "param": {
+                "template": [
+                    "领取按钮.png"
+                ],
+                "threshold": 0.92
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 3000
+    },
+    "新建节点36": {
+        "$__mpe_code": {
+            "position": {
+                "x": 2891,
+                "y": 284
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "新建节点37"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "世界1.png",
+                    "世界2.png",
+                    "世界3.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        }
+    },
+    "新建节点37": {
+        "$__mpe_code": {
+            "position": {
+                "x": 3136,
+                "y": 218
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "点击暑假来就送"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "南瞻部洲.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        }
+    },
+    "新建节点39": {
+        "$__mpe_code": {
+            "position": {
+                "x": 5328,
+                "y": 210
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "点击须弥山"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "世界1.png",
+                    "世界2.png",
+                    "世界3.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        }
+    },
+    "新建节点40": {
+        "$__mpe_code": {
+            "position": {
+                "x": 7856,
+                "y": 143
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "新建节点41"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "世界1.png",
+                    "世界2.png",
+                    "世界3.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        }
+    },
+    "新建节点41": {
+        "$__mpe_code": {
+            "position": {
+                "x": 8099,
+                "y": 89
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "点击日常活动"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "须弥山.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        }
+    },
+    "新建节点42": {
+        "$__mpe_code": {
+            "position": {
+                "x": 9907,
+                "y": 39
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "新建节点43"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "世界1.png",
+                    "世界2.png",
+                    "世界3.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        }
+    },
+    "新建节点43": {
+        "$__mpe_code": {
+            "position": {
+                "x": 10186,
+                "y": 95
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "点击十五天登录"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "南瞻部洲.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        }
+    },
+    "新建节点44": {
+        "$__mpe_code": {
+            "position": {
+                "x": 11956,
+                "y": 69
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "新建节点45"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "世界1.png",
+                    "世界2.png",
+                    "世界3.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        }
+    },
+    "新建节点45": {
+        "$__mpe_code": {
+            "position": {
+                "x": 12158,
+                "y": -150
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "点击宠物养成"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "须弥山.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        }
+    },
+    "新建节点46": {
+        "$__mpe_code": {
+            "position": {
+                "x": 14565,
+                "y": 4
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "新建节点48"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "世界1.png",
+                    "世界2.png",
+                    "世界3.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        }
+    },
+    "新建节点48": {
+        "$__mpe_code": {
+            "position": {
+                "x": 14909,
+                "y": -94
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "点击坐骑养成"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "须弥山.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        }
+    },
+    "暑假入口": {
+        "$__mpe_code": {
+            "position": {
+                "x": 2638,
+                "y": 345
+            }
+        },
+        "next": [
+            "新建节点36"
+        ],
+        "on_error": [
+            "联盟入口"
+        ],
+        "timeout": 5000
+    },
+    "暑假关闭叉": {
+        "$__mpe_code": {
+            "position": {
+                "x": 4632,
+                "y": 272
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "联盟入口"
+        ],
+        "on_error": [
+            "联盟入口"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "叉.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 4000
+    },
+    "暑假领取": {
+        "$__mpe_code": {
+            "position": {
+                "x": 3942,
+                "y": 75
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "暑假关闭叉"
+        ],
+        "on_error": [
+            "暑假关闭叉"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "暑假来就送奖励.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 4000
+    },
+    "点击vip": {
+        "$__mpe_code": {
+            "position": {
+                "x": 1145,
+                "y": 271
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "vip每日领取",
+            "vip每日关闭叉"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "vip.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        }
+    },
+    "点击世界": {
+        "$__mpe_code": {
+            "position": {
+                "x": 585,
+                "y": 263
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "点击南瞻部洲"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "世界1.png",
+                    "世界2.png",
+                    "世界3.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        }
+    },
+    "点击冒险": {
+        "$__mpe_code": {
+            "position": {
+                "x": 8615,
+                "y": 68
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "骰子领取",
+            "骰子关闭叉"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "冒险.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        }
+    },
+    "点击十五天登录": {
+        "$__mpe_code": {
+            "position": {
+                "x": 10537,
+                "y": 89
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "十五天登录领取",
+            "登录关闭叉"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "十五天登录.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        }
+    },
+    "点击南瞻部洲": {
+        "$__mpe_code": {
+            "position": {
+                "x": 831,
+                "y": 250
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "点击vip"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "南瞻部洲.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        }
+    },
+    "点击坐骑养成": {
+        "$__mpe_code": {
+            "position": {
+                "x": 15292,
+                "y": -144
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "坐骑领取1",
+            "坐骑采集1"
+        ],
+        "on_error": [
+            "坐骑关闭叉"
+        ],
+        "timeout": 8000,
+        "post_delay": 2000,
+        "recognition": {
+            "param": {
+                "template": [
+                    "坐骑养成.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        }
+    },
+    "点击宠物养成": {
+        "$__mpe_code": {
+            "position": {
+                "x": 12419,
+                "y": -230
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "宠物领取1",
+            "宠物采集1"
+        ],
+        "on_error": [
+            "宠物关闭叉"
+        ],
+        "timeout": 8000,
+        "post_delay": 2000,
+        "recognition": {
+            "param": {
+                "template": [
+                    "宠物养成.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        }
+    },
+    "点击日常活动": {
+        "$__mpe_code": {
+            "position": {
+                "x": 8390,
+                "y": 131
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "点击冒险"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "日常活动.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        }
+    },
+    "点击暑假来就送": {
+        "$__mpe_code": {
+            "position": {
+                "x": 3476,
+                "y": 267
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "暑假领取",
+            "暑假关闭叉"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "暑假来就送.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        }
+    },
+    "点击联盟": {
+        "$__mpe_code": {
+            "position": {
+                "x": 5984,
+                "y": 204
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "点击联盟贡献"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "联盟.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        }
+    },
+    "点击联盟贡献": {
+        "$__mpe_code": {
+            "position": {
+                "x": 6264,
+                "y": 9
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "联盟领取"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "联盟贡献.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        }
+    },
+    "点击须弥山": {
+        "$__mpe_code": {
+            "position": {
+                "x": 5668,
+                "y": 218
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "点击联盟"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "须弥山.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        }
+    },
+    "登录入口": {
+        "$__mpe_code": {
+            "position": {
+                "x": 9547,
+                "y": 227
+            }
+        },
+        "next": [
+            "新建节点42"
+        ],
+        "on_error": [
+            "宠物入口"
+        ],
+        "timeout": 5000
+    },
+    "登录关闭叉": {
+        "$__mpe_code": {
+            "position": {
+                "x": 11384,
+                "y": 156
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "宠物入口"
+        ],
+        "on_error": [
+            "宠物入口"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "叉.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 4000
+    },
+    "联盟入口": {
+        "$__mpe_code": {
+            "position": {
+                "x": 5079,
+                "y": 321
+            }
+        },
+        "next": [
+            "新建节点39"
+        ],
+        "on_error": [
+            "骰子入口"
+        ],
+        "timeout": 5000
+    },
+    "联盟关闭叉": {
+        "$__mpe_code": {
+            "position": {
+                "x": 7131,
+                "y": 102
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "骰子入口"
+        ],
+        "on_error": [
+            "骰子入口"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "叉.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 4000
+    },
+    "联盟贡献关闭叉": {
+        "$__mpe_code": {
+            "position": {
+                "x": 6805,
+                "y": 115
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "联盟关闭叉"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "叉.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 4000
+    },
+    "联盟领取": {
+        "$__mpe_code": {
+            "position": {
+                "x": 6544,
+                "y": -13
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "联盟贡献关闭叉"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "灵魂贡献.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 4000
+    },
+    "领取奖励入口": {
+        "$__mpe_code": {
+            "position": {
+                "x": 12,
+                "y": 453
+            }
+        },
+        "next": [
+            "vip每日入口"
+        ]
+    },
+    "领取完毕": {
+        "$__mpe_code": {
+            "position": {
+                "x": 16954,
+                "y": 184
+            }
+        }
+    },
+    "骰子入口": {
+        "$__mpe_code": {
+            "position": {
+                "x": 7563,
+                "y": 281
+            }
+        },
+        "next": [
+            "新建节点40"
+        ],
+        "on_error": [
+            "登录入口"
+        ],
+        "timeout": 5000
+    },
+    "骰子关闭叉": {
+        "$__mpe_code": {
+            "position": {
+                "x": 9200,
+                "y": 185
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "登录入口"
+        ],
+        "on_error": [
+            "登录入口"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "叉.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 4000
+    },
+    "骰子领取": {
+        "$__mpe_code": {
+            "position": {
+                "x": 8894,
+                "y": 1
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "骰子关闭叉"
+        ],
+        "on_error": [
+            "骰子关闭叉"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "冒险骰子.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 4000
+    }
+}

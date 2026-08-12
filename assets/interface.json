@@ -1,109 +1,280 @@
 {
-    // 本文件主要定义了通用 UI 的行为和显示内容
-    // 可参考文档和示例添加更多您需要的功能
-    // 文档：https://maafw.xyz/docs/3.3-ProjectInterfaceV2
-    // 示例：https://github.com/MaaXYZ/MaaFramework/blob/main/sample/interface.json
-    "interface_version": 2,
-    "name": "MaaXXX",
-    "description": "这是一个使用 MaaFramework 创建的新项目。",
-    "contact": "QQ群: 123456789",
-    "license": "MIT",
-    "welcome": "首次使用！欢迎使用 MAA!",
-    // 填写项目地址和版本号可实现自动更新功能
-    "github": "https://github.com/MaaXYZ/MaaPracticeBoilerplate",
-    "version": "1.0.0",
-    // Mirror酱为第三方分发服务，新项目默认关闭
-    // 若有需要请联系 Mirror酱 开通，直接自行开启是无法使用的
-    // "mirrorchyan_rid": "MaaXXX",
-    // "mirrorchyan_multiplatform": true,
-    "controller": [
-        {
-            "name": "安卓端",
-            "type": "Adb",
-            "display_short_side": 720 // 默认缩放分辨率的短边长度
-        },
-        {
-            "name": "桌面端",
-            "type": "Win32",
-            "win32": {
-                "class_regex": ".*",
-                "window_regex": "Visual Studio",
-                // 截图及控制方式，请根据项目实际情况修改
-                // 文档: https://maafw.xyz/docs/2.4-ControlMethods
-                "screencap": "PrintWindow", // 截图方式
-                "mouse": "PostMessageWithCursorPos", // 鼠标控制方式
-                "keyboard": "PostMessageWithCursorPos" // 键盘控制方式
-            }
-        }
-    ],
-    "resource": [
-        {
-            "name": "官服",
-            "path": [
-                "./resource"
-            ]
-        },
-        {
-            "name": "B 服",
-            "path": [
-                "./resource"
-                // "./resource_bilibili"
-            ]
-        }
-    ],
-    // 可选的 agent 示例
-    // "agent": {
-    //     "child_exec": "python",
-    //     "child_args": [
-    //         "./agent/main.py"
-    //     ]
-    // },
-    "task": [
-        {
-            "name": "普通任务",
-            "entry": "MyTask1"
-        },
-        {
-            "name": "选项任务",
-            "entry": "MyTask2",
-            "option": [
-                "任务选项1"
-            ]
-        },
-        {
-            "name": "参数任务",
-            "entry": "MyTask3",
-            "option": [
-                "任务选项1"
-            ],
-            "pipeline_override": {}
-        },
-        {
-            "name": "带Custom的任务",
-            "entry": "MyTask4"
-        }
-    ],
-    "option": {
-        "任务选项1": {
-            "type": "select",
-            "cases": [
-                {
-                    "name": "文本1",
-                    "pipeline_override": {
-                        "OcrTask": {
-                            "text": "文本1"
-                        }
-                    }
-                },
-                {
-                    "name": "文本2",
-                    "pipeline_override": {
-                        "OcrTask": {
-                            "text": "文本2"
-                        }
-                    }
-                }
-            ]
-        }
+  "interface_version": 2,
+  "name": "MAA造梦西游4",
+  "label": "MAAZMXY4",
+  "github": "https://github.com/Inkyu-Zero/MAAZMXY4",
+  "version": "0.3",
+  "resource": [
+    {
+      "name": "默认",
+      "path": "./resource/base",
+      "DisplayName": "",
+      "DisplayDescription": ""
     }
+  ],
+  "task": [
+    {
+      "name": "进入游戏",
+      "type": "pipeline",
+      "entry": "点击账号",
+      "description": "自动登录并进入游戏。\n\n**使用前**：在上方设置「账号名称」和「存档序号」（1-8）。\n流程：选账号 → 进游戏 → 点开始游戏 → 选存档",
+      "option": [
+        "账号名称",
+        "存档序号"
+      ]
+    },
+    {
+      "name": "刷取灵魂",
+      "type": "pipeline",
+      "entry": "刷取次数",
+      "description": "自动刷取灵魂，直到刷满「循环次数」轮或灵魂数读满。\n\n- **循环次数**：刷几轮后停止\n- **卡死重启**：开=卡死/失败时自动 ESC 重启并重登（最多3次）\n\n**使用前**：确认已进游戏，并在上方设置「循环次数」「账号名称」「存档序号」。\n\n- **目前只支持剑阵+法宝秒杀大盗**",
+      "option": [
+        "循环次数",
+        "账号名称",
+        "存档序号",
+        "卡死重启"
+      ]
+    },
+    {
+      "name": "领取奖励",
+      "type": "pipeline",
+      "entry": "领取奖励入口",
+      "description": "进入游戏后按顺序处理 7 项奖励/活动面板，每一项可单独开关。\n\n- 识别到对应按钮 → 点击领取 → 点右上角「叉」关闭\n- 识别不到按钮 → 直接点「叉」关闭（当天已领过也能正常跳过）",
+      "option": [
+        "领取vip每日奖励",
+        "领取暑假来就送奖励",
+        "进行联盟贡献",
+        "冒险领取骰子",
+        "领取十五天登录奖励",
+        "领取宠物养成并重新采集",
+        "领取坐骑养成并重新采集"
+      ]
+    }
+  ],
+  "option": {
+    "账号名称": {
+      "type": "input",
+      "inputs": [
+        {
+          "name": "账号名称",
+          "pipeline_type": "string"
+        }
+      ],
+      "pipeline_override": {
+        "选择账号": {
+          "expected": "{账号名称}"
+        },
+        "重进选择账号": {
+          "expected": "{账号名称}"
+        }
+      }
+    },
+    "存档序号": {
+      "type": "input",
+      "inputs": [
+        {
+          "name": "存档序号",
+          "pipeline_type": "int",
+          "default": "1",
+          "verify": "^[1-8]$"
+        }
+      ],
+      "pipeline_override": {
+        "选择存档": {
+          "recognition": {
+            "param": {
+              "template": [
+                "存档{存档序号}.png"
+              ]
+            }
+          }
+        },
+        "重进选择存档": {
+          "recognition": {
+            "param": {
+              "template": [
+                "存档{存档序号}.png"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "循环次数": {
+      "type": "input",
+      "inputs": [
+        {
+          "name": "循环次数",
+          "pipeline_type": "int",
+          "default": "1",
+          "verify": "^[1-9][0-9]*$"
+        }
+      ],
+      "pipeline_override": {
+        "刷取次数": {
+          "max_hit": "{循环次数}"
+        }
+      }
+    },
+    "卡死重启": {
+      "type": "switch",
+      "label": "卡死/失败自动重启",
+      "description": "刷取过程中游戏卡死或任务失败时，自动按 ESC → 确定 → 重新登录继续刷取；重启满 3 次仍失败则停止。",
+      "default_case": "No",
+      "cases": [
+        {
+          "name": "Yes",
+          "pipeline_override": {
+            "刷取次数": {
+              "on_error": [
+                "重启判断"
+              ]
+            },
+            "点击任务": {
+              "on_error": [
+                "重启判断"
+              ]
+            },
+            "点击悬赏任务": {
+              "on_error": [
+                "重启判断"
+              ]
+            },
+            "点击前往副本": {
+              "on_error": [
+                "重启判断"
+              ]
+            },
+            "成功进入遁地大盗关卡": {
+              "on_error": [
+                "重启判断"
+              ]
+            },
+            "点击C关闭背包": {
+              "on_error": [
+                "重启判断"
+              ]
+            },
+            "使用法宝": {
+              "on_error": [
+                "重启判断"
+              ]
+            },
+            "使用剑阵": {
+              "on_error": [
+                "重启判断"
+              ]
+            },
+            "遁地大盗死亡": {
+              "on_error": [
+                "重启判断"
+              ]
+            },
+            "点击设置": {
+              "on_error": [
+                "重启判断"
+              ]
+            },
+            "返回地图": {
+              "on_error": [
+                "重启判断"
+              ]
+            },
+            "重进确定": {
+              "on_error": [
+                "重启判断"
+              ]
+            },
+            "重进点击账号": {
+              "on_error": [
+                "重启判断"
+              ]
+            },
+            "重进选择账号": {
+              "on_error": [
+                "重启判断"
+              ]
+            },
+            "重进进入造梦西游4": {
+              "on_error": [
+                "重启判断"
+              ]
+            },
+            "重进点击开始游戏": {
+              "on_error": [
+                "重启判断"
+              ]
+            }
+          }
+        },
+        {
+          "name": "No",
+          "pipeline_override": {}
+        }
+      ]
+    },
+    "领取vip每日奖励": {
+      "type": "switch",
+      "label": "领取vip每日奖励",
+      "default_case": "Yes",
+      "cases": [
+        { "name": "Yes", "pipeline_override": { "vip每日入口": { "next": ["点击世界"] } } },
+        { "name": "No",  "pipeline_override": { "vip每日入口": { "next": ["暑假入口"] } } }
+      ]
+    },
+    "领取暑假来就送奖励": {
+      "type": "switch",
+      "label": "领取暑假来就送奖励",
+      "default_case": "Yes",
+      "cases": [
+        { "name": "Yes", "pipeline_override": { "暑假入口": { "next": ["新建节点36"] } } },
+        { "name": "No",  "pipeline_override": { "暑假入口": { "next": ["联盟入口"] } } }
+      ]
+    },
+    "进行联盟贡献": {
+      "type": "switch",
+      "label": "进行联盟贡献",
+      "default_case": "Yes",
+      "cases": [
+        { "name": "Yes", "pipeline_override": { "联盟入口": { "next": ["新建节点39"] } } },
+        { "name": "No",  "pipeline_override": { "联盟入口": { "next": ["骰子入口"] } } }
+      ]
+    },
+    "冒险领取骰子": {
+      "type": "switch",
+      "label": "冒险领取骰子",
+      "default_case": "Yes",
+      "cases": [
+        { "name": "Yes", "pipeline_override": { "骰子入口": { "next": ["新建节点40"] } } },
+        { "name": "No",  "pipeline_override": { "骰子入口": { "next": ["登录入口"] } } }
+      ]
+    },
+    "领取十五天登录奖励": {
+      "type": "switch",
+      "label": "领取十五天登录奖励",
+      "default_case": "Yes",
+      "cases": [
+        { "name": "Yes", "pipeline_override": { "登录入口": { "next": ["新建节点42"] } } },
+        { "name": "No",  "pipeline_override": { "登录入口": { "next": ["宠物入口"] } } }
+      ]
+    },
+    "领取宠物养成并重新采集": {
+      "type": "switch",
+      "label": "领取宠物养成并重新采集",
+      "default_case": "Yes",
+      "cases": [
+        { "name": "Yes", "pipeline_override": { "宠物入口": { "next": ["新建节点44"] } } },
+        { "name": "No",  "pipeline_override": { "宠物入口": { "next": ["坐骑入口"] } } }
+      ]
+    },
+    "领取坐骑养成并重新采集": {
+      "type": "switch",
+      "label": "领取坐骑养成并重新采集",
+      "default_case": "Yes",
+      "cases": [
+        { "name": "Yes", "pipeline_override": { "坐骑入口": { "next": ["新建节点46"] } } },
+        { "name": "No",  "pipeline_override": { "坐骑入口": { "next": ["领取完毕"] } } }
+      ]
+    }
+  }
 }

@@ -452,3 +452,24 @@ tools/ImageCropper/**/*.png
 
 config
 debug
+# ===== 本地运行副本（脚本以 assets/ 为规范目录，不入库）=====
+/interface.json
+/resource/
+/config/
+appsettings.json
+MFAAvalonia.dll
+libloader.dll
+MFAAvalonia.deps.json
+MFAAvalonia.runtimeconfig.json
+DependencySetup_依赖库安装_win.bat
+debug/
+logs/
+temp/
+backup/
+agent/
+libs/
+runtimes/
+plugins/
+*.bak
+
+*.ico

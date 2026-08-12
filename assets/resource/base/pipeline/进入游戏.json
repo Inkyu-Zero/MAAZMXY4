@@ -1,0 +1,169 @@
+{
+    "$__mpe_config_进入游戏": {
+        "$__mpe_code": {
+            "coordinateMode": "absolute-v1",
+            "filePath": "C:\\Users\\k1508\\Desktop\\Maa\\MAAPE\\进入游戏.json",
+            "filename": "进入游戏",
+            "isDeleted": true,
+            "lastSyncTime": 1786461600624,
+            "prefix": "",
+            "savedViewport": {
+                "x": 366,
+                "y": 287,
+                "zoom": 0.99
+            },
+            "version": "v1.7.6"
+        }
+    },
+    "点击开始游戏": {
+        "$__mpe_code": {
+            "position": {
+                "x": 496,
+                "y": -8
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "选择存档"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "开始游戏.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        }
+    },
+    "点击账号": {
+        "$__mpe_code": {
+            "position": {
+                "x": -341,
+                "y": -46
+            }
+        },
+        "action": {
+            "param": {
+                "target": [
+                    475,
+                    141,
+                    205,
+                    48
+                ]
+            },
+            "type": "Click"
+        },
+        "next": [
+            "选择账号"
+        ],
+        "timeout": 20000
+    },
+    "进入造梦西游4": {
+        "$__mpe_code": {
+            "position": {
+                "x": 230,
+                "y": -9
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "点击开始游戏"
+        ],
+        "recognition": {
+            "param": {
+                "expected": [
+                    "造梦西游4"
+                ]
+            },
+            "type": "OCR"
+        }
+    },
+    "选择存档": {
+        "$__mpe_code": {
+            "position": {
+                "x": 766,
+                "y": 14
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "关闭活动面板"
+        ],
+        "timeout": 10000,
+        "on_error": [
+            "结束"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "存档1.png"
+                ],
+                "threshold": 0.95
+            },
+            "type": "TemplateMatch"
+        }
+    },
+    "关闭活动面板": {
+        "$__mpe_code": {
+            "position": {
+                "x": 973,
+                "y": 14
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "结束"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "叉.png"
+                ],
+                "threshold": 0.8
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 1000
+    },
+    "结束": {
+        "$__mpe_code": {
+            "position": {
+                "x": 1180,
+                "y": 14
+            }
+        },
+        "recognition": {
+            "type": "DirectHit"
+        }
+    },
+    "选择账号": {
+        "$__mpe_code": {
+            "position": {
+                "x": -48,
+                "y": -20
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "进入造梦西游4"
+        ],
+        "recognition": {
+            "param": {
+                "expected": [
+                    "{自定义文字}"
+                ]
+            },
+            "type": "OCR"
+        }
+    }
+}
