@@ -862,6 +862,10 @@
             "vip每日领取",
             "vip每日关闭叉"
         ],
+        "on_error": [
+            "暑假入口"
+        ],
+        "timeout": 5000,
         "recognition": {
             "param": {
                 "template": [
@@ -884,6 +888,10 @@
         "next": [
             "点击南瞻部洲"
         ],
+        "on_error": [
+            "暑假入口"
+        ],
+        "timeout": 5000,
         "recognition": {
             "param": {
                 "template": [
@@ -909,6 +917,10 @@
             "骰子领取",
             "骰子关闭叉"
         ],
+        "on_error": [
+            "登录入口"
+        ],
+        "timeout": 5000,
         "recognition": {
             "param": {
                 "template": [
@@ -932,6 +944,10 @@
             "十五天登录领取",
             "登录关闭叉"
         ],
+        "on_error": [
+            "宠物入口"
+        ],
+        "timeout": 5000,
         "recognition": {
             "param": {
                 "template": [
@@ -954,6 +970,10 @@
         "next": [
             "点击vip"
         ],
+        "on_error": [
+            "暑假入口"
+        ],
+        "timeout": 5000,
         "recognition": {
             "param": {
                 "template": [
@@ -978,7 +998,7 @@
             "坐骑采集1"
         ],
         "on_error": [
-            "坐骑关闭叉"
+            "领取完毕"
         ],
         "timeout": 8000,
         "post_delay": 2000,
@@ -1006,7 +1026,7 @@
             "宠物采集1"
         ],
         "on_error": [
-            "宠物关闭叉"
+            "坐骑入口"
         ],
         "timeout": 8000,
         "post_delay": 2000,
@@ -1032,6 +1052,10 @@
         "next": [
             "点击冒险"
         ],
+        "on_error": [
+            "登录入口"
+        ],
+        "timeout": 5000,
         "recognition": {
             "param": {
                 "template": [
@@ -1081,6 +1105,10 @@
         "next": [
             "点击联盟贡献"
         ],
+        "on_error": [
+            "骰子入口"
+        ],
+        "timeout": 5000,
         "recognition": {
             "param": {
                 "template": [
@@ -1125,6 +1153,10 @@
         "next": [
             "点击联盟"
         ],
+        "on_error": [
+            "骰子入口"
+        ],
+        "timeout": 5000,
         "recognition": {
             "param": {
                 "template": [
