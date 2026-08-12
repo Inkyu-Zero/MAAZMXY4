@@ -93,6 +93,7 @@
             "type": "Click"
         },
         "next": [
+            "进入点击南瞻部洲",
             "关闭活动面板"
         ],
         "timeout": 10000,
@@ -108,6 +109,29 @@
             },
             "type": "TemplateMatch"
         }
+    },
+    "进入点击南瞻部洲": {
+        "$__mpe_code": {
+            "position": {
+                "x": 866,
+                "y": 14
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "关闭活动面板"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "南瞻部洲.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 2000
     },
     "关闭活动面板": {
         "$__mpe_code": {
