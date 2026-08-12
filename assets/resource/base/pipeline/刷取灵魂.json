@@ -15,6 +15,53 @@
             "version": "v1.7.6"
         }
     },
+    "点击世界": {
+        "$__mpe_code": {
+            "position": {
+                "x": 12,
+                "y": -220
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "点击南瞻部洲"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "世界1.png",
+                    "世界2.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 10000
+    },
+    "点击南瞻部洲": {
+        "$__mpe_code": {
+            "position": {
+                "x": 12,
+                "y": -140
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "刷取次数"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "南瞻部洲.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 10000
+    },
     "刷取次数": {
         "$__mpe_code": {
             "position": {
