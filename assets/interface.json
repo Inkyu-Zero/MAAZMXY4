@@ -4,18 +4,27 @@
   "label": "MAAZMXY4",
   "github": "https://github.com/Inkyu-Zero/MAAZMXY4",
   "version": "0.3",
+  "controller": [
+    {
+      "name": "桌面端",
+      "type": "Win32",
+      "win32": {
+        "class_regex": ".*",
+        "window_regex": "造梦盒子"
+      }
+    }
+  ],
   "resource": [
     {
       "name": "默认",
-      "path": "./resource/base",
-      "DisplayName": "",
-      "DisplayDescription": ""
+      "path": [
+        "./resource/base"
+      ]
     }
   ],
   "task": [
     {
       "name": "进入游戏",
-      "type": "pipeline",
       "entry": "点击账号",
       "description": "自动登录并进入游戏。\n\n**使用前**：在上方设置「账号名称」和「存档序号」（1-8）。\n流程：选账号 → 进游戏 → 点开始游戏 → 选存档",
       "option": [
@@ -25,7 +34,6 @@
     },
     {
       "name": "刷取灵魂",
-      "type": "pipeline",
       "entry": "刷取点击世界",
       "description": "自动刷取灵魂，直到刷满「循环次数」轮或灵魂数读满。\n\n- **循环次数**：刷几轮后停止\n- **卡死重启**：开=卡死/失败时自动 ESC 重启并重登（最多3次）\n\n**使用前**：确认已进游戏，并在上方设置「循环次数」「账号名称」「存档序号」。\n\n- **目前只支持剑阵+法宝秒杀大盗**",
       "option": [
@@ -37,7 +45,6 @@
     },
     {
       "name": "领取奖励",
-      "type": "pipeline",
       "entry": "领取奖励入口",
       "description": "进入游戏后按顺序处理 7 项奖励/活动面板，每一项可单独开关。\n\n- 识别到对应按钮 → 点击领取 → 点右上角「叉」关闭\n- 识别不到按钮 → 直接点「叉」关闭（当天已领过也能正常跳过）",
       "option": [
