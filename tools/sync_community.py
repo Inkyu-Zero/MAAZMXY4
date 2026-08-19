@@ -156,14 +156,78 @@ def register_task(interface_path, method_name):
     return task_name, True
 
 
+def scan_community():
+    """扫描本地 community 目录，把每个方法注册为任务（已注册跳过，删除的清理）。不联网。"""
+    if not os.path.isdir(COMMUNITY_DIR):
+        print(f"community 目录不存在：{COMMUNITY_DIR}")
+        print("先把刷取方法放到该目录，或用 sync_community.py --only 下载。")
+        return 1
+
+    methods = [f for f in os.listdir(COMMUNITY_DIR) if f.endswith(".json")]
+    if not methods:
+        print("community 目录下没有 .json 刷取方法。")
+        print("清理已注册的社区方法任务...")
+        cleaned = clean_stale_tasks(INTERFACE_FILE, [])
+        cleaned += clean_stale_tasks(ASSETS_INTERFACE_FILE, [])
+        print(f"完成：清理 {cleaned} 个失效任务。")
+        return 0
+
+    print(f"== 扫描 community 目录，发现 {len(methods)} 个刷取方法 ==\n")
+    added = 0
+    for name in methods:
+        _, is_new = register_task(INTERFACE_FILE, name)
+        _, is_new_assets = register_task(ASSETS_INTERFACE_FILE, name)
+        if is_new or is_new_assets:
+            added += 1
+
+    # 清理：移除 interface.json 里已不存在的 community 方法对应任务
+    cleaned = clean_stale_tasks(INTERFACE_FILE, methods)
+    cleaned += clean_stale_tasks(ASSETS_INTERFACE_FILE, methods)
+
+    print(f"\n完成：新增/更新 {added} 个任务，清理 {cleaned} 个失效任务。")
+    print("重启 MFA 客户端后，任务列表即同步 community 目录。")
+    return 0
+
+
+def clean_stale_tasks(interface_path, current_methods):
+    """从 interface.json 移除那些方法文件已不存在的 community 任务（仅清理以"刷取灵魂·"开头的社区方法）。"""
+    try:
+        with open(interface_path, encoding="utf-8-sig") as f:
+            data = json.load(f)
+    except (OSError, json.JSONDecodeError):
+        return 0
+
+    current_bases = {m[:-5] for m in current_methods}
+    before = len(data.get("task", []))
+    kept = []
+    for t in data.get("task", []):
+        name = t.get("name", "")
+        # 只处理社区方法任务（以 刷取灵魂· 开头），且方法文件已不存在
+        if name.startswith("刷取灵魂·"):
+            # 任务名 -> 方法文件名基准（去掉 ·）
+            base = name.replace("刷取灵魂·", "刷取灵魂_", 1)
+            if base not in current_bases:
+                continue  # 方法文件没了，移除
+        kept.append(t)
+    data["task"] = kept
+    with open(interface_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+    return before - len(kept)
+
+
 def main():
     parser = argparse.ArgumentParser(description="玩家自由下载社区刷取方法")
+    parser.add_argument("--scan", action="store_true", help="扫描本地 community 目录，自动注册/更新/清理任务（不联网）")
     parser.add_argument("--list", action="store_true", help="只列出仓库里的方法（含简述），不下载")
     parser.add_argument("--only", action="append", help="只下载指定名称的方法，可多次指定（不含扩展名 .json）")
     parser.add_argument("--gitee", action="store_true", help="从 Gitee 拉取（默认 GitHub）")
     parser.add_argument("--source", help="自定义源 API 地址")
     parser.add_argument("--dry-run", action="store_true", help="模拟下载，不写文件")
     args = parser.parse_args()
+
+    # --scan 模式：扫描本地 community 目录，自动注册任务，不联网
+    if args.scan:
+        return scan_community()
 
     source = args.source or (GITEE_API if args.gitee else GITHUB_API)
     print(f"== 仓库: {source} ==\n")
