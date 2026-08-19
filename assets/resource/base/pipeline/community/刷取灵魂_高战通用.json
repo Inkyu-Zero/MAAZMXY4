@@ -584,5 +584,8 @@
             },
             "type": "TemplateMatch"
         }
+    },
+    "__community_meta": {
+        "description": "高战力通用模板：进副本→法宝+剑阵连招秒杀大盗→循环。高战力各角色通用，输出高直接秒，不需复杂操作。"
     }
 }
