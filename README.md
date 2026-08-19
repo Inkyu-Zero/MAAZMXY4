@@ -40,6 +40,25 @@
 
 > 每项当天已扫过会正常跳过；扫荡时若出现「取消」弹窗会先点掉再关闭面板。
 
+## 🎮 社区刷取方法分享
+
+不同玩家的角色、战力、技能不同，刷取方式也各异。项目支持**玩家自由分享/下载刷取方法**：
+
+**方法存储**：每个刷取方法是独立的 pipeline 文件，存放在仓库 `community-scripts/` 目录。
+
+**玩家下载（在项目根目录运行）**：
+```bash
+python tools/sync_community.py --list                    # 1. 查看仓库有哪些刷取方法（含简述）
+python tools/sync_community.py --only 刷取灵魂_高战通用      # 2. 下载指定方法（可多个 --only）
+python tools/sync_community.py                           #    或下载全部
+python tools/sync_community.py --gitee                   #    从 Gitee 拉取（默认 GitHub）
+```
+下载后脚本**自动把方法注册为任务**，重启 MFA 客户端即可在任务列表看到并选择使用。
+
+**玩家分享**：把你调试好的刷取方法（`resource/base/pipeline/community/` 下的 .json 文件）上传到仓库 `community-scripts/` 目录，附上角色/战力/打法简述，供他人下载。
+
+> 示例方法 `刷取灵魂_高战通用.json` 已随仓库发布，可直接下载体验。
+
 ## 📦 使用
 
 从 **Releases** 下载最新版压缩包，解压后运行 `MAA造梦西游4.exe`，在 **MFA 任务管理器** 中配置：
