@@ -143,12 +143,15 @@ def register_task(interface_path, method_name):
         print(f"  [警告] 无法读取方法入口，跳过注册 {task_name}", file=sys.stderr)
         return task_name, False
 
+    # 所有以"刷"开头的刷取方法，统一带刷取 option（循环次数/账号/存档/卡死重启）
+    is_farm = task_name.startswith("刷")
     data.setdefault("task", []).append({
         "name": task_name,
         "type": "pipeline",
         "entry": entry,
-        "description": f"社区刷取方法：{task_name}。\n\n使用前确认已进游戏，并设置「循环次数」「账号名称」「存档序号」等选项。",
-        "option": ["循环次数", "账号名称", "存档序号", "卡死重启"],
+        "description": f"社区刷取方法：{task_name}。\n\n使用前确认已进游戏，并设置「循环次数」「账号名称」「存档序号」等选项。"
+                     if is_farm else f"社区方法：{task_name}。\n\n使用前确认已进游戏。",
+        "option": ["循环次数", "账号名称", "存档序号", "卡死重启"] if is_farm else [],
     })
     with open(interface_path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
