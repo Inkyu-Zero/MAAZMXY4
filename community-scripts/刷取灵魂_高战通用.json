@@ -1,0 +1,591 @@
+{
+    "$__mpe_config_刷取灵魂": {
+        "$__mpe_code": {
+            "coordinateMode": "absolute-v1",
+            "filePath": "C:\\Users\\k1508\\Desktop\\Maa\\MAAPE\\runtime\\resource\\pipeline\\刷大盗.json",
+            "filename": "刷取灵魂",
+            "isDeleted": true,
+            "lastSyncTime": 1786406478933,
+            "prefix": "",
+            "savedViewport": {
+                "x": 616,
+                "y": 155,
+                "zoom": 0.49
+            },
+            "version": "v1.7.6"
+        }
+    },
+    "刷取点击世界": {
+        "$__mpe_code": {
+            "position": {
+                "x": 12,
+                "y": -220
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "刷取点击南瞻部洲"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "世界1.png",
+                    "世界2.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 10000
+    },
+    "刷取点击南瞻部洲": {
+        "$__mpe_code": {
+            "position": {
+                "x": 12,
+                "y": -140
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "刷取次数"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "南瞻部洲.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 10000
+    },
+    "刷取次数": {
+        "$__mpe_code": {
+            "position": {
+                "x": 12,
+                "y": -60
+            }
+        },
+        "max_hit": 1,
+        "next": [
+            "点击任务"
+        ],
+        "post_delay": 0,
+        "recognition": {
+            "type": "DirectHit"
+        }
+    },
+    "重启判断": {
+        "$__mpe_code": {
+            "position": {
+                "x": -548,
+                "y": 545
+            }
+        },
+        "max_hit": 3,
+        "next": [
+            "重启游戏"
+        ],
+        "recognition": {
+            "type": "DirectHit"
+        }
+    },
+    "重启游戏": {
+        "$__mpe_code": {
+            "position": {
+                "x": -341,
+                "y": 545
+            }
+        },
+        "action": {
+            "param": {
+                "key": [
+                    27
+                ]
+            },
+            "type": "ClickKey"
+        },
+        "next": [
+            "重进确定"
+        ],
+        "post_delay": 1000,
+        "on_error": [
+            "停止运行"
+        ]
+    },
+    "重进确定": {
+        "$__mpe_code": {
+            "position": {
+                "x": -134,
+                "y": 545
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "重进点击账号"
+        ],
+        "recognition": {
+            "param": {
+                "expected": [
+                    "确定"
+                ],
+                "roi": [
+                    430,
+                    400,
+                    160,
+                    70
+                ]
+            },
+            "type": "OCR"
+        },
+        "timeout": 20000
+    },
+    "重进点击账号": {
+        "$__mpe_code": {
+            "position": {
+                "x": 73,
+                "y": 545
+            }
+        },
+        "action": {
+            "param": {
+                "target": [
+                    475,
+                    141,
+                    205,
+                    48
+                ]
+            },
+            "type": "Click"
+        },
+        "next": [
+            "重进选择账号"
+        ],
+        "timeout": 20000
+    },
+    "重进选择账号": {
+        "$__mpe_code": {
+            "position": {
+                "x": 280,
+                "y": 545
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "重进进入造梦西游4"
+        ],
+        "recognition": {
+            "param": {
+                "expected": [
+                    "{自定义文字}"
+                ]
+            },
+            "type": "OCR"
+        },
+        "timeout": 20000
+    },
+    "重进进入造梦西游4": {
+        "$__mpe_code": {
+            "position": {
+                "x": 487,
+                "y": 545
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "重进点击开始游戏"
+        ],
+        "recognition": {
+            "param": {
+                "expected": [
+                    "造梦西游4"
+                ]
+            },
+            "type": "OCR"
+        },
+        "timeout": 20000
+    },
+    "重进点击开始游戏": {
+        "$__mpe_code": {
+            "position": {
+                "x": 694,
+                "y": 545
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "重进选择存档"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "开始游戏.png"
+                ],
+                "threshold": 0.7
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 20000
+    },
+    "重进选择存档": {
+        "$__mpe_code": {
+            "position": {
+                "x": 901,
+                "y": 545
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "重进关闭活动面板"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "存档1.png"
+                ],
+                "threshold": 0.95
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 10000,
+        "on_error": [
+            "刷取次数"
+        ]
+    },
+    "重进关闭活动面板": {
+        "$__mpe_code": {
+            "position": {
+                "x": 1108,
+                "y": 545
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "刷取次数"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "叉.png"
+                ],
+                "threshold": 0.8
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 1000
+    },
+    "使用剑阵": {
+        "$__mpe_code": {
+            "position": {
+                "x": 694,
+                "y": 386
+            }
+        },
+        "action": {
+            "param": {
+                "key": [
+                    80
+                ]
+            },
+            "type": "ClickKey"
+        },
+        "next": [
+            "遁地大盗死亡"
+        ],
+        "post_delay": 20
+    },
+    "使用法宝": {
+        "$__mpe_code": {
+            "position": {
+                "x": 378,
+                "y": 381
+            }
+        },
+        "action": {
+            "param": {
+                "key": [
+                    72
+                ]
+            },
+            "type": "ClickKey"
+        },
+        "next": [
+            "使用剑阵"
+        ],
+        "post_delay": 20
+    },
+    "停止运行": {
+        "$__mpe_code": {
+            "position": {
+                "x": -244,
+                "y": 191
+            }
+        },
+        "action": {
+            "type": "StopTask"
+        }
+    },
+    "成功进入遁地大盗关卡": {
+        "$__mpe_code": {
+            "position": {
+                "x": 972,
+                "y": 27
+            }
+        },
+        "next": [
+            "点击C打开背包"
+        ],
+        "post_delay": 20,
+        "recognition": {
+            "param": {
+                "template": [
+                    "进入遁地大盗关卡.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 20000
+    },
+    "检测灵魂数量": {
+        "$__mpe_code": {
+            "position": {
+                "x": -548,
+                "y": 375
+            }
+        },
+        "inverse": false,
+        "next": [
+            "停止运行"
+        ],
+        "post_delay": 200,
+        "recognition": {
+            "param": {
+                "expected": [
+                    "4294967295"
+                ],
+                "roi": [
+                    617,
+                    599,
+                    190,
+                    56
+                ]
+            },
+            "type": "OCR"
+        },
+        "timeout": 2000
+    },
+    "点击C关闭背包": {
+        "$__mpe_code": {
+            "position": {
+                "x": -2,
+                "y": 367
+            }
+        },
+        "action": {
+            "param": {
+                "key": [
+                    67
+                ]
+            },
+            "type": "ClickKey"
+        },
+        "next": [
+            "使用法宝"
+        ],
+        "post_delay": 20,
+        "recognition": {
+            "param": {
+                "template": [
+                    "背包.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 2000
+    },
+    "点击C打开背包": {
+        "$__mpe_code": {
+            "position": {
+                "x": 1283,
+                "y": 48
+            }
+        },
+        "action": {
+            "param": {
+                "key": [
+                    67
+                ]
+            },
+            "type": "ClickKey"
+        },
+        "next": [
+            "检测灵魂数量"
+        ],
+        "on_error": [
+            "点击C关闭背包"
+        ],
+        "post_delay": 200,
+        "timeout": 1000
+    },
+    "点击任务": {
+        "$__mpe_code": {
+            "position": {
+                "x": 12,
+                "y": 12
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "pre_delay": 1000,
+        "next": [
+            "点击悬赏任务"
+        ],
+        "post_delay": 1000,
+        "recognition": {
+            "param": {
+                "template": [
+                    "任务.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 20000
+    },
+    "点击前往副本": {
+        "$__mpe_code": {
+            "position": {
+                "x": 652,
+                "y": 38
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "成功进入遁地大盗关卡"
+        ],
+        "post_delay": 1000,
+        "recognition": {
+            "param": {
+                "expected": [
+                    "前往副本"
+                ]
+            },
+            "type": "OCR"
+        },
+        "timeout": 20000
+    },
+    "点击悬赏任务": {
+        "$__mpe_code": {
+            "position": {
+                "x": 332,
+                "y": 38
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "点击前往副本"
+        ],
+        "post_delay": 500,
+        "recognition": {
+            "param": {
+                "expected": [
+                    "悬赏任务"
+                ]
+            },
+            "type": "OCR"
+        },
+        "timeout": 20000
+    },
+    "点击设置": {
+        "$__mpe_code": {
+            "position": {
+                "x": -9,
+                "y": 725
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "返回地图"
+        ],
+        "post_delay": 200,
+        "recognition": {
+            "param": {
+                "template": [
+                    "设置.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 20000
+    },
+    "返回地图": {
+        "$__mpe_code": {
+            "position": {
+                "x": 283,
+                "y": 761
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "刷取次数",
+            "停止运行"
+        ],
+        "post_delay": 200,
+        "recognition": {
+            "param": {
+                "expected": [
+                    "返回地图"
+                ]
+            },
+            "type": "OCR"
+        },
+        "timeout": 20000
+    },
+    "遁地大盗死亡": {
+        "$__mpe_code": {
+            "position": {
+                "x": 989,
+                "y": 385
+            }
+        },
+        "next": [
+            "点击设置"
+        ],
+        "post_delay": 2000,
+        "recognition": {
+            "param": {
+                "template": [
+                    "大盗死亡.png"
+                ],
+                "threshold": 0.9
+            },
+            "type": "TemplateMatch"
+        }
+    },
+    "__community_meta": {
+        "description": "高战力通用模板：进副本→法宝+剑阵连招秒杀大盗→循环。高战力各角色通用，输出高直接秒，不需复杂操作。"
+    }
+}
