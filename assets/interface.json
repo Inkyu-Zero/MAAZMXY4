@@ -1,4 +1,4 @@
-﻿{
+{
   "interface_version": 2,
   "name": "MAA造梦西游4",
   "label": "MAAZMXY4",
@@ -69,6 +69,18 @@
         "噩梦四剑扫荡次数",
         "扫荡噩梦冥河老祖",
         "噩梦冥河老祖扫荡次数"
+      ]
+    },
+    {
+      "name": "刷取灵魂·高战通用",
+      "type": "pipeline",
+      "entry": "刷取点击世界",
+      "description": "社区刷取方法：刷取灵魂·高战通用。\n\n使用前确认已进游戏，并设置「循环次数」「账号名称」「存档序号」等选项。",
+      "option": [
+        "循环次数",
+        "账号名称",
+        "存档序号",
+        "卡死重启"
       ]
     }
   ],
@@ -239,8 +251,26 @@
       "label": "领取vip每日奖励",
       "default_case": "Yes",
       "cases": [
-        { "name": "Yes", "pipeline_override": { "vip每日入口": { "next": ["点击vip"] } } },
-        { "name": "No",  "pipeline_override": { "vip每日入口": { "next": ["暑假入口"] } } }
+        {
+          "name": "Yes",
+          "pipeline_override": {
+            "vip每日入口": {
+              "next": [
+                "点击vip"
+              ]
+            }
+          }
+        },
+        {
+          "name": "No",
+          "pipeline_override": {
+            "vip每日入口": {
+              "next": [
+                "暑假入口"
+              ]
+            }
+          }
+        }
       ]
     },
     "领取暑假来就送奖励": {
@@ -248,8 +278,26 @@
       "label": "领取暑假来就送奖励",
       "default_case": "Yes",
       "cases": [
-        { "name": "Yes", "pipeline_override": { "暑假入口": { "next": ["点击暑假来就送"] } } },
-        { "name": "No",  "pipeline_override": { "暑假入口": { "next": ["登录入口"] } } }
+        {
+          "name": "Yes",
+          "pipeline_override": {
+            "暑假入口": {
+              "next": [
+                "点击暑假来就送"
+              ]
+            }
+          }
+        },
+        {
+          "name": "No",
+          "pipeline_override": {
+            "暑假入口": {
+              "next": [
+                "登录入口"
+              ]
+            }
+          }
+        }
       ]
     },
     "进行联盟贡献": {
@@ -257,8 +305,26 @@
       "label": "进行联盟贡献",
       "default_case": "Yes",
       "cases": [
-        { "name": "Yes", "pipeline_override": { "联盟入口": { "next": ["点击联盟"] } } },
-        { "name": "No",  "pipeline_override": { "联盟入口": { "next": ["骰子入口"] } } }
+        {
+          "name": "Yes",
+          "pipeline_override": {
+            "联盟入口": {
+              "next": [
+                "点击联盟"
+              ]
+            }
+          }
+        },
+        {
+          "name": "No",
+          "pipeline_override": {
+            "联盟入口": {
+              "next": [
+                "骰子入口"
+              ]
+            }
+          }
+        }
       ]
     },
     "冒险领取骰子": {
@@ -266,8 +332,26 @@
       "label": "冒险领取骰子",
       "default_case": "Yes",
       "cases": [
-        { "name": "Yes", "pipeline_override": { "骰子入口": { "next": ["点击日常活动"] } } },
-        { "name": "No",  "pipeline_override": { "骰子入口": { "next": ["宠物入口"] } } }
+        {
+          "name": "Yes",
+          "pipeline_override": {
+            "骰子入口": {
+              "next": [
+                "点击日常活动"
+              ]
+            }
+          }
+        },
+        {
+          "name": "No",
+          "pipeline_override": {
+            "骰子入口": {
+              "next": [
+                "宠物入口"
+              ]
+            }
+          }
+        }
       ]
     },
     "领取十五天登录奖励": {
@@ -275,8 +359,26 @@
       "label": "领取十五天登录奖励",
       "default_case": "Yes",
       "cases": [
-        { "name": "Yes", "pipeline_override": { "登录入口": { "next": ["点击十五天登录"] } } },
-        { "name": "No",  "pipeline_override": { "登录入口": { "next": ["点击须弥山"] } } }
+        {
+          "name": "Yes",
+          "pipeline_override": {
+            "登录入口": {
+              "next": [
+                "点击十五天登录"
+              ]
+            }
+          }
+        },
+        {
+          "name": "No",
+          "pipeline_override": {
+            "登录入口": {
+              "next": [
+                "点击须弥山"
+              ]
+            }
+          }
+        }
       ]
     },
     "领取宠物养成并重新采集": {
@@ -284,8 +386,26 @@
       "label": "领取宠物养成并重新采集",
       "default_case": "Yes",
       "cases": [
-        { "name": "Yes", "pipeline_override": { "宠物入口": { "next": ["点击宠物养成"] } } },
-        { "name": "No",  "pipeline_override": { "宠物入口": { "next": ["坐骑入口"] } } }
+        {
+          "name": "Yes",
+          "pipeline_override": {
+            "宠物入口": {
+              "next": [
+                "点击宠物养成"
+              ]
+            }
+          }
+        },
+        {
+          "name": "No",
+          "pipeline_override": {
+            "宠物入口": {
+              "next": [
+                "坐骑入口"
+              ]
+            }
+          }
+        }
       ]
     },
     "领取坐骑养成并重新采集": {
@@ -293,8 +413,26 @@
       "label": "领取坐骑养成并重新采集",
       "default_case": "Yes",
       "cases": [
-        { "name": "Yes", "pipeline_override": { "坐骑入口": { "next": ["点击坐骑养成"] } } },
-        { "name": "No",  "pipeline_override": { "坐骑入口": { "next": ["领取完毕"] } } }
+        {
+          "name": "Yes",
+          "pipeline_override": {
+            "坐骑入口": {
+              "next": [
+                "点击坐骑养成"
+              ]
+            }
+          }
+        },
+        {
+          "name": "No",
+          "pipeline_override": {
+            "坐骑入口": {
+              "next": [
+                "领取完毕"
+              ]
+            }
+          }
+        }
       ]
     },
     "扫荡竞技场": {
@@ -302,8 +440,26 @@
       "label": "扫荡竞技场",
       "default_case": "Yes",
       "cases": [
-        { "name": "Yes", "pipeline_override": { "竞技场入口": { "next": ["竞技场点击日常活动"] } } },
-        { "name": "No",  "pipeline_override": { "竞技场入口": { "next": ["斗宠大会入口"] } } }
+        {
+          "name": "Yes",
+          "pipeline_override": {
+            "竞技场入口": {
+              "next": [
+                "竞技场点击日常活动"
+              ]
+            }
+          }
+        },
+        {
+          "name": "No",
+          "pipeline_override": {
+            "竞技场入口": {
+              "next": [
+                "斗宠大会入口"
+              ]
+            }
+          }
+        }
       ]
     },
     "打斗宠大会": {
@@ -311,8 +467,26 @@
       "label": "打斗宠大会",
       "default_case": "Yes",
       "cases": [
-        { "name": "Yes", "pipeline_override": { "斗宠大会入口": { "next": ["斗宠大会点击日常活动"] } } },
-        { "name": "No",  "pipeline_override": { "斗宠大会入口": { "next": ["扫荡守护须弥山入口"] } } }
+        {
+          "name": "Yes",
+          "pipeline_override": {
+            "斗宠大会入口": {
+              "next": [
+                "斗宠大会点击日常活动"
+              ]
+            }
+          }
+        },
+        {
+          "name": "No",
+          "pipeline_override": {
+            "斗宠大会入口": {
+              "next": [
+                "扫荡守护须弥山入口"
+              ]
+            }
+          }
+        }
       ]
     },
     "扫荡守护须弥山": {
@@ -320,8 +494,26 @@
       "label": "扫荡守护须弥山",
       "default_case": "Yes",
       "cases": [
-        { "name": "Yes", "pipeline_override": { "扫荡守护须弥山入口": { "next": ["守护须弥山点击日常活动"] } } },
-        { "name": "No",  "pipeline_override": { "扫荡守护须弥山入口": { "next": ["扫荡噩梦诛仙四剑入口"] } } }
+        {
+          "name": "Yes",
+          "pipeline_override": {
+            "扫荡守护须弥山入口": {
+              "next": [
+                "守护须弥山点击日常活动"
+              ]
+            }
+          }
+        },
+        {
+          "name": "No",
+          "pipeline_override": {
+            "扫荡守护须弥山入口": {
+              "next": [
+                "扫荡噩梦诛仙四剑入口"
+              ]
+            }
+          }
+        }
       ]
     },
     "扫荡噩梦诛仙四剑": {
@@ -329,8 +521,26 @@
       "label": "扫荡噩梦诛仙四剑",
       "default_case": "Yes",
       "cases": [
-        { "name": "Yes", "pipeline_override": { "扫荡噩梦诛仙四剑入口": { "next": ["扫荡噩梦主线四剑点击地图"] } } },
-        { "name": "No",  "pipeline_override": { "扫荡噩梦诛仙四剑入口": { "next": ["扫荡噩梦冥河老祖入口"] } } }
+        {
+          "name": "Yes",
+          "pipeline_override": {
+            "扫荡噩梦诛仙四剑入口": {
+              "next": [
+                "扫荡噩梦主线四剑点击地图"
+              ]
+            }
+          }
+        },
+        {
+          "name": "No",
+          "pipeline_override": {
+            "扫荡噩梦诛仙四剑入口": {
+              "next": [
+                "扫荡噩梦冥河老祖入口"
+              ]
+            }
+          }
+        }
       ]
     },
     "噩梦四剑扫荡次数": {
@@ -344,7 +554,9 @@
         }
       ],
       "pipeline_override": {
-        "开始噩梦诛仙四剑扫荡": { "repeat": "{噩梦四剑扫荡次数}" }
+        "开始噩梦诛仙四剑扫荡": {
+          "repeat": "{噩梦四剑扫荡次数}"
+        }
       }
     },
     "扫荡噩梦冥河老祖": {
@@ -352,8 +564,26 @@
       "label": "扫荡噩梦冥河老祖",
       "default_case": "Yes",
       "cases": [
-        { "name": "Yes", "pipeline_override": { "扫荡噩梦冥河老祖入口": { "next": ["扫荡噩梦冥河老祖点击世界"] } } },
-        { "name": "No",  "pipeline_override": { "扫荡噩梦冥河老祖入口": { "next": ["清日常完成"] } } }
+        {
+          "name": "Yes",
+          "pipeline_override": {
+            "扫荡噩梦冥河老祖入口": {
+              "next": [
+                "扫荡噩梦冥河老祖点击世界"
+              ]
+            }
+          }
+        },
+        {
+          "name": "No",
+          "pipeline_override": {
+            "扫荡噩梦冥河老祖入口": {
+              "next": [
+                "清日常完成"
+              ]
+            }
+          }
+        }
       ]
     },
     "噩梦冥河老祖扫荡次数": {
@@ -367,7 +597,9 @@
         }
       ],
       "pipeline_override": {
-        "开始噩梦冥河老祖扫荡": { "repeat": "{噩梦冥河老祖扫荡次数}" }
+        "开始噩梦冥河老祖扫荡": {
+          "repeat": "{噩梦冥河老祖扫荡次数}"
+        }
       }
     }
   }

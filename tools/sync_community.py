@@ -18,6 +18,7 @@ import json
 import os
 import sys
 import urllib.error
+import urllib.parse
 import urllib.request
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -28,7 +29,9 @@ GITEE_API = "https://gitee.com/api/v5/repos/InkyuZero/MAAZMXY4/contents/communit
 
 
 def fetch_url(url, timeout=30):
-    """请求 URL，返回字节；失败返回 None。"""
+    """请求 URL，返回字节；失败返回 None。对含中文/非 ASCII 的 URL 先做百分号编码。"""
+    # 只对 URL 路径部分的非 ASCII 字符编码，保留 / : 等
+    url = urllib.parse.quote(url, safe=":/?&=%")
     req = urllib.request.Request(url, headers={"User-Agent": "MAAZMXY4-sync"})
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:
@@ -73,8 +76,12 @@ def read_description(content):
 
 def download_method(name, url, only_set, dry_run=False):
     """按需下载单个方法。only_set 为空则下载全部；否则只下载在集合里的。"""
-    if only_set and name not in only_set:
-        return None, False
+    if only_set:
+        # 兼容带不带 .json 的名称
+        base = name[:-5] if name.endswith(".json") else name
+        matched = name in only_set or base in only_set
+        if not matched:
+            return None, False
     print(f"  下载 {name} ...")
     if dry_run:
         return name, True
