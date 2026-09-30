@@ -1,0 +1,279 @@
+{
+    "生存大冒险_初始化": {
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "adventure_init"
+            }
+        },
+        "next": [
+            "生存大冒险_答题循环"
+        ]
+    },
+    "生存大冒险_答题循环": {
+        "next": [
+            "生存大冒险_继续冒险",
+            "生存大冒险_界面检查"
+        ],
+        "on_error": [
+            "生存大冒险_结束"
+        ],
+        "timeout": 15000,
+        "post_delay": 300
+    },
+    "生存大冒险_继续冒险": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "继续冒险.png",
+                "threshold": 0.7,
+                "roi": [
+                    840,
+                    500,
+                    150,
+                    80
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "生存大冒险_答题循环"
+        ],
+        "post_delay": 300,
+        "post_wait_freezes": {
+            "time": 400,
+            "timeout": 6000,
+            "rate_limit": 200
+        }
+    },
+    "生存大冒险_界面检查": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    335,
+                    232,
+                    680,
+                    66
+                ]
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "next": [
+            "生存大冒险_截图"
+        ]
+    },
+    "生存大冒险_截图": {
+        "action": {
+            "type": "Screencap",
+            "param": {
+                "format": "png"
+            }
+        },
+        "next": [
+            "生存大冒险_读题"
+        ],
+        "timeout": 3000,
+        "on_error": [
+            "生存大冒险_结束"
+        ]
+    },
+    "生存大冒险_读题": {
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "adventure_read"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "生存大冒险_答题循环"
+        ],
+        "on_error": [
+            "生存大冒险_结束"
+        ],
+        "post_wait_freezes": {
+            "time": 300,
+            "timeout": 5000,
+            "rate_limit": 200
+        },
+        "post_delay": 500
+    },
+    "生存大冒险_结束": {
+        "action": {
+            "type": "DoNothing"
+        }
+    },
+    "生存大冒险_识别题干": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    335,
+                    232,
+                    680,
+                    66
+                ]
+            }
+        }
+    },
+    "生存大冒险_属性_健康": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    120,
+                    306,
+                    45,
+                    28
+                ],
+                "only_rec": true
+            }
+        }
+    },
+    "生存大冒险_属性_战力": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    120,
+                    354,
+                    45,
+                    28
+                ],
+                "only_rec": true
+            }
+        }
+    },
+    "生存大冒险_属性_智慧": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    120,
+                    401,
+                    45,
+                    28
+                ],
+                "only_rec": true
+            }
+        }
+    },
+    "生存大冒险_属性_魅力": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    120,
+                    448,
+                    45,
+                    28
+                ],
+                "only_rec": true
+            }
+        }
+    },
+    "生存大冒险_属性_运气": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    120,
+                    495,
+                    45,
+                    28
+                ],
+                "only_rec": true
+            }
+        }
+    },
+    "生存大冒险_属性_灵巧": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    120,
+                    542,
+                    45,
+                    28
+                ],
+                "only_rec": true
+            }
+        }
+    },
+    "生存大冒险_属性全部": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    115,
+                    300,
+                    60,
+                    275
+                ],
+                "only_rec": true
+            }
+        }
+    },
+    "生存大冒险_选项_1": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    375,
+                    337,
+                    410,
+                    44
+                ]
+            }
+        }
+    },
+    "生存大冒险_选项_2": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    375,
+                    407,
+                    410,
+                    44
+                ]
+            }
+        }
+    },
+    "生存大冒险_选项_3": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    375,
+                    476,
+                    410,
+                    44
+                ]
+            }
+        }
+    },
+    "生存大冒险_选项_4": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    375,
+                    546,
+                    410,
+                    44
+                ]
+            }
+        }
+    }
+}
