@@ -60,10 +60,14 @@ def list_community_files(source_api):
 
 
 def read_description(content):
-    """尝试从方法文件里读一句简述（文件内第一个 'description' 字段或注释）。"""
+    """尝试从方法文件里读一句简述（文件内 '$__community_meta.description' 或任意 description 字段）。"""
     try:
         data = json.loads(content)
-        # 递归找一个字符串 description
+        # 优先读社区元数据描述
+        meta = data.get("$__community_meta") or data.get("__community_meta")
+        if isinstance(meta, dict) and isinstance(meta.get("description"), str):
+            return meta["description"]
+        # 兜底：递归找一个短字符串 description
         for v in data.values():
             if isinstance(v, dict):
                 for vv in v.values():
@@ -72,6 +76,45 @@ def read_description(content):
     except Exception:
         pass
     return ""
+
+
+def sanitize_meta(data):
+    """把方法文件里的 '__community_meta' 改名为 '$__community_meta'。
+
+    MaaFramework 加载 pipeline 时，非 '$' 前缀的顶层键会被当作任务节点校验；
+    '__community_meta' 只有 description 字段，不是合法节点，会导致整个资源加载失败。
+    改名后 '$' 前缀被 MaaFramework 忽略为配置块，不影响加载，且描述信息保留。
+    """
+    if "__community_meta" in data and "$__community_meta" not in data:
+        data["$__community_meta"] = data.pop("__community_meta")
+    return data
+
+
+def collect_existing_nodes():
+    """收集本地 pipeline 目录所有节点名（含 common），用于社区方法冲突检测。"""
+    nodes = set()
+    pipeline_root = os.path.join(ROOT, "resource", "base", "pipeline")
+    for root, _, names in os.walk(pipeline_root):
+        for n in names:
+            if not n.endswith(".json"):
+                continue
+            p = os.path.join(root, n)
+            try:
+                with open(p, encoding="utf-8-sig") as f:
+                    d = json.load(f)
+                for k in d:
+                    if not k.startswith("$"):
+                        nodes.add(k)
+            except (OSError, json.JSONDecodeError):
+                pass
+    return nodes
+
+
+def check_conflicts(method_name, data):
+    """检查方法文件节点名是否与本地现有 pipeline 节点冲突，返回冲突列表。"""
+    existing = collect_existing_nodes()
+    conflicts = [k for k in data if not k.startswith("$") and k in existing]
+    return conflicts
 
 
 def download_method(name, url, only_set, dry_run=False):
@@ -89,13 +132,25 @@ def download_method(name, url, only_set, dry_run=False):
     if content is None:
         return name, False
     try:
-        json.loads(content)  # 校验
+        data = json.loads(content)  # 校验
     except json.JSONDecodeError as e:
         print(f"    [跳过] 不是有效方法: {e}", file=sys.stderr)
         return name, False
+
+    # 1. 处理社区元数据：'__community_meta' -> '$__community_meta'，避免被当节点校验
+    data = sanitize_meta(data)
+
+    # 2. 冲突检测：方法节点名不能与本地现有 pipeline 节点重复（否则 MFA 资源加载失败）
+    conflicts = check_conflicts(name, data)
+    if conflicts:
+        print(f"    [跳过] 节点名与本地现有 pipeline 冲突，未下载。", file=sys.stderr)
+        print(f"            冲突节点（与 common/内置任务重名）: {', '.join(conflicts)}", file=sys.stderr)
+        print(f"            请将方法中的这些节点改名（方法特有前缀），或删除本地重复的 pipeline 文件后重试。", file=sys.stderr)
+        return name, False
+
     os.makedirs(COMMUNITY_DIR, exist_ok=True)
-    with open(os.path.join(COMMUNITY_DIR, name), "wb") as f:
-        f.write(content)
+    with open(os.path.join(COMMUNITY_DIR, name), "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
     print(f"    [完成] 保存到 resource/base/pipeline/community/{name}")
     return name, True
 
@@ -127,14 +182,14 @@ def register_task(interface_path, method_name):
     if any(t.get("name") == task_name for t in data.get("task", [])):
         return task_name, False
 
-    # 读取方法文件的入口节点（第一个非 $__mpe 的节点）
+    # 读取方法文件的入口节点（第一个非 $ 前缀、非社区 meta 的节点）
     method_path = os.path.join(COMMUNITY_DIR, method_name)
     entry = None
     try:
         with open(method_path, encoding="utf-8-sig") as f:
             mdata = json.load(f)
         for k in mdata:
-            if not k.startswith("$"):
+            if not k.startswith("$") and not k.startswith("__community_meta"):
                 entry = k
                 break
     except (OSError, json.JSONDecodeError):
@@ -178,6 +233,23 @@ def scan_community():
     print(f"== 扫描 community 目录，发现 {len(methods)} 个刷取方法 ==\n")
     added = 0
     for name in methods:
+        # 处理本地方法文件：改写 __community_meta，避免 MFA 资源加载失败
+        path = os.path.join(COMMUNITY_DIR, name)
+        try:
+            with open(path, encoding="utf-8-sig") as f:
+                data = json.load(f)
+        except (OSError, json.JSONDecodeError) as e:
+            print(f"  [跳过] {name} 不是有效 JSON: {e}", file=sys.stderr)
+            continue
+        data = sanitize_meta(data)
+        # 冲突检测：节点名不能与本地现有 pipeline 重复
+        conflicts = check_conflicts(name, data)
+        if conflicts:
+            print(f"  [跳过] {name} 节点名与本地现有 pipeline 冲突，未注册。", file=sys.stderr)
+            print(f"          冲突节点: {', '.join(conflicts)}", file=sys.stderr)
+            continue
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
         _, is_new = register_task(INTERFACE_FILE, name)
         _, is_new_assets = register_task(ASSETS_INTERFACE_FILE, name)
         if is_new or is_new_assets:

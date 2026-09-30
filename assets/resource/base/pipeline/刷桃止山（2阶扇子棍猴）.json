@@ -1,0 +1,218 @@
+{
+    "$__mpe_config_刷桃止山（2阶扇子棍猴）": {
+        "$__mpe_code": {
+            "prefix": "",
+            "coordinateMode": "absolute-v1",
+            "filename": "刷桃止山（2阶扇子棍猴）",
+            "version": "v1.7.6"
+        }
+    },
+    "点击桃止山": {
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "检测桃止山场景"
+        ],
+        "recognition": {
+            "param": {
+                "template": [
+                    "桃止山.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 10000
+    },
+    "检测桃止山场景": {
+        "next": [
+            "按键U1"
+        ],
+        "post_delay": 20,
+        "recognition": {
+            "param": {
+                "template": [
+                    "桃止山场景.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 20000
+    },
+    "按键U1": {
+        "action": {
+            "param": {
+                "key": [
+                    85
+                ]
+            },
+            "type": "ClickKey"
+        },
+        "next": [
+            "按键U2"
+        ],
+        "post_delay": 200
+    },
+    "按键U2": {
+        "action": {
+            "param": {
+                "key": [
+                    85
+                ]
+            },
+            "type": "ClickKey"
+        },
+        "next": [
+            "按键H"
+        ],
+        "post_delay": 650
+    },
+    "按键H": {
+        "action": {
+            "param": {
+                "key": [
+                    72
+                ]
+            },
+            "type": "ClickKey"
+        },
+        "next": [
+            "按键L1"
+        ],
+        "post_delay": 0
+    },
+    "按键L1": {
+        "action": {
+            "param": {
+                "key": [
+                    76
+                ]
+            },
+            "type": "ClickKey"
+        },
+        "next": [
+            "按键P"
+        ],
+        "post_delay": 0
+    },
+    "按键P": {
+        "action": {
+            "param": {
+                "key": [
+                    80
+                ]
+            },
+            "type": "ClickKey"
+        },
+        "next": [
+            "按键A"
+        ],
+        "post_delay": 1500
+    },
+    "按键A": {
+        "action": {
+            "param": {
+                "key": [
+                    65
+                ]
+            },
+            "type": "ClickKey"
+        },
+        "next": [
+            "按键L2"
+        ],
+        "post_delay": 0
+    },
+    "按键L2": {
+        "action": {
+            "param": {
+                "key": [
+                    76
+                ]
+            },
+            "type": "ClickKey"
+        },
+        "next": [
+            "按键L3"
+        ],
+        "post_delay": 1900
+    },
+    "按键L3": {
+        "action": {
+            "param": {
+                "key": [
+                    76
+                ]
+            },
+            "type": "ClickKey"
+        },
+        "next": [
+            "按键L4"
+        ],
+        "post_delay": 1900
+    },
+    "按键L4": {
+        "action": {
+            "param": {
+                "key": [
+                    76
+                ]
+            },
+            "type": "ClickKey"
+        },
+        "next": [
+            "按键L5"
+        ],
+        "post_delay": 1900
+    },
+    "按键L5": {
+        "action": {
+            "param": {
+                "key": [
+                    76
+                ]
+            },
+            "type": "ClickKey"
+        },
+        "next": [
+            "桃止山点击设置"
+        ],
+        "post_delay": 1900
+    },
+    "桃止山点击设置": {
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "点击返回地图"
+        ],
+        "post_delay": 200,
+        "recognition": {
+            "param": {
+                "template": [
+                    "设置.png"
+                ]
+            },
+            "type": "TemplateMatch"
+        },
+        "timeout": 20000
+    },
+    "点击返回地图": {
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "刷取次数"
+        ],
+        "post_delay": 200,
+        "recognition": {
+            "param": {
+                "expected": [
+                    "返回地图"
+                ]
+            },
+            "type": "OCR"
+        },
+        "timeout": 20000
+    }
+}
