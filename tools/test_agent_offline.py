@@ -314,5 +314,57 @@ res13 = adventure.AdventureRead().analyze(
 )
 check("正常答题界面仍能决策", res13 is not None and res13.detail.get("event") == "危险任务")
 
+print("\n=== 场景 12：战力接近门槛时，不该为了加健康而牺牲战力 ===")
+# 登山黑影第2项「给他一拳」：成功收益 健康+1 / 战力-1（该事件门槛是战力6）
+# 战力接近上限门槛(10)时减 1 会失守，应避开；战力富余时换健康才是划算的
+_events = adventure.logic.load_events()
+for _power, _avoid in ((9, True), (10, True), (12, False), (15, False)):
+    _attrs = {"健康": 4, "战力": _power, "智慧": 5, "魅力": 5, "运气": 5, "灵巧": 5}
+    _d = adventure.logic.choose(_events, "登山黑影", _attrs)
+    if _avoid:
+        check(f"战力{_power} 时不牺牲战力（避开第2项）", _d.index != 1, f"选了「{_d.text}」")
+    else:
+        check(f"战力{_power} 富余时可换健康（选第2项）", _d.index == 1, f"选了「{_d.text}」")
+    for _i, _t, _ok2, _sc in _d.all_scores:
+        print(f"       第{_i}项 {_t:<6} 可成功={str(_ok2):<5} 评分={_sc:+7.2f}")
+
+print("\n=== 场景 13：减少接近门槛的属性必须被重罚（正负对称）===")
+_base = {"健康": 4, "战力": 9, "智慧": 5, "魅力": 5, "运气": 5, "灵巧": 5}
+_w9 = adventure.logic._attr_weight("战力", -1, _base)
+_w12 = adventure.logic._attr_weight("战力", -1, {"健康": 4, "战力": 12})
+_wup = adventure.logic._attr_weight("战力", 1, _base)
+check("战力9 减1（会跌破门槛10）按高权重计", _w9 > _w12, f"战力9时={_w9} 战力12时={_w12}")
+check("战力12 减1（仍达标）按低权重计", _w12 < _wup, f"战力12减1={_w12} 战力9加1={_wup}")
+
+print("\n=== 场景 14：健康扣血权重必须随剩余血量单调递增 ===")
+# 早先的缺陷：扣血用「距门槛的差距」计权，导致剩 2 点血(gap=4)比剩 3 点(gap=3)罚得更轻，恰好反了
+_prev, _mono, _wseq = None, True, []
+for _hp in (12, 8, 6, 5, 4, 3, 2, 1):
+    _w = adventure.logic._attr_weight("健康", -1, {"健康": _hp})
+    _wseq.append(f"血{_hp}={_w:g}")
+    if _prev is not None and _w < _prev:
+        _mono = False
+    _prev = _w
+check("扣血代价随剩余血量减少而单调增加", _mono, " ".join(_wseq))
+check("剩 1 点血的代价高于剩 4 点",
+      adventure.logic._attr_weight("健康", -1, {"健康": 2})
+      > adventure.logic._attr_weight("健康", -1, {"健康": 5}))
+check("血量充足（≥7）扣 1 点代价很低",
+      adventure.logic._attr_weight("健康", -1, {"健康": 9}) <= 1.0)
+
+print("\n=== 场景 15：血量低时优先补血，血量够时转堆其他属性 ===")
+# 冒险前神秘礼物 4 个选项都能成功：绝世秘籍(健康+1/战力+1)、招财猫(运气+1) 等
+for _hp, _want in ((2, 1), (4, 1), (6, 2), (9, 2)):
+    _a = {"健康": _hp, "战力": 4, "智慧": 4, "魅力": 4, "运气": 4, "灵巧": 4}
+    _d = adventure.logic.choose(_events, "冒险前神秘礼物", _a)
+    check(f"健康{_hp} 时选择第{_want+1}项", _d.index == _want, f"选了「{_d.text}」")
+
+print("\n=== 场景 16：健康目标不应高于题库实际最高门槛 ===")
+check("健康目标 = 6（实际最高门槛）", adventure.logic.THRESHOLD_TARGETS.get("健康") == 6,
+      adventure.logic.THRESHOLD_TARGETS.get("健康"))
+for _k, _v in (("战力", 10), ("灵巧", 10), ("魅力", 10), ("智慧", 10), ("运气", 9)):
+    check(f"{_k}目标 = {_v}", adventure.logic.THRESHOLD_TARGETS.get(_k) == _v,
+          adventure.logic.THRESHOLD_TARGETS.get(_k))
+
 print("\n" + ("全部通过" if ok else "存在失败项"))
 sys.exit(0 if ok else 1)

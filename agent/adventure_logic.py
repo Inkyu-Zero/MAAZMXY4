@@ -45,20 +45,29 @@ DEFAULT_WEIGHTS: Dict[str, float] = {
 # 因此"能成功"本身就该压过普通属性收益差异。
 DEFAULT_SUCCESS_BONUS = 8.0
 
-# 后期阶段出现过的门槛峰值：决定"现在该补哪个属性最有用"。
-# 取自题库实际门槛（阶段4/5）：战力8-10、灵巧7-10、魅力8-10、智慧8-10、运气6-9。
+# 各属性在题库里出现过的**最高门槛**：决定"现在该补哪个属性最有用"。
+# 依据是题库全量统计（不是拍脑袋），括号内为该属性被要求的总次数：
+#   战力 10（36 处）  灵巧 10（37 处）  魅力 10（35 处）
+#   智慧 10（33 处）  运气  9（35 处）  健康  6（**仅 3 处**）
+#
+# 注意健康：它的门槛极少、最高只到 6，所以目标设 6 而不是 8。
+# 设高了会让健康在"未达标"区间权重虚高，出现"为了加 1 点健康去砍别的属性"。
+# 健康真正的风险是归零导致本轮提前结束，那个由 ZERO_PENALTY 单独兜底。
 THRESHOLD_TARGETS: Dict[str, int] = {
     "战力": 10,
     "灵巧": 10,
     "魅力": 10,
     "智慧": 10,
     "运气": 9,
-    "健康": 8,
+    "健康": 6,
 }
 
 # 阈值导向的打分参数：离门槛越近的属性，收益价值越高（"差一点就补上"）
 NEAR_GAP, MID_GAP = 3, 5
 NEAR_WEIGHT, MID_WEIGHT, FAR_WEIGHT = 6.0, 3.0, 1.0
+
+# 健康属于"生死线"，扣血后剩余很少时的额外权重（剩余 1~2 点时随时可能暴毙）
+HEALTH_CRITICAL_WEIGHT = 12.0
 
 # 属性跌到 0 及以下的惩罚
 ZERO_PENALTY = 1000.0
@@ -134,35 +143,70 @@ def can_succeed(opt: Option, attrs: Mapping[str, int]) -> bool:
     return all(int(attrs.get(k, 0)) >= int(v) for k, v in opt.require.items())
 
 
+def _attr_weight(key: str, value: int, attrs: Mapping[str, int]) -> float:
+    """给单个属性的变化量定权重（阈值导向，正负对称）。
+
+    规则：
+      - **增加**：只对「还没达标」的属性有价值，越接近门槛越值钱；已达标则价值很低
+      - **减少**：看变化后是否还达标——跌破门槛就按缺口重罚，仍高于门槛则损失很小
+
+    为什么要分正负两套判断：早先的实现对负收益一律按 1.0 计权，导致
+    「+1 健康 / -1 战力」这类选项被严重低估损失——战力已经堆到 9（门槛 10）时，
+    减 1 点只扣 1 分，而加 1 健康却按 3~6 分算，于是会做出牺牲战力的选择。
+    """
+    target = THRESHOLD_TARGETS.get(key, 8)
+    cur = int(attrs.get(key, 0))
+    after = cur + value
+
+    # 健康特殊处理：它不只是门槛（最高只到 6），更是**生死线**——归零会让本轮提前结束。
+    # 所以扣血要按「扣完还剩多少」加权，剩余越少罚得越狠。
+    # 不能沿用「距门槛的差距」：那样剩 2 点血(gap=4)会比剩 3 点血(gap=3)罚得更轻，恰好反了。
+    if key == "健康" and value < 0:
+        if after <= 0:
+            # 归零：权重最高（另有 ZERO_PENALTY 兜底，这里保证「剩余越少罚越重」的单调性）
+            return HEALTH_CRITICAL_WEIGHT * 2
+        if after <= 2:
+            return HEALTH_CRITICAL_WEIGHT  # 剩 1~2 点：随时暴毙
+        if after <= 3:
+            return NEAR_WEIGHT  # 剩 3 点：危险
+        # 剩余充足，继续走下面的门槛逻辑
+
+    if value > 0:
+        if cur >= target:
+            return FAR_WEIGHT  # 已达标，继续堆收益递减
+        gap = target - cur
+    else:
+        if after >= target:
+            return FAR_WEIGHT  # 减了仍然达标，损失很小
+        gap = target - after  # 减少后形成的缺口
+
+    if gap <= NEAR_GAP:
+        return NEAR_WEIGHT
+    if gap <= MID_GAP:
+        return MID_WEIGHT
+    return FAR_WEIGHT
+
+
 def _gain_score(
     gains: Mapping[str, int],
     attrs: Mapping[str, int],
     weights: Mapping[str, float],
 ) -> float:
-    """按「阈值导向」给属性收益打分。
+    """按「阈值导向」给属性收益打分（正负对称）。
 
     依据：阶段的成败是**硬门槛**（属性 >= 要求即成功），而门槛集中在战力/灵巧/魅力
     8~10。实测模拟（各有 4000 局）表明：
       - 每题的收益摊平到六个属性 → 没有一项能长到 8~10 → 阶段4/5 失败率 62%/70%
       - 优先补「离门槛最近」的属性 → 阶段5 成功率 30%→38%，平均分 79.5→82.3
-    因此：越接近门槛的属性收益，价值越高（差一点就补上）。
+    因此：越接近门槛的属性收益，价值越高（差一点就补上）；
+    反过来，**把接近门槛的属性减下去，代价同样高**。
     """
     score = 0.0
     for k, v in gains.items():
         v = int(v)
         if k == "健康" and int(attrs.get("健康", 0)) + v <= 0:
             score -= ZERO_PENALTY  # 健康归零直接判死，权重拉满
-        if v <= 0:
-            score += float(v) * 1.0  # 负收益按基础权重计（只用于比较损失大小）
-            continue
-        gap = max(0, THRESHOLD_TARGETS.get(k, 8) - int(attrs.get(k, 0)))
-        if gap <= NEAR_GAP:
-            weight = NEAR_WEIGHT
-        elif gap <= MID_GAP:
-            weight = MID_WEIGHT
-        else:
-            weight = FAR_WEIGHT
-        score += float(v) * weight
+        score += float(v) * _attr_weight(k, v, attrs)
     return score
 
 
