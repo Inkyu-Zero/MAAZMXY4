@@ -1,4 +1,4 @@
-name: install
+﻿name: install
 
 env:
   # 版本控制：
@@ -25,6 +25,9 @@ on:
       - "assets/**"
       - "**.py"
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   meta:
