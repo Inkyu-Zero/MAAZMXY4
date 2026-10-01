@@ -473,3 +473,6 @@ plugins/
 *.bak
 
 *.ico
+
+# 构建产物
+/dist/
