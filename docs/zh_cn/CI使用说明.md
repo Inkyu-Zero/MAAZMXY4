@@ -276,6 +276,7 @@ gh release create v1.2 .\dist\*.zip `
 
 | 报错 | 原因 | 处理 |
 | --- | --- | --- |
+| `not a git repository ... .git` | **不在仓库目录里执行**（最常见） | `cd` 到仓库目录，或给命令加 `-R Inkyu-Zero/MAAZMXY4`。注意 `gh repo set-default` 只写进仓库的 `.git/config`，**离开仓库目录依然报这个错** |
 | `Resource not accessible by integration` | workflow 缺 `permissions` | 在 workflow 顶层加 `permissions: contents: write` |
 | `Validation failed for interface.json` | schema 违规 | 本地跑 `python tools/validate_schema.py ...` 看具体哪条 |
 | `⚠ 缺失 xxx`（自己加的校验） | 打包内容不全 | 看该步骤上方 `ls` 的输出，确认 overlay 是否成功 |
@@ -283,7 +284,30 @@ gh release create v1.2 .\dist\*.zip `
 | `Node.js 20 is deprecated` | 只是**警告**，不影响结果 | 忽略；后续可把 `actions/*` 升到 v5 |
 | 找不到 artifact | 过期了（默认 7 天） | 重新触发一次 |
 
-**排查顺序建议**：
+### 关于 `not a git repository`
+
+`gh` 默认从**当前目录**向上找 `.git` 来推断操作哪个仓库。在 `C:\Users\k1508` 这类
+非仓库目录执行就会报这个错。两种解法：
+
+```powershell
+# 解法 1：进到仓库目录（日常推荐，之后都不用带 -R）
+cd C:\Users\k1508\Desktop\Maa\MAA造梦西游4
+gh run list --limit 10
+
+# 解法 2：任何目录都能用，显式指定仓库
+gh run list -R Inkyu-Zero/MAAZMXY4 --limit 10
+```
+
+如果嫌每次都打 `-R` 麻烦，可以在 PowerShell 配置里加个短函数
+（用 `notepad $PROFILE` 打开配置文件，加完重开终端生效）：
+
+```powershell
+function ghr { gh -R Inkyu-Zero/MAAZMXY4 @args }
+```
+
+之后就能用 `ghr run list`、`ghr release list` 等，效果与带 `-R` 完全一致。
+
+### 排查顺序建议
 
 1. `gh run list --status failure` 找到失败的运行
 2. `gh run view <id> --log-failed` 看报错原文
