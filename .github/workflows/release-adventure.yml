@@ -1,4 +1,4 @@
-name: release-adventure
+﻿name: release-adventure
 
 # 触发方式：
 #   1. 打 tag 自动触发（推荐）：git tag v1.2 && git push origin v1.2
@@ -14,6 +14,10 @@ on:
         required: false
         default: ""
 
+# 两个 workflow 都会在打 tag 时触发，串行化避免同时创建同一个 Release
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
 permissions:
   contents: write   # 创建 release 需要写权限
 

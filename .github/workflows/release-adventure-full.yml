@@ -1,0 +1,183 @@
+﻿name: release-adventure-full
+
+# 构建「完整版」发布包（含 MAA 本体 + Python 运行时 + 脚本，约 195 MB）。
+#
+# 为什么单独一个 workflow：
+#   完整版要下载近 200 MB 基准包、再过一遍 200 MB 上传，耗时明显更长。
+#   日常改脚本只需要 slim 包（release-adventure.yml），完整版按需触发即可。
+#
+# 触发：
+#   1. 打 tag（v*）自动触发
+#   2. Actions 页面手动 Run workflow（可选择基准版本）
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      base_tag:
+        description: "作为基准的 Release tag（提供 MAA 本体与 Python 运行时）"
+        required: false
+        default: "v1.1"
+      asset_tag:
+        description: "本次要发布的 tag（如 v1.2）"
+        required: false
+        default: ""
+
+# 两个 workflow 都会在打 tag 时触发，串行化避免同时创建同一个 Release
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+permissions:
+  contents: write
+
+jobs:
+  build-full:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python (用于构建与校验)
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install MaaFw (跑测试用)
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install MaaFw
+
+      # 先过测试：不合格的代码不该被塞进 200 MB 的包里
+      - name: Run offline tests
+        run: python tools/test_agent_offline.py
+
+      - name: Check pipeline structure
+        run: python tools/check_adventure.py
+
+      # ---- 1. 取基准包（含 MAA 本体 + 已配好的 Python 运行时）----
+      - name: Resolve base tag
+        id: vars
+        run: |
+          BASE="${{ github.event.inputs.base_tag }}"
+          [ -z "$BASE" ] && BASE="v1.1"
+          VER="${{ github.event.inputs.asset_tag }}"
+          if [ -z "$VER" ]; then VER="${GITHUB_REF_NAME}"; fi
+          [ -z "$VER" ] && VER="dev"
+          echo "base=$BASE" >> "$GITHUB_OUTPUT"
+          echo "ver=${VER#v}" >> "$GITHUB_OUTPUT"
+          echo "基准版本: $BASE    本次版本: ${VER#v}"
+
+      - name: Download base full package
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p base
+          gh release download "${{ steps.vars.outputs.base }}" \
+            --repo "${{ github.repository }}" \
+            --pattern "*full*.zip" \
+            --dir base
+          ls -lh base/
+
+      - name: Extract base
+        run: |
+          mkdir -p work
+          # release 里的包内顶层是「造梦西游4-生存大冒险-完整版」一类的中文目录，
+          # 统一摊平到 work/ 便于后续覆盖
+          for f in base/*.zip; do
+            unzip -q -O UTF-8 "$f" -d work_raw
+          done
+          # 找到含 exe 的那一层作为根
+          ROOTDIR=$(dirname "$(find work_raw -maxdepth 3 -iname 'MAA*.exe' | head -1)")
+          echo "基准根目录: $ROOTDIR"
+          cp -a "$ROOTDIR/." work/
+          rm -rf work_raw
+          ls work/ | head -30
+
+      # ---- 2. 用最新脚本覆盖进去 ----
+      - name: Build slim package first
+        run: python tools/build_release.py --version "${{ steps.vars.outputs.ver }}" --out dist
+
+      - name: Overlay new scripts
+        run: |
+          set -e
+          # slim 包里就是「生存大冒险/」这一层，直接覆盖到完整版根目录
+          unzip -q -O UTF-8 "dist/SurvivalAdventure-v${{ steps.vars.outputs.ver }}-slim.zip" -d overlay
+          cp -a overlay/生存大冒险/. work/
+          echo "--- 覆盖后的关键文件 ---"
+          ls -l work/agent/ | head
+          ls -l work/resource/base/pipeline/ | head
+          ls -l work/resource/announcement/ || true
+          ls -l work/assets/data/ || true
+
+      # interface.json 需要额外合并任务与 agent 配置（不能用覆盖的方式，会丢原有任务）
+      - name: Patch interface.json
+        run: |
+          python - <<'PY'
+          import json, os
+          base = os.path.join("work", "interface.json")
+          patch = json.load(open("overlay/生存大冒险/interface_patch.json", encoding="utf-8"))
+          iface = json.load(open(base, encoding="utf-8"))
+          name = patch["task"][0]["name"]
+          iface["task"] = [t for t in iface.get("task", []) if t.get("name") != name]
+          iface["task"].append(patch["task"][0])
+          if patch.get("agent"):
+              iface["agent"] = patch["agent"]
+          json.dump(iface, open(base, "w", encoding="utf-8", newline="\n"),
+                    ensure_ascii=False, indent=2)
+          print("任务数:", len(iface["task"]), "| agent:", iface.get("agent"))
+          PY
+
+      # ---- 3. 打包 ----
+      - name: Repack full
+        run: |
+          FULL="dist/MAAZMXY4-SurvivalAdventure-v${{ steps.vars.outputs.ver }}-full.zip"
+          rm -f "$FULL"
+          # 排除运行时产生的缓存与个人设置
+          (cd work && zip -qr "../$FULL" . \
+            -x "logs/*" -x "debug/*" -x "temp/*" -x "config/*" -x "*.pyc" -x "**/__pycache__/*")
+          ls -lh "$FULL"
+          echo "--- 包内前 15 项 ---"
+          unzip -l "$FULL" | head -20
+
+      - name: Verify package content
+        run: |
+          FULL="dist/MAAZMXY4-SurvivalAdventure-v${{ steps.vars.outputs.ver }}-full.zip"
+          echo "检查必备文件是否都在包里："
+          for f in "agent/adventure.py" "agent/adventure_logic.py" \
+                   "resource/base/pipeline/生存大冒险.json" "resource/base/image/继续冒险.png" \
+                   "assets/data/adventure.json" "assets/data/adventure_ui.json" \
+                   "interface.json"; do
+            # 基准包由 tar 打出，条目带 "./" 前缀，这里用宽松匹配
+            if unzip -l "$FULL" | grep -qE "(^|[ /])${f}$"; then echo "  ✓ $f"; else echo "  ✗ 缺失 $f"; exit 1; fi
+          done
+          echo "检查 Python 运行时："
+          if unzip -l "$FULL" | grep -qE "python/python\.exe"; then echo "  ✓ python/python.exe"; else echo "  ✗ 缺 Python 运行时"; exit 1; fi
+          if unzip -l "$FULL" | grep -qE "site-packages/maa/"; then echo "  ✓ site-packages/maa"; else echo "  ✗ 缺 MaaFw"; exit 1; fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: survival-adventure-full
+          path: dist/*-full.zip
+          if-no-files-found: error
+          # 保留 7 天，避免长期占用配额
+          retention-days: 7
+
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.zip
+          draft: false
+          append_body: true
+          body: |
+            ---
+
+            ### 完整版说明
+
+            本次同时上传了 **完整版**（`MAAZMXY4-SurvivalAdventure-*-full.zip`，约 195 MB）：
+            内含 MAA 本体 + Python 运行时 + MaaFw + 脚本，**解压即用，不需要安装任何东西**。
+
+            基准来自 `${{ steps.vars.outputs.base }}`，并覆盖为本仓库最新脚本。
