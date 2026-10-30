@@ -29,6 +29,12 @@ try:
 except Exception:  # noqa: BLE001
     pass
 
+# 九转炼丹也是本地私有扩展（agent/jzld/、jzld_action.py 不入库），装了就注册。
+try:
+    import jzld_action  # noqa: F401
+except Exception:  # noqa: BLE001
+    pass
+
 
 def main():
     Toolkit.init_option("./")
