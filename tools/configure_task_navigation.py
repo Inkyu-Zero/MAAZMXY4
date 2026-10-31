@@ -232,23 +232,29 @@ def configure(root=ROOT):
         guard_stage_entry(graph,prefix,parameters)
         write(path, graph)
         changed.append(task['name'])
-    interface['option']['失败自动重试'] = dict(type='select', label='任务失败后自动重试', default_case='关闭',
-        description='只对明确识别到的挑战失败生效：返回地图后重试，失败轮次不计数。未知界面、验证码、脚本损坏和人工停止不自动重试。',
+    interface['option']['失败自动重试'] = dict(type='select', label='战败后在游戏内重试', default_case='关闭',
+        description='确认战败并返回地图后重新进关，不重启盒子。重试用尽后，才按游戏管理中的失败重启开关处理。挂机模式下始终开启且不限次数。',
         cases=[dict(name='关闭', pipeline_override={'脚本任务设置': {'action': {'param': {'custom_action_param': {'failure_retry': {'enabled': False}}}}}}),
                dict(name='启用', option=['失败重试设置'], pipeline_override={'脚本任务设置': {'action': {'param': {'custom_action_param': {'failure_retry': {'enabled': True}}}}}})])
-    interface['option']['失败重试设置'] = dict(type='input', label='失败重试设置',
-        inputs=[dict(name='失败重试次数', label='重试次数（0不重开）', pipeline_type='int', default='3',
-                     verify='^([0-9]|1[0-9]|20)$', pattern_msg='请输入0至20，0表示不自动重开')],
+    interface['option']['失败重试设置'] = dict(type='input', label='游戏内重试次数',
+        description='每轮允许追加的游戏内重试次数，失败不计入完成轮数。挂机时不受此上限影响。',
+        inputs=[dict(name='失败重试次数', label='每轮最多重试', pipeline_type='int', default='3',
+                     verify='^([1-9]|1[0-9]|20)$', pattern_msg='请输入1至20；不重试请选择关闭')],
         pipeline_override={'脚本任务设置': {'action': {'param': {'custom_action_param': {'failure_retry': {'max_retries': '{失败重试次数}'}}}}}})
     marker='\n\n游戏管理：'
+    interface['option']['挂机模式'] = dict(type='select', label='挂机模式', default_case='关闭',
+        description='开启后无限刷取、无限战败重试，直到手动停止。原次数与重试设置保留；验证码、未知界面、存档不符或脚本损坏仍安全停止。',
+        cases=[dict(name=name, pipeline_override={'脚本任务设置': {'action': {'param': {'custom_action_param': {'afk_mode': enabled}}}}})
+               for name,enabled in [('关闭',False),('启用',True)]])
     for task in interface['task']:
         if task['name'] not in changed: continue
+        task['option'] = ['挂机模式'] + [name for name in task['option'] if name != '挂机模式']
         task['option']=[name for name in task.get('option',[]) if name!='自动恢复']
         task['description']=task.get('description','').split(marker)[0]+marker+(
             '在右侧设置现有造梦盒子程序、历史账号名称和已有存档角色。可分别开启任务失败后重启、'
             '内存超过1.8 GB重启及按分钟间隔重启；所有状态显示在日志。\n'
             '内存与定时重启在本轮结束、确认返回后执行；重启后核对账号和存档，再继续剩余轮次。'
-            '已完成次数保留，失败轮次不计次。游戏管理的失败重启优先于本任务的失败重试。\n'
+            '已完成次数保留，失败轮次不计次。优先执行本任务的失败重试；重试耗尽或任务确认无法继续时，才按已开启的失败重启设置重启并续跑。仅勾选挂机模式不会启用重启。\n'
             '验证码、存档不符、脚本变更及人工停止会停止自动恢复；未启用游戏管理时保持原任务流程。')
     write(interface_path, interface)
     print('已接入公共导航与失败重试：' + '、'.join(changed))

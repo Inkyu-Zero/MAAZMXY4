@@ -69,7 +69,7 @@ public sealed partial class ScriptStudioView : UserControl
 
     public ScriptStudioView(ScriptStudioViewModel viewModel)
     {
-        _vm = viewModel; DataContext = viewModel; Focusable = true;
+        _vm = viewModel; DataContext = viewModel; Focusable = true; PlayerUi.Apply(this);
         _save = Button("保存", SaveAsync, true);
         _record = Button("开始录制", StartRecordingAsync, true);
         _pause = Button("暂停", async () => RenderCapture(await _vm.Client.CallAsync(_state == "paused" ? "capture_resume" : "capture_pause")));
@@ -89,12 +89,20 @@ public sealed partial class ScriptStudioView : UserControl
         _vm.Changed += RenderDocument;
         _poll.Tick += async (_, _) => await PollCaptureAsync();
         _search.TextChanged += (_, _) => FilterLibrary();
+        _events.SelectionMode = Avalonia.Controls.SelectionMode.Multiple | Avalonia.Controls.SelectionMode.Toggle;
         _events.SelectionChanged += async (_, _) =>
         {
-            if (!_sync && _events.SelectedItem is StudioOperation operation)
-                await Run(async () => { if (await EnsureInspectorAsync()) SelectOperation(operation); else RestoreSelectionVisual(); });
+            if (!_sync)
+            {
+                var ids = _events.SelectedItems?.OfType<StudioOperation>().Select(operation => operation.Id).ToArray() ?? [];
+                await Run(async () => { if (await EnsureInspectorAsync()) SelectOperations(ids); else RestoreSelectionVisual(); });
+            }
         };
-        _timeline.Selected += operation => _ = Run(async () => { if (await EnsureInspectorAsync()) SelectOperation(operation); else RestoreSelectionVisual(); });
+        _timeline.SelectionChanged += ids => _ = Run(async () =>
+        {
+            if (await EnsureInspectorAsync()) SelectOperations(ids); else RestoreSelectionVisual();
+        });
+        _timeline.Moved += (ids, delta) => _ = Run(() => MoveSelectionAsync(ids, delta));
         _timeline.Edited += (operation, start, duration) => _ = Run(async () =>
         {
             if (!await EnsureInspectorAsync()) return;
@@ -227,7 +235,7 @@ public sealed partial class ScriptStudioView : UserControl
     }
     private void RenderDocument()
     {
-        var selectedId = _selected?.Id; _sync = true;
+        var selectedIds = _selection.ToArray(); _sync = true;
         if (_vm.File != _renderedFile || _vm.Name != _renderedName) { _fitNextTimeline = true; _adding = false; }
         _renderedName = _vm.Name; _renderedFile = _vm.File;
         _documentTitle.Text = _vm.Document == null ? "选择脚本，或开始录制" : _vm.Name + (_vm.Dirty ? " · 未保存" : "");
@@ -239,7 +247,7 @@ public sealed partial class ScriptStudioView : UserControl
         _cursor.Value = (decimal)(_timeline.CursorMs / 1000);
         _sync = false;
         _inspectorDirty = false;
-        SelectById(selectedId); FilterLibrary(); UpdateControls();
+        SelectOperations(selectedIds); FilterLibrary(); UpdateControls();
         if (_tabs.SelectedIndex == 1) Dispatcher.UIThread.Post(FitPendingTimeline, DispatcherPriority.Background);
     }
     private void FitPendingTimeline()
@@ -254,14 +262,14 @@ public sealed partial class ScriptStudioView : UserControl
     }
     private void RestoreSelectionVisual()
     {
-        _sync = true; _events.SelectedItem = _selected; _timeline.SelectedId = _selected?.Id;
-        _timeline.InvalidateVisual(); _sync = false;
+        SelectOperations(_selection.ToArray());
     }
     private void SelectOperation(StudioOperation operation)
     {
         _sync = true;
         try
         {
+        _selection.Clear(); _selection.Add(operation.Id);
         _selected = operation; _adding = false; _inspector.IsEnabled = true;
         _events.SelectedItem = operation; _timeline.SelectedId = operation.Id; _timeline.InvalidateVisual();
         _kind.SelectedIndex = operation.Kind switch { "key_hold" => 0, "mouse_hold" => 1, "key" => 2, "click" => 3, "move" => 4, "scroll" => 5, "text" => 6, "marker" => 7, _ => 1 };
@@ -281,6 +289,7 @@ public sealed partial class ScriptStudioView : UserControl
     private void BeginInsert()
     {
         if (_vm.Document == null) throw new InvalidOperationException("请先选择脚本或新建空白脚本。");
+        _selection.Clear(); _timeline.SetSelection([]);
         _sync = true; _selected = null; _adding = true; _inspector.IsEnabled = true; _kind.IsEnabled = true;
         _kind.SelectedIndex = 1; _start.Value = _cursor.Value; _duration.Value = .05m; _text.Text = "";
         UpdateInspectorFields();
@@ -460,8 +469,10 @@ public sealed partial class ScriptStudioView : UserControl
     }
     private async Task DeleteAsync()
     {
-        if (!await EnsureInspectorAsync() || _selected == null) return;
-        await _vm.ChangeAsync("delete", new JsonObject { ["id"] = _selected.Id });
+        if (!await EnsureInspectorAsync() || _selection.Count == 0) return;
+        var count = _selection.Count;
+        await _vm.ChangeAsync("delete_many", new JsonObject { ["ids"] = SelectionJson(_selection) });
+        _status.Text = $"已删除 {count} 个操作，可用 Ctrl+Z 一次撤销。";
     }
     private async Task SplitAsync()
     {
@@ -496,9 +507,15 @@ public sealed partial class ScriptStudioView : UserControl
         _redo.IsEnabled = editable && _vm.Document?["can_redo"]?.GetValue<bool>() == true;
         foreach (var action in _documentActions) action.IsEnabled = editable && _vm.Document != null;
         _scriptDuration.IsEnabled = editable && _vm.Document != null;
-        foreach (var action in _operationActions) action.IsEnabled = editable && _selected != null;
+        foreach (var action in _operationActions) action.IsEnabled = editable && _selection.Count > 0;
+        if (_duplicateOperationButton != null) _duplicateOperationButton.IsEnabled = editable && _selected != null;
+        _batchInspector.IsVisible = _selection.Count > 1;
+        _batchInspectorHost.IsVisible = _batchInspector.IsVisible;
+        if (_singleApplyRow != null) _singleApplyRow.IsVisible = _selected != null || _adding;
+        _batchInspector.IsEnabled = editable;
+        _selectionSummary.Text = _selection.Count == 0 ? "未选择操作" : $"已选择 {_selection.Count} 个操作";
         _inspector.IsVisible = _selected != null || _adding;
-        _emptyInspector.IsVisible = !_inspector.IsVisible;
+        _emptyInspector.IsVisible = !_inspector.IsVisible && !_batchInspector.IsVisible;
         _deleteFile.IsEnabled = editable && CurrentLibraryItem != null;
         if (!tasks && _status.Text == RunningHint) _status.Text = "任务已停止，可以编辑、绑定或录制脚本。";
     }
@@ -506,10 +523,20 @@ public sealed partial class ScriptStudioView : UserControl
     {
         if (_vm.Capturing) return;
         var typing = e.Source is TextBox || e.Source is Control field && field.GetVisualAncestors().OfType<TextBox>().Any();
-        if (!typing && e.Key == Key.Delete) { e.Handled = true; await Run(DeleteAsync); return; }
+        if (!typing && _tabs.SelectedIndex == 1 && e.Key == Key.Delete) { e.Handled = true; await Run(DeleteAsync); return; }
+        if (!typing && _tabs.SelectedIndex == 1 && e.Key == Key.A && e.KeyModifiers.HasFlag(KeyModifiers.Control))
+        { e.Handled = true; await Run(async () => { if (await EnsureInspectorAsync()) SelectOperations(_vm.Operations.Select(operation => operation.Id)); }); return; }
+        if (!typing && _tabs.SelectedIndex == 1 && e.Key is Key.Left or Key.Right && _selection.Count > 0
+            && (e.Source is ScriptTimeline || e.Source is Control item && item.GetVisualAncestors().Contains(_events)))
+        {
+            e.Handled = true;
+            var delta = (e.Key == Key.Left ? -1 : 1) * (e.KeyModifiers.HasFlag(KeyModifiers.Shift) ? 100 : 10);
+            var earliest = _vm.Operations.Where(operation => _selection.Contains(operation.Id)).Min(operation => operation.Start);
+            await Run(() => MoveSelectionAsync(_selection.ToArray(), Math.Max(delta, -earliest))); return;
+        }
         if (!e.KeyModifiers.HasFlag(KeyModifiers.Control)) return;
         if (e.Key == Key.N) { e.Handled = true; await Run(NewScriptAsync); return; }
-        if (!typing && e.Key == Key.D) { e.Handled = true; await Run(DuplicateOperationAsync); return; }
+        if (!typing && _tabs.SelectedIndex == 1 && e.Key == Key.D) { e.Handled = true; await Run(DuplicateOperationAsync); return; }
         if (e.Key == Key.S) { e.Handled = true; await Run(e.KeyModifiers.HasFlag(KeyModifiers.Shift) ? SaveAsAsync : SaveAsync); }
         else if (e.Key is Key.Z or Key.Y && e.Source is not TextBox && !(e.Source is Control input && input.GetVisualAncestors().OfType<TextBox>().Any()))
         { e.Handled = true; await Run(async () => { if (await EnsureInspectorAsync()) await _vm.ChangeAsync(e.Key == Key.Y || e.KeyModifiers.HasFlag(KeyModifiers.Shift) ? "redo" : "undo"); }); }

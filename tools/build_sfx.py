@@ -21,7 +21,7 @@ SFX_PREFIX_SHA256 = 'b46b816df1f76de1c698fada3c3747f71c7c38eb6bb9ba714b0ab7fef1c
 SEVEN_ZR_SHA256 = '9bf582b894dfa665f852d7e9112b02290a1c303c2d95a21fcdc41ffcb03143b7'
 RESERVED_DEVICES = re.compile(r'^(CON|PRN|AUX|NUL|CLOCK\$|CONIN\$|CONOUT\$|COM[1-9¹²³]|LPT[1-9¹²³])$', re.IGNORECASE)
 PRIVATE_ROOTS = {'config', 'recordings', 'debug', 'logs', 'backup', 'temp',
-                 '.runtime-cache', '.local-migrations'}
+                 '.runtime-cache', '.local-migrations', '.personal-transfer'}
 PRIVATE_NAMES = {'agents.md', '.bindings.json', '.defaults.json', '.selected.json'}
 LICENSE_NAMES = ('LICENSE-7zip.txt', 'LICENSE-LGPL-2.1.txt', 'NOTICE-7zip.txt')
 

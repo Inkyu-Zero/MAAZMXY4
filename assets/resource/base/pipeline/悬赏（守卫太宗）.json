@@ -45,14 +45,17 @@
     },
     "post_delay": 1000,
     "next": [
-      "悬赏（守卫太宗）-点击设置"
+      "悬赏（守卫太宗）-回放后分流"
     ],
     "$__mpe_code": {
       "position": {
         "x": 0,
         "y": 248
       }
-    }
+    },
+    "on_error": [
+      "悬赏（守卫太宗）-失败"
+    ]
   },
   "悬赏（守卫太宗）-成功进入守卫太宗关卡": {
     "recognition": {
@@ -100,22 +103,91 @@
       }
     },
     "on_error": [
-      "悬赏（守卫太宗）-刷取次数"
+      "悬赏（守卫太宗）-通用导航"
     ]
   },
   "悬赏（守卫太宗）-点击前往副本": {
     "recognition": {
-      "type": "OCR",
+      "type": "And",
       "param": {
-        "expected": [
-          "^前往副本$"
+        "all_of": [
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "^前往副本$"
+                ],
+                "roi": [
+                  480,
+                  550,
+                  350,
+                  100
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "^守卫太宗$"
+                ],
+                "roi": [
+                  500,
+                  165,
+                  430,
+                  75
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "OCR",
+                      "param": {
+                        "expected": [
+                          "^已接受$"
+                        ],
+                        "roi": [
+                          200,
+                          195,
+                          320,
+                          85
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "OCR",
+                      "param": {
+                        "expected": [
+                          "^已[接搜]受$"
+                        ],
+                        "roi": [
+                          420,
+                          220,
+                          66,
+                          40
+                        ],
+                        "only_rec": true
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "roi": [
-          480,
-          550,
-          350,
-          100
-        ]
+        "box_index": 0
       }
     },
     "action": {
@@ -159,19 +231,34 @@
   },
   "悬赏（守卫太宗）-点击设置": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": [
-          "设置.png"
-        ]
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": [
+                  "设置.png"
+                ]
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
+        ],
+        "box_index": 0
       }
     },
-    "pre_delay": 2000,
+    "pre_delay": 0,
     "action": {
       "type": "Click"
     },
     "timeout": 8000,
     "next": [
+      "悬赏（守卫太宗）-拒绝还魂丹",
+      "悬赏（守卫太宗）-等待拒绝复活",
+      "悬赏（守卫太宗）-战斗失败",
+      "悬赏（守卫太宗）-成功返回地图",
       "悬赏（守卫太宗）-返回地图"
     ],
     "$__mpe_code": {
@@ -180,14 +267,17 @@
         "y": 58
       }
     },
-    "post_delay": 1000
+    "post_delay": 1000,
+    "on_error": [
+      "悬赏（守卫太宗）-退出结果复核"
+    ]
   },
   "悬赏（守卫太宗）-返回地图": {
     "recognition": {
-      "type": "OCR",
+      "type": "And",
       "param": {
-        "expected": [
-          "返回地图"
+        "all_of": [
+          "Nav_SettingsReturn"
         ]
       }
     },
@@ -196,8 +286,7 @@
     },
     "timeout": 10000,
     "next": [
-      "悬赏（守卫太宗）-本轮成功",
-      "停止运行"
+      "悬赏（守卫太宗）-脚本返回确认"
     ],
     "$__mpe_code": {
       "position": {
@@ -208,28 +297,6 @@
     "post_delay": 300,
     "on_error": [
       "悬赏（守卫太宗）-返回地图重试"
-    ]
-  },
-  "悬赏（守卫太宗）-返回地图重试": {
-    "recognition": {
-      "type": "OCR",
-      "param": {
-        "expected": [
-          "返回地图"
-        ]
-      }
-    },
-    "action": {
-      "type": "Click"
-    },
-    "timeout": 10000,
-    "next": [
-      "悬赏（守卫太宗）-本轮成功",
-      "停止运行"
-    ],
-    "post_delay": 300,
-    "on_error": [
-      "停止运行"
     ]
   },
   "悬赏（守卫太宗）-脚本返回确认": {
@@ -248,8 +315,7 @@
     "pre_delay": 300,
     "post_delay": 0,
     "next": [
-      "悬赏（守卫太宗）-本轮成功",
-      "停止运行"
+      "悬赏（守卫太宗）-本轮成功"
     ]
   },
   "悬赏（守卫太宗）-准备本轮": {
@@ -264,17 +330,328 @@
           "phase": "begin",
           "file": "@task:task-756cfdffe011e98087a80b01a9be573e",
           "playback_node": "悬赏（守卫太宗）-回放战斗",
-          "exit_mode": "recorded_return",
-          "navigation": null
+          "exit_mode": "battle_only",
+          "navigation": {
+            "kind": "bounty",
+            "target_node": "悬赏（守卫太宗）-点击前往副本",
+            "label": "悬赏（守卫太宗）",
+            "title": "守卫太宗"
+          },
+          "navigation_entry": "悬赏（守卫太宗）-通用导航",
+          "result_guard": {
+            "failed_next": [
+              "悬赏（守卫太宗）-已确认战斗失败"
+            ],
+            "succeeded_next": [
+              "悬赏（守卫太宗）-已确认战斗成功"
+            ],
+            "revive_next": [
+              "悬赏（守卫太宗）-拒绝还魂丹",
+              "悬赏（守卫太宗）-等待拒绝复活",
+              "悬赏（守卫太宗）-战斗失败"
+            ]
+          },
+          "settings_node": "脚本任务设置",
+          "failure_retry": {
+            "enabled": false,
+            "max_retries": 3
+          },
+          "route_node": "悬赏（守卫太宗）-回放后分流",
+          "routes": {
+            "recorded_return": [
+              "悬赏（守卫太宗）-拒绝还魂丹",
+              "悬赏（守卫太宗）-等待拒绝复活",
+              "悬赏（守卫太宗）-战斗失败",
+              "悬赏（守卫太宗）-成功返回地图",
+              "悬赏（守卫太宗）-脚本返回确认"
+            ],
+            "battle_only": [
+              "悬赏（守卫太宗）-拒绝还魂丹",
+              "悬赏（守卫太宗）-等待拒绝复活",
+              "悬赏（守卫太宗）-战斗失败",
+              "悬赏（守卫太宗）-成功返回地图",
+              "悬赏（守卫太宗）-点击设置"
+            ]
+          }
         }
       }
     },
-    "pre_delay": 0,
-    "post_delay": 0,
-    "timeout": 10000,
     "next": [
-      "悬赏（守卫太宗）-点击任务"
+      "悬赏（守卫太宗）-通用导航"
+    ],
+    "timeout": 10000,
+    "post_delay": 0
+  },
+  "悬赏（守卫太宗）-通用导航": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "navigate"
+        }
+      }
+    },
+    "next": [
+      "悬赏（守卫太宗）-点击前往副本"
+    ],
+    "timeout": 10000,
+    "post_delay": 0,
+    "on_error": [
+      "悬赏（守卫太宗）-失败"
     ]
+  },
+  "悬赏（守卫太宗）-回放后分流": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "悬赏（守卫太宗）-拒绝还魂丹",
+      "悬赏（守卫太宗）-等待拒绝复活",
+      "悬赏（守卫太宗）-战斗失败",
+      "悬赏（守卫太宗）-成功返回地图",
+      "悬赏（守卫太宗）-点击设置"
+    ],
+    "timeout": 15000,
+    "post_delay": 0,
+    "on_error": [
+      "悬赏（守卫太宗）-失败"
+    ]
+  },
+  "悬赏（守卫太宗）-战斗失败": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/outcomes/failed-title.png",
+                "roi": [
+                  200,
+                  120,
+                  780,
+                  380
+                ],
+                "threshold": 0.9
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
+        ]
+      }
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "battle_failure"
+        }
+      }
+    },
+    "next": [
+      "悬赏（守卫太宗）-拒绝还魂丹",
+      "悬赏（守卫太宗）-等待拒绝复活",
+      "悬赏（守卫太宗）-失败返回地图",
+      "悬赏（守卫太宗）-失败返回确认"
+    ],
+    "post_delay": 0
+  },
+  "悬赏（守卫太宗）-失败返回地图": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "navigation/outcomes/failed-return.png",
+                        "roi": [
+                          500,
+                          450,
+                          550,
+                          200
+                        ],
+                        "threshold": 0.85
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": [
+                          "navigation/outcomes/failed-return-1_up.png",
+                          "navigation/outcomes/failed-return-2_over.png",
+                          "navigation/outcomes/failed-return-3_down.png"
+                        ],
+                        "roi": [
+                          400,
+                          400,
+                          700,
+                          260
+                        ],
+                        "threshold": 0.88,
+                        "green_mask": true
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/outcomes/failed-title.png",
+                "roi": [
+                  200,
+                  120,
+                  780,
+                  380
+                ],
+                "threshold": 0.9
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "next": [
+      "悬赏（守卫太宗）-失败返回确认"
+    ],
+    "timeout": 10000,
+    "post_delay": 500,
+    "on_error": [
+      "悬赏（守卫太宗）-失败"
+    ]
+  },
+  "悬赏（守卫太宗）-成功返回地图": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "navigation/outcomes/succeeded-return.png",
+                        "roi": [
+                          500,
+                          450,
+                          550,
+                          200
+                        ],
+                        "threshold": 0.85
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": [
+                          "navigation/outcomes/succeeded-return-1_up.png",
+                          "navigation/outcomes/succeeded-return-2_over.png",
+                          "navigation/outcomes/succeeded-return-3_down.png"
+                        ],
+                        "roi": [
+                          400,
+                          400,
+                          700,
+                          260
+                        ],
+                        "threshold": 0.88,
+                        "green_mask": true
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/outcomes/succeeded-title.png",
+                "roi": [
+                  200,
+                  120,
+                  780,
+                  380
+                ],
+                "threshold": 0.9
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "next": [
+      "悬赏（守卫太宗）-脚本返回确认"
+    ],
+    "timeout": 10000,
+    "post_delay": 500,
+    "on_error": [
+      "悬赏（守卫太宗）-失败"
+    ]
+  },
+  "悬赏（守卫太宗）-失败返回确认": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "任务.png"
+      }
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "retry_after_failure"
+        }
+      }
+    },
+    "next": [],
+    "timeout": 15000,
+    "post_delay": 0
   },
   "悬赏（守卫太宗）-本轮成功": {
     "recognition": {
@@ -289,12 +666,231 @@
         }
       }
     },
-    "pre_delay": 0,
-    "post_delay": 0,
-    "timeout": 10000,
     "next": [
       "悬赏（守卫太宗）-刷取次数",
       "停止运行"
+    ],
+    "timeout": 10000,
+    "post_delay": 0
+  },
+  "悬赏（守卫太宗）-失败": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "failure",
+          "reason": "任务导航、回放或返回画面未确认，本轮未计次。"
+        }
+      }
+    },
+    "next": [],
+    "timeout": 10000,
+    "post_delay": 0
+  },
+  "悬赏（守卫太宗）-退出结果复核": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "悬赏（守卫太宗）-拒绝还魂丹",
+      "悬赏（守卫太宗）-等待拒绝复活",
+      "悬赏（守卫太宗）-战斗失败",
+      "悬赏（守卫太宗）-成功返回地图"
+    ],
+    "timeout": 3000,
+    "post_delay": 0,
+    "on_error": [
+      "悬赏（守卫太宗）-失败"
+    ]
+  },
+  "悬赏（守卫太宗）-已确认战斗失败": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "battle_failure"
+        }
+      }
+    },
+    "next": [
+      "悬赏（守卫太宗）-拒绝还魂丹",
+      "悬赏（守卫太宗）-等待拒绝复活",
+      "悬赏（守卫太宗）-失败返回地图",
+      "悬赏（守卫太宗）-失败返回确认"
+    ],
+    "timeout": 10000,
+    "post_delay": 0,
+    "on_error": [
+      "悬赏（守卫太宗）-失败"
+    ]
+  },
+  "悬赏（守卫太宗）-已确认战斗成功": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "悬赏（守卫太宗）-成功返回地图",
+      "悬赏（守卫太宗）-脚本返回确认"
+    ],
+    "timeout": 15000,
+    "post_delay": 0,
+    "on_error": [
+      "悬赏（守卫太宗）-失败"
+    ]
+  },
+  "悬赏（守卫太宗）-拒绝还魂丹": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  "Result_ReviveLayoutP1",
+                  "Result_ReviveLayoutP2"
+                ]
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "next": [
+      "悬赏（守卫太宗）-战斗失败"
+    ],
+    "timeout": 15000,
+    "pre_delay": 0,
+    "post_delay": 250,
+    "on_error": [
+      "悬赏（守卫太宗）-失败"
+    ]
+  },
+  "悬赏（守卫太宗）-等待拒绝复活": {
+    "recognition": {
+      "type": "Or",
+      "param": {
+        "any_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": [
+                  "navigation/outcomes/revive-normal-caption.png",
+                  "navigation/outcomes/revive-vip-caption.png"
+                ],
+                "roi": [
+                  200,
+                  170,
+                  800,
+                  390
+                ],
+                "threshold": 0.88
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "And",
+              "param": {
+                "all_of": [
+                  {
+                    "sub_name": "confirm_frame",
+                    "recognition": {
+                      "type": "And",
+                      "param": {
+                        "all_of": [
+                          "Nav_CommonConfirm"
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "OCR",
+                      "param": {
+                        "roi": "confirm_frame",
+                        "roi_offset": [
+                          120,
+                          63,
+                          390,
+                          -5
+                        ],
+                        "only_rec": true,
+                        "expected": [
+                          "^你确定免费复活[，,]?\\s*继续进行挑战[？?]?$"
+                        ]
+                      }
+                    }
+                  }
+                ],
+                "box_index": 1
+              }
+            }
+          }
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "悬赏（守卫太宗）-拒绝还魂丹",
+      "悬赏（守卫太宗）-战斗失败"
+    ],
+    "post_delay": 0,
+    "timeout": 15000,
+    "on_error": [
+      "悬赏（守卫太宗）-失败"
+    ]
+  },
+  "悬赏（守卫太宗）-返回地图重试": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          "Nav_SettingsReturn"
+        ]
+      }
+    },
+    "action": {
+      "type": "Click"
+    },
+    "timeout": 10000,
+    "next": [
+      "悬赏（守卫太宗）-脚本返回确认"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 640,
+        "y": 100
+      }
+    },
+    "post_delay": 300,
+    "on_error": [
+      "悬赏（守卫太宗）-失败"
     ]
   }
 }

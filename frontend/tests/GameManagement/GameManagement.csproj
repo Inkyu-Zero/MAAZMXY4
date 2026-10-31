@@ -4,10 +4,12 @@
     <ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../../ScriptStudio/Controls/PlayerUi.cs" Link="PlayerUi.cs" />
     <PackageReference Include="Avalonia.Headless" Version="11.3.12" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.12" />
     <PackageReference Include="Avalonia.Skia" Version="11.3.12" />
     <Compile Include="../../ScriptStudio/Services/GameManagementPolicy.cs" Link="GameManagementPolicy.cs" />
+    <Compile Include="../../ScriptStudio/Services/AfkOptionControls.cs" Link="AfkOptionControls.cs" />
     <Compile Include="../../ScriptStudio/Views/UserControls/GameManagementView.cs" Link="GameManagementView.cs" />
   </ItemGroup>
 </Project>

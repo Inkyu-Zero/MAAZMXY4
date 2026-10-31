@@ -39,6 +39,11 @@ internal static class Program
         AppBuilder.Configure<TestApplication>().UseSkia().UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing=renderDirectory==null }).SetupWithoutStarting();
         var root = args.Length > 0 ? args[0] : Path.Combine(Environment.CurrentDirectory,"agent","data","game_database");
         var catalog = GameDatabaseCatalog.Load(root);
+        var boss = catalog.Entries.Single(entry => entry.Name == "九尾天狐");
+        Check(GameDatabasePresentation.Facts(boss).All(fact => fact.Label != "编号"), "Player facts exclude technical IDs");
+        Check(GameDatabasePresentation.Stat(new("命中","0.03;0.04")) == "3% ～ 4%", "Stat ranges use readable percentages");
+        Check(GameDatabasePresentation.Stat(new("攻击","404;520")) == "404 ～ 520", "Stat ranges preserve numeric meaning");
+        Check(catalog.Search("复活8次", "Boss").Any(entry => entry.Name=="九尾天狐"), "Skill descriptions are searchable");
         Check(catalog.Entries.Count > 2000,"Catalogue should contain the audited official indexes");
         Check(catalog.Search("琉璃宫", "Boss").Any(e=>e.Name=="九尾天狐"),"Boss acquisition/location search");
         Check(catalog.Search("朱电霹雳棍")[0].Name=="朱电霹雳棍","Exact name ranks first");
@@ -67,17 +72,14 @@ internal static class Program
             Directory.CreateDirectory(renderDirectory);
             Application.Current!.RequestedThemeVariant=Avalonia.Styling.ThemeVariant.Dark;
             Dispatcher.UIThread.RunJobs();
-            using var image=window.CaptureRenderedFrame();
-            Check(image!=null,"Offscreen rendering must produce a frame");
-            image!.Save(Path.Combine(renderDirectory,"database-dark.png"));
+            Render(window,Path.Combine(renderDirectory,"database-dark.png"));
         }
         search.Text="朱电霹雳棍";
         PumpUntil(()=>(results.SelectedItem as GameDatabaseEntry)?.Name=="朱电霹雳棍");
         Check(Field<Avalonia.Media.Imaging.Bitmap?>(view,"_bitmap")!=null,"Selected equipment decodes its packaged icon");
         if (renderDirectory!=null)
         {
-            using var image=window.CaptureRenderedFrame();
-            image!.Save(Path.Combine(renderDirectory,"database-equipment.png"));
+            Render(window,Path.Combine(renderDirectory,"database-equipment.png"));
         }
         search.Text="九尾天狐";
         PumpUntil(()=>(results.SelectedItem as GameDatabaseEntry)?.Name=="九尾天狐");
@@ -87,9 +89,7 @@ internal static class Program
         {
             Application.Current!.RequestedThemeVariant=Avalonia.Styling.ThemeVariant.Light;
             Dispatcher.UIThread.RunJobs();
-            using var image=window.CaptureRenderedFrame();
-            Check(image!=null,"Narrow offscreen rendering must produce a frame");
-            image!.Save(Path.Combine(renderDirectory,"database-narrow.png"));
+            Render(window,Path.Combine(renderDirectory,"database-narrow.png"));
         }
         // Switching sidebar pages before debounce must apply the pending
         // query on return, while retaining the one loaded data snapshot.
@@ -105,6 +105,12 @@ internal static class Program
         Check(calls==2,"Search/page operations must reuse the loaded snapshot");
         Console.WriteLine($"PASS catalogue/search/recipe/skills/retry/paging/narrow layout/disposal: {catalog.Entries.Count} entries; no client, controller or browser opened.");
         return 0;
+    }
+    private static void Render(Window window,string path)
+    {
+        Dispatcher.UIThread.RunJobs();window.UpdateLayout();
+        using var image=new Avalonia.Media.Imaging.RenderTargetBitmap(new PixelSize((int)window.Width,(int)window.Height),new Vector(96,96));
+        image.Render(window);image.Save(path);
     }
 }
 internal sealed class TestApplication : Application

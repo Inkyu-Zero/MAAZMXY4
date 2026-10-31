@@ -438,6 +438,202 @@
     "next": [],
     "timeout": 3000
   },
+  "GameManagement_Slot5": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "[Ll][Vv][.· :]*[0-9]+"
+                ],
+                "roi": [
+                  328,
+                  390,
+                  230,
+                  56
+                ],
+                "threshold": 0.75
+              }
+            }
+          },
+          "GameManagement_SavePage"
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "next": [],
+    "post_delay": 400,
+    "timeout": 3000
+  },
+  "GameManagement_Slot6": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "[Ll][Vv][.· :]*[0-9]+"
+                ],
+                "roi": [
+                  655,
+                  390,
+                  230,
+                  56
+                ],
+                "threshold": 0.75
+              }
+            }
+          },
+          "GameManagement_SavePage"
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "next": [],
+    "post_delay": 400,
+    "timeout": 3000
+  },
+  "GameManagement_Slot7": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "[Ll][Vv][.· :]*[0-9]+"
+                ],
+                "roi": [
+                  328,
+                  508,
+                  230,
+                  56
+                ],
+                "threshold": 0.75
+              }
+            }
+          },
+          "GameManagement_SavePage"
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "next": [],
+    "post_delay": 400,
+    "timeout": 3000
+  },
+  "GameManagement_Slot8": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "[Ll][Vv][.· :]*[0-9]+"
+                ],
+                "roi": [
+                  655,
+                  508,
+                  230,
+                  56
+                ],
+                "threshold": 0.75
+              }
+            }
+          },
+          "GameManagement_SavePage"
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "next": [],
+    "post_delay": 400,
+    "timeout": 3000
+  },
+  "GameManagement_Loading": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "正在加载"
+                ],
+                "roi": [
+                  330,
+                  480,
+                  500,
+                  140
+                ],
+                "threshold": 0.75
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "[0-9]+%"
+                ],
+                "roi": [
+                  330,
+                  480,
+                  500,
+                  140
+                ],
+                "threshold": 0.75
+              }
+            }
+          }
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0
+  },
   "GameManagement_BoxLogin": {
     "recognition": {
       "type": "And",

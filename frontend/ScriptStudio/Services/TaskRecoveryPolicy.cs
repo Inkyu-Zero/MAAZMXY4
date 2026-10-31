@@ -100,13 +100,80 @@ public sealed record TaskProcessIdentity(int Pid, long StartedUtcTicks, string E
     }
 }
 
-public sealed record ManagedGameTarget(TaskProcessIdentity Process, nint Window, TaskWindowSize ClientSize);
+public sealed record TaskWindowIdentity(string Title, string ClassName)
+{
+    public bool IsValid => !string.IsNullOrWhiteSpace(Title) && !string.IsNullOrWhiteSpace(ClassName);
+    public bool Matches(TaskWindowIdentity other) => IsValid && this == other;
+}
+
+public sealed record ManagedGameTarget(TaskProcessIdentity Process, nint Window, TaskWindowSize ClientSize,
+    TaskWindowIdentity WindowIdentity);
+
+public sealed record TaskWindowCandidate(nint Handle, int Pid, TaskWindowIdentity Identity,
+    TaskWindowSize ClientSize, TaskWindowSize OuterSize, bool Visible, bool GeometryConsistent = true)
+{
+    public bool HasUsableBounds => GeometryConsistent && ClientSize.IsValid && OuterSize.IsValid
+        && OuterSize.Width >= ClientSize.Width && OuterSize.Height >= ClientSize.Height;
+}
+
+/// <summary>A process can expose a temporary AIR window before its real game window.</summary>
+public sealed class TaskWindowReadiness(int expectedPid, TaskWindowIdentity? expectedIdentity)
+{
+    private TaskWindowCandidate? _candidate;
+    private TimeSpan _since;
+
+    public bool MatchesTarget(TaskWindowCandidate window) => window.Handle != 0 && window.Pid == expectedPid
+        && window.Visible && window.Identity.IsValid
+        && (expectedIdentity != null ? expectedIdentity.Matches(window.Identity)
+            : window.Identity.Title.StartsWith("造梦盒子", StringComparison.Ordinal));
+
+    public TaskWindowCandidate? Observe(IEnumerable<TaskWindowCandidate> windows, TimeSpan elapsed)
+    {
+        // Keep uniqueness after identity filtering: an AIR splash is not a game
+        // candidate, but two real game windows must never be resolved by order.
+        var selected = TaskRecoveryPolicy.SelectUniqueWindow(windows.Where(MatchesTarget), w => w.Pid, expectedPid);
+        if (!selected.Found || !selected.Window.HasUsableBounds)
+        {
+            _candidate = null;
+            return null;
+        }
+        if (_candidate != selected.Window)
+        {
+            _candidate = selected.Window;
+            _since = elapsed;
+        }
+        return elapsed - _since >= TimeSpan.FromSeconds(1) ? _candidate : null;
+    }
+}
+
+/// <summary>Use one synchronous coordinate context; never carry a thread DPI change across await.</summary>
+public static class TaskWindowCoordinates
+{
+    public static T InPhysicalPixels<T>(Func<nint, nint> setContext, Func<T> action)
+    {
+        var previous = setContext(new nint(-4)); // DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2
+        if (previous == 0) throw new InvalidOperationException("无法统一游戏窗口的 DPI 坐标，未调整窗口。");
+        try { return action(); }
+        finally { setContext(previous); }
+    }
+}
 
 public readonly record struct TaskWindowSize(int Width, int Height)
 {
+    public bool IsValid => Width is >= 1 and <= 32768 && Height is >= 1 and <= 32768;
+    public bool SameNormalizedFrame(TaskWindowSize other)
+    {
+        Validate(); other.Validate();
+        // Maa normalizes the short side to 720. Uniform AIR/DPI scaling is
+        // harmless; changing the aspect ratio would change recorded positions.
+        double scale = 720.0 / Math.Min(Width, Height);
+        double otherScale = 720.0 / Math.Min(other.Width, other.Height);
+        return Math.Abs(Math.Round(Width * scale) - Math.Round(other.Width * otherScale)) <= 1
+            && Math.Abs(Math.Round(Height * scale) - Math.Round(other.Height * otherScale)) <= 1;
+    }
     public void Validate()
     {
-        if (Width is < 1 or > 32768 || Height is < 1 or > 32768)
+        if (!IsValid)
             throw new InvalidOperationException("游戏窗口尺寸无效，自动恢复已停止。");
     }
 
@@ -226,10 +293,12 @@ public static class TaskRecoveryPolicy
         while (outcome.Status == TaskAttemptStatus.Recoverable && options.Enabled)
         {
             token.ThrowIfCancellationRequested();
-            if (outcome.Reason is not ("white_screen" or "window_lost" or "battle_failed"))
+            if (outcome.Reason is not ("white_screen" or "window_lost" or "battle_failed" or "battle_retry_exhausted" or "battle_return_failed" or "task_failed"))
                 return TaskAttempt.Fatal("不允许自动恢复的故障：" + outcome.Reason);
+            // Game defeats retry inside the same running Pipeline. Process
+            // recovery has a separate budget even for an unlimited task.
             if (restarts >= options.MaxRetries)
-                return TaskAttempt.Fatal("本轮自动恢复次数已用尽。");
+                return TaskAttempt.Fatal("本轮连续重启恢复失败，已达到上限，请检查游戏状态。");
             restarts++;
             outcome = await recover(options.SaveSlot, restarts, token);
             token.ThrowIfCancellationRequested();
@@ -249,7 +318,7 @@ public static class TaskRecoveryPolicy
         {
             "success" when !resume => new(TaskAttemptStatus.Success),
             "ready" when resume => new(TaskAttemptStatus.Ready),
-            "recoverable" when reason is "white_screen" or "window_lost" or "battle_failed" => new(TaskAttemptStatus.Recoverable, reason),
+            "recoverable" when reason is "white_screen" or "window_lost" or "battle_failed" or "battle_retry_exhausted" or "battle_return_failed" or "task_failed" => new(TaskAttemptStatus.Recoverable, reason),
             "cancelled" => new(TaskAttemptStatus.Cancelled, reason),
             "fatal" => TaskAttempt.Fatal(reason),
             _ => TaskAttempt.Fatal("任务没有留下可验证的成功状态。")

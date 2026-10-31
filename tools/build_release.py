@@ -85,6 +85,28 @@ def collect(root):
                 rel = os.path.relpath(full, p).replace("\\", "/")
                 files.append((full, item + "/" + rel))
 
+    # Root recordings are personal. agent/recordings contains only the reviewed
+    # manifest and its declared public defaults; never sweep that folder whole.
+    defaults = os.path.join(_pick_dir(root, 'agent'), 'recordings')
+    manifest = os.path.join(defaults, 'manifest.json')
+    if os.path.isfile(manifest):
+        with open(manifest, encoding='utf8') as stream:
+            bundle = json.load(stream)
+        if bundle.get('version') != 1 or not isinstance(bundle.get('items'), list):
+            raise ValueError('公共录制清单格式无效。')
+        files.append((manifest, 'agent/recordings/manifest.json'))
+        seen = set()
+        for item in bundle['items']:
+            name = item.get('file', '')
+            if (not name.endswith('.json') or name.startswith('.') or name == 'manifest.json'
+                    or any(char in name for char in '/\\:') or name in seen):
+                raise ValueError('公共录制清单路径无效。')
+            seen.add(name)
+            path = os.path.join(defaults, name)
+            if not os.path.isfile(path) or hashlib.sha256(Path(path).read_bytes()).hexdigest() != item.get('sha256'):
+                raise ValueError('公共录制与清单哈希不一致：' + name)
+            files.append((path, 'agent/recordings/' + name))
+
     for cand in INTERFACE_CANDIDATES:
         p = os.path.join(root, cand)
         if os.path.isfile(p):
@@ -94,7 +116,7 @@ def collect(root):
         raise SystemExit("缺少 interface.json（assets/ 或根目录都没有）")
     return files
 
-from runtime_check import REQUIRED as AGENT_RUNTIME_REQUIRED
+from runtime_check import REQUIRED as AGENT_RUNTIME_REQUIRED, required_path_exists
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LAUNCHER_NAME = 'MAA造梦西游4.exe'
@@ -113,9 +135,7 @@ PYTHON_REQUIRED = tuple(Path(name).as_posix() for name in AGENT_RUNTIME_REQUIRED
 
 def require_paths(root, names, label):
     for name in names:
-        path = Path(root) / name
-        is_directory = name in ('DLLs', 'Lib/site-packages/MaaAgentBinary')
-        if path.is_symlink() or not (path.is_dir() if is_directory else path.is_file()):
+        if not required_path_exists(root, name):
             raise ValueError(label + '缺少：' + name)
 
 
@@ -168,12 +188,33 @@ def validate_client_resources(root):
 
 
 def validate_client(root):
-    """Check the extracted client, including the launcher's Python/Tk entry chain."""
+    """Check the extracted client, direct launcher and bundled Python runtime."""
     root = Path(root)
     validate_launcher(root / LAUNCHER_NAME)
     require_paths(root, FRONTEND_REQUIRED + ('agent/main.py',), '完整客户端')
     require_paths(root / 'runtimes/python', PYTHON_REQUIRED, '内嵌 Python')
     return validate_client_resources(root)
+
+
+def validate_frontend_source(root, frontend):
+    """Reject old custom frontends even when the resource version was bumped."""
+    manifest = json.loads((root/'frontend/upstream.json').read_text(encoding='utf8'))
+    built = json.loads((frontend/'script-studio-build.json').read_text(encoding='utf8'))
+    for key in ('repository', 'commit', 'archive_sha256', 'patches'):
+        if built.get(key) != manifest.get(key):
+            raise ValueError('前端构建与当前源码不一致：' + key)
+    if not built.get('source_sha256') or not built.get('binary_sha256'):
+        raise ValueError('前端构建缺少源码及二进制校验记录，请重新构建。')
+    # The patch application algorithm is part of the build input. An old
+    # builder could produce duplicate UI from the same manifest and overlays.
+    sources = ['frontend/upstream.json', 'tools/build_frontend.ps1', *manifest['patches']]
+    sources += [p.relative_to(root).as_posix() for p in (root/manifest['overlay_directory']).rglob('*') if p.is_file()]
+    for name in sources:
+        if built['source_sha256'].get(name) != hashlib.sha256((root/name).read_bytes()).hexdigest():
+            raise ValueError('前端源码在构建后发生变化：' + name)
+    for name in ('MFAAvalonia.dll', 'libs/MFAAvalonia.Core.dll'):
+        if built['binary_sha256'].get(name) != hashlib.sha256((frontend/name).read_bytes()).hexdigest():
+            raise ValueError('前端二进制与构建记录不一致：' + name)
 
 
 def client_files(root, frontend, python_runtime, launcher):
@@ -186,6 +227,7 @@ def client_files(root, frontend, python_runtime, launcher):
     if Path(launcher).with_name('launcher-build.json').is_file():
         files.append((Path(launcher).with_name('launcher-build.json'), 'launcher-build.json'))
     require_paths(frontend, FRONTEND_REQUIRED, '前端构建')
+    validate_frontend_source(root, frontend)
     for name in FRONTEND_ROOT_FILES: files.append((frontend / name, name))
     for folder in ('libs', 'runtimes/win-x64/native'):
         files.extend((path, path.relative_to(frontend).as_posix())
@@ -197,7 +239,10 @@ def client_files(root, frontend, python_runtime, launcher):
     for name in ('DependencySetup_依赖库安装_win.bat', 'LICENSE', 'NOTICE', 'README.md',
                  'docs/zh_cn/脚本工具-使用说明.md', 'docs/zh_cn/更新协议与发布规范.md',
                  'docs/zh_cn/游戏数据库与导航素材.md', 'docs/zh_cn/游戏管理.md',
-                 'docs/zh_cn/通用导航迁移与失败重试说明.md', 'docs/zh_cn/2.3.9更新说明.md'):
+                 'docs/zh_cn/个人配置备份与迁移.md',
+                 'docs/zh_cn/2026-10-31更新日志.md',
+                 'docs/zh_cn/通用导航迁移与失败重试说明.md', 'docs/zh_cn/2.3.9更新说明.md',
+                 'docs/zh_cn/2.4.1-rc.1更新说明.md'):
         files.append((root / name, name))
     files = [(source, relative) for source, relative in files
              if not is_local_instructions(Path(relative).name)]

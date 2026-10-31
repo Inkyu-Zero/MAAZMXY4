@@ -105,48 +105,67 @@ $patchDefinitions = @(
         Get-Content -LiteralPath $path -Raw -Encoding UTF8 | ConvertFrom-Json
     }
 )
+# Build patch targets from the verified archive, never from previously patched
+# cache text. An old replacement can still contain the original anchor, so
+# trying to upgrade it in place can nest a second copy of a control.
+$targetRecordPath = Join-Path $sourceRoot '.script-studio-patch-targets.json'
+$previousTargets = @()
+if (Test-Path -LiteralPath $targetRecordPath) {
+    $record = Get-Content -LiteralPath $targetRecordPath -Raw -Encoding UTF8 | ConvertFrom-Json
+    if ($record.commit -ne $manifest.commit -or $record.archive_sha256 -ne $manifest.archive_sha256) {
+        throw 'Patch target record belongs to a different upstream archive.'
+    }
+    $previousTargets = @($record.targets)
+}
+$currentTargets = @($patchDefinitions | ForEach-Object { $_.path.Replace('\', '/') } | Select-Object -Unique)
+$targetNames = @(@($currentTargets) + @($previousTargets) | Select-Object -Unique)
+$preparedTargets = [ordered]@{}
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+$archive = [IO.Compression.ZipFile]::OpenRead($archivePath)
+try {
+    foreach ($relative in $targetNames) {
+        if (-not ($relative -is [string]) -or [string]::IsNullOrWhiteSpace($relative)) {
+            throw 'Patch target paths must be non-empty strings.'
+        }
+        $null = Get-ContainedPath $sourceRoot $relative
+        $entry = $archive.GetEntry('MFAAvalonia-' + $manifest.commit + '/' + $relative)
+        if (-not $entry) { throw "Patch target is absent from the verified archive: $relative" }
+        $reader = [IO.StreamReader]::new($entry.Open(), [Text.Encoding]::UTF8, $true)
+        try { $preparedTargets[$relative] = $reader.ReadToEnd().Replace("`r`n", "`n") }
+        finally { $reader.Dispose() }
+    }
+} finally { $archive.Dispose() }
+
+# Compose and validate every patch before modifying any cached target. This also
+# supports later patches whose anchors are introduced by earlier patches.
 for ($patchIndex = 0; $patchIndex -lt $patchPaths.Count; $patchIndex++) {
-    $patchRelativePath = $patchPaths[$patchIndex]
     $patch = $patchDefinitions[$patchIndex]
-    $targetPath = Get-ContainedPath $sourceRoot $patch.path
-    $text = [IO.File]::ReadAllText($targetPath).Replace("`r`n", "`n")
+    $relative = $patch.path.Replace('\', '/')
     $find = $patch.find.Replace("`r`n", "`n")
     $replacement = $patch.replace.Replace("`r`n", "`n")
-    if ($text.Contains($replacement)) {
-        Write-Host "Patch already applied: $($patch.description)"
-        continue
+    $text = $preparedTargets[$relative]
+    if ([string]::IsNullOrEmpty($find) -or [regex]::Matches($text, [regex]::Escape($find)).Count -ne 1) {
+        throw "Patch anchor is absent or ambiguous in the verified source: $($patchPaths[$patchIndex]) ($relative). The pinned source must match exactly."
     }
-    # Later exact patches can replace or extend an earlier fragment.
-    # If their composed result is present, reapplying the earlier fragment would
-    # either fail or undo part of the later patch on a second build.
-    $superseded = $false
-    for ($laterIndex = $patchIndex + 1; $laterIndex -lt $patchPaths.Count; $laterIndex++) {
-        $later = $patchDefinitions[$laterIndex]
-        if ($later.path -ne $patch.path) { continue }
-        $laterFind = $later.find.Replace("`r`n", "`n")
-        $laterReplacement = $later.replace.Replace("`r`n", "`n")
-        $laterCoversEarlier = $laterFind.Contains($replacement) -and $text.Contains($laterReplacement)
-        $laterInsideEarlier = [regex]::Matches($replacement, [regex]::Escape($laterFind)).Count -eq 1 `
-            -and $text.Contains($replacement.Replace($laterFind, $laterReplacement))
-        if ($laterCoversEarlier -or $laterInsideEarlier) {
-            Write-Host "Patch superseded by an already-applied later patch: $($patch.description)"
-            $superseded = $true
-            break
-        }
-    }
-    if ($superseded) { continue }
-    if ([regex]::Matches($text, [regex]::Escape($find)).Count -ne 1) {
-        $previousProperty = $patch.PSObject.Properties['previous_replacements']
-        $previous = @()
-        if ($previousProperty) {
-            $previous = @($previousProperty.Value | Where-Object { [regex]::Matches($text, [regex]::Escape($_.Replace("`r`n", "`n"))).Count -eq 1 })
-        }
-        if ($previous.Count -ne 1) { throw "Patch anchor is absent or ambiguous: $patchRelativePath ($($patch.path)). The pinned source must match exactly." }
-        $find = $previous[0].Replace("`r`n", "`n")
-    }
-    Write-Utf8 $targetPath ($text.Replace($find, $replacement))
-    Write-Host "Applied: $($patch.description)"
+    $preparedTargets[$relative] = $text.Replace($find, $replacement)
 }
+$preparedHashes = [ordered]@{}
+foreach ($relative in $targetNames) {
+    $targetPath = Get-ContainedPath $sourceRoot $relative
+    $bytes = $utf8.GetBytes($preparedTargets[$relative])
+    $unchanged = (Test-Path -LiteralPath $targetPath) -and
+        [Convert]::ToBase64String([IO.File]::ReadAllBytes($targetPath)).Equals([Convert]::ToBase64String($bytes), [StringComparison]::Ordinal)
+    if (-not $unchanged) {
+        New-Item -ItemType Directory -Path ([IO.Path]::GetDirectoryName($targetPath)) -Force | Out-Null
+        [IO.File]::WriteAllBytes($targetPath, $bytes)
+        Write-Host "Regenerated patch target: $relative"
+    }
+    $preparedHashes[$relative] = (Get-FileHash -LiteralPath $targetPath -Algorithm SHA256).Hash.ToLowerInvariant()
+}
+# Remember only owned targets. If a patch is removed, restore that file once
+# from the archive while keeping bin/obj and unrelated cache files untouched.
+$targetRecord = [ordered]@{ commit = $manifest.commit; archive_sha256 = $manifest.archive_sha256; targets = @($currentTargets) }
+Write-Utf8 $targetRecordPath (($targetRecord | ConvertTo-Json -Depth 4) + "`n")
 
 $overlayRoot = Get-ContainedPath $projectRoot $manifest.overlay_directory
 $coreRoot = Get-ContainedPath $sourceRoot 'MFAAvalonia'
@@ -228,6 +247,16 @@ if (-not (Test-Path -LiteralPath (Join-Path $outputRoot 'MFAAvalonia.exe'))) {
 }
 
 Copy-Item -LiteralPath (Join-Path $sourceRoot 'LICENSE') -Destination (Join-Path $outputRoot 'LICENSE-MFAAvalonia.txt') -Force
+$sourceHashes = [ordered]@{}
+$sourceFiles = @('frontend/upstream.json', 'tools/build_frontend.ps1') + @($manifest.patches)
+$sourceFiles += @(Get-ChildItem -LiteralPath $overlayRoot -Recurse -File | ForEach-Object { $_.FullName.Substring($projectRoot.Length + 1).Replace('\', '/') })
+foreach ($relative in $sourceFiles) {
+    $sourceHashes[$relative] = (Get-FileHash -LiteralPath (Get-ContainedPath $projectRoot $relative) -Algorithm SHA256).Hash.ToLowerInvariant()
+}
+$binaryHashes = [ordered]@{}
+foreach ($relative in @('MFAAvalonia.dll', 'libs/MFAAvalonia.Core.dll')) {
+    $binaryHashes[$relative] = (Get-FileHash -LiteralPath (Get-ContainedPath $outputRoot $relative) -Algorithm SHA256).Hash.ToLowerInvariant()
+}
 $buildInfo = [ordered]@{
     repository = $manifest.repository
     commit = $manifest.commit
@@ -240,6 +269,9 @@ $buildInfo = [ordered]@{
     source_url = "https://github.com/$($manifest.repository)/tree/$($manifest.commit)"
     overlay_directory = $manifest.overlay_directory
     patches = $manifest.patches
+    source_sha256 = $sourceHashes
+    prepared_source_sha256 = $preparedHashes
+    binary_sha256 = $binaryHashes
 }
 Write-Utf8 (Join-Path $outputRoot 'script-studio-build.json') (($buildInfo | ConvertTo-Json -Depth 5) + "`n")
 

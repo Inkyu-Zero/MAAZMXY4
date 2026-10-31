@@ -26,23 +26,43 @@ public sealed class ScriptTimeline : Control
     private double _rowHeight = 48, _viewportWidth = 600, _viewportHeight;
     private bool _fitted = true;
     private string? _hoveredId;
+    private readonly HashSet<string> _selectedIds = new(StringComparer.Ordinal);
+    private HashSet<string> _selectionBeforeGesture = new(StringComparer.Ordinal);
+    private bool _marquee, _extendSelection;
+    private Rect _selectionBox;
+    private double _groupDelta;
     private static readonly Cursor ResizeCursor = new(StandardCursorType.SizeWestEast);
     private static readonly Cursor MoveCursor = new(StandardCursorType.SizeAll);
     private static readonly Cursor HandCursor = new(StandardCursorType.Hand);
     private static readonly Cursor ArrowCursor = new(StandardCursorType.Arrow);
     private IReadOnlyList<StudioOperation> _operations = Array.Empty<StudioOperation>();
     private readonly List<string> _lanes = new();
-    public string? SelectedId { get; set; }
+    public string? SelectedId { get => _selectedIds.FirstOrDefault(); set => SetSelection(value == null ? [] : [value]); }
+    public IReadOnlyCollection<string> SelectedIds => _selectedIds;
     public bool Editable { get; set; } = true;
     public double CursorMs { get; private set; }
     public double DurationMs { get; private set; }
-    public event Action<StudioOperation>? Selected;
+    public event Action<IReadOnlyList<string>>? SelectionChanged;
+    public event Action<IReadOnlyList<string>, double>? Moved;
     public event Action<StudioOperation, double, double>? Edited;
     public event Action<double>? CursorChanged;
+    public void SetSelection(IEnumerable<string> ids, bool notify = false)
+    {
+        var requested = ids.ToArray();
+        var existing = _operations.Select(operation => operation.Id).ToHashSet(StringComparer.Ordinal);
+        _selectedIds.Clear(); _selectedIds.UnionWith(requested.Where(existing.Contains));
+        InvalidateVisual();
+        if (notify) SelectionChanged?.Invoke(_selectedIds.ToArray());
+    }
     public ScriptTimeline() { ClipToBounds = true; Focusable = true; HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Left; VerticalAlignment = Avalonia.Layout.VerticalAlignment.Top; }
     public void Update(IReadOnlyList<StudioOperation> operations, double duration)
     {
+        // Undo and document responses replace the gesture's timing snapshot.
+        // Cancel its preview and discard hit geometry before accepting new input.
+        _drag = null; _marquee = false; _groupDelta = 0;
+        _hits.Clear(); Cursor = ArrowCursor;
         _operations = operations; DurationMs = duration; _hoveredId = null;
+        _selectedIds.IntersectWith(operations.Select(operation => operation.Id));
         CursorMs = Math.Clamp(CursorMs, 0, Math.Max(0, DurationMs));
         // Retiming an operation must not move whole tracks under the pointer.
         var present = operations.Select(operation => operation.Lane).Distinct().ToList();
@@ -89,7 +109,7 @@ public sealed class ScriptTimeline : Control
         var lanes = _lanes;
         var spacing = _scale >= 100 ? .5 : _scale >= 30 ? 1 : _scale >= 6 ? 5 : _scale >= 1 ? 30 : Math.Max(1, Math.Ceiling(DurationMs / 1000 / 12));
         for (var second = Math.Max(0, Math.Floor((left - Header) / _scale / spacing) * spacing);
-             second * _scale < left + visibleWidth - Header; second += spacing)
+             second * 1000 < DurationMs && second * _scale < left + visibleWidth - Header; second += spacing)
         {
             var x = Header + second * _scale;
             context.DrawLine(line, new Point(x, Ruler), new Point(x, Height));
@@ -103,15 +123,20 @@ public sealed class ScriptTimeline : Control
         _hits.Clear();
         foreach (var operation in _operations)
         {
-            var start = operation == _drag ? _previewStart : operation.Start;
+            var start = _drag != null && _edge == 0 && _selectedIds.Contains(operation.Id)
+                ? operation.Start + _groupDelta : operation == _drag ? _previewStart : operation.Start;
             var duration = operation == _drag ? _previewDuration : operation.Duration;
             var rect = new Rect(Header + start / 1000 * _scale, Ruler + lanes.IndexOf(operation.Lane) * _rowHeight + 6,
                 Math.Max(12, duration / 1000 * _scale), _rowHeight - 12);
             if (rect.X > left + visibleWidth || rect.Right < Math.Max(Header, left)) continue;
             var color = operation.Kind == "marker" ? "#D89A25" : operation.Lane == "鼠标" ? "#17A398" : "#627AF2";
-            context.DrawRectangle(new SolidColorBrush(Color.Parse(color)), operation.Id == SelectedId ? new Pen(Brushes.White, 2) : null, rect, 5, 5);
-            if (rect.Width > 42) Text(context, operation.Label, rect.X + 9, rect.Y + Math.Max(2, (rect.Height - 16) / 2), Brushes.White, 12);
-            if (operation.Id == SelectedId && operation.Duration > 0)
+            context.DrawRectangle(new SolidColorBrush(Color.Parse(color)), _selectedIds.Contains(operation.Id) ? new Pen(dark ? Brushes.White : Brushes.MidnightBlue, 2) : null, rect, 5, 5);
+            if (rect.Width > 18)
+            {
+                using var clip = context.PushClip(rect.Deflate(2));
+                Text(context, operation.Label, rect.X + 6, rect.Y + Math.Max(2, (rect.Height - 16) / 2), Brushes.White, 12);
+            }
+            if (_selectedIds.Count == 1 && _selectedIds.Contains(operation.Id) && operation.Duration > 0)
             {
                 var grip = new Pen(Brushes.White, 2);
                 var middle = rect.Y + rect.Height / 2;
@@ -120,6 +145,8 @@ public sealed class ScriptTimeline : Control
             }
             _hits.Add((rect, operation));
         }
+        if (_marquee)
+            context.DrawRectangle(new SolidColorBrush(Color.Parse("#30627AF2")), new Pen(new SolidColorBrush(Color.Parse("#627AF2"))), _selectionBox);
         var end = Header + DurationMs / 1000 * _scale;
         var endLabelX = Math.Max(Header + 3, end - 105);
         context.FillRectangle(background, new Rect(endLabelX, 0, 120, Ruler));
@@ -134,7 +161,7 @@ public sealed class ScriptTimeline : Control
     }
     private static void Text(DrawingContext context, string value, double x, double y, IBrush brush, double size)
     {
-        var formatted = new FormattedText(value, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Typeface.Default, size, brush);
+        var formatted = new FormattedText(value, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, new Typeface("Microsoft YaHei UI, Segoe UI"), size, brush);
         context.DrawText(formatted, new Point(x, y));
     }
     protected override void OnPointerPressed(PointerPressedEventArgs e)
@@ -145,16 +172,32 @@ public sealed class ScriptTimeline : Control
         var position = e.GetPosition(this);
         if (position.X < Header + (this.GetVisualAncestors().OfType<ScrollViewer>().FirstOrDefault()?.Offset.X ?? 0)) return;
         var hit = _hits.LastOrDefault(h => h.Bounds.Contains(position));
+        _selectionBeforeGesture = new HashSet<string>(_selectedIds, StringComparer.Ordinal);
+        _extendSelection = (e.KeyModifiers & (KeyModifiers.Control | KeyModifiers.Shift)) != 0;
         if (hit.Operation != null)
         {
-            SelectedId = hit.Operation.Id; Selected?.Invoke(hit.Operation);
+            if (_extendSelection)
+            {
+                if (!_selectedIds.Add(hit.Operation.Id)) _selectedIds.Remove(hit.Operation.Id);
+                SelectionChanged?.Invoke(_selectedIds.ToArray());
+                InvalidateVisual(); e.Handled = true; return;
+            }
+            if (!_selectedIds.Contains(hit.Operation.Id)) SetSelection([hit.Operation.Id]);
+            SelectionChanged?.Invoke(_selectedIds.ToArray());
             if (Editable)
             {
                 _drag = hit.Operation; _origin = position;
+                _groupDelta = 0;
                 _previewStart = _drag.Start; _previewDuration = _drag.Duration;
-                _edge = EdgeAt(hit.Bounds, _drag.Duration, position.X);
+                _edge = _selectedIds.Count > 1 ? 0 : EdgeAt(hit.Bounds, _drag.Duration, position.X);
                 e.Pointer.Capture(this);
             }
+        }
+        else if (position.Y >= Ruler)
+        {
+            _origin = position; _selectionBox = new Rect(position, position); _marquee = true;
+            if (!_extendSelection) _selectedIds.Clear();
+            e.Pointer.Capture(this);
         }
         else
         {
@@ -166,6 +209,20 @@ public sealed class ScriptTimeline : Control
     protected override void OnPointerMoved(PointerEventArgs e)
     {
         base.OnPointerMoved(e);
+        if (_marquee)
+        {
+            _selectionBox = new Rect(_origin, e.GetPosition(this)).Normalize();
+            _selectedIds.Clear();
+            if (_extendSelection) _selectedIds.UnionWith(_selectionBeforeGesture);
+            foreach (var operation in _operations)
+            {
+                var bounds = new Rect(Header + operation.Start / 1000 * _scale,
+                    Ruler + _lanes.IndexOf(operation.Lane) * _rowHeight + 6,
+                    Math.Max(12, operation.Duration / 1000 * _scale), _rowHeight - 12);
+                if (_selectionBox.Intersects(bounds)) _selectedIds.Add(operation.Id);
+            }
+            InvalidateVisual(); e.Handled = true; return;
+        }
         if (_drag == null) { UpdateHover(e.GetPosition(this)); return; }
         Cursor = _edge == 0 ? MoveCursor : ResizeCursor;
         var delta = (e.GetPosition(this).X - _origin.X) / _scale * 1000;
@@ -177,14 +234,22 @@ public sealed class ScriptTimeline : Control
             _previewStart = Math.Clamp(_drag.Start + delta, 0, _drag.Start + _drag.Duration);
             _previewDuration = _drag.Start + _drag.Duration - _previewStart;
         }
-        else { _previewStart = Math.Max(0, _drag.Start + delta); _previewDuration = _drag.Duration; }
+        else
+        {
+            _groupDelta = Math.Max(delta, -_operations.Where(operation => _selectedIds.Contains(operation.Id)).Min(operation => operation.Start));
+            _previewStart = _drag.Start + _groupDelta; _previewDuration = _drag.Duration;
+        }
         InvalidateVisual();
     }
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
     {
         base.OnPointerReleased(e);
-        var drag = _drag; _drag = null; e.Pointer.Capture(null);
-        if (drag != null && (drag.Start != _previewStart || drag.Duration != _previewDuration))
+        var drag = _drag; var marquee = _marquee; var delta = _groupDelta;
+        var ids = _selectedIds.ToArray();
+        _drag = null; _marquee = false; e.Pointer.Capture(null);
+        if (marquee) SelectionChanged?.Invoke(ids);
+        else if (drag != null && _edge == 0 && delta != 0) Moved?.Invoke(ids, Math.Round(delta));
+        else if (drag != null && _edge != 0 && (drag.Start != _previewStart || drag.Duration != _previewDuration))
             Edited?.Invoke(drag, Math.Round(_previewStart), Math.Round(_previewDuration));
         InvalidateVisual();
     }
@@ -209,7 +274,22 @@ public sealed class ScriptTimeline : Control
         if (_drag == null) { _hoveredId = null; Cursor = ArrowCursor; ToolTip.SetTip(this, null); }
         base.OnPointerExited(e);
     }
-    protected override void OnPointerCaptureLost(PointerCaptureLostEventArgs e) { _drag = null; Cursor = ArrowCursor; InvalidateVisual(); base.OnPointerCaptureLost(e); }
+    protected override void OnPointerCaptureLost(PointerCaptureLostEventArgs e)
+    {
+        if (_marquee) SetSelection(_selectionBeforeGesture, true);
+        _drag = null; _marquee = false; Cursor = ArrowCursor; InvalidateVisual(); base.OnPointerCaptureLost(e);
+    }
+    protected override void OnKeyDown(KeyEventArgs e)
+    {
+        if (e.Key == Key.Escape)
+        {
+            var restore = _drag != null || _marquee;
+            _drag = null; _marquee = false;
+            SetSelection(restore ? _selectionBeforeGesture : [], true);
+            e.Handled = true;
+        }
+        base.OnKeyDown(e);
+    }
     protected override void OnPointerWheelChanged(PointerWheelEventArgs e)
     {
         if (e.KeyModifiers.HasFlag(KeyModifiers.Control)) { Zoom(e.Delta.Y > 0 ? 1.25 : .8); e.Handled = true; }

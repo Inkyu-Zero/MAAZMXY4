@@ -1,0 +1,6 @@
+{
+  "description": "Disable host updates and explain full-client manual installation.",
+  "path": "MFAAvalonia/Helper/VersionChecker.cs",
+  "find": "    public static async Task CheckForMFAUpdatesAsync(bool isGithub = true)\n    {\n        try",
+  "replace": "    public static async Task CheckForMFAUpdatesAsync(bool isGithub = true)\n    {\n        if (!MFAAvalonia.Services.FrontendUpdatePolicy.OnlineFrontendUpdateEnabled)\n        {\n            ToastHelper.Info(\"手动升级\", MFAAvalonia.Services.FrontendUpdatePolicy.ManualUpdateMessage);\n            return;\n        }\n        try"
+}

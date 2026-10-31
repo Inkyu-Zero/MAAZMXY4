@@ -489,6 +489,7 @@ interface.json.bak*
 # 用户录制的战斗脚本（体积大、跟具体机器相关，不入库）
 /recordings/
 /.local-migrations/
+/.personal-transfer/
 
 # 本地私有扩展（只存在于自用目录，不入库）
 /agent/adventure_order.py

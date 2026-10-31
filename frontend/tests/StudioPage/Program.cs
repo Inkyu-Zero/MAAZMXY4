@@ -4,6 +4,8 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Interactivity;
+using Avalonia.Input;
+using Avalonia.Media.Imaging;
 using Avalonia.Media;
 using Avalonia.Themes.Fluent;
 using Avalonia.Threading;
@@ -12,15 +14,16 @@ using MFAAvalonia.Extensions.MaaFW;
 using MFAAvalonia.Services;
 using MFAAvalonia.ViewModels.Pages;
 using MFAAvalonia.Views.Pages;
+using MFAAvalonia.Controls;
 
 internal static class Program
 {
     [STAThread]
     public static int Main()
     {
-        AppBuilder.Configure<TestApplication>().UseHeadless(new AvaloniaHeadlessPlatformOptions()).SetupWithoutStarting();
+        AppBuilder.Configure<TestApplication>().UseSkia().UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
         var failed = 0;
-        var tests = new Action[] { FirstOpenDuringTask, RefreshAndMutationGuard, RetryFailedInitialization, RecordingUsesCurrentTaskController, NoImplicitRecordingTarget, RenameCancelCollisionAndSave, RenameOtherFileKeepsEditorState, DurationTextApplies, DurationTextSavesWithoutExtraApply };
+        var tests = new Action[] { FirstOpenDuringTask, RefreshAndMutationGuard, RetryFailedInitialization, RecordingUsesCurrentTaskController, NoImplicitRecordingTarget, RenameCancelCollisionAndSave, RenameOtherFileKeepsEditorState, DurationTextApplies, DurationTextSavesWithoutExtraApply, TimelineBoxSelectMoveAndCancel, TimelineDocumentChangeCancelsGesture, EditorBatchRequestsAndTaskGuard };
         foreach (var test in tests)
         {
             try { test(); Console.WriteLine("PASS " + test.Method.Name); }
@@ -31,6 +34,127 @@ internal static class Program
     }
 
     private static T Field<T>(object target, string name) => (T)target.GetType().GetField(name, BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(target)!;
+    private static StudioOperation Operation(string id, int key, double start, double duration) => new() { Data = new JsonObject
+        { ["id"] = id, ["kind"] = "key_hold", ["key"] = key, ["start_ms"] = start, ["duration_ms"] = duration } };
+    private static void Draw(Window window, string? filename = null)
+    {
+        Dispatcher.UIThread.RunJobs(); window.UpdateLayout();
+        using var image = new RenderTargetBitmap(new PixelSize((int)window.Width, (int)window.Height), new Vector(96, 96));
+        image.Render(window);
+        if (filename != null && Environment.GetEnvironmentVariable("STUDIO_RENDER_DIR") is { } folder)
+        { Directory.CreateDirectory(folder); image.Save(Path.Combine(folder, filename)); }
+    }
+    private static void TimelineBoxSelectMoveAndCancel()
+    {
+        var timeline = new ScriptTimeline();
+        var window = new Window { Content = timeline, Width = 1000, Height = 320 };
+        window.Show(); timeline.Update([Operation("a",65,1000,1000),Operation("b",66,1600,600),Operation("c",67,7000,500)],10000);
+        timeline.Fit(1000); Draw(window);
+        var moves = new List<(string[] Ids,double Delta)>();
+        timeline.Moved += (ids, delta) => moves.Add((ids.ToArray(), delta));
+        window.MouseDown(new Point(150,38), MouseButton.Left);
+        window.MouseMove(new Point(400,130), RawInputModifiers.LeftMouseButton);
+        window.MouseUp(new Point(400,130), MouseButton.Left);
+        Check(timeline.SelectedIds.ToHashSet().SetEquals(["a","b"]), "Marquee must select across two tracks only");
+        Draw(window,"timeline-selection.png");
+        window.MouseDown(new Point(240,58), MouseButton.Left);
+        window.MouseMove(new Point(326.6,58), RawInputModifiers.LeftMouseButton);
+        window.MouseUp(new Point(326.6,58), MouseButton.Left);
+        Check(moves.Count==1 && moves[0].Ids.ToHashSet().SetEquals(["a","b"]) && moves[0].Delta==1000, "Drag emits one group translation");
+        Draw(window);
+        window.MouseDown(new Point(240,58), MouseButton.Left);
+        window.MouseMove(new Point(0,58), RawInputModifiers.LeftMouseButton);
+        window.MouseUp(new Point(0,58), MouseButton.Left);
+        Check(moves[^1].Delta == -1000, "Group clamps as a unit at time zero");
+        Draw(window);
+        var count=moves.Count;
+        window.MouseDown(new Point(240,58), MouseButton.Left);
+        window.MouseMove(new Point(300,58), RawInputModifiers.LeftMouseButton);
+        window.KeyPressQwerty(PhysicalKey.Escape, RawInputModifiers.None);
+        window.MouseUp(new Point(300,58), MouseButton.Left);
+        Check(moves.Count==count, "Escape cancels a pending group move");
+        timeline.Editable=false; Draw(window);
+        window.MouseDown(new Point(240,58), MouseButton.Left);
+        window.MouseMove(new Point(340,58), RawInputModifiers.LeftMouseButton);
+        window.MouseUp(new Point(340,58), MouseButton.Left);
+        Check(moves.Count==count,"Read-only timeline must not edit");
+        window.Close();
+    }
+    private static void TimelineDocumentChangeCancelsGesture()
+    {
+        var timeline=new ScriptTimeline();
+        var window=new Window { Content=timeline,Width=1000,Height=320 };
+        var changes=0;
+        timeline.Moved+=(_,_)=>changes++; timeline.Edited+=(_,_,_)=>changes++;
+        window.Show();
+        try
+        {
+            timeline.Update([Operation("a",65,1000,1000)],10000); timeline.Fit(1000); Draw(window);
+            window.MouseDown(new Point(240,58),MouseButton.Left);
+            window.MouseMove(new Point(280,58),RawInputModifiers.LeftMouseButton);
+            // The same update happens when undo removes the held operation.
+            timeline.Update([],10000);
+            Console.WriteLine($"TRACE drag document replacement: selected={timeline.SelectedIds.Count}");
+            window.MouseMove(new Point(300,58),RawInputModifiers.LeftMouseButton);
+            window.MouseUp(new Point(300,58),MouseButton.Left);
+            Check(changes==0,"Document replacement cancels the old group edit");
+
+            timeline.Update([Operation("a",65,1000,1000)],10000); Draw(window);
+            window.MouseDown(new Point(282,58),MouseButton.Left); // right resize handle
+            timeline.Update([Operation("a",65,4000,1000)],10000);
+            window.MouseMove(new Point(320,58),RawInputModifiers.LeftMouseButton);
+            window.MouseUp(new Point(320,58),MouseButton.Left);
+            Check(changes==0,"A same-ID refresh also invalidates the old resize");
+
+            timeline.Update([Operation("a",65,1000,1000)],10000); Draw(window);
+            timeline.Update([],10000); // No rendered frame between update and press.
+            window.MouseDown(new Point(240,58),MouseButton.Left);
+            window.MouseMove(new Point(300,58),RawInputModifiers.LeftMouseButton);
+            window.MouseUp(new Point(300,58),MouseButton.Left);
+            Check(changes==0 && timeline.SelectedIds.Count==0,"Stale hit rectangles cannot revive deleted operations");
+        }
+        finally { window.Close(); }
+    }
+    private static void EditorBatchRequestsAndTaskGuard()
+    {
+        var (window, view, model) = Open(false);
+        try
+        {
+            var operations = new JsonArray(Operation("a",65,1000,1000).Data, Operation("b",66,1600,600).Data, Operation("c",67,7000,500).Data);
+            model.Apply(new JsonObject { ["file"]="user.json", ["name"]="User recording", ["duration_ms"]=10000.0, ["operations"]=operations, ["dirty"]=false });
+            model.Client.BatchSnapshot = model.Document!.DeepClone();
+            Field<TabControl>(view,"_tabs").SelectedIndex=1;
+            var timeline=Field<ScriptTimeline>(view,"_timeline");
+            Draw(window); timeline.Focus(); window.KeyPressQwerty(PhysicalKey.A, RawInputModifiers.Control);
+            Dispatcher.UIThread.RunJobs();
+            Check(timeline.SelectedIds.Count==3 && Field<StackPanel>(view,"_batchInspector").IsVisible,"Ctrl+A opens the batch inspector");
+            Field<Expander>(view,"_operationList").IsExpanded=true; Draw(window);
+            model.Apply(model.Document!.DeepClone()); Dispatcher.UIThread.RunJobs();
+            Check(timeline.SelectedIds.Count==3,"A document refresh preserves the selected IDs");
+            Field<Expander>(view,"_operationList").IsExpanded=false;
+            Draw(window,"editor-batch-light.png");
+            window.Width=800;window.Height=600;Draw(window,"editor-batch-compact.png");
+            Check(Field<ComboBox>(view,"_editorPicker").IsVisible && !Field<Control>(view,"_editorLibraryHost").IsVisible,
+                "Compact editor uses its picker and gives space back to the timeline");
+            Application.Current!.RequestedThemeVariant=Avalonia.Styling.ThemeVariant.Dark;Draw(window,"editor-batch-dark.png");
+            Application.Current!.RequestedThemeVariant=Avalonia.Styling.ThemeVariant.Light;
+            Field<NumericUpDown>(view,"_batchOffset").Value=-.1m;
+            Click(Find(window,"移动选中操作"));
+            Check(model.Client.LastBatchMethod=="move_many" && model.Client.LastBatchParameters?["delta_ms"]?.GetValue<double>()==-100
+                && model.Client.LastBatchParameters?["ids"]?.AsArray().Count==3,"Batch shift sends every ID and signed milliseconds");
+            timeline.Focus(); window.KeyPressQwerty(PhysicalKey.Delete, RawInputModifiers.None); Dispatcher.UIThread.RunJobs();
+            Check(model.Client.LastBatchMethod=="delete_many" && model.Client.LastBatchParameters?["ids"]?.AsArray().Count==3,"Delete is one batch request");
+            var calls=model.Client.Calls.Count;
+            Field<TabControl>(view,"_tabs").SelectedIndex=0;
+            view.Focus(); window.KeyPressQwerty(PhysicalKey.Delete,RawInputModifiers.None);Dispatcher.UIThread.RunJobs();
+            Check(model.Client.Calls.Count==calls,"Library Delete must not delete the hidden editor selection");
+            Field<TabControl>(view,"_tabs").SelectedIndex=1;
+            MaaProcessor.Processors[0].IsTaskRunActive=true;
+            window.KeyPressQwerty(PhysicalKey.Delete, RawInputModifiers.None); Dispatcher.UIThread.RunJobs();
+            Check(model.Client.Calls.Count==calls,"Running task blocks batch edits");
+        }
+        finally { Close(window,model); }
+    }
     private static void DurationTextApplies()
     {
         var (window, view, model) = Open(false);
@@ -240,11 +364,19 @@ namespace MFAAvalonia.Services
         public List<string> Calls { get; } = new();
         public int FailLists;
         public long? DurationRequest;
+        public string? LastBatchMethod;
+        public JsonObject? LastBatchParameters;
+        public JsonNode? BatchSnapshot;
         private string? _renamed, _renamedFile;
         public bool IsDisconnected => false;
         public Task<JsonNode> CallAsync(string method, JsonObject? parameters = null)
         {
             Calls.Add(method);
+            if (method is "move_many" or "delete_many")
+            {
+                LastBatchMethod=method; LastBatchParameters=parameters?.DeepClone().AsObject();
+                return Task.FromResult(BatchSnapshot!.DeepClone());
+            }
             if (method=="set_duration")
             {
                 DurationRequest=parameters!["duration_ms"]!.GetValue<long>();

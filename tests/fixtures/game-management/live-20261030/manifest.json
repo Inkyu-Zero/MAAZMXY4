@@ -1,0 +1,125 @@
+{
+  "source": "User-provided restart flow screenshots, 2026-10-30. Identity, credentials, save metadata and performance counters removed/replaced.",
+  "cases": [
+    {
+      "file": "box-selected.png",
+      "source_sha256": "4467d11e68f92036566009a1e26b4cc9b6e44a3029e183a7fa79ff6bc62947de",
+      "sha256": "b62ffc918d1ceded75ff7be325d9d1e383a93d743bbb8abc78f8b58241d6f0a1",
+      "client_crop": [
+        0,
+        39,
+        1176,
+        777
+      ],
+      "normalized_size": [
+        1147,
+        720
+      ],
+      "redactions": [
+        [
+          0,
+          0,
+          110,
+          42
+        ],
+        [
+          456,
+          140,
+          696,
+          192
+        ],
+        [
+          489,
+          257,
+          795,
+          319
+        ],
+        [
+          489,
+          329,
+          795,
+          394
+        ]
+      ],
+      "synthetic_identity": true
+    },
+    {
+      "file": "loading.png",
+      "source_sha256": "dc2bcbe57864870d9b8b679f9fc1fdbb7d94f4d8f10d42ad63b75dff7d598bf7",
+      "sha256": "33dfa7e1beb36a2900979ce1e981d4fee9c54af16451ab72612a1a3712c6f625",
+      "client_crop": [
+        0,
+        39,
+        1176,
+        777
+      ],
+      "normalized_size": [
+        1147,
+        720
+      ],
+      "redactions": [
+        [
+          0,
+          0,
+          110,
+          42
+        ]
+      ],
+      "synthetic_identity": false
+    },
+    {
+      "file": "title.png",
+      "source_sha256": "9cbce5153a07f81dd279ad95e9cb06524f28a2e6ef8afaf7f12f15a3ed09a363",
+      "sha256": "854cc2c1c40c53c2c4366e4307b9f1e74a286fa8da1ffdcc4641e97729fce07a",
+      "client_crop": [
+        0,
+        39,
+        1176,
+        777
+      ],
+      "normalized_size": [
+        1147,
+        720
+      ],
+      "redactions": [
+        [
+          0,
+          0,
+          110,
+          42
+        ]
+      ],
+      "synthetic_identity": false
+    },
+    {
+      "file": "save-role.png",
+      "source_sha256": "af73be20cf64ee86bc75695eb21785f740a6912f89e10bad9a9ee5daf6fb6685",
+      "sha256": "8bf694d0085e783a9fb59efdcb5c320e33bd38a48acbde26858eaa0d1518b23e",
+      "client_crop": [
+        0,
+        39,
+        1176,
+        777
+      ],
+      "normalized_size": [
+        1147,
+        720
+      ],
+      "redactions": [
+        [
+          0,
+          0,
+          110,
+          42
+        ],
+        [
+          338,
+          160,
+          545,
+          250
+        ]
+      ],
+      "synthetic_identity": true
+    }
+  ]
+}

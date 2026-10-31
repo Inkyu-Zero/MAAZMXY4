@@ -1,0 +1,6 @@
+{
+  "description": "Use native host infinite repeat for repeatable AFK tasks without changing saved counts.",
+  "path": "MFAAvalonia/Extensions/MaaFW/MaaProcessor.cs",
+  "find": "            Count = task.InterfaceItem?.Repeatable == true ? (task.InterfaceItem?.RepeatCount ?? 1) : 1,",
+  "replace": "            Count = task.InterfaceItem?.Repeatable == true ? (MFAAvalonia.Services.TaskScriptPlan.IsAfkMode(taskParams) ? -1 : (task.InterfaceItem?.RepeatCount ?? 1)) : 1,"
+}

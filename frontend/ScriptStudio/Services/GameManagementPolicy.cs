@@ -28,8 +28,8 @@ public sealed record GameManagementOptions
     {
         if (IntervalMinutes is < 1 or > 10080)
             throw new InvalidDataException("重启间隔请输入 1～10080 分钟。");
-        if (SaveSlot is < 1 or > 4)
-            throw new InvalidDataException("请选择第 1～4 个已有存档。");
+        if (SaveSlot is < 1 or > 8)
+            throw new InvalidDataException("请选择第 1～8 个已有存档。");
         if (!Enabled && !requireTarget) return;
         if (string.IsNullOrWhiteSpace(ExePath) || !Path.IsPathFullyQualified(ExePath)
             || !ExePath.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))

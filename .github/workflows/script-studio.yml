@@ -15,18 +15,14 @@ on:
       - 'tools/benchmark_task_config.py'
       - 'tools/navigation_privacy_masks.json'
       - 'tools/sync_task_assets.py'
-      - 'tools/build_update.py'
       - 'tools/build_release.py'
       - 'tools/build_sfx.py'
       - 'tools/runtime_check.py'
       - 'tools/setup_runtime.py'
       - 'DependencySetup_依赖库安装_win.bat'
       - 'tools/install.py'
-      - 'updater.py'
-      - 'update_engine/**'
       - 'tools/launcher/**'
       - 'tools/build_launcher.ps1'
-      - 'tools/build_update_manifest.py'
       - 'docs/zh_cn/更新协议与发布规范.md'
       - '新图标.ico'
       - '.github/workflows/script-studio.yml'
@@ -74,15 +70,28 @@ jobs:
       - name: Game management controls and instance settings without game processes
         shell: pwsh
         run: dotnet run --project frontend/tests/GameManagement/GameManagement.csproj -c Release
-      - name: Project update transport and installation guard regression
+      - name: ZIP personal backup, restore and interruption recovery without external tools
         shell: pwsh
-        run: dotnet run --project frontend/tests/ProjectUpdate/ProjectUpdate.csproj -c Release
+        run: dotnet run --project frontend/tests/PersonalTransfer/PersonalTransfer.csproj -c Release
       - name: Build native MFAAvalonia page
         shell: pwsh
         run: ./tools/build_frontend.ps1
-      - name: Build project launcher with independent update recovery
+      - name: Built task options and AFK dependencies without a real window
+        shell: pwsh
+        run: dotnet run --project frontend/tests/TaskOptions/TaskOptions.csproj -c Release -- assets/interface.json
+      - name: Built ZIP migration page and early startup restore contract (headless)
+        shell: pwsh
+        run: dotnet run --project frontend/tests/PersonalTransferUi/PersonalTransferUi.csproj -c Release -- "${{ runner.temp }}/personal-transfer-renders"
+      - name: Build the manual-install project launcher
         shell: pwsh
         run: ./tools/build_launcher.ps1
+      - name: Save synthetic migration page screenshots for review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: personal-transfer-headless-screenshots
+          path: ${{ runner.temp }}/personal-transfer-renders/*.png
+          if-no-files-found: warn
       - name: Save frontend for assembling the manually distributed client
         uses: actions/upload-artifact@v4
         with:

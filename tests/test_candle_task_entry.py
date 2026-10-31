@@ -115,7 +115,7 @@ class CandleTaskEntryTests(unittest.TestCase):
             self.assertEqual(saved['TaskItems'][0]['repeat_count'], 9)
             self.assertTrue(saved['TaskItems'][0]['default_check'])
             self.assertEqual(saved['TaskItems'][0]['option'],
-                             [instance['TaskItems'][0]['option'][0],{'name':'失败自动重试','index':0}])
+                         [instance['TaskItems'][0]['option'][0],{'name':'挂机模式','index':0},{'name':'失败自动重试','index':0}])
             archived=json.loads((target/result['backup']/'config/instances/default.json').read_text(encoding='utf8'))
             self.assertEqual(archived,instance)  # Retired restart settings remain recoverable in the migration backup.
             self.assertEqual(json.loads((target / 'interface.json').read_text(encoding='utf8'))['controller'],

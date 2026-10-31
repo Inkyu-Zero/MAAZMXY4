@@ -1,0 +1,6 @@
+{
+  "description": "Keep single-input help available after removing the duplicate title.",
+  "path": "MFAAvalonia/Helper/TaskOptionGenerator.cs",
+  "find": "        option.Data ??= new Dictionary<string, string?>();",
+  "replace": "        if (isSingleInput && hasOptionDescription)\n            ToolTip.SetTip(container, GetTooltipText(interfaceOption.Description, interfaceOption.Document));\n        option.Data ??= new Dictionary<string, string?>();"
+}

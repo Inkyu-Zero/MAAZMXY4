@@ -370,6 +370,10 @@ class StudioService:
             return self.replace(document.insert(params["changes"]))
         if method == "delete":
             return self.replace(document.delete(params["id"]))
+        if method == "delete_many":
+            return self.replace(document.delete_many(params["ids"]))
+        if method == "move_many":
+            return self.replace(document.move_many(params["ids"], params["delta_ms"]))
         if method == "marker":
             return self.replace(document.add_marker(params["at_ms"], params.get("label") or "阶段标记"))
         if method == "repair":

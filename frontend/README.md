@@ -1,10 +1,16 @@
 # 脚本工具前端
 
+> 2.4.3 使用完整客户端手动升级，内置个人配置与脚本 ZIP 备份/恢复。继续沿用 2.4.2 移除自动更新后的安装方式；旧更新器协议及历史命令仅作归档参考。请备份并保留 `recordings/`、`config/` 和个人设置。
+
+“版本与手动升级”页面支持个人配置与录制脚本的 ZIP 导出/导入。压缩与解压集成在助手中，使用其现有 .NET 运行时，无需外部程序；校验、预览并确认后，在下次启动读取配置之前备份及恢复。操作范围、覆盖规则和离线验证见[个人配置备份与迁移](../docs/zh_cn/个人配置备份与迁移.md)。
+
+2.4.1-rc.1 增加按任务保存的挂机勾选项，并补齐重启后的窗口刷新、加载等待及八存档核对。测试范围和上游 2.4.0 旧前端混装的分析见 [2.4.1-rc.1 更新说明](../docs/zh_cn/2.4.1-rc.1更新说明.md)。完整包构建现在核对前端源码、补丁集合与程序集哈希，不能用资源版本号代替前端验收。
+
 本目录为现有 MFAAvalonia 增加原生“脚本工具”页面，沿用 Avalonia、SukiUI 和任务前端。页面内采用两个子标签：“脚本库与录制”和“时间轴编辑”。录制和编辑规则由 ZaoMengScript 迁移，Python 服务不依赖 Qt。此次交互更新及验收记录见 [更新记录](UX-CHANGELOG.md)。
 
 用户操作说明见 [脚本工具使用说明](../docs/zh_cn/脚本工具-使用说明.md)。
 
-下一版本另有原生“游戏数据库”侧栏页，数据从 `agent/data/game_database/` 离线读取。相关来源、布局、开发工具与验收边界见[游戏数据库与导航素材](../docs/zh_cn/游戏数据库与导航素材.md)。它需要本轮定制前端与相应资源一起安装，单独更新资源不会给旧前端增加页签。
+下一版本另有原生“游戏百科”侧栏页，数据从 `agent/data/game_database/` 离线读取。相关来源、布局、开发工具与验收边界见[游戏数据库与导航素材](../docs/zh_cn/游戏数据库与导航素材.md)。它需要本轮定制前端与相应资源一起安装，单独更新资源不会给旧前端增加页签。
 
 ## 源码与构建
 
@@ -27,6 +33,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/build_frontend.ps1 -In
 ```
 
 源码归档和解压目录位于 `.runtime-cache/`，编译产物位于 `dist/script-studio/`，均不提交 Git。默认构建产物是前端，不包含游戏资源项目、录制文件和内嵌 Python；运行时应与项目发布目录组合。`-Install` 只安装前端程序、托管依赖和对应 Win32 原生依赖，不覆盖 `interface.json`、`resource/`、`agent/`、`config/`、`recordings/` 或 Python 目录。
+
+补丁目标每次从通过 SHA-256 校验的上游归档重新读取，按清单顺序在内存中组合全部补丁，全部匹配成功后才写回缓存。因此旧补丁、重复嵌套或中断留下的目标文件都会恢复到与干净构建一致的内容；未变化的目标文件保留时间戳，`bin/obj` 等编译缓存不清理。缓存中的 `.script-studio-patch-targets.json` 记录本构建流程管理的目标，移除补丁时也会恢复对应上游文件。自定义代码应写入源码覆盖层，不应直接修改生成缓存。
+
+构建记录包含 `tools/build_frontend.ps1` 的源码哈希及实际生成目标的哈希。完整包工具会拒绝缺少或不匹配构建脚本哈希的旧前端，避免相同资源版本掩盖旧构建流程的问题。升级构建工具后须重新构建前端；这不要求修改或安装日常客户端。离线缓存回归入口为 `tests/test_frontend_patch_reapply.py`。
 
 `upstream.json` 的 `application_icon` 指向仓库根目录 `新图标.ico`。构建时统一替换宿主的 `Assets/logo.ico`，供 Windows EXE 和 Avalonia 内嵌窗口/托盘图标使用；构建记录包含图标 SHA-256，不需要手工修改缓存源码。
 
@@ -79,7 +89,7 @@ python -B tools/build_sfx.py --client-zip "<完整客户端.zip>" --official-sfx
 
 ## 宿主接入
 
-`patches/` 使用精确文本补丁，每个补丁包含目标路径、旧文本和新文本。脚本要求旧文本只出现一次；补丁已应用时跳过，锚点变化时停止，不尝试模糊修改其它版本源码。
+`patches/` 使用精确文本补丁，每个补丁包含目标路径、旧文本和新文本。脚本从校验归档开始按清单顺序组合补丁，要求每一步的旧文本只出现一次；生成内容未变化时不重写文件，锚点变化时停止，不尝试模糊修改其它版本源码。
 
 - `01-script-studio-navigation.json`：在共享 `RootViewContent.axaml` 的现有侧栏加入页面。
 - `02-script-studio-registration.json`：接入现有 DI 和 ViewLocator 映射。
@@ -109,3 +119,5 @@ python -B tools/build_sfx.py --client-zip "<完整客户端.zip>" --official-sfx
 宿主互斥接口由页面源码中的 `MFAAvalonia.Services.ScriptStudioGuard` 提供：`SyncRoot`、`IsCapturing` 和 `ThrowIfCapturing()`。录制端必须在同一把锁内检查所有实例的任务状态并取得录制所有权，停止及异常时释放。
 
 上游源自 [MaaXYZ/MFAAvalonia](https://github.com/MaaXYZ/MFAAvalonia/tree/1080d3e1500f3439ac896ab2eca9aeb8e885f1f4)，保留上游依赖版本，未对其进行无关升级。构建产物附带 `LICENSE-MFAAvalonia.txt` 和 `script-studio-build.json`，用于记录上游许可与源码版本；本目录的补丁与页面源码随本工程提供。
+
+玩家界面统一字体与信息层级；百科优先显示获取方式、用途与技能，技术编号不在阅读区展示，属性参考和来源按需展开。时间轴支持框选、批量移动/删除及单次撤销。任务设置把旧版无限次数归入挂机模式，游戏内重试与盒子重启分别执行。相关回归包含 `frontend/tests/TaskOptions`（在前端构建后读取实际程序集）和 `tests/test_timeline_batch.py`。

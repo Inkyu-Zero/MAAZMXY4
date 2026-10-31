@@ -51,6 +51,7 @@ class BuildSfxTests(unittest.TestCase):
             'folder/name ', 'folder/CON.txt', 'folder/COM¹.log', 'folder/CON .txt',
             'folder/AGENTS.md', 'config/user.json', 'recordings/user.json',
             'appsettings.json', 'agent/recordings/.bindings.json', '.git/config',
+            '.personal-transfer/pending/config/config.json',
             'LICENSE-7zip.txt',
         ]
         for index, name in enumerate(invalid):
