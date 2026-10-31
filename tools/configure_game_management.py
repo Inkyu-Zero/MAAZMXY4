@@ -17,6 +17,18 @@ def configure(root=ROOT):
         nodes['GameManagement_'+target] = {key:deepcopy(original[key]) for key in ('recognition','action','post_delay')}
         nodes['GameManagement_'+target].update(next=[],timeout=3000)
     def ocr(expected,roi):return dict(type='OCR',param=dict(expected=[expected],roi=roi,threshold=.75))
+    # The current save dialog has four rows of two tiles. Every added slot
+    # requires an occupied Lv. line inside its own tile and the save header;
+    # game_management_login additionally requires the exact configured role.
+    for slot in range(5,9):
+        roi=[328 if slot%2 else 655,154+118*((slot-1)//2),230,56]
+        nodes['GameManagement_Slot'+str(slot)]=dict(recognition=dict(type='And',param=dict(all_of=[
+            dict(recognition=ocr('[Ll][Vv][.· :]*[0-9]+',roi)), 'GameManagement_SavePage'],box_index=0)),
+            action=dict(type='Click',param=dict(target=True)),next=[],post_delay=400,timeout=3000)
+    nodes['GameManagement_Loading']=dict(recognition=dict(type='And',param=dict(all_of=[
+        dict(recognition=ocr('正在加载',[330,480,500,140])),
+        dict(recognition=ocr('[0-9]+%',[330,480,500,140]))])),
+        action=dict(type='DoNothing'),next=[],post_delay=0)
     game4 = ocr('^造梦西游4$',[80,510,360,130])
     game5 = ocr('^造梦西游5$',[420,510,380,130])
     # The original AIR stage is 940x590; all coordinates use Maa short side 720.

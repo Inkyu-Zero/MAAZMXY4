@@ -1,0 +1,21 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:settings="clr-namespace:MFAAvalonia.ViewModels.UsersControls.Settings"
+             xmlns:controls="clr-namespace:MFAAvalonia.Views.UserControls"
+             x:Class="MFAAvalonia.Views.UserControls.Settings.VersionUpdateSettingsUserControl"
+             x:DataType="settings:VersionUpdateSettingsUserControlModel">
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+    <StackPanel Spacing="16" Margin="20">
+        <TextBlock Text="版本与手动升级" FontSize="20" FontWeight="SemiBold" />
+        <TextBlock Text="本项目已停用自动更新。升级时请关闭助手，使用新版完整客户端，并保留个人录制、绑定和配置。" TextWrapping="Wrap" />
+        <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="20" RowSpacing="12">
+            <TextBlock Text="前端版本" /><TextBlock Grid.Column="1" Text="{Binding MfaVersion}" />
+            <TextBlock Grid.Row="1" Text="项目资源版本" /><TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ResourceVersion}" />
+            <TextBlock Grid.Row="2" Text="MaaFramework" /><TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding MaaFwVersion}" />
+        </Grid>
+        <Button Content="查看手动升级说明" Command="{Binding CheckMFAUpdateCommand}" HorizontalAlignment="Left" />
+        <Separator />
+        <controls:PersonalTransferView />
+    </StackPanel>
+    </ScrollViewer>
+</UserControl>

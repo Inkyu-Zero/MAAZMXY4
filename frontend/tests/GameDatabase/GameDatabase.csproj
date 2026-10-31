@@ -6,6 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../../ScriptStudio/Services/GameDatabasePresentation.cs" Link="GameDatabasePresentation.cs" />
+    <Compile Include="../../ScriptStudio/Controls/PlayerUi.cs" Link="PlayerUi.cs" />
     <PackageReference Include="Avalonia.Headless" Version="11.3.12" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.12" />
     <PackageReference Include="Avalonia.Skia" Version="11.3.12" />

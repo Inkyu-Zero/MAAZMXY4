@@ -85,8 +85,11 @@ def task_graph(context, parameters, *, targets=None):
         title = config.get('title')
         if not isinstance(title, str) or not title or len(title) > 100:
             raise ValueError('悬赏导航需要明确的任务名称。')
+        aliases = config.get('title_aliases', [])
+        if not isinstance(aliases, list) or any(not isinstance(value, str) or not value or len(value)>100 for value in aliases):
+            raise ValueError('悬赏任务别名必须是明确的名称。')
         definitions['Nav_ChooseBounty'] = dict(recognition=dict(type='And', param=dict(all_of=[
-            dict(recognition=dict(type='OCR', param=dict(expected=['^'+re.escape(title)+'$'], roi=[180, 175, 320, 370]))),
+            dict(recognition=dict(type='OCR', param=dict(expected=['^'+re.escape(value)+'$' for value in [title,*aliases]], roi=[180, 175, 320, 370]))),
             dict(recognition=dict(type='OCR', param=dict(expected=['悬赏任务'], roi=[180, 90, 500, 100]))),
             'Result_NoRevivePrompt',
         ], box_index=0)), action=dict(type='Click', param=dict(target=True)), next=[], timeout=10000, post_delay=350)

@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -66,8 +67,10 @@ public static class TaskRecovery
         if (pid == 0) throw new ArgumentException("目标窗口已消失。");
         var identity = Identity(pid); identity.RequireConfiguredPath(exePath);
         RequireUnshared(processor, pid);
-        var size = ClientSize(selected.Handle); size.Validate();
-        return new(identity, selected.Handle, size);
+        var window = ReadWindow(selected.Handle);
+        if (window.Pid != pid || !window.Identity.IsValid || !window.Visible || !window.HasUsableBounds)
+            throw new ArgumentException("所选游戏窗口尚未就绪，请等待加载完成后再开始任务。");
+        return new(identity, selected.Handle, window.ClientSize, window.Identity);
     }
 
     private static void RequireUnshared(MaaProcessor processor, int pid) =>
@@ -133,6 +136,7 @@ public static class TaskRecovery
         private IntPtr _window;
         private readonly TaskRecordingRevision _revision = new();
         private TaskWindowSize _clientSize = new(1147, 720);
+        private TaskWindowIdentity? _windowIdentity;
 
         public void CaptureTarget()
         {
@@ -143,6 +147,7 @@ public static class TaskRecovery
         {
             snapshot.Process.RequireConfiguredPath(options.ExePath);
             snapshot.ClientSize.Validate();
+            if (!snapshot.WindowIdentity.IsValid) throw new InvalidOperationException("缺少原游戏窗口的标题与窗口类。");
             var selected = processor.ViewModel?.CurrentDevice as DesktopWindowInfo;
             var selectedPid = selected == null ? 0 : WindowPid(selected.Handle);
             if (selectedPid != 0 && selectedPid != snapshot.Process.Pid)
@@ -151,6 +156,7 @@ public static class TaskRecovery
             catch (ArgumentException) { } // The verified process may already have exited.
             EnsureUnshared(snapshot.Process.Pid);
             _target = snapshot.Process; _window = snapshot.Window; _clientSize = snapshot.ClientSize;
+            _windowIdentity = snapshot.WindowIdentity;
         }
 
         public async Task<TaskAttempt> RunEntryAsync(string entry, bool resume, CancellationToken token)
@@ -226,8 +232,12 @@ public static class TaskRecovery
             return await TaskRecoveryPolicy.RestartAsync(this, slot, token);
         }
 
-        public Task StopInputsAndAgentAsync(CancellationToken token) =>
-            Task.Run(() => processor.SetTasker(requireAllStopped: true), token);
+        public async Task StopInputsAndAgentAsync(CancellationToken token)
+        {
+            await Task.Run(() => processor.SetTasker(requireAllStopped: true), token);
+            token.ThrowIfCancellationRequested();
+            await DispatcherHelper.RunOnMainThreadAsync(() => processor.ViewModel?.InvalidateCurrentWin32Window());
+        }
 
         public Task StopSelectedProcessAsync(CancellationToken token) =>
             StopSelectedProcessAsync(_target ?? throw new InvalidOperationException("没有经过校验的恢复目标。"), token);
@@ -263,47 +273,102 @@ public static class TaskRecovery
         public async Task BindUniqueWindowAsync(CancellationToken token)
         {
             var pid = _target?.Pid ?? throw new InvalidOperationException("没有重启的目标进程。");
-            var window = await FindNewWindowAsync(pid, token);
-            token.ThrowIfCancellationRequested();
-            _window = window.Handle;
-            EnsureUnshared(pid);
-            await RestoreClientSizeAsync(window.Handle, pid, token);
-            await DispatcherHelper.RunOnMainThreadAsync(() => processor.ViewModel!.BindWin32RecoveryWindow(window));
+            var clock = Stopwatch.StartNew();
+            processor.AddLog("游戏管理：等待原游戏窗口就绪，临时启动窗口不会连接或接收输入。");
+            while (clock.Elapsed < TimeSpan.FromSeconds(60))
+            {
+                var window = await FindNewWindowAsync(pid, clock, token);
+                if (!await RestoreClientSizeAsync(window, pid, token)) continue;
+                token.ThrowIfCancellationRequested();
+                _target!.RequireSame(Identity(pid));
+                EnsureUnshared(pid);
+                var current = ReadWindow(window.Handle);
+                if (!MatchesWindow(current, window, pid) || !current.HasUsableBounds
+                    || !_clientSize.SameNormalizedFrame(current.ClientSize)) continue;
+                _window = window.Handle;
+                _windowIdentity = current.Identity;
+                await DispatcherHelper.RunOnMainThreadAsync(() =>
+                {
+                    token.ThrowIfCancellationRequested();
+                    processor.ViewModel!.BindWin32RecoveryWindow(window);
+                });
+                processor.AddLog($"游戏管理：已绑定稳定游戏窗口 PID={pid}，HWND=0x{window.Handle.ToInt64():X}，标题={window.Name}。");
+                return;
+            }
+            throw new TimeoutException("游戏窗口在启动期间持续变化，未连接临时窗口。");
         }
 
-        private async Task RestoreClientSizeAsync(IntPtr window, int pid, CancellationToken token)
+        private static bool MatchesWindow(TaskWindowCandidate current, DesktopWindowInfo window, int pid) =>
+            current.Pid == pid && current.Visible && current.Identity.Matches(new(window.Name, window.ClassName));
+
+        private async Task<bool> RestoreClientSizeAsync(DesktopWindowInfo window, int pid, CancellationToken token)
         {
-            token.ThrowIfCancellationRequested();
-            _target!.RequireSame(Identity(pid));
-            if (WindowPid(window) != pid) throw new InvalidOperationException("新游戏窗口身份已改变。");
-            var current = ClientSize(window);
-            if (current == _clientSize) return;
-            if (!GetWindowRect(window, out var rectangle)) throw new InvalidOperationException("无法读取新游戏窗口边框尺寸。");
-            var outer = new TaskWindowSize(rectangle.Right - rectangle.Left, rectangle.Bottom - rectangle.Top);
-            var target = _clientSize.OuterSizeFor(current, outer);
-            token.ThrowIfCancellationRequested();
-            // Only resize the uniquely verified new game HWND. Keep position,
-            // z-order and focus unchanged; never stretch the recorded coordinates.
-            if (!SetWindowPos(window, IntPtr.Zero, 0, 0, target.Width, target.Height, 0x0002 | 0x0004 | 0x0010))
-                throw new InvalidOperationException("无法恢复原游戏客户区尺寸。");
-            var until = DateTime.UtcNow + TimeSpan.FromSeconds(2);
-            while (DateTime.UtcNow < until)
+            var clock = Stopwatch.StartNew();
+            var nextCorrection = TimeSpan.Zero;
+            var readiness = new TaskWindowReadiness(pid, new(window.Name, window.ClassName));
+            TaskWindowCandidate? last = null;
+            while (clock.Elapsed < TimeSpan.FromSeconds(5))
             {
                 token.ThrowIfCancellationRequested();
-                if (WindowPid(window) != pid) throw new InvalidOperationException("调整尺寸时游戏窗口已改变。");
-                if (ClientSize(window) == _clientSize) return;
-                await Task.Delay(50, token);
+                _target!.RequireSame(Identity(pid));
+                var current = ReadWindow(window.Handle);
+                if (!MatchesWindow(current, window, pid)) return false; // Re-enumerate a replacement HWND.
+                if (current != last)
+                {
+                    LoggerHelper.Info($"游戏管理尺寸采样：原客户区={_clientSize}，窗口={current}。");
+                    last = current;
+                }
+                var stable = readiness.Observe(new[] { current }, clock.Elapsed);
+                if (current.HasUsableBounds && _clientSize.SameNormalizedFrame(current.ClientSize))
+                {
+                    if (stable != null) return true;
+                }
+                else if (stable != null && clock.Elapsed >= nextCorrection)
+                {
+                    token.ThrowIfCancellationRequested();
+                    // Read and resize synchronously in the same physical-pixel
+                    // context. Never resize an AIR placeholder or a changed HWND.
+                    TaskWindowCoordinates.InPhysicalPixels(SetThreadDpiAwarenessContext, () =>
+                    {
+                        var measured = ReadWindowPhysical(window.Handle);
+                        if (!MatchesWindow(measured, window, pid) || !measured.HasUsableBounds) return false;
+                        var target = _clientSize.OuterSizeFor(measured.ClientSize, measured.OuterSize);
+                        if (!SetWindowPos(window.Handle, IntPtr.Zero, 0, 0, target.Width, target.Height, 0x0002 | 0x0004 | 0x0010))
+                            throw new InvalidOperationException("无法调整新游戏窗口尺寸。");
+                        return true;
+                    });
+                    nextCorrection = clock.Elapsed + TimeSpan.FromSeconds(1);
+                }
+                await Task.Delay(100, token);
             }
-            throw new InvalidOperationException("新游戏窗口未恢复原客户区尺寸，已停止以防操作偏移。");
+            throw new InvalidOperationException($"游戏窗口尺寸未稳定或比例不匹配（原客户区 {_clientSize}，最后采样 {last}），未连接或发送游戏输入。");
         }
 
         public async Task ReconnectAsync(CancellationToken token)
         {
             token.ThrowIfCancellationRequested();
+            RequireBoundWindow();
             var tasker = await processor.GetTaskerAsync(token);
             token.ThrowIfCancellationRequested();
             if (tasker == null)
                 throw new InvalidOperationException("游戏窗口重新连接失败。");
+            try { RequireBoundWindow(); }
+            catch
+            {
+                await StopInputsAndAgentAsync(token);
+                throw;
+            }
+        }
+
+        private void RequireBoundWindow()
+        {
+            _target!.RequireSame(Identity(_target.Pid));
+            var selected = processor.ViewModel?.CurrentDevice as DesktopWindowInfo;
+            var current = ReadWindow(_window);
+            if (selected?.Handle != _window || processor.Config.DesktopWindow.HWnd != _window
+                || current.Pid != _target.Pid || !current.Visible || !current.HasUsableBounds
+                || _windowIdentity?.Matches(current.Identity) != true)
+                throw new InvalidOperationException("连接目标已变化，未采用其它窗口或继续登录。");
         }
 
         public Task<TaskAttempt> ResumeAsync(int slot, CancellationToken token) => RunEntryAsync(resumeEntry!, true, token);
@@ -327,23 +392,35 @@ public static class TaskRecovery
             }
         }
 
-        private async Task<DesktopWindowInfo> FindNewWindowAsync(int pid, CancellationToken token)
+        private async Task<DesktopWindowInfo> FindNewWindowAsync(int pid, Stopwatch clock, CancellationToken token)
         {
             var name = processor.ViewModel?.GetCurrentControllerName();
             var profile = MaaProcessor.Interface?.Controller?.FirstOrDefault(item => item.Name == name && item.ControllerType == MaaControllerTypes.Win32)?.Win32
                 ?? throw new InvalidOperationException("原控制器窗口筛选规则不存在。");
-            var until = DateTime.UtcNow + TimeSpan.FromSeconds(60);
-            while (DateTime.UtcNow < until)
+            var readiness = new TaskWindowReadiness(pid, _windowIdentity);
+            var lastObservation = "";
+            while (clock.Elapsed < TimeSpan.FromSeconds(60))
             {
                 token.ThrowIfCancellationRequested();
                 _target!.RequireSame(Identity(pid));
-                var windows = MaaProcessor.Toolkit.Desktop.Window.Find().Where(window =>
-                    Matches(window.Name, profile.WindowRegex) && Matches(window.ClassName, profile.ClassRegex));
-                var candidate = TaskRecoveryPolicy.SelectUniqueWindow(windows, window => WindowPid(window.Handle), pid);
-                if (candidate.Found) return candidate.Window;
+                var windows = MaaProcessor.Toolkit.Desktop.Window.Find().Where(window => WindowPid(window.Handle) == pid
+                    && Matches(window.Name, profile.WindowRegex) && Matches(window.ClassName, profile.ClassRegex)).ToArray();
+                var samples = windows.Select(window => ReadWindow(window.Handle)).ToArray();
+                var observation = string.Join("; ", samples.Select(sample => sample.ToString()));
+                if (observation != lastObservation)
+                {
+                    LoggerHelper.Info($"游戏管理等待窗口：PID={pid}，期望={_windowIdentity?.ToString() ?? "造梦盒子主窗口"}，候选=[{observation}]。");
+                    lastObservation = observation;
+                }
+                var candidate = readiness.Observe(samples, clock.Elapsed);
+                if (candidate != null)
+                {
+                    var selected = windows.Single(window => window.Handle == candidate.Handle);
+                    if (MatchesWindow(candidate, selected, pid)) return selected;
+                }
                 await Task.Delay(250, token);
             }
-            throw new TimeoutException("等待重启后的游戏窗口超时；启动器与实际游戏EXE可能不一致。");
+            throw new TimeoutException("等待重启后的原游戏窗口超时；临时窗口和其它窗口均未连接。");
         }
 
         private void EnsureUnshared(int pid)
@@ -375,10 +452,23 @@ public static class TaskRecovery
         GetWindowThreadProcessId(window, out var pid);
         return unchecked((int)pid);
     }
-    private static TaskWindowSize ClientSize(IntPtr window)
+    private static TaskWindowCandidate ReadWindow(IntPtr window) =>
+        TaskWindowCoordinates.InPhysicalPixels(SetThreadDpiAwarenessContext, () => ReadWindowPhysical(window));
+
+    private static TaskWindowCandidate ReadWindowPhysical(IntPtr window)
     {
-        if (!GetClientRect(window, out var rectangle)) throw new InvalidOperationException("无法读取游戏客户区尺寸。");
-        return new(rectangle.Right - rectangle.Left, rectangle.Bottom - rectangle.Top);
+        var title = new StringBuilder(1024);
+        var className = new StringBuilder(256);
+        GetWindowText(window, title, title.Capacity);
+        GetClassName(window, className, className.Capacity);
+        var firstOk = GetClientRect(window, out var first);
+        var outerOk = GetWindowRect(window, out var outer);
+        var secondOk = GetClientRect(window, out var second);
+        return new(window, WindowPid(window), new(title.ToString(), className.ToString()),
+            new(second.Right - second.Left, second.Bottom - second.Top),
+            new(outer.Right - outer.Left, outer.Bottom - outer.Top), IsWindowVisible(window) && !IsIconic(window),
+            firstOk && outerOk && secondOk && first.Right == second.Right && first.Bottom == second.Bottom
+                && first.Left == second.Left && first.Top == second.Top);
     }
     [StructLayout(LayoutKind.Sequential)]
     private struct WindowRectangle { public int Left, Top, Right, Bottom; }
@@ -390,4 +480,14 @@ public static class TaskRecovery
     private static extern bool GetWindowRect(IntPtr window, out WindowRectangle rectangle);
     [DllImport("user32.dll", SetLastError = true)]
     private static extern bool SetWindowPos(IntPtr window, IntPtr after, int x, int y, int width, int height, uint flags);
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern IntPtr SetThreadDpiAwarenessContext(IntPtr context);
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    private static extern int GetWindowText(IntPtr window, StringBuilder text, int maximum);
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    private static extern int GetClassName(IntPtr window, StringBuilder text, int maximum);
+    [DllImport("user32.dll")]
+    private static extern bool IsWindowVisible(IntPtr window);
+    [DllImport("user32.dll")]
+    private static extern bool IsIconic(IntPtr window);
 }

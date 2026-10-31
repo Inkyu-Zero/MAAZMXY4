@@ -59,7 +59,7 @@ class RevivalFlowTests(unittest.TestCase):
         self.assertEqual(route[0]['entry'],'Result_DeclineRevive')
         self.assertEqual(route[0]['target'],'challenge_failed')
 
-    def test_generator_is_idempotent_and_keeps_zero_retry_supported(self):
+    def test_generator_is_idempotent_and_retry_count_has_no_second_off_switch(self):
         with tempfile.TemporaryDirectory() as temp:
             root=Path(temp)
             target=root/'assets/resource/base/pipeline'
@@ -70,7 +70,10 @@ class RevivalFlowTests(unittest.TestCase):
             after={f.relative_to(root):f.read_bytes() for f in root.rglob('*.json')}
             self.assertEqual(before,after)
             interface=json.loads((root/'assets/interface.json').read_text(encoding='utf8'))
-            self.assertIn('[0-9]',interface['option']['失败重试设置']['inputs'][0]['verify'])
+            import re
+            pattern=interface['option']['失败重试设置']['inputs'][0]['verify']
+            for value in ('1','3','20'): self.assertIsNotNone(re.fullmatch(pattern,value))
+            for value in ('0','-1','21'): self.assertIsNone(re.fullmatch(pattern,value))
 
     def test_imported_ui_assets_match_the_recorded_hashes(self):
         manifest=json.loads((ROOT/'agent/data/navigation/battle-ui.json').read_text(encoding='utf8'))

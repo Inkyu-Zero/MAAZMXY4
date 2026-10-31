@@ -115,6 +115,12 @@ class BountyTargetGuardTests(unittest.TestCase):
         self.assertEqual(evaluate_config(self.recognition('遁地大盗'), frame),
                          (587, 593, 94, 29))
 
+    def test_renamed_thief_still_requires_exact_name_and_acceptance(self):
+        for name in ('捉拿大盗','捉拿大盜'):
+            self.assertEqual(evaluate_config(self.recognition('遁地大盗'),frame_for(name)),(587,593,94,29))
+            self.assertIsNone(evaluate_config(self.recognition('守卫太宗'),frame_for(name)))
+            self.assertIsNone(evaluate_config(self.recognition('遁地大盗'),frame_for(name+'奖励')))
+
 
 if __name__ == '__main__':
     unittest.main()

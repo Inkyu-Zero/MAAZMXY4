@@ -14,10 +14,15 @@ namespace MFAAvalonia.Services
     public sealed class GameManagementService
     {
         private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<ViewModels.Pages.FakeProcessor,GameManagementService> Items = new();
-        public static GameManagementService For(ViewModels.Pages.FakeProcessor processor) => Items.GetValue(processor,_ => new());
+        private ViewModels.Pages.FakeProcessor _processor = null!;
+        public static GameManagementService For(ViewModels.Pages.FakeProcessor processor) => Items.GetValue(processor,p => new() { _processor = p });
         public GameManagementOptions Options { get; private set; } = new();
         public string SelectedExePath() => Path.GetFullPath("zmBox.exe");
-        public void Save(GameManagementOptions options) { options.Validate(); Options=options; }
+        public void Save(GameManagementOptions options)
+        {
+            if (_processor.IsTaskRunActive) throw new InvalidOperationException("请先停止当前任务。");
+            options.Validate(); Options=options;
+        }
         public Task StartAsync() => Task.CompletedTask;
         public Task RequestRestartAsync() => Task.CompletedTask;
         public Task CloseAsync() => Task.CompletedTask;

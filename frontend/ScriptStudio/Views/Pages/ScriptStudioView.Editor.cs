@@ -40,7 +40,7 @@ public sealed partial class ScriptStudioView
         var pickerRow = new Grid { ColumnDefinitions = new ColumnDefinitions("Auto,*,Auto"), ColumnSpacing = 10 };
         _editorPicker.ItemTemplate = new FuncDataTemplate<JsonNode>((item, _) => new TextBlock { Text = item?["name"]?.GetValue<string>(), TextTrimming = TextTrimming.CharacterEllipsis });
         pickerRow.Children.Add(_editorPicker);
-        var help = new TextBlock { Text = "拖动移动 · 拖动边缘调整时长 · Delete 删除", FontSize = 12, Opacity = .65, VerticalAlignment = VerticalAlignment.Center, TextWrapping = TextWrapping.Wrap };
+        var help = new TextBlock { Text = "空白处框选 · Ctrl+单击多选 · 拖动整体移动 · Delete 删除", FontSize = 12, Opacity = .75, VerticalAlignment = VerticalAlignment.Center, TextWrapping = TextWrapping.Wrap };
         Grid.SetColumn(help, 1); pickerRow.Children.Add(help);
         var export = Button("导出…", ExportAsync); _documentActions.Add(export); Grid.SetColumn(export, 2); pickerRow.Children.Add(export);
         layout.Children.Add(pickerRow);
@@ -48,6 +48,7 @@ public sealed partial class ScriptStudioView
         _cursor.Width = 105; _cursor.MinWidth = 95; _cursor.Height = 32; _cursor.MinHeight = 32;
         var remove = IconButton(4, "删除操作（Delete）", DeleteAsync); _operationActions.Add(remove);
         var duplicate = IconButton(5, "复制操作（Ctrl+D）", DuplicateOperationAsync); _operationActions.Add(duplicate);
+        _duplicateOperationButton = duplicate;
         var toolbar = Wrap(IconButton(0, "保存（Ctrl+S）", SaveAsync), _undo, _redo,
             IconButton(3, "添加操作", async () => { if (await EnsureInspectorAsync()) BeginInsert(); }), remove, duplicate,
             IconButton(6, "添加标记", async () => { if (await EnsureInspectorAsync()) await _vm.ChangeAsync("marker", new JsonObject { ["at_ms"] = Milliseconds(_cursor), ["label"] = "阶段标记" }); }),
@@ -56,12 +57,10 @@ public sealed partial class ScriptStudioView
             IconButton(9, "放大时间轴", async () => { _timeline.Zoom(1.25); await Task.CompletedTask; }, false),
             IconButton(10, "适合窗口", async () => { _timeline.Fit(_timelineScroll.Viewport.Width); await Task.CompletedTask; }, false),
             _focusTimelineButton,
-            new TextBlock { Text = "位置（秒）", Foreground = Brushes.LightGray, FontSize = 11, VerticalAlignment = VerticalAlignment.Center }, _cursor);
+            ToolbarGroup(new TextBlock { Text = "位置（秒）", Foreground = Brushes.LightGray, FontSize = 11, VerticalAlignment = VerticalAlignment.Center }, _cursor));
         var extras = new Button { Content = "更多", Padding = new Thickness(9, 5), MinHeight = 32, Foreground = Brushes.White, Background = new SolidColorBrush(Color.Parse("#202733")) };
         _scriptDuration.Width = 145; _scriptDuration.Height = 32; _scriptDuration.MinHeight = 32;
         ToolTip.SetTip(_scriptDuration, "输入总时长，点击应用时长或保存；停止标记同步移动，现有动作不会被截断。");
-        toolbar.Children.Add(new TextBlock { Text = "总时长（秒）", Foreground = Brushes.LightGray, FontSize = 11, VerticalAlignment = VerticalAlignment.Center });
-        toolbar.Children.Add(_scriptDuration);
         var applyDuration = Button("应用时长", async () =>
         {
             var duration = Milliseconds(_scriptDuration);
@@ -74,7 +73,9 @@ public sealed partial class ScriptStudioView
         applyDuration.Foreground = Brushes.White;
         applyDuration.Background = new SolidColorBrush(Color.Parse("#202733"));
         applyDuration.Padding = new Thickness(9, 5); applyDuration.MinHeight = 32;
-        _documentActions.Add(applyDuration); toolbar.Children.Add(applyDuration);
+        _documentActions.Add(applyDuration);
+        toolbar.Children.Add(ToolbarGroup(new TextBlock { Text = "总时长（秒）", Foreground = Brushes.LightGray,
+            FontSize = 11, VerticalAlignment = VerticalAlignment.Center }, _scriptDuration, applyDuration));
         var menu = new MenuFlyout();
         foreach (var option in new (string Label, Func<Task> Run)[] {
             ("检查脚本", ValidateAsync),
@@ -97,7 +98,10 @@ public sealed partial class ScriptStudioView
         _editorMain = new Grid { ColumnDefinitions = new ColumnDefinitions("*,8,260") };
         _editorMain.ColumnDefinitions[0].MinWidth = 240;
         _editorMain.ColumnDefinitions[2].MinWidth = 230;
-        var timelineArea = new Grid { RowDefinitions = new RowDefinitions("*,Auto") };
+        var timelineArea = new Grid { RowDefinitions = new RowDefinitions("Auto,*,Auto"), RowSpacing = 8 };
+        timelineArea.Children.Add(Wrap(_selectionSummary,
+            Button("全选", async () => { if (await EnsureInspectorAsync()) SelectOperations(_vm.Operations.Select(operation => operation.Id)); }),
+            Button("取消选择", async () => { if (await EnsureInspectorAsync()) SelectOperations([]); })));
         _timelineScroll.Content = _timeline; _timelineScroll.MinHeight = 180;
         _timelineScroll.VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto;
         _timelineScroll.PropertyChanged += (_, change) =>
@@ -107,7 +111,7 @@ public sealed partial class ScriptStudioView
             _timeline.SetViewport(_timelineScroll.Viewport.Width, _timelineScroll.Viewport.Height);
             FitPendingTimeline();
         };
-        var timelineCard = Card(_timelineScroll); timelineCard.Padding = new Thickness(0); timelineArea.Children.Add(timelineCard);
+        var timelineCard = Card(_timelineScroll); timelineCard.Padding = new Thickness(0); Grid.SetRow(timelineCard, 1); timelineArea.Children.Add(timelineCard);
 
         var list = new Grid { RowDefinitions = new RowDefinitions("*,Auto"), RowSpacing = 6, Height = 160 };
         _events.ItemsSource = _vm.Operations;
@@ -123,7 +127,7 @@ public sealed partial class ScriptStudioView
         _operationList = new Expander { Header = "操作列表与检查结果", Content = list, IsExpanded = false,
             HorizontalAlignment = HorizontalAlignment.Stretch, HorizontalContentAlignment = HorizontalAlignment.Stretch,
             Margin = new Thickness(0, 8, 0, 0) };
-        Grid.SetRow(_operationList, 1); timelineArea.Children.Add(_operationList); _editorMain.Children.Add(timelineArea);
+        Grid.SetRow(_operationList, 2); timelineArea.Children.Add(_operationList); _editorMain.Children.Add(timelineArea);
 
         _inspector.Children.Add(new TextBlock { Text = "操作参数", FontSize = 17, FontWeight = FontWeight.SemiBold });
         _inspector.Children.Add(Field("操作类型", _kind));
@@ -141,7 +145,11 @@ public sealed partial class ScriptStudioView
         _emptyInspector.TextWrapping = TextWrapping.Wrap; _emptyInspector.Opacity = .6;
         _emptyInspector.VerticalAlignment = VerticalAlignment.Center;
         inspectorBody.Children.Add(_emptyInspector);
+        BuildBatchInspector();
+        _batchInspectorHost.Content = _batchInspector;
+        inspectorBody.Children.Add(_batchInspectorHost);
         var applyRow = Wrap(_apply, Button("还原参数", async () => { if (_selected != null) SelectOperation(_selected); else BeginInsert(); await Task.CompletedTask; })); Grid.SetRow(applyRow, 1); inspectorBody.Children.Add(applyRow);
+        _singleApplyRow = applyRow;
         _inspectorPane = Card(inspectorBody); Grid.SetColumn(_inspectorPane, 2); _editorMain.Children.Add(_inspectorPane);
         _editorSplitter = new GridSplitter { ResizeDirection = GridResizeDirection.Columns, ResizeBehavior = GridResizeBehavior.PreviousAndNext,
             HorizontalAlignment = HorizontalAlignment.Stretch, VerticalAlignment = VerticalAlignment.Stretch,
@@ -162,6 +170,13 @@ public sealed partial class ScriptStudioView
         _editorShell.ColumnDefinitions[0].Width = new GridLength(expanded ? 200 : 0);
         _editorShell.ColumnDefinitions[1].Width = new GridLength(expanded ? 8 : 0);
         _editorPicker.IsVisible = !expanded;
+    }
+
+    private static StackPanel ToolbarGroup(params Control[] children)
+    {
+        var group = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, VerticalAlignment = VerticalAlignment.Center };
+        foreach (var child in children) group.Children.Add(child);
+        return group;
     }
 
     private void ToggleTimelineFocus()

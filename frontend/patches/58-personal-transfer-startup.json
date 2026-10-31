@@ -1,0 +1,6 @@
+{
+  "description": "Apply staged personal backup before loading settings",
+  "path": "MFAAvalonia.Desktop/Program.cs",
+  "find": "            AppRuntime.Initialize(args, instanceKey);",
+  "replace": "            // Restore before AppPaths/Logger/Telemetry can initialize cached settings.\n            MFAAvalonia.Services.PersonalTransfer.ApplyOnStartup(AppContext.BaseDirectory, AppPaths.ConfigDirectory);\n            AppRuntime.Initialize(args, instanceKey);"
+}

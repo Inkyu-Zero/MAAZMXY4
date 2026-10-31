@@ -28,7 +28,8 @@ public sealed class GameDatabaseEntry
     public GameWikiFact[] WikiFacts { get; init; } = [];
     public string SearchText { get; private set; } = "";
     public void BuildSearchIndex() => SearchText = string.Join("\n", new[] { Name, Category, Subtype }
-        .Concat(Facts.Select(f => f.Value)).Concat(Skills.Select(s => s.Name))
+        .Concat(Facts.Select(f => f.Value)).Concat(Skills.Select(s => s.Name + " " + s.Description))
+        .Concat(WikiFacts.Select(f => f.Value))
         .Concat(ConfigVariants.SelectMany(v => v.Locations)));
 }
 

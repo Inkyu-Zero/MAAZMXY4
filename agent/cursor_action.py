@@ -28,28 +28,28 @@ from maa.custom_action import CustomAction
 WM_MOUSEMOVE = 0x0200
 
 
-def _find_game_window():
-    """兜底：按标题找游戏窗口（controller.info['hwnd'] 偶发为 None）。"""
-    user32 = ctypes.windll.user32
-    found = []
-
-    @ctypes.WINFUNCTYPE(ctypes.wintypes.BOOL, ctypes.wintypes.HWND, ctypes.wintypes.LPARAM)
-    def _cb(hwnd, _lparam):
-        n = user32.GetWindowTextLengthW(hwnd)
-        if n:
-            buf = ctypes.create_unicode_buffer(n + 1)
-            user32.GetWindowTextW(hwnd, buf, n + 1)
-            if '造梦盒子' in buf.value and user32.IsWindowVisible(hwnd):
-                found.append(int(hwnd))
-        return True
-
-    user32.EnumWindows(_cb, 0)
-    return found[0] if found else 0
+def _bound_hwnd(controller):
+    """Use only the controller's explicit target; never enumerate another instance."""
+    info = controller.info
+    value = info.get('hwnd') if isinstance(info, dict) else getattr(info, 'hwnd', None)
+    if isinstance(value, bool):
+        raise ValueError('控制器窗口句柄无效')
+    if isinstance(value, str):
+        value = int(value, 16 if value.lower().startswith('0x') else 10)
+    if not isinstance(value, int) or not 0 < value < 2 ** (ctypes.sizeof(ctypes.c_void_p) * 8):
+        raise ValueError('控制器未提供已绑定的窗口句柄，未选择其它窗口')
+    return value
 
 
 def _post_move(hwnd, x, y):
     """给窗口发一条 WM_MOUSEMOVE（客户区坐标），返回 (ok, 说明)。"""
     user32 = ctypes.windll.user32
+    user32.IsWindow.argtypes = [ctypes.wintypes.HWND]
+    user32.IsWindow.restype = ctypes.wintypes.BOOL
+    user32.PostMessageW.argtypes = [ctypes.wintypes.HWND, ctypes.wintypes.UINT, ctypes.wintypes.WPARAM, ctypes.wintypes.LPARAM]
+    user32.PostMessageW.restype = ctypes.wintypes.BOOL
+    if not user32.IsWindow(hwnd):
+        return False, '绑定窗口已关闭'
     lparam = ((int(y) & 0xFFFF) << 16) | (int(x) & 0xFFFF)
     ok = user32.PostMessageW(int(hwnd), WM_MOUSEMOVE, 0, lparam)
     if not ok:
@@ -62,35 +62,20 @@ class MoveCursor(CustomAction):
     """给游戏发一条鼠标移动消息，把悬停判定挪到角落，不动真实光标。"""
 
     def run(self, context, argv):
-        raw = getattr(argv, 'custom_action_param', None) or '{}'
         try:
-            args = json.loads(raw) if isinstance(raw, str) else dict(raw or {})
-        except Exception:  # noqa: BLE001
-            args = {}
-        x = int(args.get('x', 20))
-        y = int(args.get('y', 20))
-        try:
-            ctrl = context.tasker.controller
-            hwnd = 0
-            # controller.info 在不同版本里是 dict 也可能是个对象，两种都试
-            info = getattr(ctrl, 'info', None)
-            if isinstance(info, dict):
-                hwnd = info.get('hwnd') or 0
-            elif info is not None:
-                hwnd = getattr(info, 'hwnd', 0) or 0
-            if not hwnd:
-                conn = getattr(ctrl, 'connection_info', None)
-                if isinstance(conn, dict):
-                    hwnd = conn.get('hwnd') or 0
-                elif conn is not None:
-                    hwnd = getattr(conn, 'hwnd', 0) or 0
-            if not hwnd:
-                hwnd = _find_game_window()
-            if not hwnd:
-                print('move_cursor 拿不到 hwnd，跳过', flush=True)
-                return CustomAction.RunResult(success=True)
+            if context.tasker.stopping:
+                return CustomAction.RunResult(success=False)
+            raw = getattr(argv, 'custom_action_param', None) or '{}'
+            args = json.loads(raw) if isinstance(raw, str) else dict(raw)
+            x, y = int(args.get('x', 20)), int(args.get('y', 20))
+            if not 0 <= x <= 32767 or not 0 <= y <= 32767:
+                raise ValueError('虚拟鼠标坐标无效')
+            hwnd = _bound_hwnd(context.tasker.controller)
+            if context.tasker.stopping:
+                return CustomAction.RunResult(success=False)
             ok, detail = _post_move(hwnd, x, y)
             print('move_cursor 虚拟移开 → %s %s' % ('成功' if ok else '失败', detail), flush=True)
+            return CustomAction.RunResult(success=ok)
         except Exception as error:  # noqa: BLE001
-            print('move_cursor 异常：%s: %s' % (type(error).__name__, error), flush=True)
-        return CustomAction.RunResult(success=True)
+            print('move_cursor 已停止：%s: %s' % (type(error).__name__, error), flush=True)
+            return CustomAction.RunResult(success=False)

@@ -9,6 +9,7 @@
   <ItemGroup>
     <PackageReference Include="Avalonia.Headless" Version="11.3.12" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.12" />
+    <PackageReference Include="Avalonia.Skia" Version="11.3.12" />
     <Compile Include="../../ScriptStudio/Views/Pages/ScriptStudioView*.cs" Link="Views/%(Filename)%(Extension)" />
     <Compile Include="../../ScriptStudio/ViewModels/Pages/ScriptStudioViewModel.cs" Link="ScriptStudioViewModel.cs" />
     <Compile Include="../../ScriptStudio/Controls/*.cs" Link="Controls/%(Filename)%(Extension)" />

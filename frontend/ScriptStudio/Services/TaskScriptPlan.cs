@@ -8,10 +8,27 @@ namespace MFAAvalonia.Services;
 /// <summary>Turn catalog capabilities and saved bindings into native Pipeline overrides.</summary>
 public static class TaskScriptPlan
 {
-    public static string NormalizeRepeatLimits(string overrides)
+    public static bool IsAfkMode(string? overrides) =>
+        TaskRecoveryPolicy.MergePipelineOverrides(overrides)["脚本任务设置"]?["action"]?["param"]?["custom_action_param"]?["afk_mode"]?.GetValue<bool>() == true;
+
+    public static string NormalizeRepeatLimits(string overrides, string? repeatEntry = null, bool unlimitedHostRepeat = false)
     {
         var root = JsonNode.Parse(overrides);
-        var changed = false;
+        var merged = TaskRecoveryPolicy.MergePipelineOverrides(overrides);
+        var nativeLimit = repeatEntry == null ? null : merged[repeatEntry]?["max_hit"];
+        var nativeUnlimited = nativeLimit != null && long.TryParse(nativeLimit.ToString(), out var count)
+            && count is -1 or uint.MaxValue;
+        var afk = IsAfkMode(overrides) || nativeUnlimited || unlimitedHostRepeat;
+        var changed = afk;
+        if (afk)
+        {
+            root = merged;
+            Parameters(root.AsObject(), "脚本任务设置")["afk_mode"] = true;
+            Parameters(root.AsObject(), "脚本任务设置")["failure_retry"] =
+                new JsonObject { ["enabled"] = true, ["max_retries"] = -1 };
+            if (repeatEntry != null && root[repeatEntry] is JsonObject repeated && repeated.ContainsKey("max_hit"))
+                repeated["max_hit"] = uint.MaxValue;
+        }
         void Normalize(JsonNode? value)
         {
             if (value is JsonArray array)
@@ -127,6 +144,10 @@ public static class TaskScriptPlan
             throw new InvalidDataException("托管续跑需要绑定原任务流程中的脚本。");
         var profile = plan["management_profile"]?.DeepClone() as JsonObject
             ?? throw new InvalidDataException("该任务没有可确认的单轮边界。");
+        var nativeRepeat = profile["native_repeat"]?.GetValue<bool>() == true;
+        var limit = nativeRepeat
+            ? long.Parse(profile["repeat_limit"]!.ToString(), System.Globalization.CultureInfo.InvariantCulture) : 1;
+        overrides = NormalizeRepeatLimits(overrides ?? "{}", originalEntry, nativeRepeat && limit is -1 or uint.MaxValue);
         var prepared = Prepare(plan, originalEntry, overrides);
         var entry = profile["entry"]!.GetValue<string>();
         var pipeline = prepared.Pipeline;
@@ -147,8 +168,7 @@ public static class TaskScriptPlan
         {
             ["account_name"] = options.AccountName, ["role_name"] = options.RoleName, ["save_slot"] = options.SaveSlot
         };
-        var limit = profile["native_repeat"]?.GetValue<bool>() == true
-            ? long.Parse(profile["repeat_limit"]!.ToString(), System.Globalization.CultureInfo.InvariantCulture) : 1;
+        if (nativeRepeat && IsAfkMode(overrides)) limit = -1;
         if (limit == -1 || limit == uint.MaxValue) limit = long.MaxValue;
         if (limit < 1) throw new InvalidDataException("托管任务的刷取次数无效。");
         pipeline = JsonNode.Parse(NormalizeRepeatLimits(pipeline.ToJsonString()))!.AsObject();

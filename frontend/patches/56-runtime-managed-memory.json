@@ -1,0 +1,6 @@
+{
+  "description": "Let the runtime manage memory instead of starting periodic forced GC and working-set trimming.",
+  "path": "MFAAvalonia/App.axaml.cs",
+  "find": "            // 保存引用以便在退出时正确释放\n            _memoryCracker = new AvaloniaMemoryCracker();\n            _memoryCracker.Cracker();\n",
+  "replace": "            // Leave GC and working-set residency to the runtime and OS.\n            // The periodic cleaner forces collections and trims resident pages,\n            // which can stall input callbacks even when run on a worker thread.\n            // Keep the existing nullable shutdown path without starting a worker.\n            _memoryCracker = null;\n"
+}

@@ -1,0 +1,6 @@
+{
+  "description": "Keep global keyboard shortcuts without installing an unused desktop-wide mouse hook.",
+  "path": "MFAAvalonia/Helper/GlobalHotkeyService.cs",
+  "find": "            _hook = new SimpleGlobalHook();\n",
+  "replace": "            // Only keyboard shortcuts are consumed here. Do not put physical\n            // mouse input through this managed process and its GC pauses.\n            _hook = new SimpleGlobalHook(GlobalHookType.Keyboard);\n"
+}

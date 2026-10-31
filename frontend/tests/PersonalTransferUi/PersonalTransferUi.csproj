@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable>
+    <MfaBuildDirectory Condition="'$(MfaBuildDirectory)' == ''">$(MSBuildThisFileDirectory)../../../dist/script-studio</MfaBuildDirectory>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="$(MfaBuildDirectory)/MFAAvalonia.dll" Link="DesktopToInspect.dll" CopyToOutputDirectory="PreserveNewest" />
+    <PackageReference Include="Avalonia.Headless" Version="11.3.12" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.12" />
+    <PackageReference Include="Avalonia.Skia" Version="11.3.12" />
+    <PackageReference Include="SkiaSharp" Version="3.119.1" />
+    <Reference Include="$(MfaBuildDirectory)/libs/*.dll" Exclude="$(MfaBuildDirectory)/libs/av_libglesv2.dll;$(MfaBuildDirectory)/libs/libHarfBuzzSharp.dll;$(MfaBuildDirectory)/libs/libonigwrap.dll;$(MfaBuildDirectory)/libs/libSkiaSharp.dll;$(MfaBuildDirectory)/libs/miniaudio.dll;$(MfaBuildDirectory)/libs/uiohook.dll" />
+    <None Include="$(MfaBuildDirectory)/runtimes/win-x64/native/*.dll" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

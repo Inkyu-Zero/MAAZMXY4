@@ -26,7 +26,10 @@ def native_case(mode):
     from fixture_pixels import read_png_bgr
 
     failed_frame = read_png_bgr(ROOT / 'tests/fixtures/navigation/challenge-failed.png')
-    revive_frame = read_png_bgr(ROOT / 'tests/fixtures/navigation/revival/normal-p1-up.png') if mode=='revive' else None
+    is_revive = mode in ('revive', 'revive_live')
+    revive_fixture = ('revival-live/vip-p1-countdown10.png' if mode=='revive_live'
+                      else 'revival/normal-p1-up.png')
+    revive_frame = read_png_bgr(ROOT / 'tests/fixtures/navigation' / revive_fixture) if is_revive else None
 
     class MemoryController(CustomController):
         def __init__(self):
@@ -43,7 +46,7 @@ def native_case(mode):
             # Approximate a real FramePool capture to expose overlapping RPCs.
             time.sleep(.08)
             if mode=='return':return failed_frame.copy()
-            if mode=='revive' and any(op=='down' for op,_ in self.inputs):
+            if is_revive and any(op=='down' for op,_ in self.inputs):
                 return failed_frame.copy() if self.declined else revive_frame.copy()
             if mode == 'defeat' and any(op == 'down' for op, _ in self.inputs):
                 return failed_frame.copy()
@@ -56,14 +59,14 @@ def native_case(mode):
             if mode=='return':
                 assert 500<=x<=1050 and 450<=y<=650 and not self.inputs,(x,y,self.inputs)
                 self.inputs.append(('return_down',[x,y]));self.input_times.append(time.monotonic());return True
-            assert mode=='revive' and 628<=x<=724 and 429<=y<=470,(x,y)
+            assert is_revive and 628<=x<=724 and 429<=y<=470,(x,y)
             assert self.inputs==[('down',68),('up',68)],self.inputs
             self.inputs.append(('cancel_down',[x,y]));self.input_times.append(time.monotonic());return True
         def touch_up(self,contact):
             if mode=='return':
                 assert self.inputs[-1][0]=='return_down'
                 self.inputs.append(('return_up',contact));self.input_times.append(time.monotonic());return True
-            assert mode=='revive' and self.inputs[-1][0]=='cancel_down'
+            assert is_revive and self.inputs[-1][0]=='cancel_down'
             self.declined=True;self.inputs.append(('cancel_up',contact));self.input_times.append(time.monotonic());return True
         def forbidden(self, *args): raise AssertionError('Unexpected input')
         click = swipe = touch_move = input_text = forbidden
@@ -91,21 +94,23 @@ def native_case(mode):
             target = directory / 'image' / path
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(ROOT / 'assets/resource/base/image' / path, target)
+        if mode=='revive_live':
+            shutil.copytree(ROOT / 'assets/resource/base/model/ocr', directory / 'model/ocr')
         recording = directory / 'synthetic.json'
         actions = [
                 dict(t=453, op='keydown', key=68),
                 dict(t=62, op='keyup', key=68),
                 dict(t=200, op='keydown', key=75),
                 dict(t=62, op='keyup', key=75)]
-        if mode in ('defeat','revive'):
+        if mode=='defeat' or is_revive:
             actions = [dict(t=453, op='keydown', key=68),
                        dict(t=1500, op='keyup', key=68),
                        dict(t=100, op='click', x=500, y=300)]
         recording.write_text(json.dumps(dict(version=1, name='synthetic', base=[1148, 720],
-            duration_ms=2200 if mode in ('defeat','revive') else 1400, actions=actions)), encoding='utf8')
+            duration_ms=2200 if mode=='defeat' or is_revive else 1400, actions=actions)), encoding='utf8')
         policy = dict(failed_next=['Failure'], succeeded_next=['Success'],
                       default_next=['Exit'], interval_ms=400)
-        policy['revive_next']=['Decline','ConfirmDefeat'] if mode=='revive' else ['Exit']
+        policy['revive_next']=['Decline','ConfirmDefeat'] if is_revive else ['Exit']
         pipeline['Probe'] = {'action': {'type': 'Custom', 'param': {
             'custom_action': 'battle_play',
             'custom_action_param': {'file': str(recording), 'result_guard': policy}}}, 'post_delay': 0}
@@ -113,7 +118,7 @@ def native_case(mode):
             pipeline[name] = {'action': {'type': 'Custom', 'param': {
                 'custom_action': 'capture_branch', 'custom_action_param': name}}, 'post_delay': 0}
         if mode=='return':pipeline['Failure']['next']=['Result_FailedReturn']
-        if mode=='revive':
+        if is_revive:
             from copy import deepcopy
             pipeline['Decline']=deepcopy(definitions['Result_DeclineRevive'])
             pipeline['Decline'].update(next=['ConfirmDefeat'],timeout=3000)
@@ -208,6 +213,12 @@ class PlaybackTransportTests(unittest.TestCase):
 
     def test_revive_during_held_key_releases_before_declining_and_confirms_defeat(self):
         report=self.run_case('revive')
+        self.assertEqual(report['inputs'][:2],[['down',68],['up',68]])
+        self.assertEqual([op for op,_ in report['inputs']],['down','up','cancel_down','cancel_up'])
+        self.assertEqual(report['branches'],['Failure'])
+
+    def test_captured_free_revive_uses_ocr_over_agent_ipc_before_safe_cancel(self):
+        report=self.run_case('revive_live')
         self.assertEqual(report['inputs'][:2],[['down',68],['up',68]])
         self.assertEqual([op for op,_ in report['inputs']],['down','up','cancel_down','cancel_up'])
         self.assertEqual(report['branches'],['Failure'])

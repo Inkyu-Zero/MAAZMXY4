@@ -124,8 +124,64 @@ class RevivalAnchorNativeTests(unittest.TestCase):
         resource.override_pipeline({'__RevivalAnchorTest': dict(action=dict(type='Custom', param=dict(custom_action='__inspect_revival_anchor')))})
         self.assertTrue(tasker.bind(resource, controller))
         self.assertTrue(tasker.post_task('__RevivalAnchorTest').wait().succeeded)
-        self.assertEqual(len(checked), 2)
+        self.assertEqual(len(checked), len(cases))
         self.assertEqual(errors, [])
+
+    def test_captured_free_revive_reaches_decline_and_confirmed_defeat(self):
+        from fixture_pixels import read_png_bgr
+        from battle_outcomes import BattleOutcomeMonitor
+        prompt = read_png_bgr(FIXTURES/'vip-p1-countdown10.png')
+        failed = read_png_bgr(ROOT/'tests/fixtures/navigation/challenge-failed.png')
+        prefix = '悬赏（守卫太宗）-'
+        policy = dict(failed_next=[prefix+'已确认战斗失败'],
+            succeeded_next=[prefix+'已确认战斗成功'], default_next=[prefix+'回放后分流'],
+            revive_next=[prefix+'拒绝还魂丹', prefix+'等待拒绝复活', prefix+'战斗失败'])
+
+        def inspect(context, controller, events):
+            # The semantic fallback may identify a resurrection prompt, but
+            # never authorizes a click without the complete button layout.
+            obscured = prompt.copy()
+            obscured[400:460,430:720] = 0
+            self.assertTrue(context.run_recognition('Result_RevivePrompt', obscured).hit)
+            self.assertFalse(context.run_recognition('Result_DeclineRevive', obscured).hit)
+            pending = [name for path in (ROOT/'assets/resource/base/pipeline').glob('*.json')
+                for name in json.loads(path.read_text(encoding='utf8'))
+                if name.endswith('-等待拒绝复活')]
+            self.assertEqual(len(pending), 11)
+            for name in pending:
+                self.assertTrue(context.run_recognition(name, obscured).hit, name)
+            # This captured caption misses the template. Text by itself must
+            # not enable the fallback without a confirmation frame.
+            import numpy as np
+            caption_only = np.full_like(prompt, (50,60,70))
+            caption_only[316:350,440:810] = prompt[316:350,440:810]
+            self.assertFalse(context.run_recognition('Result_RevivePrompt', caption_only).hit)
+            for path in sorted((ROOT/'tests/fixtures/navigation/common-dialog').glob('*.png')):
+                other = read_png_bgr(path)
+                self.assertFalse(context.run_recognition('Result_RevivePrompt', other).hit, path.name)
+                self.assertFalse(context.run_recognition('Result_DeclineRevive', other).hit, path.name)
+            # This real free-revival caption scored 0.858 against the SWF
+            # template (threshold 0.88). It used to fall into common-confirm
+            # fatal handling before the decline / defeat route could run.
+            monitor = BattleOutcomeMonitor(context, policy)
+            try:
+                monitor.start()
+                self.assertIsNone(monitor.error)
+                self.assertEqual(monitor.branch, policy['revive_next'])
+                self.assertEqual(events, [])
+            finally:
+                monitor.close()
+            controller.source = lambda: failed if events and events[-1][0]=='up' else prompt
+            result = context.run_task('__CapturedRevive', {
+                '__CapturedRevive': dict(action=dict(type='DoNothing'),
+                    next=policy['revive_next'], timeout=2000, post_delay=0),
+                prefix+'战斗失败': dict(action=dict(type='DoNothing'), next=[]),
+            })
+            self.assertTrue(result and result.status.succeeded)
+            self.assertEqual([e[0] for e in events], ['down', 'up'])
+            self.assertTrue(614<=events[0][1]<710 and 416<=events[0][2]<458, events)
+
+        self.run_memory_case(inspect, prompt)
 
     def test_layouts_follow_window_and_ignore_cancel_glyphs(self):
         import numpy as np

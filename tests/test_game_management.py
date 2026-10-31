@@ -13,6 +13,7 @@ from unittest.mock import Mock, patch
 
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'agent'))
+sys.path.insert(0,str(ROOT/'tools'))
 from task_catalog import task_catalog
 from test_bounty_candle import runtime
 
@@ -77,6 +78,56 @@ class GameManagementTests(unittest.TestCase):
     def test_explicitly_connecting_selected_map_does_not_relogin(self):
         ctx,run=self.scenario([{'MapReady'}],allow_existing_map=True);run();self.assertEqual(ctx.actions,[])
 
+    def test_selected_role_waits_through_title_transition_without_starting_again(self):
+        ctx,run=self.scenario([{'SavePage','ChooseRole'},{'StartGame'},{'MapReady'}])
+        def sleep(seconds):
+            ctx.now+=seconds
+            if ctx.index==1 and ctx.now>=2:ctx.index=2
+        ctx.sleep=sleep
+        run()
+        self.assertEqual(ctx.actions,['GameManagement_ChooseRole'])
+
+    def test_scene_change_between_probe_and_action_is_rechecked(self):
+        ctx,run=self.scenario([{'StartGame'},{'SavePage','ChooseRole'},{'MapReady'}])
+        original=ctx.run_task
+        def dispatch(name,overrides):
+            if ctx.index==0:
+                ctx.index=1
+                return SimpleNamespace(status=SimpleNamespace(succeeded=False))
+            return original(name,overrides)
+        ctx.run_task=dispatch
+        run()
+        self.assertEqual(ctx.actions,['GameManagement_ChooseRole'])
+
+    def test_selected_role_wait_is_cancellable_and_times_out_without_relogin(self):
+        for cancel in (True,False):
+            with self.subTest(cancel=cancel):
+                ctx,run=self.scenario([{'SavePage','ChooseRole'},{'StartGame'}])
+                def sleep(seconds):
+                    ctx.now+=seconds
+                    if cancel and ctx.now>=1:ctx.tasker.stopping=True
+                ctx.sleep=sleep
+                with patch.object(login,'white_frame',return_value=False), self.assertRaises(runtime.Cancelled if cancel else ValueError):run()
+                self.assertEqual(ctx.actions,['GameManagement_ChooseRole'])
+
+    def test_failed_role_click_cannot_authorize_an_existing_map(self):
+        ctx,run=self.scenario([{'SavePage','ChooseRole'},{'MapReady'}])
+        def dispatch(*args):
+            ctx.index=1
+            return SimpleNamespace(status=SimpleNamespace(succeeded=False))
+        ctx.run_task=dispatch
+        with self.assertRaises(ValueError):run()
+
+    def test_repeated_failed_action_remains_bounded(self):
+        ctx,run=self.scenario([{'StartGame'}]);calls=[]
+        def dispatch(*args):
+            calls.append(ctx.now)
+            return SimpleNamespace(status=SimpleNamespace(succeeded=False))
+        ctx.run_task=dispatch
+        with self.assertRaisesRegex(ValueError,'恢复操作未确认'):run()
+        self.assertEqual(len(calls),3)
+        self.assertTrue(all(b-a>=2 for a,b in zip(calls,calls[1:])))
+
     def test_stop_and_missing_recognition_never_advance(self):
         ctx,run=self.scenario([{'BoxLogin'}]);ctx.tasker.stopping=True
         with self.assertRaises(runtime.Cancelled):run()
@@ -84,13 +135,18 @@ class GameManagementTests(unittest.TestCase):
         ctx,run=self.scenario([set()]);ctx.run_recognition=lambda *_:None
         with self.assertRaisesRegex(ValueError,'缺少恢复节点'):run()
 
-    def test_account_and_role_are_literal_and_four_slots_stay_in_their_rows(self):
+    def test_account_and_role_are_literal_and_eight_slots_stay_in_their_rows(self):
         first=login.login_overrides('name.*','role(1)',1)
         third=login.login_overrides('name.*','role(1)',3)
         roi=lambda p:p['GameManagement_ChooseRole']['recognition']['param']['all_of'][1]['recognition']['param']
-        self.assertEqual(roi(first)['expected'],['^role\\(1\\)$'])
+        import re
+        pattern=roi(first)['expected'][0]
+        self.assertRegex('role(1) Lv.72',pattern)
+        self.assertIsNone(re.fullmatch(pattern,'role(1)其它 Lv.72'))
         self.assertLess(roi(first)['roi'][1],roi(third)['roi'][1])
-        with self.assertRaises(ValueError):login.login_overrides('name','role',5)
+        eighth=login.login_overrides('name','role',8)
+        self.assertEqual(roi(eighth)['roi'][:2],[655,504])
+        with self.assertRaises(ValueError):login.login_overrides('name','role',9)
 
     def test_scroll_fallback_is_independent_of_game_process_management(self):
         NavigationError = runtime.NavigationError

@@ -1,0 +1,6 @@
+{
+  "description": "Show one label for a single input; preserve descriptive help on its row.",
+  "path": "MFAAvalonia/Helper/TaskOptionGenerator.cs",
+  "find": "        // 单输入且有 option description 时，需要显示 header，所以使用与多输入相同的 margin\n        var needsHeader = !isSingleInput || hasOptionDescription;",
+  "replace": "        // A single field supplies its own title; its description remains a tooltip.\n        var needsHeader = !isSingleInput;"
+}

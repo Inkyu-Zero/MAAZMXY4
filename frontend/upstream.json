@@ -4,14 +4,16 @@
   "core_version": "2.14.0",
   "archive_url": "https://codeload.github.com/MaaXYZ/MFAAvalonia/zip/1080d3e1500f3439ac896ab2eca9aeb8e885f1f4",
   "archive_sha256": "351ecf655c7bfeb2b70e3285f727d7bb44061a136a215df095eeefd3bab5eb64",
-  "cache_directory": ".runtime-cache/mfa-source-1080d3e",
+  "cache_directory": ".runtime-cache/mfa-source-1080d3e-manual-242",
   "project": "MFAAvalonia.Desktop/MFAAvalonia.Desktop.csproj",
   "overlay_directory": "frontend/ScriptStudio",
   "runtime_identifier": "win-x64",
   "application_icon": "新图标.ico",
   "retired_overlay_files": [
     "Services/BountyCandleRecovery.cs",
-    "Services/BountyCandleRecoveryPolicy.cs"
+    "Services/BountyCandleRecoveryPolicy.cs",
+    "Services/ProjectUpdater.cs",
+    "Services/ProjectUpdateClient.cs"
   ],
   "patches": [
     "frontend/patches/01-script-studio-navigation.json",
@@ -28,6 +30,8 @@
     "frontend/patches/12-option-default-array.json",
     "frontend/patches/13-option-default-string.json",
     "frontend/patches/14-shared-recording-windows.json",
+    "frontend/patches/15-manual-only-updates.json",
+    "frontend/patches/16-manual-only-updates.json",
     "frontend/patches/18-liveview-connecting.json",
     "frontend/patches/19-liveview-success-reset.json",
     "frontend/patches/20-liveview-missing-frame-state.json",
@@ -35,6 +39,10 @@
     "frontend/patches/22-agent-owned-process-cleanup.json",
     "frontend/patches/23-agent-retry-process-ownership.json",
     "frontend/patches/24-native-unlimited-brush-count.json",
+    "frontend/patches/25-manual-only-updates.json",
+    "frontend/patches/26-manual-only-updates.json",
+    "frontend/patches/27-manual-only-updates.json",
+    "frontend/patches/28-manual-only-updates.json",
     "frontend/patches/30-win32-explicit-window-identity.json",
     "frontend/patches/31-win32-no-first-window-fallback.json",
     "frontend/patches/32-win32-no-filtered-first-fallback.json",
@@ -57,6 +65,14 @@
     "frontend/patches/49-idle-tab-animation.json",
     "frontend/patches/50-idle-monitor-animation.json",
     "frontend/patches/51-idle-update-animation.json",
-    "frontend/patches/52-idle-tab-child-visibility.json"
+    "frontend/patches/52-idle-tab-child-visibility.json",
+    "frontend/patches/53-afk-option-controls.json",
+    "frontend/patches/54-afk-host-repeat.json",
+    "frontend/patches/55-keyboard-only-hotkeys.json",
+    "frontend/patches/56-runtime-managed-memory.json",
+    "frontend/patches/57-single-input-label.json",
+    "frontend/patches/58-single-input-help.json",
+    "frontend/patches/59-option-row-spacing.json",
+    "frontend/patches/58-personal-transfer-startup.json"
   ]
 }

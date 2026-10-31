@@ -523,19 +523,67 @@
   },
   "Result_RevivePrompt": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "Or",
       "param": {
-        "template": [
-          "navigation/outcomes/revive-normal-caption.png",
-          "navigation/outcomes/revive-vip-caption.png"
-        ],
-        "roi": [
-          200,
-          170,
-          800,
-          390
-        ],
-        "threshold": 0.88
+        "any_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": [
+                  "navigation/outcomes/revive-normal-caption.png",
+                  "navigation/outcomes/revive-vip-caption.png"
+                ],
+                "roi": [
+                  200,
+                  170,
+                  800,
+                  390
+                ],
+                "threshold": 0.88
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "And",
+              "param": {
+                "all_of": [
+                  {
+                    "sub_name": "confirm_frame",
+                    "recognition": {
+                      "type": "And",
+                      "param": {
+                        "all_of": [
+                          "Nav_CommonConfirm"
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "OCR",
+                      "param": {
+                        "roi": "confirm_frame",
+                        "roi_offset": [
+                          120,
+                          63,
+                          390,
+                          -5
+                        ],
+                        "only_rec": true,
+                        "expected": [
+                          "^你确定免费复活[，,]?\\s*继续进行挑战[？?]?$"
+                        ]
+                      }
+                    }
+                  }
+                ],
+                "box_index": 1
+              }
+            }
+          }
+        ]
       }
     },
     "action": {

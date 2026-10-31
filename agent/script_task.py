@@ -192,7 +192,7 @@ def begin_round(context, parameters, state):
         # node; do not invent a second options store or a task-name whitelist.
         settings = context.get_node_data(parameters.get('settings_node', '脚本任务设置'))
         for key, value in custom_parameters(settings or {}).items():
-            if key in ('exit_mode', 'failure_retry', 'recovery'):
+            if key in ('exit_mode', 'failure_retry', 'recovery', 'afk_mode'):
                 parameters[key] = deepcopy(value)
     reference = parameters.get('file', '@task')
     if reference == '@task':
@@ -217,14 +217,19 @@ def begin_round(context, parameters, state):
                  recording_sha256=recording['sha256'], parameters=parameters,
                  failure_retries=0, battle_failed=False)
     policy = parameters.get('failure_retry', {})
+    afk = parameters.get('afk_mode', False)
+    if type(afk) is not bool:
+        raise ValueError('挂机模式必须为布尔值。')
+    if afk:
+        policy = dict(enabled=True, max_retries=-1)
     if not isinstance(policy, dict) or type(policy.get('enabled', False)) is not bool:
         raise ValueError('失败自动重试配置无效。')
     retries = policy.get('max_retries', 3)
     if isinstance(retries, str) and retries.isascii() and retries.isdecimal():
         retries = int(retries)
-    if type(retries) is not int or not 0 <= retries <= 20:
+    if type(retries) is not int or not (0 <= retries <= 20 or afk and retries == -1):
         raise ValueError('每轮失败重试次数必须为0～20；0表示不自动重开。')
-    state['failure_retry'] = dict(enabled=policy.get('enabled', False) and retries > 0, max_retries=retries)
+    state['failure_retry'] = dict(enabled=afk or policy.get('enabled', False) and retries > 0, max_retries=retries)
     routes = parameters.get('routes', {})
     mode = parameters.get('exit_mode', next(iter(routes), None))
     if routes and mode not in routes:
@@ -283,10 +288,15 @@ def navigate_round(context, state):
         raise
 
 
-def confirm_return(context, state):
+def return_targets(state):
     allowed = ['task_map', 'map_a', 'map_b']
     if state['parameters'].get('navigation', {}).get('kind') == 'stage':
         allowed.append('task_destination')
+    return allowed
+
+
+def confirm_return(context, state):
+    allowed = return_targets(state)
     actual = _navigator(context, state, targets=allowed).locate()
     if actual not in allowed:
         raise ValueError('尚未确认返回地图，本轮不计次也不重试。')
@@ -301,7 +311,7 @@ def retry_failed_round(context, state, node_name):
     if not policy['enabled']:
         write_status(state, 'fatal', 'battle_failed', message='挑战失败，已返回地图；失败自动重试已关闭，本轮未计次。')
         return False
-    if state['failure_retries'] >= policy['max_retries']:
+    if policy['max_retries'] != -1 and state['failure_retries'] >= policy['max_retries']:
         write_status(state, 'fatal', 'battle_retry_exhausted', message='挑战失败重试次数已用尽，本轮未计次。')
         return False
     next_node = state['parameters'].get('navigation_entry')
@@ -313,6 +323,60 @@ def retry_failed_round(context, state, node_name):
         message=f"失败轮次未计次，开始第{state['failure_retries']}次重试。",
         failure_retries=state['failure_retries'])
     return True
+
+
+def recover_failed_return(context, state):
+    """Retry only the recognized defeat-to-map edge, never general navigation."""
+    # The original Pipeline already attempted one click; allow two more.
+    remaining = 2 - state.get('return_recovery_attempts', 0)
+    if remaining <= 0:
+        return False
+    navigator = _navigator(context, state, targets=return_targets(state))
+    # Retain all scene/overlay probes but expose only the guarded Return Map
+    # action. A world map, modal, revival prompt or unknown frame has no route.
+    navigator.graph['edges'] = [edge for edge in navigator.graph['edges']
+        if edge['source'] == 'challenge_failed' and edge['entry'] == 'Result_FailedReturn'
+        and edge['target'] in navigator.graph['targets']]
+    for edge in navigator.graph['edges']:
+        edge.update(max_attempts=remaining, timeout_ms=1500)
+    navigator.graph.update(max_steps=remaining, max_seconds=15, settle_ms=1000)
+    checked_step = -1
+    def check():
+        nonlocal checked_step
+        _check(context)
+        # GraphNavigator increments steps before dispatch, so verify the pinned
+        # recording initially and before every additional input attempt.
+        if checked_step != navigator.steps:
+            current = inspect_recording(state['reference'])
+            if current['path'] != state['recording']['path'] or current['sha256'] != state['recording']['sha256']:
+                raise RecordingChanged('返回地图重试期间录制已改变，已停止。')
+            checked_step = navigator.steps
+    navigator.check = check
+    write_status(state, 'running', 'battle_return_retrying',
+                 message=f'返回地图确认超时，开始受保护的返回重试，最多追加{remaining}次。')
+    try:
+        navigator.run()
+        return True
+    except (NavigationError, TimeoutError) as error:
+        print('[script_task] 返回地图恢复未完成：' + str(error), flush=True)
+        return False
+    finally:
+        state['return_recovery_attempts'] = state.get('return_recovery_attempts', 0) + navigator.steps
+
+
+def managed_failure_restart(state):
+    management = state.get('parameters', {}).get('game_management')
+    return isinstance(management, dict) and management.get('restart_on_failure') is True
+
+
+def exhausted_battle_reason(state):
+    """Only terminal battle failure may hand the current round to process recovery."""
+    policy = state['failure_retry']
+    if not policy['enabled']:
+        return 'battle_failed'
+    if policy['max_retries'] != -1 and state['failure_retries'] >= policy['max_retries']:
+        return 'battle_retry_exhausted'
+    return None
 
 
 def begin_recovery(context, parameters, state):
@@ -330,7 +394,7 @@ def begin_recovery(context, parameters, state):
     write_status(state, 'running', 'recovery_login', save_slot=slot)
 
 
-def fail_round(context, state, reason):
+def fail_round(context, state, reason, node_name=None):
     _check(context)
     recording = state.get('recording')
     if recording is not None:
@@ -338,8 +402,22 @@ def fail_round(context, state, reason):
         if current['path'] != recording['path'] or current['sha256'] != recording['sha256']:
             write_status(state, 'fatal', 'recording_changed')
             return False
+    if (node_name and state.get('battle_failed') and state.get('parameters', {}).get('navigation')
+            and recover_failed_return(context, state)):
+        # Reuse the existing map/retry checkpoint. It alone consumes a battle
+        # retry and resumes this round's navigation, never the brush counter.
+        return retry_failed_round(context, state, node_name)
     if confirm_white_screen(context):
         write_status(state, 'recoverable', 'white_screen')
+    elif state.get('battle_failed') and managed_failure_restart(state):
+        write_status(state, 'recoverable', 'battle_return_failed',
+                     message='已确认战败，但返回流程已失败；交由游戏管理重启后继续本轮，本轮未计次。')
+    elif managed_failure_restart(state):
+        # A normal task may exhaust its own navigation/return fallbacks without
+        # a battle defeat. Confirm a known, unblocked scene before restarting.
+        _navigator(context, state).locate()
+        write_status(state, 'recoverable', 'task_failed',
+                     message='任务流程已宣告失败，当前场景已核验；重启后继续本轮，本轮未计次。')
     else:
         write_status(state, 'fatal', reason or 'unrecognized_screen')
     return False
@@ -372,9 +450,13 @@ class ScriptTaskState(CustomAction):
                 navigate_round(context, state)
                 return True
             if phase == 'battle_failure':
+                if not state.get('battle_failed'):
+                    state['return_recovery_attempts'] = 0
                 state['battle_failed'] = True
-                if state['parameters'].get('game_management', {}).get('restart_on_failure') is True:
-                    write_status(state, 'recoverable', 'battle_failed', message='挑战失败，交由游戏管理重启；本轮未计次。')
+                reason = exhausted_battle_reason(state)
+                if reason and managed_failure_restart(state):
+                    write_status(state, 'recoverable', reason,
+                                 message='挑战失败且游戏内重试已关闭或次数已用尽；重启后继续本轮，本轮未计次。')
                     terminal = True
                     return False
                 write_status(state, 'running', 'battle_failed_returning', message='识别到挑战失败，已停止录制；本次失败不计入次数。')
@@ -395,7 +477,9 @@ class ScriptTaskState(CustomAction):
                 write_status(state, 'fatal', str(parameters.get('reason') or 'blocked_dialog'))
                 return False
             if phase == 'failure':
-                return fail_round(context, state, str(parameters.get('reason') or 'unrecognized_screen'))
+                result = fail_round(context, state, str(parameters.get('reason') or 'unrecognized_screen'), argv.node_name)
+                terminal = not result
+                return result
             raise ValueError('未知脚本任务检查点。')
         except Cancelled:
             terminal = True
@@ -411,7 +495,11 @@ class ScriptTaskState(CustomAction):
         except (NavigationError, TimeoutError) as error:
             terminal = True
             if state is not None:
-                _stop_status(state, 'fatal', 'navigation_' + getattr(error, 'reason', 'timeout'), message=str(error))
+                reason = getattr(error, 'reason', 'timeout')
+                if phase == 'navigate' and managed_failure_restart(state) and reason in ('transition_failed', 'budget', 'unreachable', 'timeout'):
+                    _stop_status(state, 'recoverable', 'task_failed', navigation_failure=reason, message=str(error))
+                else:
+                    _stop_status(state, 'fatal', 'navigation_' + reason, message=str(error))
             return False
         except Exception as error:
             terminal = True

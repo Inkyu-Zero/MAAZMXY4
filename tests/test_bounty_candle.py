@@ -172,11 +172,168 @@ class BountyCandleTests(unittest.TestCase):
         self.assertEqual(self.context.tasker.controller.calls,0)
         self.assertFalse(runtime._rounds)
 
-    def test_managed_defeat_requests_restart_without_success_or_native_retry(self):
+    def test_managed_defeat_without_in_game_retries_requests_restart(self):
+        self.context.nodes['脚本任务设置']['action']['param']['custom_action_param']['failure_retry'] = {
+            'enabled': False, 'max_retries': 3}
         self.assertTrue(self.run_phase('begin',game_management={'restart_on_failure':True}))
         self.assertFalse(self.run_phase('battle_failure'))
         self.assertEqual((self.outcome()['status'],self.outcome()['reason']),('recoverable','battle_failed'))
         self.assertFalse(runtime._rounds)
+
+    def test_managed_restart_waits_for_all_in_game_retries(self):
+        self.context.nodes['脚本任务设置']['action']['param']['custom_action_param']['failure_retry'] = {
+            'enabled': True, 'max_retries': 2}
+        self.assertTrue(self.run_phase('begin',game_management={'restart_on_failure':True}))
+        for attempt in (1, 2):
+            self.assertTrue(self.run_phase('battle_failure'))
+            self.assertEqual(self.outcome()['reason'], 'battle_failed_returning')
+            self.assertTrue(self.run_phase('retry_after_failure'))
+            self.assertEqual(self.outcome()['failure_retries'], attempt)
+            self.assertEqual(self.outcome()['status'], 'running')
+        self.assertFalse(self.run_phase('battle_failure'))
+        self.assertEqual((self.outcome()['status'], self.outcome()['reason']),
+                         ('recoverable', 'battle_retry_exhausted'))
+        self.assertEqual(self.outcome()['failure_retries'], 2)
+        self.assertFalse(runtime._rounds)
+
+    def test_afk_and_managed_restart_keep_retrying_in_game_without_restart(self):
+        self.context.nodes['脚本任务设置']['action']['param']['custom_action_param']['afk_mode'] = True
+        self.assertTrue(self.run_phase('begin',game_management={'restart_on_failure':True}))
+        for attempt in range(1, 26):
+            self.assertTrue(self.run_phase('battle_failure'))
+            self.assertTrue(self.run_phase('retry_after_failure'))
+            self.assertEqual(self.outcome()['status'], 'running')
+            self.assertEqual(self.outcome()['failure_retries'], attempt)
+        self.context.tasker.stopping = True
+        self.assertFalse(self.run_phase('battle_failure'))
+        self.assertEqual(self.outcome()['status'], 'cancelled')
+
+    def test_confirmed_defeat_with_terminal_return_failure_requests_restart(self):
+        self.context.nodes['脚本任务设置']['action']['param']['custom_action_param']['afk_mode'] = True
+        self.assertTrue(self.run_phase('begin',game_management={'restart_on_failure':True}))
+        self.assertTrue(self.run_phase('battle_failure'))
+        self.context.run_recognition = lambda *_args: SimpleNamespace(hit=False)
+        with patch.object(runtime, 'confirm_white_screen', return_value=False), patch.object(runtime.GraphNavigator, '_settle'):
+            self.assertFalse(self.run_phase('failure'))
+        self.assertEqual((self.outcome()['status'], self.outcome()['reason']),
+                         ('recoverable', 'battle_return_failed'))
+
+    def return_timeout_context(self, *, succeeds_after=2, after_click=None):
+        settings=self.context.nodes['脚本任务设置']['action']['param']['custom_action_param']
+        settings['afk_mode']=True
+        self.assertTrue(self.run_phase('begin'))
+        self.assertTrue(self.run_phase('battle_failure'))
+        self.context.scene='failed';self.context.return_actions=[]
+        def recognition(name, frame):
+            hits={'failed':{'Result_Failed'},'map':{'Nav_TaskMap','Nav_Probe_hub_scene'},
+                  'modal':{'Result_Failed','Nav_CommonConfirm'},'unknown':set()}
+            return SimpleNamespace(hit=name in hits[self.context.scene])
+        def dispatch(entry, overrides):
+            target=overrides[entry]['next']
+            self.assertEqual(target,['Result_FailedReturn'])
+            self.assertEqual(overrides[entry]['action']['type'],'DoNothing')
+            self.context.return_actions.append(target)
+            if after_click:after_click()
+            elif len(self.context.return_actions)>=succeeds_after:self.context.scene='map'
+            return SimpleNamespace(status=SimpleNamespace(succeeded=True))
+        self.context.run_recognition=recognition
+        self.context.run_task=dispatch
+
+    def test_return_timeout_retries_missed_click_then_continues_same_round(self):
+        self.return_timeout_context()
+        runtime._rounds[100]['failure_retries']=5
+        with patch.object(runtime.GraphNavigator,'_settle'), patch.object(runtime,'confirm_white_screen',return_value=False):
+            self.assertTrue(self.run_phase('failure'))
+        self.assertEqual(len(self.context.return_actions),2)
+        self.assertEqual(self.outcome()['reason'],'battle_retry')
+        self.assertEqual(self.outcome()['failure_retries'],6)
+        self.assertEqual(self.context.patches[-1],{PREFIX+'失败返回确认':{'next':[PREFIX+'通用导航']}})
+        self.assertTrue(runtime._rounds)
+
+    def test_return_timeout_is_bounded_and_never_changes_completed_count(self):
+        self.return_timeout_context(succeeds_after=999)
+        with patch.object(runtime.GraphNavigator,'_settle'), patch.object(runtime,'confirm_white_screen',return_value=False):
+            self.assertFalse(self.run_phase('failure'))
+        self.assertEqual(len(self.context.return_actions),2)
+        self.assertEqual(self.outcome()['failure_retries'],0)
+        self.assertEqual(self.outcome()['status'],'fatal')
+
+    def test_return_timeout_does_not_click_an_unknown_scene_or_foreground_modal(self):
+        for scene in ('unknown','modal'):
+            with self.subTest(scene=scene):
+                self.return_timeout_context()
+                self.context.scene=scene
+                with patch.object(runtime.GraphNavigator,'_settle'), patch.object(runtime,'confirm_white_screen',return_value=False):
+                    self.assertFalse(self.run_phase('failure'))
+                self.assertEqual(self.context.return_actions,[])
+
+    def test_return_timeout_checks_stop_and_recording_revision_before_more_input(self):
+        self.return_timeout_context(after_click=lambda:setattr(self.context.tasker,'stopping',True))
+        with patch.object(runtime.GraphNavigator,'_settle'):
+            self.assertFalse(self.run_phase('failure'))
+        self.assertEqual(len(self.context.return_actions),1)
+        self.assertEqual(self.outcome()['status'],'cancelled')
+        self.context=Context()
+        self.return_timeout_context()
+        self.save_recording('one.json',67)
+        self.assertFalse(self.run_phase('failure'))
+        self.assertEqual(self.context.return_actions,[])
+        self.assertEqual(self.outcome()['reason'],'recording_changed')
+
+    def test_return_timeout_already_on_map_does_not_click_return_again(self):
+        self.return_timeout_context()
+        self.context.scene='map'
+        self.assertTrue(self.run_phase('failure'))
+        self.assertEqual(self.context.return_actions,[])
+        self.assertEqual(self.outcome()['reason'],'battle_retry')
+
+    def test_return_timeout_stops_if_recording_changes_after_first_retry_click(self):
+        self.return_timeout_context(after_click=lambda:self.save_recording('one.json',67))
+        with patch.object(runtime.GraphNavigator,'_settle'):
+            self.assertFalse(self.run_phase('failure'))
+        self.assertEqual(len(self.context.return_actions),1)
+        self.assertEqual(self.outcome()['reason'],'recording_changed')
+
+    def test_return_timeout_preserves_disabled_battle_retry_policy(self):
+        self.return_timeout_context(succeeds_after=1)
+        runtime._rounds[100]['failure_retry']={'enabled':False,'max_retries':0}
+        with patch.object(runtime.GraphNavigator,'_settle'):
+            self.assertFalse(self.run_phase('failure'))
+        self.assertEqual(self.context.scene,'map')
+        self.assertEqual(self.outcome()['reason'],'battle_failed')
+        self.assertEqual(self.outcome()['failure_retries'],0)
+
+    def test_unknown_or_blocked_failure_never_becomes_managed_defeat(self):
+        self.assertTrue(self.run_phase('begin',game_management={'restart_on_failure':True}))
+        self.context.run_recognition = lambda *_args: SimpleNamespace(hit=False)
+        with patch.object(runtime, 'confirm_white_screen', return_value=False):
+            self.assertFalse(self.run_phase('failure'))
+        self.assertEqual(self.outcome()['status'], 'fatal')
+        self.assertTrue(self.run_phase('begin',game_management={'restart_on_failure':True}))
+        self.assertFalse(self.run_phase('fatal', reason='blocked_dialog'))
+        self.assertEqual(self.outcome()['status'], 'fatal')
+
+    def test_terminal_task_failure_on_a_known_scene_can_restart(self):
+        self.assertTrue(self.run_phase('begin',game_management={'restart_on_failure':True}))
+        with patch.object(runtime, 'confirm_white_screen', return_value=False):
+            self.assertFalse(self.run_phase('failure'))
+        self.assertEqual((self.outcome()['status'], self.outcome()['reason']), ('recoverable', 'task_failed'))
+
+    def test_login_failure_without_battle_parameters_preserves_its_reason(self):
+        self.assertTrue(self.run_phase('recovery_begin'))
+        with patch.object(runtime, 'confirm_white_screen', return_value=False):
+            self.assertFalse(self.run_phase('failure', reason='请返回人物与主线地图'))
+        self.assertEqual((self.outcome()['status'], self.outcome()['reason']), ('fatal', '请返回人物与主线地图'))
+
+    def test_exhausted_navigation_can_restart_but_unknown_and_blocked_scenes_stop(self):
+        for reason in ('transition_failed', 'budget', 'unreachable', 'unknown', 'blocked'):
+            with self.subTest(reason=reason):
+                self.assertTrue(self.run_phase('begin',game_management={'restart_on_failure':True}))
+                with patch.object(runtime, 'navigate_round', side_effect=runtime.NavigationError('failed',reason=reason)):
+                    self.assertFalse(self.run_phase('navigate'))
+                expected = 'fatal' if reason in ('unknown', 'blocked') else 'recoverable'
+                self.assertEqual(self.outcome()['status'], expected)
+                if expected == 'recoverable': self.assertEqual(self.outcome()['reason'], 'task_failed')
 
     def test_missing_and_changed_files_never_trigger_recovery(self):
         self.assertTrue(self.run_phase('begin'))
@@ -316,6 +473,30 @@ class BountyCandleTests(unittest.TestCase):
         self.assertEqual(self.outcome()['failure_retries'], 0)
         self.assertNotIn({PREFIX+'失败返回确认': {'next': [PREFIX+'通用导航']}}, self.context.patches[patches:])
         self.assertFalse(self.outcome()['failure_retry']['enabled'])
+
+    def test_afk_overrides_retry_limit_but_keeps_revision_and_obeys_stop(self):
+        settings=self.context.nodes['脚本任务设置']['action']['param']['custom_action_param']
+        settings.update(afk_mode=True,failure_retry={'enabled':False,'max_retries':0})
+        self.assertTrue(self.run_phase('begin'))
+        saved=self.outcome()['recording_sha256']
+        for attempt in range(1,26):
+            self.assertTrue(self.run_phase('battle_failure'))
+            self.assertTrue(self.run_phase('retry_after_failure'))
+            self.assertEqual(self.outcome()['failure_retries'],attempt)
+            self.assertEqual(self.outcome()['recording_sha256'],saved)
+            self.assertEqual(self.context.patches[-1],{PREFIX+'失败返回确认':{'next':[PREFIX+'通用导航']}})
+        self.context.tasker.stopping=True
+        self.assertFalse(self.run_phase('retry_after_failure'))
+        self.assertEqual(self.outcome()['status'],'cancelled')
+
+    def test_afk_cannot_retry_unknown_return_or_turn_off_strict_recording_checks(self):
+        self.context.nodes['脚本任务设置']['action']['param']['custom_action_param']['afk_mode']=True
+        self.assertTrue(self.run_phase('begin'))
+        self.assertTrue(self.run_phase('battle_failure'))
+        self.context.run_recognition=lambda *args:SimpleNamespace(hit=False)
+        self.assertFalse(self.run_phase('retry_after_failure'))
+        self.assertEqual(self.outcome()['status'],'fatal')
+        self.assertEqual(self.outcome()['reason'], 'navigation_unknown')
 
     def test_defeat_cannot_be_reported_as_success_or_retried_on_unknown_return(self):
         self.assertTrue(self.run_phase('begin'))

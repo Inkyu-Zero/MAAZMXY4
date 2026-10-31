@@ -1,0 +1,6 @@
+{
+  "description": "Keep input labels aligned after collapsing duplicate single-field headers.",
+  "path": "MFAAvalonia/Helper/TaskOptionGenerator.cs",
+  "find": "            Margin = needsHeader ? new Thickness(10, 3, 10, 3) : new Thickness(0),",
+  "replace": "            Margin = needsHeader || hasOptionDescription ? new Thickness(10, 3, 10, 3) : new Thickness(0),"
+}

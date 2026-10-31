@@ -482,6 +482,174 @@ Sync("managed native quotas stop at one confirmed round and preserve unrelated o
     plan["management_profile"]!["native_repeat"] = false;
     Require(TaskScriptPlan.PrepareManaged(plan,"Start",null,new()).Limit == 1); // MFA owns its outer repetitions.
 });
+Sync("AFK overrides finite native quota and retry limit without changing saved input", () =>
+{
+    var raw = "{\"Counter\":{\"max_hit\":7},\"脚本任务设置\":{\"action\":{\"param\":{\"custom_action_param\":{\"afk_mode\":true,\"failure_retry\":{\"enabled\":false,\"max_retries\":0}}}}}}";
+    var result = JsonNode.Parse(TaskScriptPlan.NormalizeRepeatLimits(raw, "Counter"))!;
+    Require(result["Counter"]!["max_hit"]!.GetValue<long>() == uint.MaxValue);
+    Require(TaskScriptPlan.Parameters(result.AsObject(), "脚本任务设置")["failure_retry"]!["max_retries"]!.GetValue<int>() == -1);
+    Require(JsonNode.Parse(raw)!["Counter"]!["max_hit"]!.GetValue<int>() == 7);
+});
+Sync("legacy unlimited count implies in-game retries even with restart enabled", () =>
+{
+    var raw = """{"Counter":{"max_hit":-1},"脚本任务设置":{"action":{"param":{"custom_action_param":{"failure_retry":{"enabled":false,"max_retries":0}}}}}}""";
+    var normalized = TaskScriptPlan.NormalizeRepeatLimits(raw, "Counter");
+    Console.WriteLine("TRACE legacy unlimited normalized=" + normalized);
+    Require(TaskScriptPlan.IsAfkMode(normalized));
+    var plan = new JsonObject { ["binding"] = new JsonObject { ["mode"] = "pipeline" },
+        ["recording"] = Recording(), ["playback_nodes"] = new JsonArray("Fight"),
+        ["management_profile"] = new JsonObject { ["entry"] = "Begin", ["success_node"] = "Done",
+            ["native_repeat"] = true, ["repeat_limit"] = -1,
+            ["parameters"] = new JsonObject { ["failure_retry"] = new JsonObject { ["enabled"] = false, ["max_retries"] = 0 } } } };
+    var result = TaskScriptPlan.PrepareManaged(plan, "Counter", raw, new() { RestartOnFailure = true });
+    var settings = TaskScriptPlan.Parameters(result.Pipeline, "Begin");
+    Require(settings["afk_mode"]?.GetValue<bool>() == true);
+    Require(settings["failure_retry"]?["enabled"]?.GetValue<bool>() == true);
+    Require(settings["failure_retry"]?["max_retries"]?.GetValue<int>() == -1);
+    Require(result.Limit == long.MaxValue);
+    plan["management_profile"]!["repeat_limit"]=7;
+    Require(TaskScriptPlan.PrepareManaged(plan,"Counter",normalized,new()).Limit==long.MaxValue);
+    plan["management_profile"]!["native_repeat"]=false;
+    Require(TaskScriptPlan.PrepareManaged(plan,"Counter",normalized,new()).Limit==1); // Host owns the unlimited loop.
+    var finite = """{"脚本任务设置":{"action":{"param":{"custom_action_param":{"afk_mode":false,"failure_retry":{"enabled":true,"max_retries":3}}}}}}""";
+    var finitePlan=TaskScriptPlan.PrepareManaged(plan,"Begin",finite,new() { RestartOnFailure=true });
+    Require(TaskScriptPlan.Parameters(finitePlan.Pipeline,"Begin")["failure_retry"]?["max_retries"]?.GetValue<int>()==3);
+    Require(!TaskScriptPlan.IsAfkMode(finitePlan.Pipeline.ToJsonString()));
+});
+Test("process recovery remains bounded separately from unlimited in-game defeats", async () =>
+{
+    foreach (var reason in new[] { "battle_failed", "battle_retry_exhausted" })
+    {
+        var count = 0;
+        var result = await TaskRecoveryPolicy.RunRoundAsync(enabled,
+            _ => Task.FromResult(new TaskAttempt(TaskAttemptStatus.Recoverable, reason)),
+            (_, _, _) => { count++; return Task.FromResult(Ready()); }, default);
+        Require(count == 3 && result.Status == TaskAttemptStatus.Fatal);
+    }
+});
+Test("AFK still bounds window-loss recovery", async () =>
+{
+    var count = 0;
+    var result = await TaskRecoveryPolicy.RunRoundAsync(enabled,
+        _ => Task.FromResult(new TaskAttempt(TaskAttemptStatus.Recoverable, "window_lost")),
+        (_, _, _) => { count++; return Task.FromResult(Ready()); }, default);
+    Require(count == 3 && result.Status == TaskAttemptStatus.Fatal);
+});
+Test("AFK alone never enables process restart", async () =>
+{
+    Require(!new GameManagementOptions().Enabled);
+    foreach (var reason in new[] { "battle_failed", "battle_retry_exhausted", "battle_return_failed", "task_failed", "window_lost" })
+    {
+        var result = await TaskRecoveryPolicy.RunRoundAsync(enabled with { Enabled = false },
+            _ => Task.FromResult(new TaskAttempt(TaskAttemptStatus.Recoverable, reason)), NoRecovery, default);
+        Require(result.Status == TaskAttemptStatus.Recoverable);
+    }
+});
+Sync("AIR and DPI scaling preserve normalized geometry but aspect changes do not", () =>
+{
+    Require(new TaskWindowSize(1148,720).SameNormalizedFrame(new TaskWindowSize(1176,738)));
+    Require(new TaskWindowSize(940,590).SameNormalizedFrame(new TaskWindowSize(1880,1180)));
+    Require(!new TaskWindowSize(1148,720).SameNormalizedFrame(new TaskWindowSize(1024,768)));
+    new GameManagementOptions { SaveSlot = 8 }.Validate();
+});
+
+var gameIdentity = new TaskWindowIdentity("造梦盒子v1.9 - By Duskeye", "ApolloRuntimeContentWindow");
+TaskWindowCandidate GameWindow(nint handle = 0xE1652, int pid = 20764) =>
+    new(handle, pid, gameIdentity, new(1175, 737), new(1191, 776), true);
+Sync("restart ignores the logged AIR placeholder and waits for the real game HWND", () =>
+{
+    var ready = new TaskWindowReadiness(20764, gameIdentity);
+    var splash = GameWindow(0x4209B8) with { Identity = new("Adobe AIR", gameIdentity.ClassName), ClientSize = new(900, 525) };
+    Require(ready.Observe(new[] { splash }, TimeSpan.Zero) == null);
+    Require(ready.Observe(new[] { splash }, TimeSpan.FromSeconds(20)) == null);
+    var real = GameWindow();
+    Require(ready.Observe(new[] { splash, real }, TimeSpan.FromSeconds(21)) == null);
+    Require(ready.Observe(new[] { real }, TimeSpan.FromSeconds(21.9)) == null);
+    Require(ready.Observe(new[] { real }, TimeSpan.FromSeconds(22)) == real);
+});
+Sync("matching title on another PID or class never substitutes the verified game", () =>
+{
+    var ready = new TaskWindowReadiness(20764, gameIdentity);
+    var candidates = new[] { GameWindow(pid: 42), GameWindow() with { Identity = gameIdentity with { ClassName = "OtherClass" } },
+        GameWindow() with { Visible = false }, GameWindow(0) };
+    Require(ready.Observe(candidates, TimeSpan.Zero) == null);
+    Require(ready.Observe(candidates, TimeSpan.FromSeconds(59)) == null);
+});
+Sync("two real game windows are ambiguous even when a splash also exists", () =>
+{
+    var ready = new TaskWindowReadiness(20764, gameIdentity);
+    try { ready.Observe(new[] { GameWindow(11), GameWindow(12) }, TimeSpan.Zero); throw new Exception("Ambiguity accepted"); }
+    catch (InvalidOperationException) { }
+});
+Sync("startup bounds and HWND replacement reset readiness instead of resizing a placeholder", () =>
+{
+    var ready = new TaskWindowReadiness(20764, gameIdentity);
+    var real = GameWindow();
+    foreach (var bad in new[] { real with { ClientSize = new(0, 0) },
+        real with { OuterSize = new(900, 525) }, real with { GeometryConsistent = false } })
+    {
+        Require(ready.Observe(new[] { real }, TimeSpan.Zero) == null);
+        Require(ready.Observe(new[] { bad }, TimeSpan.FromSeconds(1)) == null);
+        Require(ready.Observe(new[] { real }, TimeSpan.FromSeconds(2)) == null);
+    }
+    Require(ready.Observe(Array.Empty<TaskWindowCandidate>(), TimeSpan.FromSeconds(3)) == null);
+    Require(ready.Observe(new[] { real }, TimeSpan.FromSeconds(4)) == null);
+    var replacement = GameWindow(0xE1653);
+    Require(ready.Observe(new[] { replacement }, TimeSpan.FromSeconds(5)) == null);
+    Require(ready.Observe(new[] { replacement }, TimeSpan.FromSeconds(6)) == replacement);
+});
+Sync("fresh launch without a saved identity accepts only a stable box main window", () =>
+{
+    var ready = new TaskWindowReadiness(20764, null);
+    Require(ready.Observe(new[] { GameWindow() with { Identity = new("Adobe AIR", gameIdentity.ClassName) } }, TimeSpan.Zero) == null);
+    Require(ready.Observe(new[] { GameWindow() }, TimeSpan.FromSeconds(1)) == null);
+    Require(ready.Observe(new[] { GameWindow() }, TimeSpan.FromSeconds(2)) != null);
+});
+Sync("physical-pixel coordinate context is restored on success and error", () =>
+{
+    var contexts = new List<nint>();
+    nint Set(nint context) { contexts.Add(context); return new nint(-2); }
+    Require(TaskWindowCoordinates.InPhysicalPixels(Set, () => 17) == 17);
+    Require(contexts.SequenceEqual(new nint[] { -4, -2 }));
+    contexts.Clear();
+    try { TaskWindowCoordinates.InPhysicalPixels<int>(Set, () => throw new IOException("read failed")); }
+    catch (IOException) { }
+    Require(contexts.SequenceEqual(new nint[] { -4, -2 }));
+    var accessed = false;
+    try { TaskWindowCoordinates.InPhysicalPixels(_ => 0, () => accessed = true); }
+    catch (InvalidOperationException) { }
+    Require(!accessed);
+});
+Test("exhausted in-game retries restart login and continue the same uncounted round", async () =>
+{
+    var confirmedRounds = 2; var runs = 0;
+    var lifecycle = new FakeLifecycle();
+    var result = await TaskRecoveryPolicy.RunRoundAsync(enabled,
+        _ => Task.FromResult(++runs == 1 ? new(TaskAttemptStatus.Recoverable, "battle_retry_exhausted") : Good()),
+        async (slot, _, token) =>
+        {
+            Require(confirmedRounds == 2 && runs == 1);
+            return await TaskRecoveryPolicy.RestartAsync(lifecycle, slot, token);
+        }, default);
+    Require(result.Status == TaskAttemptStatus.Success && runs == 2);
+    confirmedRounds++;
+    Require(confirmedRounds == 3 && string.Join(",", lifecycle.Calls) == "release,kill,start,bind,resize,connect,login");
+});
+Test("terminal battle return failures may recover but remain bounded even in AFK", async () =>
+{
+    foreach (var reason in new[] { "battle_return_failed", "task_failed" })
+    {
+        var restarts = 0;
+        var result = await TaskRecoveryPolicy.RunRoundAsync(enabled,
+            _ => Task.FromResult(new TaskAttempt(TaskAttemptStatus.Recoverable, reason)),
+            (_, _, _) => { restarts++; return Task.FromResult(Ready()); }, default);
+        Require(restarts == 3 && result.Status == TaskAttemptStatus.Fatal);
+    }
+    foreach (var reason in new[] { "battle_retry_exhausted", "battle_return_failed", "task_failed" })
+        Require(TaskRecoveryPolicy.ReadCheckpoint(new JsonObject { ["version"] = 1, ["run_id"] = "round",
+            ["instance_id"] = "default", ["status"] = "recoverable", ["reason"] = reason }, "round", "default", false)
+            .Status == TaskAttemptStatus.Recoverable);
+});
 var passed = 0;
 foreach (var test in tests)
 {

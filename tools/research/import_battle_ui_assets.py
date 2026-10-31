@@ -96,12 +96,25 @@ def generate(source,root=ROOT):
     path=root/'assets/resource/base/pipeline/battle_outcomes.json'
     nodes=json.loads(path.read_text(encoding='utf8'))
     caption=dict(type='TemplateMatch',param=dict(template=captions,roi=[200,170,800,390],threshold=.88))
-    nodes['Result_RevivePrompt']=dict(recognition=deepcopy(caption),action=dict(type='DoNothing'),next=[],post_delay=0)
+    def reference(name):
+        return dict(type='And',param=dict(all_of=[name]))
+    # Flash text rasterization can miss the SWF caption template even at the
+    # correct scale. Read this exact free-revival sentence only inside a matched
+    # confirmation panel. Ordinary combat frames never invoke OCR. This only
+    # interrupts playback; the existing panel dimensions and button layout must
+    # still agree before Result_DeclineRevive permits a cancel click.
+    free_caption=dict(type='And',param=dict(all_of=[
+        dict(sub_name='confirm_frame',recognition=reference('Nav_CommonConfirm')),
+        dict(recognition=dict(type='OCR',param=dict(roi='confirm_frame',
+            roi_offset=[120,63,390,-5],only_rec=True,
+            expected=[r'^你确定免费复活[，,]?\s*继续进行挑战[？?]?$']))),
+    ],box_index=1))
+    nodes['Result_RevivePrompt']=dict(recognition=dict(type='Or',param=dict(any_of=[
+        dict(recognition=deepcopy(caption)),dict(recognition=free_caption),
+    ])),action=dict(type='DoNothing'),next=[],post_delay=0)
     nodes['Result_NoRevivePrompt']=dict(recognition=dict(type='Custom',param=dict(custom_recognition='battle_no_revive')),
         action=dict(type='DoNothing'),next=[],post_delay=0)
     readonly=dict(action=dict(type='DoNothing'),next=[],post_delay=0)
-    def reference(name):
-        return dict(type='And',param=dict(all_of=[name]))
     nodes['Result_ReviveWindow']=dict(recognition=dict(type='And',param=dict(all_of=[
         dict(sub_name='frame_corner',recognition=reference('Nav_CommonConfirm')),
         'Result_RevivePrompt',

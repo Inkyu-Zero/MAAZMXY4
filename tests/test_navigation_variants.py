@@ -37,7 +37,17 @@ class StageVariantAssetsTests(unittest.TestCase):
             self.assertEqual(node['recognition']['type'],'And')
             self.assertEqual(node['recognition']['param']['box_index'],1)
             self.assertEqual(node['action'],{'type':'Click'})
-            self.assertEqual(node['on_error'],[stage['task']+'-失败'])
+            # Upstream adds two bounded retries. Each must keep the same target
+            # recognition/modal guard and end at failure, not a blind click.
+            previous = node
+            for attempt in (1, 2):
+                name = stage['task'] + '-关卡入口_重试' + str(attempt)
+                self.assertEqual(previous['on_error'], [name])
+                retry = pipeline[name]
+                self.assertEqual(retry['recognition'], node['recognition'])
+                self.assertEqual(retry['action'], {'type':'Click'})
+                previous = retry
+            self.assertEqual(previous['on_error'], [stage['task']+'-失败'])
             if stage['town'] == 'town5':
                 # Both legacy and SWF states must follow a movable icon across
                 # the viewport, instead of assuming its initial map position.

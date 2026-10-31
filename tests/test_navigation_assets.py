@@ -9,6 +9,7 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT/'agent'))
+sys.path.insert(0, str(ROOT/'tools'))
 from navigation import select_state, validate_navigation
 from navigation.catalog import task_graph
 from task_catalog import custom_parameters, task_key

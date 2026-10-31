@@ -513,6 +513,60 @@ class RecordingDocument:
         result._markers = [m for m in result._markers if m["id"] not in ids]
         return self._finish(result)
 
+    def _selection(self, operation_ids):
+        if (not isinstance(operation_ids, list) or not operation_ids
+                or len(operation_ids) > MAX_EVENTS
+                or any(not isinstance(ident, str) for ident in operation_ids)):
+            raise ValueError("请选择有效的操作列表")
+        operations = self._analysis()[0]
+        by_id = {operation['id']: operation for operation in operations}
+        selected = set(operation_ids)
+        if not selected.issubset(by_id):
+            raise ValueError("部分操作已不存在，请刷新录制")
+        result = [operation for operation in operations if operation['id'] in selected]
+        events = {ident for operation in result for ident in operation['event_ids']}
+        if any(events.intersection(operation['event_ids']) for operation in operations
+               if operation['id'] not in selected):
+            raise ValueError("鼠标轨迹由多个操作共用，请同时选中这些操作")
+        return result, events
+
+    def delete_many(self, operation_ids):
+        """Delete complete holds and paths as one atomic edit, preserving duration."""
+        _, ids = self._selection(operation_ids)
+        result = deepcopy(self)
+        result._events = [event for event in result._events if event['id'] not in ids]
+        result._markers = [marker for marker in result._markers if marker['id'] not in ids]
+        return self._finish(result)
+
+    def move_many(self, operation_ids, delta_ms):
+        """Translate the whole selection without changing relative timing or paths."""
+        operations, ids = self._selection(operation_ids)
+        if type(delta_ms) not in (int, float) or not math.isfinite(delta_ms):
+            raise ValueError("移动距离必须是有限毫秒数")
+        if min(operation['start_ms'] for operation in operations) + delta_ms < 0:
+            raise ValueError("选中的操作不能移到时间轴起点之前")
+        result = deepcopy(self)
+        for item in [*result._events, *result._markers]:
+            if item['id'] in ids:
+                item['at_ms'] = _time(item['at_ms'] + delta_ms)
+        # At a new boundary a moved release precedes a stationary press, while
+        # a moved press follows a stationary release. Zero-length pairs retain
+        # their original order, and all shared mouse events move exactly once.
+        releases = {operation['event_ids'][-1] for operation in operations
+                    if operation['kind'] in ('key_hold', 'mouse_hold') and operation['duration_ms'] > 0}
+        result._events.sort(key=lambda event: (event['at_ms'],
+                            -1 if event['id'] in releases else 1 if event['id'] in ids else 0))
+        end_ids = self._end_marker_ids()
+        last = max([0] + [item['at_ms'] for item in [*result._events, *result._markers]
+                          if item['id'] not in end_ids])
+        if ids.intersection(end_ids):
+            result.duration_ms = _time(self.duration_ms + delta_ms)
+            if last > result.duration_ms:
+                raise ValueError("结束标记不能移到仍然存在的操作之前")
+        else:
+            result.duration_ms = max(self.duration_ms, last)
+        return self._finish(result)
+
     def _end_marker_ids(self):
         # Legacy recorders wrote a stop marker (and sometimes a pause at the
         # same instant). These describe the endpoint, not a timed game input.
