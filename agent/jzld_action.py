@@ -665,7 +665,23 @@ class JzldRun(CustomAction):
             import traceback
             _log("异常中断：%s" % e)
             _log(traceback.format_exc()[:3000])
+            # 同时打到 stdout：_log 只写 run.log，别人机器上出问题时那个文件
+            # 往往没被一起打包，日志里就只剩一句「任务失败」，啥也看不出来。
+            print("九转炼丹异常中断：%s" % e, flush=True)
+            print(traceback.format_exc()[:1500], flush=True)
             return False
+        finally:
+            # `set_screenshot_use_raw_size` 是 **controller 级别的全局开关**，
+            # 不只影响本任务。九转炼丹为了拿原始画布把它设成 True，收工后
+            # 如果不改回来，紧接着跑副本任务时 script_task.capture() 拿到的
+            # 就是 1408×885（短边 885），直接报
+            # 「脚本与当前720截图尺寸不一致，请使用相同游戏布局重新录制。」
+            # （真实踩过：更新后先跑炼丹、再跑悬赏，悬赏一开始就失败。）
+            try:
+                context.tasker.controller.set_screenshot_use_raw_size(False)
+            except Exception:  # noqa: BLE001
+                pass
+            _RES_SET[0] = False
 
     def _run_impl(self, context: Context, argv: CustomAction.RunArg) -> bool:
         try:
