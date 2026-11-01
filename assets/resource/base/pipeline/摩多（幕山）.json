@@ -1,8 +1,8 @@
 {
   "摩多（幕山）-刷取次数": {
-    "post_delay": 300,
+    "post_delay": 1000,
     "next": [
-      "摩多（幕山）-准备本轮"
+      "摩多（幕山）-点击幕山"
     ],
     "$__mpe_code": {
       "position": {
@@ -24,8 +24,7 @@
         "content": "./debug/loop/panel.md",
         "display": "log"
       }
-    },
-    "rate_limit": 200
+    }
   },
   "摩多（幕山）-回放战斗": {
     "pre_delay": 0,
@@ -44,75 +43,61 @@
         }
       }
     },
-    "post_delay": 0,
+    "post_delay": 1000,
     "next": [
-      "摩多（幕山）-回放后分流"
+      "摩多（幕山）-点击设置"
     ],
     "$__mpe_code": {
       "position": {
         "x": 320,
         "y": 103
       }
-    },
-    "on_error": [
-      "摩多（幕山）-失败"
-    ]
-  },
-  "摩多（幕山）-点击场外": {
-    "recognition": {
-      "type": "DirectHit"
-    },
-    "action": {
-      "type": "DoNothing"
-    },
-    "next": [
-      "摩多（幕山）-失败"
-    ],
-    "post_delay": 0
+    }
   },
   "摩多（幕山）-点击幕山": {
     "recognition": {
-      "type": "DirectHit"
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "幕山.png"
+        ]
+      }
     },
+    "pre_delay": 80,
     "action": {
-      "type": "DoNothing"
+      "type": "Click"
     },
-    "next": [
-      "摩多（幕山）-刷取次数"
-    ],
+    "post_delay": 1000,
     "timeout": 10000,
-    "post_delay": 0
+    "next": [
+      "摩多（幕山）-识别幕山场景"
+    ],
+    "on_error": [
+      "摩多（幕山）-移动光标"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 1280,
+        "y": 0
+      }
+    },
+    "rate_limit": 200
   },
   "摩多（幕山）-点击设置": {
     "recognition": {
-      "type": "And",
+      "type": "TemplateMatch",
       "param": {
-        "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": [
-                  "设置.png"
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
-        ],
-        "box_index": 0
+        "template": [
+          "设置.png"
+        ]
       }
     },
-    "pre_delay": 0,
+    "pre_delay": 2000,
     "action": {
       "type": "Click"
     },
     "timeout": 8000,
     "next": [
-      "摩多（幕山）-拒绝还魂丹",
-      "摩多（幕山）-等待拒绝复活",
-      "摩多（幕山）-战斗失败",
-      "摩多（幕山）-成功返回地图",
       "摩多（幕山）-返回地图"
     ],
     "$__mpe_code": {
@@ -121,18 +106,40 @@
         "y": 93
       }
     },
-    "post_delay": 500,
-    "on_error": [
-      "摩多（幕山）-退出结果复核"
-    ],
+    "post_delay": 1000,
     "rate_limit": 200
+  },
+  "摩多（幕山）-识别幕山场景": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "幕山场景.png"
+        ]
+      }
+    },
+    "pre_delay": 100,
+    "post_delay": 1000,
+    "timeout": 10000,
+    "next": [
+      "摩多（幕山）-回放战斗"
+    ],
+    "on_error": [
+      "摩多（幕山）-移动光标"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 0,
+        "y": 65
+      }
+    }
   },
   "摩多（幕山）-返回地图": {
     "recognition": {
-      "type": "And",
+      "type": "OCR",
       "param": {
-        "all_of": [
-          "Nav_SettingsReturn"
+        "expected": [
+          "返回地图"
         ]
       }
     },
@@ -141,7 +148,8 @@
     },
     "timeout": 10000,
     "next": [
-      "摩多（幕山）-脚本返回确认"
+      "摩多（幕山）-刷取次数",
+      "停止运行"
     ],
     "$__mpe_code": {
       "position": {
@@ -155,675 +163,22 @@
     ],
     "rate_limit": 200
   },
-  "摩多（幕山）-脚本返回确认": {
+  "摩多（幕山）-返回地图重试": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "OCR",
       "param": {
-        "template": [
-          "幕山.png"
+        "expected": [
+          "返回地图"
         ]
       }
     },
-    "action": {
-      "type": "DoNothing"
-    },
-    "timeout": 15000,
-    "pre_delay": 300,
-    "post_delay": 0,
-    "next": [
-      "摩多（幕山）-本轮成功"
-    ],
-    "rate_limit": 200
-  },
-  "摩多（幕山）-关卡入口": {
-    "recognition": {
-      "type": "And",
-      "param": {
-        "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "任务.png",
-                "roi": [
-                  0,
-                  540,
-                  1147,
-                  180
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "Or",
-              "param": {
-                "any_of": [
-                  {
-                    "recognition": {
-                      "type": "TemplateMatch",
-                      "param": {
-                        "template": [
-                          "幕山.png"
-                        ]
-                      }
-                    }
-                  },
-                  {
-                    "recognition": {
-                      "type": "TemplateMatch",
-                      "param": {
-                        "template": [
-                          "navigation/stages/s45-frame1.png",
-                          "navigation/stages/s45-frame2.png",
-                          "navigation/stages/s45-frame3.png"
-                        ],
-                        "threshold": 0.82,
-                        "roi": [
-                          0,
-                          115,
-                          1045,
-                          500
-                        ],
-                        "method": 5
-                      }
-                    }
-                  }
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
-        ],
-        "box_index": 1
-      }
-    },
-    "pre_delay": 80,
     "action": {
       "type": "Click"
     },
-    "post_delay": 500,
-    "timeout": 10000,
-    "next": [
-      "摩多（幕山）-移开光标1"
-    ],
-    "on_error": [
-      "摩多（幕山）-关卡入口_重试1"
-    ],
-    "$__mpe_code": {
-      "position": {
-        "x": 1280,
-        "y": 0
-      }
-    },
-    "rate_limit": 200
-  },
-  "摩多（幕山）-准备本轮": {
-    "recognition": {
-      "type": "DirectHit"
-    },
-    "action": {
-      "type": "Custom",
-      "param": {
-        "custom_action": "script_task_state",
-        "custom_action_param": {
-          "phase": "begin",
-          "file": "@task:task-a6d033b0de18710531a9524e34afbdde",
-          "playback_node": "摩多（幕山）-回放战斗",
-          "exit_mode": "battle_only",
-          "navigation": {
-            "kind": "stage",
-            "target_node": "摩多（幕山）-关卡入口",
-            "label": "摩多（幕山）"
-          },
-          "navigation_entry": "摩多（幕山）-通用导航",
-          "result_guard": {
-            "failed_next": [
-              "摩多（幕山）-已确认战斗失败"
-            ],
-            "succeeded_next": [
-              "摩多（幕山）-已确认战斗成功"
-            ],
-            "revive_next": [
-              "摩多（幕山）-拒绝还魂丹",
-              "摩多（幕山）-等待拒绝复活",
-              "摩多（幕山）-战斗失败"
-            ]
-          },
-          "settings_node": "脚本任务设置",
-          "failure_retry": {
-            "enabled": false,
-            "max_retries": 3
-          },
-          "route_node": "摩多（幕山）-回放后分流",
-          "routes": {
-            "recorded_return": [
-              "摩多（幕山）-拒绝还魂丹",
-              "摩多（幕山）-等待拒绝复活",
-              "摩多（幕山）-战斗失败",
-              "摩多（幕山）-成功返回地图",
-              "摩多（幕山）-脚本返回确认"
-            ],
-            "battle_only": [
-              "摩多（幕山）-拒绝还魂丹",
-              "摩多（幕山）-等待拒绝复活",
-              "摩多（幕山）-战斗失败",
-              "摩多（幕山）-成功返回地图",
-              "摩多（幕山）-点击设置"
-            ]
-          }
-        }
-      }
-    },
-    "next": [
-      "摩多（幕山）-通用导航"
-    ],
-    "timeout": 10000,
-    "post_delay": 0
-  },
-  "摩多（幕山）-通用导航": {
-    "recognition": {
-      "type": "DirectHit"
-    },
-    "action": {
-      "type": "Custom",
-      "param": {
-        "custom_action": "script_task_state",
-        "custom_action_param": {
-          "phase": "navigate"
-        }
-      }
-    },
-    "next": [
-      "摩多（幕山）-关卡入口"
-    ],
-    "timeout": 10000,
-    "post_delay": 0,
-    "on_error": [
-      "摩多（幕山）-失败"
-    ]
-  },
-  "摩多（幕山）-回放后分流": {
-    "recognition": {
-      "type": "DirectHit"
-    },
-    "action": {
-      "type": "DoNothing"
-    },
-    "next": [
-      "摩多（幕山）-拒绝还魂丹",
-      "摩多（幕山）-等待拒绝复活",
-      "摩多（幕山）-战斗失败",
-      "摩多（幕山）-成功返回地图",
-      "摩多（幕山）-点击设置"
-    ],
-    "timeout": 15000,
-    "post_delay": 0,
-    "on_error": [
-      "摩多（幕山）-失败"
-    ]
-  },
-  "摩多（幕山）-战斗失败": {
-    "recognition": {
-      "type": "And",
-      "param": {
-        "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/outcomes/failed-title.png",
-                "roi": [
-                  200,
-                  120,
-                  780,
-                  380
-                ],
-                "threshold": 0.9
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
-        ]
-      }
-    },
-    "action": {
-      "type": "Custom",
-      "param": {
-        "custom_action": "script_task_state",
-        "custom_action_param": {
-          "phase": "battle_failure"
-        }
-      }
-    },
-    "next": [
-      "摩多（幕山）-拒绝还魂丹",
-      "摩多（幕山）-等待拒绝复活",
-      "摩多（幕山）-失败返回地图",
-      "摩多（幕山）-失败返回确认"
-    ],
-    "post_delay": 0
-  },
-  "摩多（幕山）-失败返回地图": {
-    "recognition": {
-      "type": "And",
-      "param": {
-        "all_of": [
-          {
-            "recognition": {
-              "type": "Or",
-              "param": {
-                "any_of": [
-                  {
-                    "recognition": {
-                      "type": "TemplateMatch",
-                      "param": {
-                        "template": "navigation/outcomes/failed-return.png",
-                        "roi": [
-                          500,
-                          450,
-                          550,
-                          200
-                        ],
-                        "threshold": 0.85
-                      }
-                    }
-                  },
-                  {
-                    "recognition": {
-                      "type": "TemplateMatch",
-                      "param": {
-                        "template": [
-                          "navigation/outcomes/failed-return-1_up.png",
-                          "navigation/outcomes/failed-return-2_over.png",
-                          "navigation/outcomes/failed-return-3_down.png"
-                        ],
-                        "roi": [
-                          400,
-                          400,
-                          700,
-                          260
-                        ],
-                        "threshold": 0.88,
-                        "green_mask": true
-                      }
-                    }
-                  }
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/outcomes/failed-title.png",
-                "roi": [
-                  200,
-                  120,
-                  780,
-                  380
-                ],
-                "threshold": 0.9
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
-        ],
-        "box_index": 0
-      }
-    },
-    "action": {
-      "type": "Click",
-      "param": {
-        "target": true
-      }
-    },
-    "next": [
-      "摩多（幕山）-失败返回确认"
-    ],
-    "timeout": 10000,
-    "post_delay": 500,
-    "on_error": [
-      "摩多（幕山）-失败"
-    ]
-  },
-  "摩多（幕山）-成功返回地图": {
-    "recognition": {
-      "type": "And",
-      "param": {
-        "all_of": [
-          {
-            "recognition": {
-              "type": "Or",
-              "param": {
-                "any_of": [
-                  {
-                    "recognition": {
-                      "type": "TemplateMatch",
-                      "param": {
-                        "template": "navigation/outcomes/succeeded-return.png",
-                        "roi": [
-                          500,
-                          450,
-                          550,
-                          200
-                        ],
-                        "threshold": 0.85
-                      }
-                    }
-                  },
-                  {
-                    "recognition": {
-                      "type": "TemplateMatch",
-                      "param": {
-                        "template": [
-                          "navigation/outcomes/succeeded-return-1_up.png",
-                          "navigation/outcomes/succeeded-return-2_over.png",
-                          "navigation/outcomes/succeeded-return-3_down.png"
-                        ],
-                        "roi": [
-                          400,
-                          400,
-                          700,
-                          260
-                        ],
-                        "threshold": 0.88,
-                        "green_mask": true
-                      }
-                    }
-                  }
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/outcomes/succeeded-title.png",
-                "roi": [
-                  200,
-                  120,
-                  780,
-                  380
-                ],
-                "threshold": 0.9
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
-        ],
-        "box_index": 0
-      }
-    },
-    "action": {
-      "type": "Click",
-      "param": {
-        "target": true
-      }
-    },
-    "next": [
-      "摩多（幕山）-脚本返回确认"
-    ],
-    "timeout": 10000,
-    "post_delay": 300,
-    "on_error": [
-      "摩多（幕山）-失败"
-    ],
-    "rate_limit": 200
-  },
-  "摩多（幕山）-失败返回确认": {
-    "recognition": {
-      "type": "TemplateMatch",
-      "param": {
-        "template": [
-          "幕山.png"
-        ]
-      }
-    },
-    "action": {
-      "type": "Custom",
-      "param": {
-        "custom_action": "script_task_state",
-        "custom_action_param": {
-          "phase": "retry_after_failure"
-        }
-      }
-    },
-    "next": [],
-    "timeout": 15000,
-    "post_delay": 0
-  },
-  "摩多（幕山）-本轮成功": {
-    "recognition": {
-      "type": "DirectHit"
-    },
-    "action": {
-      "type": "Custom",
-      "param": {
-        "custom_action": "script_task_state",
-        "custom_action_param": {
-          "phase": "success"
-        }
-      }
-    },
+    "timeout": 20000,
     "next": [
       "摩多（幕山）-刷取次数",
       "停止运行"
-    ],
-    "timeout": 10000,
-    "post_delay": 0
-  },
-  "摩多（幕山）-失败": {
-    "recognition": {
-      "type": "DirectHit"
-    },
-    "action": {
-      "type": "Custom",
-      "param": {
-        "custom_action": "script_task_state",
-        "custom_action_param": {
-          "phase": "failure",
-          "reason": "任务导航、回放或返回画面未确认，本轮未计次。"
-        }
-      }
-    },
-    "next": [],
-    "timeout": 10000,
-    "post_delay": 0
-  },
-  "摩多（幕山）-退出结果复核": {
-    "recognition": {
-      "type": "DirectHit"
-    },
-    "action": {
-      "type": "DoNothing"
-    },
-    "next": [
-      "摩多（幕山）-拒绝还魂丹",
-      "摩多（幕山）-等待拒绝复活",
-      "摩多（幕山）-战斗失败",
-      "摩多（幕山）-成功返回地图"
-    ],
-    "timeout": 3000,
-    "post_delay": 0,
-    "on_error": [
-      "摩多（幕山）-失败"
-    ],
-    "rate_limit": 200
-  },
-  "摩多（幕山）-已确认战斗失败": {
-    "recognition": {
-      "type": "DirectHit"
-    },
-    "action": {
-      "type": "Custom",
-      "param": {
-        "custom_action": "script_task_state",
-        "custom_action_param": {
-          "phase": "battle_failure"
-        }
-      }
-    },
-    "next": [
-      "摩多（幕山）-拒绝还魂丹",
-      "摩多（幕山）-等待拒绝复活",
-      "摩多（幕山）-失败返回地图",
-      "摩多（幕山）-失败返回确认"
-    ],
-    "timeout": 10000,
-    "post_delay": 0,
-    "on_error": [
-      "摩多（幕山）-失败"
-    ]
-  },
-  "摩多（幕山）-已确认战斗成功": {
-    "recognition": {
-      "type": "DirectHit"
-    },
-    "action": {
-      "type": "DoNothing"
-    },
-    "next": [
-      "摩多（幕山）-成功返回地图",
-      "摩多（幕山）-脚本返回确认"
-    ],
-    "timeout": 15000,
-    "post_delay": 0,
-    "on_error": [
-      "摩多（幕山）-失败"
-    ]
-  },
-  "摩多（幕山）-拒绝还魂丹": {
-    "recognition": {
-      "type": "And",
-      "param": {
-        "all_of": [
-          {
-            "recognition": {
-              "type": "Or",
-              "param": {
-                "any_of": [
-                  "Result_ReviveLayoutP1",
-                  "Result_ReviveLayoutP2"
-                ]
-              }
-            }
-          }
-        ],
-        "box_index": 0
-      }
-    },
-    "action": {
-      "type": "Click",
-      "param": {
-        "target": true
-      }
-    },
-    "next": [
-      "摩多（幕山）-战斗失败"
-    ],
-    "timeout": 15000,
-    "pre_delay": 0,
-    "post_delay": 250,
-    "on_error": [
-      "摩多（幕山）-失败"
-    ]
-  },
-  "摩多（幕山）-等待拒绝复活": {
-    "recognition": {
-      "type": "Or",
-      "param": {
-        "any_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": [
-                  "navigation/outcomes/revive-normal-caption.png",
-                  "navigation/outcomes/revive-vip-caption.png"
-                ],
-                "roi": [
-                  200,
-                  170,
-                  800,
-                  390
-                ],
-                "threshold": 0.88
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "And",
-              "param": {
-                "all_of": [
-                  {
-                    "sub_name": "confirm_frame",
-                    "recognition": {
-                      "type": "And",
-                      "param": {
-                        "all_of": [
-                          "Nav_CommonConfirm"
-                        ]
-                      }
-                    }
-                  },
-                  {
-                    "recognition": {
-                      "type": "OCR",
-                      "param": {
-                        "roi": "confirm_frame",
-                        "roi_offset": [
-                          120,
-                          63,
-                          390,
-                          -5
-                        ],
-                        "only_rec": true,
-                        "expected": [
-                          "^你确定免费复活[，,]?\\s*继续进行挑战[？?]?$"
-                        ]
-                      }
-                    }
-                  }
-                ],
-                "box_index": 1
-              }
-            }
-          }
-        ]
-      }
-    },
-    "action": {
-      "type": "DoNothing"
-    },
-    "next": [
-      "摩多（幕山）-拒绝还魂丹",
-      "摩多（幕山）-战斗失败"
-    ],
-    "post_delay": 0,
-    "timeout": 15000,
-    "on_error": [
-      "摩多（幕山）-失败"
-    ]
-  },
-  "摩多（幕山）-返回地图重试": {
-    "recognition": {
-      "type": "And",
-      "param": {
-        "all_of": [
-          "Nav_SettingsReturn"
-        ]
-      }
-    },
-    "action": {
-      "type": "Click"
-    },
-    "timeout": 10000,
-    "next": [
-      "摩多（幕山）-脚本返回确认"
     ],
     "$__mpe_code": {
       "position": {
@@ -833,321 +188,30 @@
     },
     "post_delay": 300,
     "on_error": [
-      "摩多（幕山）-失败"
+      "停止运行"
     ],
     "rate_limit": 200
   },
-  "摩多（幕山）-关卡入口_重试1": {
-    "recognition": {
-      "type": "And",
-      "param": {
-        "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "任务.png",
-                "roi": [
-                  0,
-                  540,
-                  1147,
-                  180
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "Or",
-              "param": {
-                "any_of": [
-                  {
-                    "recognition": {
-                      "type": "TemplateMatch",
-                      "param": {
-                        "template": [
-                          "幕山.png"
-                        ]
-                      }
-                    }
-                  },
-                  {
-                    "recognition": {
-                      "type": "TemplateMatch",
-                      "param": {
-                        "template": [
-                          "navigation/stages/s45-frame1.png",
-                          "navigation/stages/s45-frame2.png",
-                          "navigation/stages/s45-frame3.png"
-                        ],
-                        "threshold": 0.82,
-                        "roi": [
-                          0,
-                          115,
-                          1045,
-                          500
-                        ],
-                        "method": 5
-                      }
-                    }
-                  }
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
-        ],
-        "box_index": 1
-      }
-    },
-    "pre_delay": 80,
-    "action": {
-      "type": "Click"
-    },
-    "post_delay": 1000,
-    "timeout": 10000,
-    "next": [
-      "摩多（幕山）-移开光标2"
-    ],
-    "on_error": [
-      "摩多（幕山）-关卡入口_重试2"
-    ],
-    "$__mpe_code": {
-      "position": {
-        "x": 1280,
-        "y": 0
-      }
-    },
-    "rate_limit": 200
-  },
-  "摩多（幕山）-关卡入口_重试2": {
-    "recognition": {
-      "type": "And",
-      "param": {
-        "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "任务.png",
-                "roi": [
-                  0,
-                  540,
-                  1147,
-                  180
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "Or",
-              "param": {
-                "any_of": [
-                  {
-                    "recognition": {
-                      "type": "TemplateMatch",
-                      "param": {
-                        "template": [
-                          "幕山.png"
-                        ]
-                      }
-                    }
-                  },
-                  {
-                    "recognition": {
-                      "type": "TemplateMatch",
-                      "param": {
-                        "template": [
-                          "navigation/stages/s45-frame1.png",
-                          "navigation/stages/s45-frame2.png",
-                          "navigation/stages/s45-frame3.png"
-                        ],
-                        "threshold": 0.82,
-                        "roi": [
-                          0,
-                          115,
-                          1045,
-                          500
-                        ],
-                        "method": 5
-                      }
-                    }
-                  }
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
-        ],
-        "box_index": 1
-      }
-    },
-    "pre_delay": 80,
-    "action": {
-      "type": "Click"
-    },
-    "post_delay": 1000,
-    "timeout": 10000,
-    "next": [
-      "摩多（幕山）-移开光标3"
-    ],
-    "on_error": [
-      "摩多（幕山）-失败"
-    ],
-    "$__mpe_code": {
-      "position": {
-        "x": 1280,
-        "y": 0
-      }
-    },
-    "rate_limit": 200
-  },
-  "摩多（幕山）-移开光标1": {
+  "摩多（幕山）-移动光标": {
+    "pre_delay": 0,
+    "post_delay": 300,
+    "rate_limit": 200,
     "recognition": {
       "type": "DirectHit"
     },
     "action": {
       "type": "Custom",
       "param": {
-        "custom_action": "move_cursor",
         "custom_action_param": {
           "x": 20,
           "y": 20
-        }
+        },
+        "custom_action": "move_cursor"
       }
     },
-    "post_delay": 200,
-    "timeout": 10000,
     "next": [
-      "摩多（幕山）-识别场景1"
+      "摩多（幕山）-点击幕山"
     ],
-    "on_error": [
-      "摩多（幕山）-关卡入口_重试1"
-    ]
-  },
-  "摩多（幕山）-识别场景1": {
-    "recognition": {
-      "type": "TemplateMatch",
-      "param": {
-        "template": [
-          "幕山场景.png"
-        ]
-      }
-    },
-    "pre_delay": 100,
-    "post_delay": 200,
-    "timeout": 10000,
-    "next": [
-      "摩多（幕山）-回放战斗"
-    ],
-    "on_error": [
-      "摩多（幕山）-关卡入口_重试1"
-    ],
-    "$__mpe_code": {
-      "position": {
-        "x": 0,
-        "y": 65
-      }
-    },
-    "rate_limit": 200
-  },
-  "摩多（幕山）-移开光标2": {
-    "recognition": {
-      "type": "DirectHit"
-    },
-    "action": {
-      "type": "Custom",
-      "param": {
-        "custom_action": "move_cursor",
-        "custom_action_param": {
-          "x": 20,
-          "y": 20
-        }
-      }
-    },
-    "post_delay": 200,
-    "timeout": 10000,
-    "next": [
-      "摩多（幕山）-识别场景2"
-    ],
-    "on_error": [
-      "摩多（幕山）-关卡入口_重试2"
-    ]
-  },
-  "摩多（幕山）-识别场景2": {
-    "recognition": {
-      "type": "TemplateMatch",
-      "param": {
-        "template": [
-          "幕山场景.png"
-        ]
-      }
-    },
-    "pre_delay": 100,
-    "post_delay": 200,
-    "timeout": 10000,
-    "next": [
-      "摩多（幕山）-回放战斗"
-    ],
-    "on_error": [
-      "摩多（幕山）-关卡入口_重试2"
-    ],
-    "$__mpe_code": {
-      "position": {
-        "x": 0,
-        "y": 65
-      }
-    },
-    "rate_limit": 200
-  },
-  "摩多（幕山）-移开光标3": {
-    "recognition": {
-      "type": "DirectHit"
-    },
-    "action": {
-      "type": "Custom",
-      "param": {
-        "custom_action": "move_cursor",
-        "custom_action_param": {
-          "x": 20,
-          "y": 20
-        }
-      }
-    },
-    "post_delay": 200,
-    "timeout": 10000,
-    "next": [
-      "摩多（幕山）-识别场景3"
-    ],
-    "on_error": [
-      "摩多（幕山）-失败"
-    ]
-  },
-  "摩多（幕山）-识别场景3": {
-    "recognition": {
-      "type": "TemplateMatch",
-      "param": {
-        "template": [
-          "幕山场景.png"
-        ]
-      }
-    },
-    "pre_delay": 100,
-    "post_delay": 200,
-    "timeout": 10000,
-    "next": [
-      "摩多（幕山）-回放战斗"
-    ],
-    "on_error": [
-      "摩多（幕山）-失败"
-    ],
-    "$__mpe_code": {
-      "position": {
-        "x": 0,
-        "y": 65
-      }
-    },
-    "rate_limit": 200
+    "on_error": []
   }
 }

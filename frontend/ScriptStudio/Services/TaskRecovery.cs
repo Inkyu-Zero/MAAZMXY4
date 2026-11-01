@@ -205,7 +205,14 @@ public static class TaskRecovery
             }
             token.ThrowIfCancellationRequested();
             if (!File.Exists(statusPath))
-                return IsLostTarget() ? new(TaskAttemptStatus.Recoverable, "window_lost") : TaskAttempt.Fatal("缺少本轮确认状态。");
+            {
+                // 没有状态文件不等于失败：旧版 pipeline（v2.3.7 及更早的悬赏/副本任务）
+                // 根本没声明 script_task_state 的 begin/success，自然不会有这个文件。
+                // 这种情况以 Maa 原生任务结果为准，跑通就算这一轮完成。
+                processor.AddLog("游戏管理：本轮任务没有声明轮次状态，按原生结果判定。");
+                if (status == MaaJobStatus.Succeeded) return new(TaskAttemptStatus.Success, "native");
+                return IsLostTarget() ? new(TaskAttemptStatus.Recoverable, "window_lost") : TaskAttempt.Fatal("任务未成功结束。");
+            }
             if (new FileInfo(statusPath).Length > 65536) return TaskAttempt.Fatal("本轮状态文件无效。");
             var checkpoint = JsonNode.Parse(await File.ReadAllTextAsync(statusPath, token)) as JsonObject;
             if (checkpoint == null) return TaskAttempt.Fatal("本轮状态格式无效。");

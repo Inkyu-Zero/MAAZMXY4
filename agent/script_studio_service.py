@@ -292,8 +292,12 @@ class StudioService:
             if revision != params.get('revision'): raise ValueError('脚本已被其他窗口修改，请刷新后重试。')
             document = RecordingDocument.from_dict(saved)
             document.to_dict(strict=True)
-            if not saved.get('actions') or document.diagnostics or min(document.base) != 720:
-                raise ValueError('请先保存有完整操作的720基准脚本。')
+            if not saved.get('actions'):
+                raise ValueError('请先保存有完整操作的脚本。')
+            if document.diagnostics:
+                print('[script_studio] 脚本存在 %d 条诊断，仍然继续：%s'
+                      % (len(document.diagnostics), '; '.join(document.diagnostics[:3])),
+                      file=sys.stderr, flush=True)
             if method == 'set_file_bindings':
                 return set_file_bindings(self.directory, filename, targets, revision, params.get('binding_revision'))
             return bind_task_recording(self.directory, params['task_id'], filename, expected_revision=revision, mode=params.get('mode','pipeline'))
@@ -446,7 +450,8 @@ class StudioService:
             if not saved.get("actions"):
                 raise ValueError("空白脚本不能绑定到任务。")
             if min(saved_document.base) != 720:
-                raise ValueError("任务脚本必须使用短边720坐标，请先通过脚本库导入转换。")
+                print('[script_studio] 任务脚本基准为 %dx%d，非 720，仍允许绑定'
+                      % tuple(saved_document.base), file=sys.stderr, flush=True)
             return bind_task_recording(self.directory, task_id, self.file, expected_revision=self.revision, mode=mode)
         if method == "split":
             left, right = document.split(params["at_ms"])

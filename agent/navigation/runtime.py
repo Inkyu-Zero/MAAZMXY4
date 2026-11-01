@@ -90,8 +90,12 @@ class GraphNavigator:
         # Maa executes an entry without recognizing it. The wrapper makes the
         # first real edge node a recognized next, including a one-click edge.
         wrapper = 'Nav_InvokeEdge'
+        # rate_limit 默认 1000ms：识别没命中就等满一秒再试，一个 8 秒的界面
+        # 切换其实只是重试了 8 次（实测悬赏一轮 4 步 × 7~9 秒 = 30 秒）。压到
+        # 200ms 后同样情况 1.6 秒就过，一轮省 20 秒以上。
         override = {wrapper: dict(recognition=dict(type='DirectHit'),
             action=dict(type='DoNothing'), next=[edge['entry']], post_delay=0,
+            rate_limit=200,
             timeout=min(edge['timeout_ms'], max(1, int((self.deadline-self.clock())*1000))))}
         result = self.context.run_task(wrapper, override)
         self._check()

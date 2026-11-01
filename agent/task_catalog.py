@@ -2,6 +2,7 @@
 from copy import deepcopy
 import hashlib
 import json
+import sys
 from pathlib import Path
 import re
 
@@ -183,9 +184,31 @@ def task_catalog(root, bindings=None, *, overrides=None):
                   and _action_parameters(graph[n]).get('custom_action') == 'script_task_state']
         successes = [n for n in reachable if custom_parameters(graph[n]).get('phase') == 'success'
                      and _action_parameters(graph[n]).get('custom_action') == 'script_task_state']
-        if len(begins) == 1 and len(successes) == 1:
-            counters = [n for n in node_links(graph, graph[successes[0]]) if n in graph
-                        and _action_parameters(graph[n]).get('custom_action') == 'loop_count']
+        # 没有 begin/success 声明时（v2.3.7 简版链路：刷取次数 → 点击关卡 →
+        # 识别场景 → 回放 → 设置 → 返回地图 → 刷取次数），用 loop_count 当
+        # 轮次计数器、「返回地图」当每轮成功的终点。这样游戏管理对老链路也能
+        # 工作，不必为了它把已删掉的准备本轮/本轮成功加回来。
+        if not begins and not successes:
+            _counters = [n for n in reachable
+                         if _action_parameters(graph[n]).get('custom_action') == 'loop_count']
+            _returns = [n for n in reachable if n.endswith('-返回地图')]
+            if len(_counters) == 1 and len(_returns) == 1:
+                management_profile = dict(
+                    entry=entry, parameters=deepcopy(custom_parameters(graph[entry])),
+                    success_node=_returns[0], resume_entry='GameManagement_Resume',
+                    # -1 = 无限（由前端「重复次数」控制，TaskScriptPlan 认得
+                    # -1/uint.MaxValue 并把它转成宿主重复）
+                    repeat_limit=graph[_counters[0]].get('max_hit', -1),
+                    native_repeat=True)
+        elif len(begins) == 1 and len(successes) == 1:
+            # 轮次计数器（刷取次数）在 v2.3.7 的链路里挂在「返回地图」后面、
+            # 不是「本轮成功」的直接 next（成功节点已经改指「停止运行」，
+            # 每轮结束让 MaaTask 收工、由前端开下一轮）。所以整图找 loop_count。
+            # 只在**本任务可达的子图**里找：graph 是全部 pipeline 合并后的
+            # 大图，10 个副本/悬赏各有一个「刷取次数」，整图找会得到 10 个，
+            # len==1 永远不成立 → repeat_limit 恒为 1（只跑一轮）。
+            counters = [n for n in reachable
+                        if _action_parameters(graph[n]).get('custom_action') == 'loop_count']
             counter = counters[0] if len(counters) == 1 else None
             management_profile = dict(entry=begins[0], parameters=deepcopy(custom_parameters(graph[begins[0]])),
                 success_node=successes[0], resume_entry='GameManagement_Resume',
@@ -217,8 +240,12 @@ def inspect_saved_recording(root, reference):
     document = RecordingDocument.from_dict(data)
     document.to_dict(strict=True)
     if not data.get('actions'): raise ValueError('任务不能绑定空白脚本。')
-    if document.diagnostics: raise ValueError('请先修复脚本中的操作诊断。')
-    if min(document.base) != 720: raise ValueError('请先将脚本转换为本工程720坐标。')
+    if document.diagnostics:
+        # 同 script_task.inspect_recording：诊断不阻断执行，只提示。
+        print('[task_catalog] 脚本存在 %d 条诊断，仍然继续：%s'
+              % (len(document.diagnostics), '; '.join(document.diagnostics[:3])),
+              file=sys.stderr, flush=True)
+    # 同 script_task.inspect_recording：不强制 720，真实比对发生在回放前。
     return dict(file=path.name, path=str(path), sha256=hashlib.sha256(raw).hexdigest(), base=list(document.base))
 
 

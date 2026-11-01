@@ -16,62 +16,32 @@
         }
       }
     },
-    "post_delay": 0,
+    "post_delay": 1000,
     "next": [
-      "贪妄（金蟾宝宫）-回放后分流"
+      "贪妄（金蟾宝宫）-点击设置"
     ],
     "$__mpe_code": {
       "position": {
         "x": 320,
         "y": 103
       }
-    },
-    "on_error": [
-      "贪妄（金蟾宝宫）-失败"
-    ]
-  },
-  "贪妄（金蟾宝宫）-点击场外": {
-    "recognition": {
-      "type": "DirectHit"
-    },
-    "action": {
-      "type": "DoNothing"
-    },
-    "next": [
-      "贪妄（金蟾宝宫）-失败"
-    ],
-    "post_delay": 0
+    }
   },
   "贪妄（金蟾宝宫）-点击设置": {
     "recognition": {
-      "type": "And",
+      "type": "TemplateMatch",
       "param": {
-        "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": [
-                  "设置.png"
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
-        ],
-        "box_index": 0
+        "template": [
+          "设置.png"
+        ]
       }
     },
-    "pre_delay": 0,
+    "pre_delay": 2000,
     "action": {
       "type": "Click"
     },
     "timeout": 8000,
     "next": [
-      "贪妄（金蟾宝宫）-拒绝还魂丹",
-      "贪妄（金蟾宝宫）-等待拒绝复活",
-      "贪妄（金蟾宝宫）-战斗失败",
-      "贪妄（金蟾宝宫）-成功返回地图",
       "贪妄（金蟾宝宫）-返回地图"
     ],
     "$__mpe_code": {
@@ -80,31 +50,69 @@
         "y": 93
       }
     },
-    "post_delay": 500,
-    "on_error": [
-      "贪妄（金蟾宝宫）-退出结果复核"
-    ],
+    "post_delay": 1000,
     "rate_limit": 200
   },
   "贪妄（金蟾宝宫）-点击金蟾宝宫": {
     "recognition": {
-      "type": "DirectHit"
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "金蟾宝宫.png"
+        ]
+      }
     },
+    "pre_delay": 80,
     "action": {
-      "type": "DoNothing"
+      "type": "Click"
     },
-    "next": [
-      "贪妄（金蟾宝宫）-刷取次数"
-    ],
+    "post_delay": 1000,
     "timeout": 10000,
-    "post_delay": 0
+    "next": [
+      "贪妄（金蟾宝宫）-识别金蟾宝宫场景"
+    ],
+    "on_error": [
+      "贪妄（金蟾宝宫）-移动光标"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 1280,
+        "y": 0
+      }
+    },
+    "rate_limit": 200
+  },
+  "贪妄（金蟾宝宫）-识别金蟾宝宫场景": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "金蟾宝宫场景.png"
+        ]
+      }
+    },
+    "pre_delay": 100,
+    "post_delay": 1000,
+    "timeout": 10000,
+    "next": [
+      "贪妄（金蟾宝宫）-回放战斗"
+    ],
+    "on_error": [
+      "贪妄（金蟾宝宫）-移动光标"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 0,
+        "y": 65
+      }
+    }
   },
   "贪妄（金蟾宝宫）-返回地图": {
     "recognition": {
-      "type": "And",
+      "type": "OCR",
       "param": {
-        "all_of": [
-          "Nav_SettingsReturn"
+        "expected": [
+          "返回地图"
         ]
       }
     },
@@ -113,7 +121,8 @@
     },
     "timeout": 10000,
     "next": [
-      "贪妄（金蟾宝宫）-脚本返回确认"
+      "贪妄（金蟾宝宫）-刷取次数",
+      "停止运行"
     ],
     "$__mpe_code": {
       "position": {
@@ -132,9 +141,9 @@
       "type": "DirectHit"
     },
     "next": [
-      "贪妄（金蟾宝宫）-准备本轮"
+      "贪妄（金蟾宝宫）-点击金蟾宝宫"
     ],
-    "post_delay": 300,
+    "post_delay": 1000,
     "action": {
       "type": "Custom",
       "param": {
@@ -149,678 +158,24 @@
         "content": "./debug/loop/panel.md",
         "display": "log"
       }
-    },
-    "rate_limit": 200
-  },
-  "贪妄（金蟾宝宫）-脚本返回确认": {
-    "recognition": {
-      "type": "TemplateMatch",
-      "param": {
-        "template": [
-          "金蟾宝宫.png"
-        ]
-      }
-    },
-    "action": {
-      "type": "DoNothing"
-    },
-    "timeout": 15000,
-    "pre_delay": 300,
-    "post_delay": 0,
-    "next": [
-      "贪妄（金蟾宝宫）-本轮成功"
-    ],
-    "rate_limit": 200
-  },
-  "贪妄（金蟾宝宫）-关卡入口": {
-    "recognition": {
-      "type": "And",
-      "param": {
-        "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "任务.png",
-                "roi": [
-                  0,
-                  540,
-                  1147,
-                  180
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "Or",
-              "param": {
-                "any_of": [
-                  {
-                    "recognition": {
-                      "type": "TemplateMatch",
-                      "param": {
-                        "template": [
-                          "金蟾宝宫.png"
-                        ]
-                      }
-                    }
-                  },
-                  {
-                    "recognition": {
-                      "type": "TemplateMatch",
-                      "param": {
-                        "template": [
-                          "navigation/stages/s65-frame1.png",
-                          "navigation/stages/s65-frame2.png",
-                          "navigation/stages/s65-frame3.png"
-                        ],
-                        "threshold": 0.82,
-                        "roi": [
-                          0,
-                          115,
-                          1045,
-                          500
-                        ],
-                        "method": 5
-                      }
-                    }
-                  }
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
-        ],
-        "box_index": 1
-      }
-    },
-    "pre_delay": 80,
-    "action": {
-      "type": "Click"
-    },
-    "post_delay": 500,
-    "timeout": 10000,
-    "next": [
-      "贪妄（金蟾宝宫）-移开光标1"
-    ],
-    "on_error": [
-      "贪妄（金蟾宝宫）-关卡入口_重试1"
-    ],
-    "$__mpe_code": {
-      "position": {
-        "x": 1280,
-        "y": 0
-      }
-    },
-    "rate_limit": 200
-  },
-  "贪妄（金蟾宝宫）-准备本轮": {
-    "recognition": {
-      "type": "DirectHit"
-    },
-    "action": {
-      "type": "Custom",
-      "param": {
-        "custom_action": "script_task_state",
-        "custom_action_param": {
-          "phase": "begin",
-          "file": "@task:task-fadb4b054dd0c275a98a79e1be1af69b",
-          "playback_node": "贪妄（金蟾宝宫）-回放战斗",
-          "exit_mode": "battle_only",
-          "navigation": {
-            "kind": "stage",
-            "target_node": "贪妄（金蟾宝宫）-关卡入口",
-            "label": "贪妄（金蟾宝宫）"
-          },
-          "navigation_entry": "贪妄（金蟾宝宫）-通用导航",
-          "result_guard": {
-            "failed_next": [
-              "贪妄（金蟾宝宫）-已确认战斗失败"
-            ],
-            "succeeded_next": [
-              "贪妄（金蟾宝宫）-已确认战斗成功"
-            ],
-            "revive_next": [
-              "贪妄（金蟾宝宫）-拒绝还魂丹",
-              "贪妄（金蟾宝宫）-等待拒绝复活",
-              "贪妄（金蟾宝宫）-战斗失败"
-            ]
-          },
-          "settings_node": "脚本任务设置",
-          "failure_retry": {
-            "enabled": false,
-            "max_retries": 3
-          },
-          "route_node": "贪妄（金蟾宝宫）-回放后分流",
-          "routes": {
-            "recorded_return": [
-              "贪妄（金蟾宝宫）-拒绝还魂丹",
-              "贪妄（金蟾宝宫）-等待拒绝复活",
-              "贪妄（金蟾宝宫）-战斗失败",
-              "贪妄（金蟾宝宫）-成功返回地图",
-              "贪妄（金蟾宝宫）-脚本返回确认"
-            ],
-            "battle_only": [
-              "贪妄（金蟾宝宫）-拒绝还魂丹",
-              "贪妄（金蟾宝宫）-等待拒绝复活",
-              "贪妄（金蟾宝宫）-战斗失败",
-              "贪妄（金蟾宝宫）-成功返回地图",
-              "贪妄（金蟾宝宫）-点击设置"
-            ]
-          }
-        }
-      }
-    },
-    "next": [
-      "贪妄（金蟾宝宫）-通用导航"
-    ],
-    "timeout": 10000,
-    "post_delay": 0
-  },
-  "贪妄（金蟾宝宫）-通用导航": {
-    "recognition": {
-      "type": "DirectHit"
-    },
-    "action": {
-      "type": "Custom",
-      "param": {
-        "custom_action": "script_task_state",
-        "custom_action_param": {
-          "phase": "navigate"
-        }
-      }
-    },
-    "next": [
-      "贪妄（金蟾宝宫）-关卡入口"
-    ],
-    "timeout": 10000,
-    "post_delay": 0,
-    "on_error": [
-      "贪妄（金蟾宝宫）-失败"
-    ]
-  },
-  "贪妄（金蟾宝宫）-回放后分流": {
-    "recognition": {
-      "type": "DirectHit"
-    },
-    "action": {
-      "type": "DoNothing"
-    },
-    "next": [
-      "贪妄（金蟾宝宫）-拒绝还魂丹",
-      "贪妄（金蟾宝宫）-等待拒绝复活",
-      "贪妄（金蟾宝宫）-战斗失败",
-      "贪妄（金蟾宝宫）-成功返回地图",
-      "贪妄（金蟾宝宫）-点击设置"
-    ],
-    "timeout": 15000,
-    "post_delay": 0,
-    "on_error": [
-      "贪妄（金蟾宝宫）-失败"
-    ]
-  },
-  "贪妄（金蟾宝宫）-战斗失败": {
-    "recognition": {
-      "type": "And",
-      "param": {
-        "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/outcomes/failed-title.png",
-                "roi": [
-                  200,
-                  120,
-                  780,
-                  380
-                ],
-                "threshold": 0.9
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
-        ]
-      }
-    },
-    "action": {
-      "type": "Custom",
-      "param": {
-        "custom_action": "script_task_state",
-        "custom_action_param": {
-          "phase": "battle_failure"
-        }
-      }
-    },
-    "next": [
-      "贪妄（金蟾宝宫）-拒绝还魂丹",
-      "贪妄（金蟾宝宫）-等待拒绝复活",
-      "贪妄（金蟾宝宫）-失败返回地图",
-      "贪妄（金蟾宝宫）-失败返回确认"
-    ],
-    "post_delay": 0
-  },
-  "贪妄（金蟾宝宫）-失败返回地图": {
-    "recognition": {
-      "type": "And",
-      "param": {
-        "all_of": [
-          {
-            "recognition": {
-              "type": "Or",
-              "param": {
-                "any_of": [
-                  {
-                    "recognition": {
-                      "type": "TemplateMatch",
-                      "param": {
-                        "template": "navigation/outcomes/failed-return.png",
-                        "roi": [
-                          500,
-                          450,
-                          550,
-                          200
-                        ],
-                        "threshold": 0.85
-                      }
-                    }
-                  },
-                  {
-                    "recognition": {
-                      "type": "TemplateMatch",
-                      "param": {
-                        "template": [
-                          "navigation/outcomes/failed-return-1_up.png",
-                          "navigation/outcomes/failed-return-2_over.png",
-                          "navigation/outcomes/failed-return-3_down.png"
-                        ],
-                        "roi": [
-                          400,
-                          400,
-                          700,
-                          260
-                        ],
-                        "threshold": 0.88,
-                        "green_mask": true
-                      }
-                    }
-                  }
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/outcomes/failed-title.png",
-                "roi": [
-                  200,
-                  120,
-                  780,
-                  380
-                ],
-                "threshold": 0.9
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
-        ],
-        "box_index": 0
-      }
-    },
-    "action": {
-      "type": "Click",
-      "param": {
-        "target": true
-      }
-    },
-    "next": [
-      "贪妄（金蟾宝宫）-失败返回确认"
-    ],
-    "timeout": 10000,
-    "post_delay": 500,
-    "on_error": [
-      "贪妄（金蟾宝宫）-失败"
-    ]
-  },
-  "贪妄（金蟾宝宫）-成功返回地图": {
-    "recognition": {
-      "type": "And",
-      "param": {
-        "all_of": [
-          {
-            "recognition": {
-              "type": "Or",
-              "param": {
-                "any_of": [
-                  {
-                    "recognition": {
-                      "type": "TemplateMatch",
-                      "param": {
-                        "template": "navigation/outcomes/succeeded-return.png",
-                        "roi": [
-                          500,
-                          450,
-                          550,
-                          200
-                        ],
-                        "threshold": 0.85
-                      }
-                    }
-                  },
-                  {
-                    "recognition": {
-                      "type": "TemplateMatch",
-                      "param": {
-                        "template": [
-                          "navigation/outcomes/succeeded-return-1_up.png",
-                          "navigation/outcomes/succeeded-return-2_over.png",
-                          "navigation/outcomes/succeeded-return-3_down.png"
-                        ],
-                        "roi": [
-                          400,
-                          400,
-                          700,
-                          260
-                        ],
-                        "threshold": 0.88,
-                        "green_mask": true
-                      }
-                    }
-                  }
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/outcomes/succeeded-title.png",
-                "roi": [
-                  200,
-                  120,
-                  780,
-                  380
-                ],
-                "threshold": 0.9
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
-        ],
-        "box_index": 0
-      }
-    },
-    "action": {
-      "type": "Click",
-      "param": {
-        "target": true
-      }
-    },
-    "next": [
-      "贪妄（金蟾宝宫）-脚本返回确认"
-    ],
-    "timeout": 10000,
-    "post_delay": 300,
-    "on_error": [
-      "贪妄（金蟾宝宫）-失败"
-    ],
-    "rate_limit": 200
-  },
-  "贪妄（金蟾宝宫）-失败返回确认": {
-    "recognition": {
-      "type": "TemplateMatch",
-      "param": {
-        "template": [
-          "金蟾宝宫.png"
-        ]
-      }
-    },
-    "action": {
-      "type": "Custom",
-      "param": {
-        "custom_action": "script_task_state",
-        "custom_action_param": {
-          "phase": "retry_after_failure"
-        }
-      }
-    },
-    "next": [],
-    "timeout": 15000,
-    "post_delay": 0
-  },
-  "贪妄（金蟾宝宫）-本轮成功": {
-    "recognition": {
-      "type": "DirectHit"
-    },
-    "action": {
-      "type": "Custom",
-      "param": {
-        "custom_action": "script_task_state",
-        "custom_action_param": {
-          "phase": "success"
-        }
-      }
-    },
-    "next": [
-      "贪妄（金蟾宝宫）-刷取次数",
-      "停止运行"
-    ],
-    "timeout": 10000,
-    "post_delay": 0
-  },
-  "贪妄（金蟾宝宫）-失败": {
-    "recognition": {
-      "type": "DirectHit"
-    },
-    "action": {
-      "type": "Custom",
-      "param": {
-        "custom_action": "script_task_state",
-        "custom_action_param": {
-          "phase": "failure",
-          "reason": "任务导航、回放或返回画面未确认，本轮未计次。"
-        }
-      }
-    },
-    "next": [],
-    "timeout": 10000,
-    "post_delay": 0
-  },
-  "贪妄（金蟾宝宫）-退出结果复核": {
-    "recognition": {
-      "type": "DirectHit"
-    },
-    "action": {
-      "type": "DoNothing"
-    },
-    "next": [
-      "贪妄（金蟾宝宫）-拒绝还魂丹",
-      "贪妄（金蟾宝宫）-等待拒绝复活",
-      "贪妄（金蟾宝宫）-战斗失败",
-      "贪妄（金蟾宝宫）-成功返回地图"
-    ],
-    "timeout": 3000,
-    "post_delay": 0,
-    "on_error": [
-      "贪妄（金蟾宝宫）-失败"
-    ],
-    "rate_limit": 200
-  },
-  "贪妄（金蟾宝宫）-已确认战斗失败": {
-    "recognition": {
-      "type": "DirectHit"
-    },
-    "action": {
-      "type": "Custom",
-      "param": {
-        "custom_action": "script_task_state",
-        "custom_action_param": {
-          "phase": "battle_failure"
-        }
-      }
-    },
-    "next": [
-      "贪妄（金蟾宝宫）-拒绝还魂丹",
-      "贪妄（金蟾宝宫）-等待拒绝复活",
-      "贪妄（金蟾宝宫）-失败返回地图",
-      "贪妄（金蟾宝宫）-失败返回确认"
-    ],
-    "timeout": 10000,
-    "post_delay": 0,
-    "on_error": [
-      "贪妄（金蟾宝宫）-失败"
-    ]
-  },
-  "贪妄（金蟾宝宫）-已确认战斗成功": {
-    "recognition": {
-      "type": "DirectHit"
-    },
-    "action": {
-      "type": "DoNothing"
-    },
-    "next": [
-      "贪妄（金蟾宝宫）-成功返回地图",
-      "贪妄（金蟾宝宫）-脚本返回确认"
-    ],
-    "timeout": 15000,
-    "post_delay": 0,
-    "on_error": [
-      "贪妄（金蟾宝宫）-失败"
-    ]
-  },
-  "贪妄（金蟾宝宫）-拒绝还魂丹": {
-    "recognition": {
-      "type": "And",
-      "param": {
-        "all_of": [
-          {
-            "recognition": {
-              "type": "Or",
-              "param": {
-                "any_of": [
-                  "Result_ReviveLayoutP1",
-                  "Result_ReviveLayoutP2"
-                ]
-              }
-            }
-          }
-        ],
-        "box_index": 0
-      }
-    },
-    "action": {
-      "type": "Click",
-      "param": {
-        "target": true
-      }
-    },
-    "next": [
-      "贪妄（金蟾宝宫）-战斗失败"
-    ],
-    "timeout": 15000,
-    "pre_delay": 0,
-    "post_delay": 250,
-    "on_error": [
-      "贪妄（金蟾宝宫）-失败"
-    ]
-  },
-  "贪妄（金蟾宝宫）-等待拒绝复活": {
-    "recognition": {
-      "type": "Or",
-      "param": {
-        "any_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": [
-                  "navigation/outcomes/revive-normal-caption.png",
-                  "navigation/outcomes/revive-vip-caption.png"
-                ],
-                "roi": [
-                  200,
-                  170,
-                  800,
-                  390
-                ],
-                "threshold": 0.88
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "And",
-              "param": {
-                "all_of": [
-                  {
-                    "sub_name": "confirm_frame",
-                    "recognition": {
-                      "type": "And",
-                      "param": {
-                        "all_of": [
-                          "Nav_CommonConfirm"
-                        ]
-                      }
-                    }
-                  },
-                  {
-                    "recognition": {
-                      "type": "OCR",
-                      "param": {
-                        "roi": "confirm_frame",
-                        "roi_offset": [
-                          120,
-                          63,
-                          390,
-                          -5
-                        ],
-                        "only_rec": true,
-                        "expected": [
-                          "^你确定免费复活[，,]?\\s*继续进行挑战[？?]?$"
-                        ]
-                      }
-                    }
-                  }
-                ],
-                "box_index": 1
-              }
-            }
-          }
-        ]
-      }
-    },
-    "action": {
-      "type": "DoNothing"
-    },
-    "next": [
-      "贪妄（金蟾宝宫）-拒绝还魂丹",
-      "贪妄（金蟾宝宫）-战斗失败"
-    ],
-    "post_delay": 0,
-    "timeout": 15000,
-    "on_error": [
-      "贪妄（金蟾宝宫）-失败"
-    ]
+    }
   },
   "贪妄（金蟾宝宫）-返回地图重试": {
     "recognition": {
-      "type": "And",
+      "type": "OCR",
       "param": {
-        "all_of": [
-          "Nav_SettingsReturn"
+        "expected": [
+          "返回地图"
         ]
       }
     },
     "action": {
       "type": "Click"
     },
-    "timeout": 10000,
+    "timeout": 20000,
     "next": [
-      "贪妄（金蟾宝宫）-脚本返回确认"
+      "贪妄（金蟾宝宫）-刷取次数",
+      "停止运行"
     ],
     "$__mpe_code": {
       "position": {
@@ -830,321 +185,30 @@
     },
     "post_delay": 300,
     "on_error": [
-      "贪妄（金蟾宝宫）-失败"
+      "停止运行"
     ],
     "rate_limit": 200
   },
-  "贪妄（金蟾宝宫）-关卡入口_重试1": {
-    "recognition": {
-      "type": "And",
-      "param": {
-        "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "任务.png",
-                "roi": [
-                  0,
-                  540,
-                  1147,
-                  180
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "Or",
-              "param": {
-                "any_of": [
-                  {
-                    "recognition": {
-                      "type": "TemplateMatch",
-                      "param": {
-                        "template": [
-                          "金蟾宝宫.png"
-                        ]
-                      }
-                    }
-                  },
-                  {
-                    "recognition": {
-                      "type": "TemplateMatch",
-                      "param": {
-                        "template": [
-                          "navigation/stages/s65-frame1.png",
-                          "navigation/stages/s65-frame2.png",
-                          "navigation/stages/s65-frame3.png"
-                        ],
-                        "threshold": 0.82,
-                        "roi": [
-                          0,
-                          115,
-                          1045,
-                          500
-                        ],
-                        "method": 5
-                      }
-                    }
-                  }
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
-        ],
-        "box_index": 1
-      }
-    },
-    "pre_delay": 80,
-    "action": {
-      "type": "Click"
-    },
-    "post_delay": 1000,
-    "timeout": 10000,
-    "next": [
-      "贪妄（金蟾宝宫）-移开光标2"
-    ],
-    "on_error": [
-      "贪妄（金蟾宝宫）-关卡入口_重试2"
-    ],
-    "$__mpe_code": {
-      "position": {
-        "x": 1280,
-        "y": 0
-      }
-    },
-    "rate_limit": 200
-  },
-  "贪妄（金蟾宝宫）-关卡入口_重试2": {
-    "recognition": {
-      "type": "And",
-      "param": {
-        "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "任务.png",
-                "roi": [
-                  0,
-                  540,
-                  1147,
-                  180
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "Or",
-              "param": {
-                "any_of": [
-                  {
-                    "recognition": {
-                      "type": "TemplateMatch",
-                      "param": {
-                        "template": [
-                          "金蟾宝宫.png"
-                        ]
-                      }
-                    }
-                  },
-                  {
-                    "recognition": {
-                      "type": "TemplateMatch",
-                      "param": {
-                        "template": [
-                          "navigation/stages/s65-frame1.png",
-                          "navigation/stages/s65-frame2.png",
-                          "navigation/stages/s65-frame3.png"
-                        ],
-                        "threshold": 0.82,
-                        "roi": [
-                          0,
-                          115,
-                          1045,
-                          500
-                        ],
-                        "method": 5
-                      }
-                    }
-                  }
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
-        ],
-        "box_index": 1
-      }
-    },
-    "pre_delay": 80,
-    "action": {
-      "type": "Click"
-    },
-    "post_delay": 1000,
-    "timeout": 10000,
-    "next": [
-      "贪妄（金蟾宝宫）-移开光标3"
-    ],
-    "on_error": [
-      "贪妄（金蟾宝宫）-失败"
-    ],
-    "$__mpe_code": {
-      "position": {
-        "x": 1280,
-        "y": 0
-      }
-    },
-    "rate_limit": 200
-  },
-  "贪妄（金蟾宝宫）-移开光标1": {
+  "贪妄（金蟾宝宫）-移动光标": {
+    "pre_delay": 0,
+    "post_delay": 300,
+    "rate_limit": 200,
     "recognition": {
       "type": "DirectHit"
     },
     "action": {
       "type": "Custom",
       "param": {
-        "custom_action": "move_cursor",
         "custom_action_param": {
           "x": 20,
           "y": 20
-        }
+        },
+        "custom_action": "move_cursor"
       }
     },
-    "post_delay": 200,
-    "timeout": 10000,
     "next": [
-      "贪妄（金蟾宝宫）-识别场景1"
+      "贪妄（金蟾宝宫）-点击金蟾宝宫"
     ],
-    "on_error": [
-      "贪妄（金蟾宝宫）-关卡入口_重试1"
-    ]
-  },
-  "贪妄（金蟾宝宫）-识别场景1": {
-    "recognition": {
-      "type": "TemplateMatch",
-      "param": {
-        "template": [
-          "金蟾宝宫场景.png"
-        ]
-      }
-    },
-    "pre_delay": 100,
-    "post_delay": 200,
-    "timeout": 10000,
-    "next": [
-      "贪妄（金蟾宝宫）-回放战斗"
-    ],
-    "on_error": [
-      "贪妄（金蟾宝宫）-关卡入口_重试1"
-    ],
-    "$__mpe_code": {
-      "position": {
-        "x": 0,
-        "y": 65
-      }
-    },
-    "rate_limit": 200
-  },
-  "贪妄（金蟾宝宫）-移开光标2": {
-    "recognition": {
-      "type": "DirectHit"
-    },
-    "action": {
-      "type": "Custom",
-      "param": {
-        "custom_action": "move_cursor",
-        "custom_action_param": {
-          "x": 20,
-          "y": 20
-        }
-      }
-    },
-    "post_delay": 200,
-    "timeout": 10000,
-    "next": [
-      "贪妄（金蟾宝宫）-识别场景2"
-    ],
-    "on_error": [
-      "贪妄（金蟾宝宫）-关卡入口_重试2"
-    ]
-  },
-  "贪妄（金蟾宝宫）-识别场景2": {
-    "recognition": {
-      "type": "TemplateMatch",
-      "param": {
-        "template": [
-          "金蟾宝宫场景.png"
-        ]
-      }
-    },
-    "pre_delay": 100,
-    "post_delay": 200,
-    "timeout": 10000,
-    "next": [
-      "贪妄（金蟾宝宫）-回放战斗"
-    ],
-    "on_error": [
-      "贪妄（金蟾宝宫）-关卡入口_重试2"
-    ],
-    "$__mpe_code": {
-      "position": {
-        "x": 0,
-        "y": 65
-      }
-    },
-    "rate_limit": 200
-  },
-  "贪妄（金蟾宝宫）-移开光标3": {
-    "recognition": {
-      "type": "DirectHit"
-    },
-    "action": {
-      "type": "Custom",
-      "param": {
-        "custom_action": "move_cursor",
-        "custom_action_param": {
-          "x": 20,
-          "y": 20
-        }
-      }
-    },
-    "post_delay": 200,
-    "timeout": 10000,
-    "next": [
-      "贪妄（金蟾宝宫）-识别场景3"
-    ],
-    "on_error": [
-      "贪妄（金蟾宝宫）-失败"
-    ]
-  },
-  "贪妄（金蟾宝宫）-识别场景3": {
-    "recognition": {
-      "type": "TemplateMatch",
-      "param": {
-        "template": [
-          "金蟾宝宫场景.png"
-        ]
-      }
-    },
-    "pre_delay": 100,
-    "post_delay": 200,
-    "timeout": 10000,
-    "next": [
-      "贪妄（金蟾宝宫）-回放战斗"
-    ],
-    "on_error": [
-      "贪妄（金蟾宝宫）-失败"
-    ],
-    "$__mpe_code": {
-      "position": {
-        "x": 0,
-        "y": 65
-      }
-    },
-    "rate_limit": 200
+    "on_error": []
   }
 }

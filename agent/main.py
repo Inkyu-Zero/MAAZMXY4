@@ -17,7 +17,6 @@ import battle_player
 import battle_ui
 import game_management_login
 import loop_counter
-import battle_record
 import script_task
 
 AgentServer.custom_recognition('battle_no_revive')(battle_ui.NoRevivePrompt)

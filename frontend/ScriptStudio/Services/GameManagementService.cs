@@ -317,8 +317,14 @@ public sealed class GameManagementService : IDisposable
     public async Task<MaaJobStatus> RunAsync(JsonObject plan, string originalEntry, string? overrides,
         Func<string?, string?, CancellationToken, Task<MaaJobStatus>> execute, CancellationToken token)
     {
-        var profile = plan["management_profile"]?.DeepClone() as JsonObject
-            ?? throw new InvalidOperationException("该任务未声明可恢复的轮次边界，不能启用游戏管理。");
+        var profile = plan["management_profile"]?.DeepClone() as JsonObject;
+        if (profile == null)
+        {
+            // 任务没声明轮次边界不是错误，只是不能交给游戏管理托管：
+            // 降级成普通执行，不要在用户点「开始任务」时直接失败。
+            Log("该任务没有声明轮次边界，本次不启用游戏管理，任务照常执行。");
+            return await execute(originalEntry, overrides, token);
+        }
         try { Arm(); }
         catch (ArgumentException) when (Options.RestartOnFailure && _verifiedTarget != null)
         { Log("先前核验的盒子已退出，将从保存的程序身份恢复连接。"); }

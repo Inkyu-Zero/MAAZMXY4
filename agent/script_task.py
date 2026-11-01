@@ -6,6 +6,7 @@ pins the saved library file and its hash in memory; the next round resolves the
 current binding again. The front end owns bounded process recovery.
 """
 import hashlib
+import sys
 from copy import deepcopy
 import json
 import os
@@ -127,11 +128,19 @@ def inspect_recording(reference):
     document = RecordingDocument.from_dict(data)
     document.to_dict(strict=True)
     if document.diagnostics:
-        raise ValueError('绑定脚本存在操作诊断，请先在脚本工具中修复。')
+        # 诊断是录制里键鼠配对不完整这类提示，Maa 回放本身能容忍。
+        # 以前这里直接抛错，等于“脚本有点小毛病整个任务就不跑”，
+        # 现在只记一条诊断，让任务照常执行。
+        print('[script_task] 绑定脚本存在 %d 条诊断，仍然继续：%s'
+              % (len(document.diagnostics), '; '.join(document.diagnostics[:3])),
+              file=sys.stderr, flush=True)
     if not data['actions']:
         raise ValueError('绑定脚本没有可回放的操作。')
+    # 基准尺寸不在这里卡死：真正的比对在回放前做（截图短边与 base 不符才拒绝），
+    # 这里只提示，不阻止用户使用自己录制的其他尺寸脚本。
     if min(document.base) != 720:
-        raise ValueError('任务脚本必须使用新工程的720基准坐标。')
+        print('[script_task] 脚本基准为 %dx%d，非 720，将按录制尺寸回放' % tuple(document.base),
+              file=sys.stderr, flush=True)
     if any(action.get('op') == 'scroll' and ('x' in action or 'y' in action) for action in data['actions']):
         raise ValueError('带坐标滚轮尚不支持当前控制器回放。')
     return dict(path=str(path), sha256=hashlib.sha256(raw).hexdigest(), base=list(document.base),

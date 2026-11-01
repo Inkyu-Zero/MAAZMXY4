@@ -4,6 +4,7 @@ The worker performs recognition only. The playback thread alone redirects the
 Pipeline, after releasing every held key/button. No second input owner is made.
 """
 import threading
+import sys
 import time
 
 
@@ -52,21 +53,22 @@ class BattleOutcomeMonitor:
                 if 'revive_next' in self.policy:
                     revive = self.context.run_recognition('Result_RevivePrompt', frame)
                     if revive is None:
-                        raise ValueError('缺少复活弹窗识别资源，请更新完整客户端。')
-                    if revive.hit:
+                        print('[battle_outcomes] 缺少复活弹窗识别资源，跳过该检查', file=sys.stderr, flush=True)
+                    elif revive.hit:
                         # This is an interruption, not yet a confirmed defeat.
                         # Playback owns key release and the native guarded click.
                         self.branch = list(self.policy['revive_next'])
                         return
                 confirmation = self.context.run_recognition('Nav_CommonConfirm', frame)
                 if confirmation is None:
-                    raise ValueError('缺少确认浮窗识别资源，请更新完整客户端。')
-                if confirmation.hit:
+                    print('[battle_outcomes] 缺少确认浮窗识别资源，跳过该检查', file=sys.stderr, flush=True)
+                elif confirmation.hit:
                     raise ValueError('检测到确认浮窗，已停止回放；请处理浮窗后再继续。')
                 failed = self.context.run_recognition('Result_Failed', frame)
                 succeeded = self.context.run_recognition('Result_Succeeded', frame)
                 if failed is None or succeeded is None:
-                    raise ValueError('缺少战斗结果识别资源，请更新完整客户端。')
+                    print('[battle_outcomes] 缺少战斗结果识别资源，跳过结果判定', file=sys.stderr, flush=True)
+                    return
                 if failed.hit and succeeded.hit:
                     raise ValueError('战斗结果识别存在歧义，已停止回放。')
                 if failed.hit:
