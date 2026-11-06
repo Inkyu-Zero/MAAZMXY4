@@ -17,6 +17,8 @@ on:
       - 'tools/sync_task_assets.py'
       - 'tools/build_release.py'
       - 'tools/build_sfx.py'
+      - 'tools/build_installer.py'
+      - 'tools/installer/**'
       - 'tools/runtime_check.py'
       - 'tools/setup_runtime.py'
       - 'DependencySetup_依赖库安装_win.bat'

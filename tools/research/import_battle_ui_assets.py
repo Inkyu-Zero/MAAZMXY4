@@ -95,7 +95,7 @@ def generate(source,root=ROOT):
                 (30,150,430,161),scale_first=True))
     path=root/'assets/resource/base/pipeline/battle_outcomes.json'
     nodes=json.loads(path.read_text(encoding='utf8'))
-    caption=dict(type='TemplateMatch',param=dict(template=captions,roi=[200,170,800,390],threshold=.88))
+    caption=dict(type='TemplateMatch',param=dict(template=captions,roi=[200,170,800,390],threshold=.84))
     def reference(name):
         return dict(type='And',param=dict(all_of=[name]))
     # Flash text rasterization can miss the SWF caption template even at the

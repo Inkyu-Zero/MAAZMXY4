@@ -18,7 +18,7 @@ def bounds_reader(xml):
     definitions={}
     for node in xml.iter():
         if not node.get('type','').startswith('Define'):continue
-        for field in ('spriteId','shapeId','buttonId','textId'):
+        for field in ('spriteId','shapeId','buttonId','textId','characterID'):
             if node.get(field):definitions[node.get(field)]=node
     def transform(box,matrix):
         if matrix is None:return box
@@ -87,7 +87,10 @@ def generate(source,root=ROOT):
             metadata['assets'].append(dict(path=relative,crop=box,sha256=hashlib.sha256(target.read_bytes()).hexdigest(),source_sha256=origin['sha256']))
         if len(anchors)<(3 if axis=='x' else 20):raise ValueError('Too few safe terrain landmarks: '+town)
         full.resize((round(full.width*SCALE),round(full.height*SCALE)),Image.Resampling.BICUBIC).convert('RGB').save(fixture_root/(town+'.png'))
-        roi=[500,140,500,425] if axis=='x' else [160,350,820,225]
+        # Include complete 720-scaled patches: x=750 + width=75 reaches
+        # 1007 px in town6, and y=420 + height=65 reaches 592 px in town5.
+        # The previous right/bottom bounds clipped these visible landmarks.
+        roi=[500,140,500,460] if axis=='x' else [160,350,880,225]
         anchor_node='GameManagement_'+town+'_Terrain'
         nodes[anchor_node]=dict(recognition=dict(type='TemplateMatch',param=dict(template=anchors,roi=roi,threshold=.9)),action=dict(type='DoNothing'),next=[])
         drag_node='GameManagement_'+town+'_Drag'
@@ -102,7 +105,7 @@ def generate(source,root=ROOT):
     # and direction. A fresh native match determines both gesture endpoints.
     reverse_terrain='GameManagement_town5_TerrainBack'
     nodes[reverse_terrain]=deepcopy(nodes['GameManagement_town5_Terrain'])
-    nodes[reverse_terrain]['recognition']['param']['roi']=[60,140,480,425]
+    nodes[reverse_terrain]['recognition']['param']['roi']=[60,140,480,460]
     reverse_drag='GameManagement_town5_DragBack'
     nodes[reverse_drag]=deepcopy(nodes['GameManagement_town5_Drag'])
     nodes[reverse_drag]['recognition']['param']['all_of'][2]=reverse_terrain

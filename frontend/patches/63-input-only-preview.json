@@ -1,0 +1,6 @@
+{
+  "description": "input-only-preview",
+  "path": "MFAAvalonia/Extensions/MaaFW/MaaProcessor.cs",
+  "find": "    private MaaController? GetScreenshotController(bool test)\n    {",
+  "replace": "    private MaaController? GetScreenshotController(bool test)\n    {\n        if (_inputOnlyPlayback) return null;"
+}

@@ -11,8 +11,8 @@
     python tools/setup_runtime.py          # 从本机 Python 3.12 重建
     python tools/setup_runtime.py --check  # 只做自检
 
-依赖的系统 Python 上必须有 maafw / numpy / strenum / pynput / Pillow。
-缺的话先装：  py -3.12 -m pip install maafw numpy strenum pynput Pillow
+依赖的系统 Python 上必须有 maafw / numpy / strenum / pynput / Pillow / OpenCV。
+缺的话先装：  py -3.12 -m pip install maafw numpy strenum pynput Pillow opencv-python
 """
 from __future__ import annotations
 
@@ -39,7 +39,7 @@ LIB_EXCLUDE = {
 
 # 必须一起带走的第三方包（maa 的运行时依赖）
 SITE_PACKAGES = [
-    "maa", "MaaAgentBinary", "numpy", "numpy.libs", "strenum", "pynput", "PIL", "pillow.libs",
+    "maa", "MaaAgentBinary", "numpy", "numpy.libs", "strenum", "pynput", "PIL", "pillow.libs", "cv2",
 ]
 SITE_FILES = ["typing_extensions.py", "six.py"]
 
@@ -67,7 +67,7 @@ def find_system_python() -> str | None:
 def has_maa(prefix: str) -> bool:
     r = subprocess.run(
         [os.path.join(prefix, "python.exe"), "-c",
-         "import maa, numpy, strenum; print('ok')"],
+         "import maa, numpy, strenum, cv2; from PIL import Image; print('ok')"],
         capture_output=True, text=True, encoding="utf-8", errors="replace",
         timeout=120,
     )
@@ -135,7 +135,7 @@ def build(prefix: str) -> int:
     for name in os.listdir(sp_src):
         if name.endswith(".dist-info") and any(
             name.lower().startswith(p.lower() + "-")
-            for p in ("maafw", "MaaAgentBinary", "numpy", "strenum", "pynput", "six", "pillow")
+            for p in ("maafw", "MaaAgentBinary", "numpy", "strenum", "pynput", "six", "pillow", "opencv_python", "opencv_python_headless")
         ):
             copy_tree(os.path.join(sp_src, name), os.path.join(sp_dst, name))
             print("   +", name)
@@ -156,8 +156,8 @@ def main() -> int:
         return 1
     print("系统 Python：", prefix)
     if not has_maa(prefix):
-        print("这个 Python 里 import maa / numpy / strenum 失败。")
-        print("请先执行：  py -3.12 -m pip install maa")
+        print("这个 Python 里 import maa / numpy / strenum / PIL / cv2 失败。")
+        print("请先执行：  py -3.12 -m pip install maafw numpy strenum pynput Pillow opencv-python")
         return 1
 
     build(prefix)

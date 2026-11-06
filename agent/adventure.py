@@ -36,6 +36,7 @@ if _HERE not in sys.path:
     sys.path.insert(0, _HERE)
 
 import adventure_logic as logic  # noqa: E402
+from mouse_input import finish_mouse_operation
 
 # 通用本地扩展点：仓库版与自用版内容完全一致，靠「有没有这个模块」决定行为。
 # 发布包里没有 adventure_local_hook.py，此处自动为 None，行为与发布版相同。
@@ -812,6 +813,7 @@ def _click_end_adventure(context: Context, image: Any) -> bool:
                 context.tasker.controller.post_click(
                     int(bx) + int(bw) // 2, int(by) + int(bh) // 2
                 ).wait()
+                finish_mouse_operation(context.tasker.controller)
             except Exception as exc:               # noqa: BLE001
                 _log(f"点「结束冒险」失败（{type(exc).__name__}: {exc}），跳过，直接收工")
                 return False
@@ -1090,6 +1092,7 @@ class AdventureRead(CustomRecognition):
                 context.tasker.controller.post_click(
                     int(_bx) + int(_bw) // 2, int(_by) + int(_bh) // 2
                 ).wait()
+                finish_mouse_operation(context.tasker.controller)
             except Exception as _exc:        # noqa: BLE001
                 _log(f"点「继续冒险」失败（{type(_exc).__name__}: {_exc}），交给 pipeline 兜底")
             return None
@@ -1256,6 +1259,7 @@ class AdventureRead(CustomRecognition):
             _cx = int(box[0]) + int(box[2]) // 2
             _cy = int(box[1]) + int(box[3]) // 2
             context.tasker.controller.post_click(_cx, _cy).wait()
+            finish_mouse_operation(context.tasker.controller)
         except Exception as _exc:            # noqa: BLE001
             _log(f"补点失败（{type(_exc).__name__}: {_exc}），交给 pipeline 点")
         # AnalyzeResult.detail 必须是 dict：binding 内部会自己 json.dumps

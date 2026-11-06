@@ -2,7 +2,6 @@
 from copy import deepcopy
 import hashlib
 import json
-import sys
 from pathlib import Path
 import re
 
@@ -94,6 +93,18 @@ def _configuration(root):
 
 def node_links(nodes, node):
     """Resolve declared link targets for both discovery and resource installation."""
+    # Shared lifecycles finish at the profile's declared counter boundary.
+    parameters = custom_parameters(node)
+    if parameters.get('phase') == 'begin' and parameters.get('completion_node'):
+        yield parameters['completion_node']
+    if parameters.get('phase') == 'begin' and parameters.get('round_flow'):
+        # Declared native actions/recognizers are dependencies, not Pipeline
+        # transitions. Discovery and installation must follow both forms.
+        yield parameters['playback_node']
+        yield parameters['navigation']['target_node']
+        for field in ('scene_node', 'resume_node', 'repeat_node'):
+            if parameters['round_flow'].get(field):
+                yield parameters['round_flow'][field]
     for field in ('next', 'on_error'):
         links = node.get(field, [])
         if isinstance(links, (str, dict)): links = [links]
@@ -167,7 +178,8 @@ def task_catalog(root, bindings=None, *, overrides=None):
         ident = parameters.get('execution', {}).get('binding_id') if profile else None
         ident = ident or task_key(name, entry)
         playback = _playback_nodes(graph, entry)
-        modes = ['pipeline', 'replace'] if playback else ['replace']
+        input_only = entry == 'GenericScriptPlayback'
+        modes = ['pipeline'] if input_only else ['pipeline', 'replace'] if playback else ['replace']
         binding = bindings.get(ident)
         management_profile = None
         # Discover one confirmed round from the existing graph. The host may
@@ -184,23 +196,7 @@ def task_catalog(root, bindings=None, *, overrides=None):
                   and _action_parameters(graph[n]).get('custom_action') == 'script_task_state']
         successes = [n for n in reachable if custom_parameters(graph[n]).get('phase') == 'success'
                      and _action_parameters(graph[n]).get('custom_action') == 'script_task_state']
-        # 没有 begin/success 声明时（v2.3.7 简版链路：刷取次数 → 点击关卡 →
-        # 识别场景 → 回放 → 设置 → 返回地图 → 刷取次数），用 loop_count 当
-        # 轮次计数器、「返回地图」当每轮成功的终点。这样游戏管理对老链路也能
-        # 工作，不必为了它把已删掉的准备本轮/本轮成功加回来。
-        if not begins and not successes:
-            _counters = [n for n in reachable
-                         if _action_parameters(graph[n]).get('custom_action') == 'loop_count']
-            _returns = [n for n in reachable if n.endswith('-返回地图')]
-            if len(_counters) == 1 and len(_returns) == 1:
-                management_profile = dict(
-                    entry=entry, parameters=deepcopy(custom_parameters(graph[entry])),
-                    success_node=_returns[0], resume_entry='GameManagement_Resume',
-                    # -1 = 无限（由前端「重复次数」控制，TaskScriptPlan 认得
-                    # -1/uint.MaxValue 并把它转成宿主重复）
-                    repeat_limit=graph[_counters[0]].get('max_hit', -1),
-                    native_repeat=True)
-        elif len(begins) == 1 and len(successes) == 1:
+        if len(begins) == 1 and len(successes) == 1:
             # 轮次计数器（刷取次数）在 v2.3.7 的链路里挂在「返回地图」后面、
             # 不是「本轮成功」的直接 next（成功节点已经改指「停止运行」，
             # 每轮结束让 MaaTask 收工、由前端开下一轮）。所以整图找 loop_count。
@@ -214,11 +210,20 @@ def task_catalog(root, bindings=None, *, overrides=None):
                 success_node=successes[0], resume_entry='GameManagement_Resume',
                 repeat_limit=graph[counter].get('max_hit', 1) if counter else 1,
                 native_repeat=counter is not None)
+        if len(begins) == 1 and custom_parameters(graph[begins[0]]).get('round_flow'):
+            begin = begins[0]
+            values = custom_parameters(graph[begin])
+            counter = values['round_flow'].get('repeat_node')
+            management_profile = dict(entry=begin, parameters=deepcopy(values),
+                success_node=begin, resume_entry='GameManagement_Resume',
+                repeat_limit=graph[counter].get('max_hit', 1) if counter else 1,
+                native_repeat=counter is not None)
         item = dict(id=ident, name=name, label=definition.get('label') or name,
                           entry=entry, playback_nodes=playback, modes=modes,
                           playback_parameters={node: deepcopy(custom_parameters(graph[node])) for node in playback},
                           playback_routes={node: deepcopy(custom_parameters(graph[node]).get('script_binding', {})) for node in playback},
                           binding=deepcopy(binding), profile=profile, management_profile=management_profile,
+                          input_only=input_only,
                           management_completion_only=_action_parameters(graph.get(entry,{})).get('custom_action')=='adventure_init')
         if (name, entry) in seen:
             # Library capabilities cover saved variants. Execution below always
@@ -240,12 +245,8 @@ def inspect_saved_recording(root, reference):
     document = RecordingDocument.from_dict(data)
     document.to_dict(strict=True)
     if not data.get('actions'): raise ValueError('任务不能绑定空白脚本。')
-    if document.diagnostics:
-        # 同 script_task.inspect_recording：诊断不阻断执行，只提示。
-        print('[task_catalog] 脚本存在 %d 条诊断，仍然继续：%s'
-              % (len(document.diagnostics), '; '.join(document.diagnostics[:3])),
-              file=sys.stderr, flush=True)
-    # 同 script_task.inspect_recording：不强制 720，真实比对发生在回放前。
+    if document.diagnostics: raise ValueError('请先修复脚本中的操作诊断。')
+    if min(document.base) != 720: raise ValueError('请先将脚本转换为本工程720坐标。')
     return dict(file=path.name, path=str(path), sha256=hashlib.sha256(raw).hexdigest(), base=list(document.base))
 
 
@@ -257,7 +258,7 @@ def execution_plan(root, name, entry, overrides=None, *, report_unbound=False):
     binding = task['binding']
     requires_binding = any(str(parameters.get('file', '')).startswith('@task:')
                            for parameters in task['playback_parameters'].values())
-    if not binding and (requires_binding or task['profile']):
+    if not binding and (requires_binding or task['profile'] or task['input_only']):
         if report_unbound:
             return dict(task, handled=True, stop_reason='unbound_script',
                         message='任务“' + str(task['label']) + '”尚未绑定脚本，本次任务已结束。请在“录制与脚本”中绑定后再开始。')

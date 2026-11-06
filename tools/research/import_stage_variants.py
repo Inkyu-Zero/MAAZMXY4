@@ -125,6 +125,10 @@ def generate(source, root=ROOT):
             'Result_NoRevivePrompt',
         ], box_index=1))
         write_json(path, pipeline)
+        profiles_path = root / 'tools/script_task_profiles.json'
+        profiles = json.loads(profiles_path.read_text(encoding='utf8'))
+        profiles[task]['target']['recognition'] = deepcopy(node['recognition'])
+        write_json(profiles_path, profiles)
         metadata['stages'].append(dict(task=task, stage_id=stage, town=town, sprite_id=int(sprite),
             source_url=origin['url'], source_sha256=origin['sha256'], variants=records))
     write_json(root / 'agent/data/navigation/stage-variants.json', metadata)

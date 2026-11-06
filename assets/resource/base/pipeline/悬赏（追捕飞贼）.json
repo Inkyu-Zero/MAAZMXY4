@@ -1,323 +1,58 @@
 {
   "悬赏（追捕飞贼）-刷取次数": {
-    "post_delay": 300,
-    "next": [
-      "悬赏（追捕飞贼）-点击任务"
-    ],
-    "$__mpe_code": {
-      "position": {
-        "x": 960,
-        "y": 58
-      }
+    "recognition": {
+      "type": "DirectHit"
     },
     "action": {
       "type": "Custom",
       "param": {
-        "custom_action": "loop_count",
+        "custom_action": "script_task_state",
         "custom_action_param": {
-          "label": "悬赏（追捕飞贼）"
-        }
-      }
-    },
-    "focus": {
-      "Node.Action.Succeeded": {
-        "content": "./debug/loop/panel.md",
-        "display": "log"
-      }
-    },
-    "rate_limit": 200
-  },
-  "悬赏（追捕飞贼）-回放战斗": {
-    "pre_delay": 0,
-    "action": {
-      "type": "Custom",
-      "param": {
-        "custom_action": "battle_play",
-        "custom_action_param": {
+          "phase": "begin",
           "file": "@task:task-b870345faa9eb39595389c1c99e46cd9",
-          "speed": 1,
-          "script_binding": {
-            "recorded_return_next": [
-              "悬赏（追捕飞贼）-脚本返回确认"
+          "task_binding_id": "task-b870345faa9eb39595389c1c99e46cd9",
+          "playback_node": "Bounty_Play",
+          "navigation": {
+            "kind": "bounty",
+            "target_node": "Bounty_Target",
+            "label": "悬赏（追捕飞贼）",
+            "title": "追捕飞贼",
+            "title_aliases": []
+          },
+          "settings_node": "脚本任务设置",
+          "exit_mode": "battle_only",
+          "failure_retry": {
+            "enabled": false,
+            "max_retries": 3
+          },
+          "round_flow": {
+            "scene_node": "Bounty_Play",
+            "load_timeout_ms": 15000,
+            "repeat_node": "悬赏（追捕飞贼）-刷取次数",
+            "resume_node": "Bounty_ResumeStage"
+          },
+          "result_guard": {
+            "failed_next": [
+              "Result_Failed"
+            ],
+            "succeeded_next": [
+              "Result_Succeeded"
+            ],
+            "revive_next": [
+              "Result_RevivePrompt"
+            ],
+            "error_next": [
+              "Result_MonitorStopped"
             ]
           }
         }
       }
     },
-    "post_delay": 1000,
     "next": [
-      "悬赏（追捕飞贼）-点击设置"
-    ],
-    "$__mpe_code": {
-      "position": {
-        "x": 0,
-        "y": 248
-      }
-    },
-    "rate_limit": 200
-  },
-  "悬赏（追捕飞贼）-成功进入追捕飞贼关卡": {
-    "recognition": {
-      "type": "TemplateMatch",
-      "param": {
-        "template": [
-          "飞天大盗场景.png"
-        ]
-      }
-    },
-    "post_delay": 1000,
-    "timeout": 60000,
-    "next": [
-      "悬赏（追捕飞贼）-回放战斗"
-    ],
-    "$__mpe_code": {
-      "position": {
-        "x": 2240,
-        "y": 72
-      }
-    },
-    "rate_limit": 200
-  },
-  "悬赏（追捕飞贼）-点击任务": {
-    "recognition": {
-      "type": "TemplateMatch",
-      "param": {
-        "template": [
-          "任务.png"
-        ]
-      }
-    },
-    "pre_delay": 1000,
-    "action": {
-      "type": "Click"
-    },
-    "post_delay": 300,
-    "timeout": 30000,
-    "next": [
-      "悬赏（追捕飞贼）-点击悬赏任务"
-    ],
-    "$__mpe_code": {
-      "position": {
-        "x": 1280,
-        "y": 0
-      }
-    },
-    "on_error": [
-      "悬赏（追捕飞贼）-刷取次数"
-    ],
-    "rate_limit": 200
-  },
-  "悬赏（追捕飞贼）-点击前往副本": {
-    "recognition": {
-      "type": "And",
-      "param": {
-        "all_of": [
-          {
-            "recognition": {
-              "type": "OCR",
-              "param": {
-                "expected": [
-                  "^前往副本$"
-                ],
-                "roi": [
-                  480,
-                  550,
-                  350,
-                  100
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "Or",
-              "param": {
-                "any_of": [
-                  {
-                    "recognition": {
-                      "type": "OCR",
-                      "param": {
-                        "expected": [
-                          "^已接受$"
-                        ],
-                        "roi": [
-                          200,
-                          195,
-                          320,
-                          85
-                        ]
-                      }
-                    }
-                  },
-                  {
-                    "recognition": {
-                      "type": "OCR",
-                      "param": {
-                        "expected": [
-                          "^已[接搜]受$"
-                        ],
-                        "roi": [
-                          420,
-                          220,
-                          66,
-                          40
-                        ],
-                        "only_rec": true
-                      }
-                    }
-                  }
-                ]
-              }
-            }
-          }
-        ],
-        "box_index": 0
-      }
-    },
-    "action": {
-      "type": "Click"
-    },
-    "post_delay": 300,
-    "timeout": 60000,
-    "next": [
-      "悬赏（追捕飞贼）-成功进入追捕飞贼关卡"
-    ],
-    "$__mpe_code": {
-      "position": {
-        "x": 1920,
-        "y": 42
-      }
-    },
-    "rate_limit": 200
-  },
-  "悬赏（追捕飞贼）-点击悬赏任务": {
-    "recognition": {
-      "type": "OCR",
-      "param": {
-        "expected": [
-          "悬赏任务"
-        ]
-      }
-    },
-    "action": {
-      "type": "Click"
-    },
-    "post_delay": 300,
-    "timeout": 30000,
-    "next": [
-      "悬赏（追捕飞贼）-点击前往副本"
-    ],
-    "$__mpe_code": {
-      "position": {
-        "x": 1600,
-        "y": 42
-      }
-    },
-    "rate_limit": 200
-  },
-  "悬赏（追捕飞贼）-点击设置": {
-    "recognition": {
-      "type": "TemplateMatch",
-      "param": {
-        "template": [
-          "设置.png"
-        ]
-      }
-    },
-    "pre_delay": 2000,
-    "action": {
-      "type": "Click"
-    },
-    "timeout": 8000,
-    "next": [
-      "悬赏（追捕飞贼）-返回地图"
-    ],
-    "$__mpe_code": {
-      "position": {
-        "x": 320,
-        "y": 58
-      }
-    },
-    "post_delay": 500,
-    "rate_limit": 200
-  },
-  "悬赏（追捕飞贼）-返回地图": {
-    "recognition": {
-      "type": "OCR",
-      "param": {
-        "expected": [
-          "返回地图"
-        ]
-      }
-    },
-    "action": {
-      "type": "Click"
-    },
-    "timeout": 10000,
-    "next": [
-      "停止运行",
-      "悬赏（追捕飞贼）-刷取次数"
-    ],
-    "$__mpe_code": {
-      "position": {
-        "x": 640,
-        "y": 100
-      }
-    },
-    "post_delay": 300,
-    "rate_limit": 200,
-    "on_error": [
-      "悬赏（追捕飞贼）-返回地图重试"
-    ]
-  },
-  "悬赏（追捕飞贼）-脚本返回确认": {
-    "recognition": {
-      "type": "TemplateMatch",
-      "param": {
-        "template": [
-          "任务.png"
-        ]
-      }
-    },
-    "action": {
-      "type": "DoNothing"
-    },
-    "timeout": 15000,
-    "pre_delay": 300,
-    "post_delay": 200,
-    "next": [
-      "停止运行",
-      "悬赏（追捕飞贼）-刷取次数"
-    ],
-    "rate_limit": 200
-  },
-  "悬赏（追捕飞贼）-返回地图重试": {
-    "recognition": {
-      "type": "OCR",
-      "param": {
-        "expected": [
-          "返回地图"
-        ]
-      }
-    },
-    "action": {
-      "type": "Click"
-    },
-    "timeout": 20000,
-    "next": [
-      "停止运行",
-      "悬赏（追捕飞贼）-刷取次数"
-    ],
-    "$__mpe_code": {
-      "position": {
-        "x": 640,
-        "y": 100
-      }
-    },
-    "post_delay": 300,
-    "rate_limit": 200,
-    "on_error": [
+      "悬赏（追捕飞贼）-刷取次数",
       "停止运行"
-    ]
+    ],
+    "post_delay": 0,
+    "max_hit": 1
   }
 }

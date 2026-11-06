@@ -1,0 +1,64 @@
+{
+  "phase": "begin",
+  "file": "@task:bounty-candle",
+  "task_binding_id": "bounty-candle",
+  "playback_node": "Bounty_Play",
+  "route_node": "Bounty_AfterPlay",
+  "completion_node": "悬赏（守卫宝烛）-本轮成功",
+  "completion_dispatch_node": "Bounty_Finish",
+  "exit_mode": "recorded_return",
+  "navigation": {
+    "kind": "bounty",
+    "target_node": "Bounty_Target",
+    "label": "悬赏（守卫宝烛）",
+    "title": "守卫宝烛",
+    "title_aliases": []
+  },
+  "navigation_entry": "Bounty_Navigate",
+  "settings_node": "脚本任务设置",
+  "failure_retry": {
+    "enabled": false,
+    "max_retries": 3
+  },
+  "routes": {
+    "recorded_return": [
+      "Bounty_Blocked",
+      "Bounty_DeclineRevive",
+      "Bounty_WaitRevive",
+      "Bounty_Failed",
+      "Bounty_ReturnSucceeded",
+      "Bounty_MapReady"
+    ],
+    "battle_only": [
+      "Bounty_Blocked",
+      "Bounty_DeclineRevive",
+      "Bounty_WaitRevive",
+      "Bounty_Failed",
+      "Bounty_ReturnSucceeded",
+      "Bounty_MapReady",
+      "Bounty_ReturnSettings",
+      "Bounty_OpenSettings"
+    ]
+  },
+  "result_guard": {
+    "failed_next": [
+      "Bounty_ConfirmedFailed"
+    ],
+    "succeeded_next": [
+      "Bounty_ConfirmedSucceeded"
+    ],
+    "error_next": [
+      "Result_MonitorStopped"
+    ],
+    "revive_next": [
+      "Bounty_DeclineRevive",
+      "Bounty_WaitRevive",
+      "Bounty_Failed"
+    ]
+  },
+  "execution": {
+    "binding_id": "bounty-candle",
+    "resume_entry": "GameManagement_Resume",
+    "settings_node": "脚本任务设置"
+  }
+}

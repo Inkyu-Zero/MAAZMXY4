@@ -1,0 +1,301 @@
+{
+  "Round_PlayDone": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0
+  },
+  "Nav_BountyDetailTitle": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "expected": [
+          "^__unconfigured_bounty__$"
+        ],
+        "roi": [
+          500,
+          165,
+          430,
+          75
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0
+  },
+  "Bounty_Target": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "^前往副本$"
+                ],
+                "roi": [
+                  480,
+                  550,
+                  350,
+                  100
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "OCR",
+                      "param": {
+                        "expected": [
+                          "^已接受$"
+                        ],
+                        "roi": [
+                          200,
+                          195,
+                          320,
+                          85
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "OCR",
+                      "param": {
+                        "expected": [
+                          "^已[接搜]受$"
+                        ],
+                        "roi": [
+                          420,
+                          220,
+                          66,
+                          40
+                        ],
+                        "only_rec": true
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "Nav_AcceptedBounties",
+          "Nav_BountyDetailTitle",
+          "Result_NoRevivePrompt"
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click"
+    },
+    "next": [],
+    "post_delay": 1000
+  },
+  "Bounty_ResumeStage": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "bounty-candle/pause.png",
+                        "method": 1,
+                        "threshold": 0.045
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "bounty-candle/pause-cloudy.png",
+                        "method": 1,
+                        "threshold": 0.045
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": [
+                  "守卫太宗场景.png",
+                  "守卫宝烛场景.png",
+                  "飞天大盗场景.png",
+                  "遁地大盗场景.png"
+                ]
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click"
+    },
+    "next": [],
+    "post_delay": 350
+  },
+  "Bounty_StageSettings": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "^继续游戏$"
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "^返回地图$"
+                ]
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0
+  },
+  "Bounty_StagePause": {
+    "recognition": {
+      "type": "Or",
+      "param": {
+        "any_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/pause.png",
+                "method": 1,
+                "threshold": 0.045
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/pause-cloudy.png",
+                "method": 1,
+                "threshold": 0.045
+              }
+            }
+          }
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0
+  },
+  "Bounty_Play": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": [
+                  "守卫太宗场景.png",
+                  "守卫宝烛场景.png",
+                  "飞天大盗场景.png",
+                  "遁地大盗场景.png"
+                ]
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
+        ]
+      }
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "battle_play",
+        "custom_action_param": {
+          "script_binding": {
+            "recorded_return_next": [
+              "Round_PlayDone"
+            ]
+          }
+        }
+      }
+    },
+    "next": [
+      "Round_PlayDone"
+    ],
+    "post_delay": 0
+  },
+  "Bounty_OpenSettings": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": [
+                  "设置.png"
+                ]
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click"
+    },
+    "next": [],
+    "post_delay": 500
+  }
+}

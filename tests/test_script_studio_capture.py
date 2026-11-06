@@ -415,5 +415,37 @@ class CaptureTests(unittest.TestCase):
         self.assertEqual(calls[-1], 17)
 
 
+class CaptureWindowLockTests(unittest.TestCase):
+    def test_adjust_before_recording_lock_pause_and_release_for_next_recording(self):
+        from test_window_geometry import Geometry
+        from window_geometry import WindowLease, SIZING_STYLE
+        api=Geometry();api.is_foreground=lambda hwnd: True
+        hooks=FakeHooks()
+        session=CaptureSession(window_api=api,listener_factory=hooks,
+            lease_factory=lambda hwnd:WindowLease(hwnd,api=api))
+        self.addCleanup(session.close)
+        session.start(42,0)
+        self.assertEqual(session._recording()['base'],[1148,720])
+        self.assertFalse(api.bits&SIZING_STYLE)
+        api.info['width']=1000
+        session._command('barrier')
+        self.assertEqual(api.info['width'],1148)
+        self.assertEqual(session.snapshot()['state'],'paused')
+        session.stop()
+        self.assertTrue(api.bits&SIZING_STYLE);self.assertFalse(api.claimed)
+        session.start(42,0);session.stop()
+        self.assertFalse(api.claimed)
+
+    def test_hook_failure_releases_new_size_lock(self):
+        from test_window_geometry import Geometry
+        from window_geometry import WindowLease, SIZING_STYLE
+        api=Geometry();api.is_foreground=lambda hwnd: True
+        session=CaptureSession(window_api=api,listener_factory=lambda callbacks:[FakeListener(fail=True)],
+            lease_factory=lambda hwnd:WindowLease(hwnd,api=api))
+        self.addCleanup(session.close)
+        with self.assertRaises(RuntimeError):session.start(42,0)
+        self.assertFalse(api.claimed);self.assertTrue(api.bits&SIZING_STYLE)
+
+
 if __name__ == "__main__":
     unittest.main()

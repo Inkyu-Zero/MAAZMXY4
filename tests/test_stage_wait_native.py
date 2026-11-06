@@ -20,6 +20,7 @@ class StageWaitNativeTests(unittest.TestCase):
         from fixture_pixels import read_png_bgr
         sys.path.insert(0, str(ROOT / 'agent'))
         from navigation.stage_view import wait_stage_ready
+        from navigation.runtime import Navigator
 
         empty = np.zeros((720, 1147, 3), dtype=np.uint8)
         ready = empty.copy()
@@ -53,8 +54,9 @@ class StageWaitNativeTests(unittest.TestCase):
                 ):
                     controller.frames, controller.captures = frames, 0
                     deadline = time.monotonic() + seconds
-                    navigator = SimpleNamespace(deadline=deadline, clock=time.monotonic,
-                        _check=lambda: None, log=lambda _: None)
+                    navigator = Navigator(context,{},capture=controller.screencap,check=lambda:None,log=lambda _:None)
+                    navigator.deadline=deadline
+                    navigator._check=lambda:None  # This case isolates the wait's own remaining budget.
                     actual = wait_stage_ready(context, navigator, '__StageWaitTarget')
                     if actual != expected: errors.append((label, expected, actual))
                     if navigator.deadline != deadline: errors.append('Wait reset the caller budget')
@@ -70,6 +72,8 @@ class StageWaitNativeTests(unittest.TestCase):
         self.assertTrue(controller.post_connection().wait().succeeded)
         controller.set_screenshot_use_raw_size(True)
         self.assertTrue(resource.post_bundle(ROOT / 'assets/resource/base').wait().succeeded)
+        from battle_ui import NoRevivePrompt
+        resource.register_custom_recognition('battle_no_revive',NoRevivePrompt())
         resource.register_custom_action('__inspect_stage_wait', Inspect())
         resource.override_pipeline({
             '__StageWaitTest': dict(action=dict(type='Custom', param=dict(custom_action='__inspect_stage_wait'))),

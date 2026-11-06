@@ -1,4 +1,6 @@
 using System;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
@@ -210,6 +212,26 @@ public static class TaskRecoveryPolicy
         return (await execution, false);
     }
 
+    /// <summary>Confirm an idle controller remains disconnected while its previously verified target is unchanged.</summary>
+    public static async Task<bool> ConfirmControllerLossAsync(Func<bool> sameVerifiedTarget, Func<bool> connected,
+        CancellationToken token, Func<CancellationToken, Task>? delay = null)
+    {
+        delay ??= ct => Task.Delay(500, ct);
+        for (var attempt = 0; attempt < 3; attempt++)
+        {
+            token.ThrowIfCancellationRequested();
+            try
+            {
+                if (!sameVerifiedTarget() || connected()) return false;
+            }
+            catch (OperationCanceledException) { throw; }
+            catch (Exception) { return false; } // Failed identity inspection is not a verified fault.
+            if (attempt < 2) await delay(token);
+        }
+        token.ThrowIfCancellationRequested();
+        return true;
+    }
+
     /// <summary>MFA serializes ordered option overrides as an array, even when Maa accepts one object.</summary>
     public static JsonObject MergePipelineOverrides(string? json)
     {
@@ -249,7 +271,50 @@ public static class TaskRecoveryPolicy
         if (resume) parameters["save_slot"] = options.SaveSlot;
     }
 
-    public static async Task<TaskAttempt> RestartAsync(ITaskRestartLifecycle lifecycle, int slot, CancellationToken token)
+    public static async Task<TaskProcessIdentity> WaitForStartedProcessAsync(int pid, string exePath,
+        Func<TaskProcessIdentity?> readIdentity, Func<bool> hasExited, CancellationToken token,
+        Action<string>? log = null, Func<TimeSpan>? elapsed = null, Func<CancellationToken, Task>? delay = null)
+    {
+        var clock = Stopwatch.StartNew();
+        elapsed ??= () => clock.Elapsed;
+        delay ??= ct => Task.Delay(100, ct);
+        var waitingLogged = false;
+        while (elapsed() < TimeSpan.FromSeconds(5))
+        {
+            token.ThrowIfCancellationRequested();
+            if (hasExited()) throw new InvalidOperationException($"游戏进程启动后立即结束（PID={pid}）。");
+            try
+            {
+                // MainModule can be null while the Windows loader starts the
+                // process; it need not throw Win32Exception. Only this startup
+                // wait tolerates absence. An actual mismatched path/PID still
+                // fails immediately and never authorizes window binding.
+                var identity = readIdentity();
+                token.ThrowIfCancellationRequested();
+                if (identity != null)
+                {
+                    if (identity.Pid != pid) throw new InvalidOperationException("启动进程身份不一致，未连接其它进程。");
+                    identity.RequireConfiguredPath(exePath);
+                    return identity;
+                }
+            }
+            catch (Win32Exception)
+            {
+                // Windows may not expose MainModule until loader initialization completes.
+            }
+            if (!waitingLogged)
+            {
+                log?.Invoke($"游戏管理：新进程 PID={pid} 的程序路径尚未就绪，等待加载完成后再核验。");
+                waitingLogged = true;
+            }
+            await delay(token);
+        }
+        token.ThrowIfCancellationRequested();
+        throw new TimeoutException($"等待新启动的游戏进程身份超时（PID={pid}，5秒）；未连接窗口或发送登录输入。");
+    }
+
+    public static async Task<TaskAttempt> RestartAsync(ITaskRestartLifecycle lifecycle, int slot, CancellationToken token,
+        Action? onReady = null)
     {
         token.ThrowIfCancellationRequested();
         await lifecycle.StopInputsAndAgentAsync(token);
@@ -264,8 +329,13 @@ public static class TaskRecoveryPolicy
         token.ThrowIfCancellationRequested();
         var result = await lifecycle.ResumeAsync(slot, token);
         token.ThrowIfCancellationRequested();
+        if (result.Status == TaskAttemptStatus.Ready) onReady?.Invoke();
         return result;
     }
+
+    public static bool SelectionAllowsRecovery(bool win32, bool unsupportedSelection, nint? selected,
+        nint configured, nint expected) => win32 && !unsupportedSelection && expected != 0
+        && (!selected.HasValue || selected.Value == expected) && (configured == 0 || configured == expected);
 
     public static void RequireExclusivePid(int pid, IEnumerable<int> otherRunningPids)
     {
@@ -293,7 +363,7 @@ public static class TaskRecoveryPolicy
         while (outcome.Status == TaskAttemptStatus.Recoverable && options.Enabled)
         {
             token.ThrowIfCancellationRequested();
-            if (outcome.Reason is not ("white_screen" or "window_lost" or "battle_failed" or "battle_retry_exhausted" or "battle_return_failed" or "task_failed"))
+            if (outcome.Reason is not ("white_screen" or "window_lost" or "window_connection_lost" or "battle_failed" or "battle_retry_exhausted" or "battle_return_failed" or "task_failed"))
                 return TaskAttempt.Fatal("不允许自动恢复的故障：" + outcome.Reason);
             // Game defeats retry inside the same running Pipeline. Process
             // recovery has a separate budget even for an unlimited task.
@@ -302,6 +372,8 @@ public static class TaskRecoveryPolicy
             restarts++;
             outcome = await recover(options.SaveSlot, restarts, token);
             token.ThrowIfCancellationRequested();
+            if (outcome.Status == TaskAttemptStatus.Recoverable)
+                return TaskAttempt.Fatal("重启恢复阶段失败，已停止：" + outcome.Reason);
             if (outcome.Status == TaskAttemptStatus.Ready)
                 outcome = await runRound(token);
         }
@@ -318,7 +390,7 @@ public static class TaskRecoveryPolicy
         {
             "success" when !resume => new(TaskAttemptStatus.Success),
             "ready" when resume => new(TaskAttemptStatus.Ready),
-            "recoverable" when reason is "white_screen" or "window_lost" or "battle_failed" or "battle_retry_exhausted" or "battle_return_failed" or "task_failed" => new(TaskAttemptStatus.Recoverable, reason),
+            "recoverable" when !resume && reason is ("white_screen" or "window_lost" or "battle_failed" or "battle_retry_exhausted" or "battle_return_failed" or "task_failed") => new(TaskAttemptStatus.Recoverable, reason),
             "cancelled" => new(TaskAttemptStatus.Cancelled, reason),
             "fatal" => TaskAttempt.Fatal(reason),
             _ => TaskAttempt.Fatal("任务没有留下可验证的成功状态。")

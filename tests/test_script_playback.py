@@ -1,0 +1,106 @@
+"""Input-only jobs exercise the same timeline/cleanup as normal native tasks."""
+import hashlib
+import json
+from pathlib import Path
+import sys
+import tempfile
+import time
+import unittest
+from unittest.mock import patch
+
+from test_battle_player_studio import player, FakeController
+from test_window_geometry import Geometry
+from window_geometry import WindowLease
+from script_playback import PlaybackJob
+from script_studio_service import StudioService
+from task_catalog import task_catalog, execution_plan
+from script_library import bind_task_recording
+
+ROOT=Path(__file__).resolve().parents[1]
+
+
+class PlaybackTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp=tempfile.TemporaryDirectory();self.addCleanup(self.tmp.cleanup)
+        self.root=Path(self.tmp.name);(self.root/'recordings').mkdir()
+        self.file=self.root/'recordings/test.json'
+        self.file.write_text(json.dumps(dict(version=1,name='test',base=[1148,720],duration_ms=70,
+            actions=[dict(t=0,op='keydown',key=68),dict(t=30,op='keyup',key=68),
+                     dict(t=0,op='down',x=100,y=200),dict(t=30,op='up',x=100,y=200)])),encoding='utf8')
+        self.geometry=Geometry();self.ctrl=FakeController()
+        self.params=dict(hwnd=42,file='test.json',sha256=hashlib.sha256(self.file.read_bytes()).hexdigest())
+        self.modules=patch.dict(sys.modules,{'battle_player':player});self.modules.start();self.addCleanup(self.modules.stop)
+
+    def job(self):
+        job=PlaybackJob(self.root,self.params,controller_factory=lambda *args:self.ctrl,
+            lease_factory=lambda hwnd,base:WindowLease(hwnd,base,api=self.geometry),
+            input_adapter_factory=lambda native,*args:native)
+        self.addCleanup(job.stop)
+        return job
+
+    def finish(self,job):
+        deadline=time.monotonic()+2
+        while job.snapshot()['state']=='running' and time.monotonic()<deadline:time.sleep(.01)
+        return job.snapshot()
+
+    def test_complete_mixed_input_and_trailing_wait_without_capture(self):
+        start=time.monotonic();job=self.job();result=self.finish(job)
+        self.assertEqual(result['state'],'succeeded',result)
+        self.assertGreaterEqual(time.monotonic()-start,.07)
+        self.assertEqual([c[0] for c in self.ctrl.calls],['post_key_down','post_key_up','post_touch_down','post_touch_move','post_touch_up'])
+        self.assertFalse(self.geometry.claimed)
+
+    def test_stop_during_gap_releases_input_and_never_counts_success(self):
+        data=json.loads(self.file.read_text());data['actions'][1]['t']=10000;data['duration_ms']=10040
+        self.file.write_text(json.dumps(data));self.params['sha256']=hashlib.sha256(self.file.read_bytes()).hexdigest()
+        job=self.job()
+        deadline=time.monotonic()+2
+        while not self.ctrl.calls and time.monotonic()<deadline:time.sleep(.01)
+        start=time.monotonic();result=job.stop()
+        self.assertLess(time.monotonic()-start,.5)
+        self.assertEqual(result['state'],'stopped')
+        self.assertEqual([c[0] for c in self.ctrl.calls],['post_key_down','post_key_up'])
+        self.assertFalse(self.geometry.claimed)
+
+    def test_recording_change_and_unbound_task_do_not_input(self):
+        self.file.write_text(self.file.read_text()+' ')
+        result=self.finish(self.job());self.assertEqual(result['state'],'failed')
+        self.assertEqual(self.ctrl.calls,[]);self.assertFalse(self.geometry.changes)
+        tasks=task_catalog(ROOT,bindings={})
+        generic=next(t for t in tasks if t['entry']=='GenericScriptPlayback')
+        self.assertEqual(generic['modes'],['pipeline']);self.assertTrue(generic['input_only'])
+        self.assertIsNone(generic['management_profile'])
+
+    def test_size_failure_mid_play_releases_held_key(self):
+        def fail(name,args,kwargs):
+            if name=='post_key_down':
+                self.geometry.info['width']=900;self.geometry.fail_resize=True
+        self.ctrl.after_call=fail
+        result=self.finish(self.job())
+        self.assertEqual(result['state'],'failed',result)
+        self.assertIn('无法将',result['error'])
+        self.assertEqual([c[0] for c in self.ctrl.calls],['post_key_down','post_key_up'])
+        self.assertFalse(self.geometry.claimed)
+
+    def test_worker_close_stops_owned_job(self):
+        service=StudioService(self.root)
+        job=self.job();service.playback=job
+        service.close()
+        self.assertNotEqual(job.snapshot()['state'],'running')
+        self.assertFalse(self.geometry.claimed)
+
+    def test_task_binding_uses_existing_catalog_and_is_required(self):
+        definition=dict(task=[dict(name='通用脚本播放',entry='GenericScriptPlayback')],resource=[])
+        (self.root/'interface.json').write_text(json.dumps(definition),encoding='utf8')
+        unbound=execution_plan(self.root,'通用脚本播放','GenericScriptPlayback',report_unbound=True)
+        self.assertEqual(unbound['stop_reason'],'unbound_script')
+        before=self.file.read_bytes()
+        bind_task_recording(self.root/'recordings',unbound['id'],'test.json',expected_revision=self.params['sha256'])
+        plan=execution_plan(self.root,'通用脚本播放','GenericScriptPlayback')
+        self.assertTrue(plan['handled']);self.assertTrue(plan['input_only'])
+        self.assertEqual(plan['recording']['sha256'],self.params['sha256'])
+        self.assertEqual(plan['recording']['base'],[1148,720])
+        self.assertEqual(self.file.read_bytes(),before)
+
+
+if __name__=='__main__':unittest.main()

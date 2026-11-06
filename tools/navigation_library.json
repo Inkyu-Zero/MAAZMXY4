@@ -1,0 +1,6881 @@
+{
+  "version": 1,
+  "templates": {
+    "read": {
+      "action": {
+        "type": "DoNothing"
+      },
+      "next": [],
+      "post_delay": 0
+    },
+    "click": {
+      "action": {
+        "type": "Click",
+        "param": {
+          "target": true
+        }
+      },
+      "next": [],
+      "post_delay": 300,
+      "pre_delay": 0,
+      "rate_limit": 200,
+      "timeout": 1500
+    }
+  },
+  "recognizers": {
+    "Nav_Probe_paused_overlay": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "bounty-candle/pause.png",
+          "bounty-candle/pause-cloudy.png",
+          "navigation/panels/daily-pause-caption.png"
+        ],
+        "threshold": 0.9,
+        "roi": [
+          300,
+          300,
+          550,
+          120
+        ]
+      }
+    },
+    "Nav_Probe_hub_scene": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "任务.png"
+      }
+    },
+    "Nav_Probe_daily_menu_scene": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/daily-expanded/menu-arhat.png",
+                "roi": [
+                  297,
+                  292,
+                  58,
+                  47
+                ],
+                "threshold": 0.94
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/daily-expanded/menu-arena.png",
+                "roi": [
+                  378,
+                  378,
+                  64,
+                  48
+                ],
+                "threshold": 0.94
+              }
+            }
+          }
+        ]
+      }
+    },
+    "Nav_Probe_daily_expanded_arhat": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/daily-expanded/menu-arhat.png",
+        "roi": [
+          297,
+          292,
+          58,
+          47
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_daily_expanded_arhat_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          301,
+          317,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          228,
+          194,
+          104
+        ],
+        "upper": [
+          255,
+          248,
+          211
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_daily_expanded_arena": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/daily-expanded/menu-arena.png",
+        "roi": [
+          378,
+          378,
+          64,
+          48
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_daily_expanded_arena_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          428,
+          399,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          232,
+          0,
+          0
+        ],
+        "upper": [
+          255,
+          32,
+          18
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_login_logo": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/login/logo.png",
+        "roi": [
+          33,
+          25,
+          251,
+          152
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_login_logo_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          98,
+          36,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          237,
+          233,
+          155
+        ],
+        "upper": [
+          255,
+          255,
+          216
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_login_start": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/login/start-game.png",
+        "roi": [
+          461,
+          600,
+          215,
+          69
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_login_start_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          486,
+          619,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          225,
+          206,
+          81
+        ],
+        "upper": [
+          255,
+          243,
+          125
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_saves_title": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/saves/title.png",
+        "roi": [
+          476,
+          86,
+          190,
+          57
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_saves_title_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          632,
+          94,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          229,
+          229,
+          180
+        ],
+        "upper": [
+          255,
+          255,
+          225
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_world_center": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/world/sumeru-entry.png",
+        "roi": [
+          522,
+          277,
+          105,
+          78
+        ],
+        "method": 1,
+        "threshold": 0.03
+      }
+    },
+    "Nav_Probe_world_lower_left": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/world/landmark-05.png",
+        "roi": [
+          278,
+          375,
+          179,
+          116
+        ],
+        "method": 1,
+        "threshold": 0.03
+      }
+    },
+    "Nav_Probe_sumeru_recovery_entry": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/world/sumeru-entry.png",
+        "roi": [
+          522,
+          277,
+          105,
+          78
+        ],
+        "method": 1,
+        "threshold": 0.03
+      }
+    },
+    "Nav_Probe_map_a_center": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/map-a/landmark-06.png",
+        "roi": [
+          531,
+          287,
+          130,
+          95
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_map_a_center_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          583,
+          321,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          157,
+          225,
+          212
+        ],
+        "upper": [
+          212,
+          255,
+          255
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_map_a_lower": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/map-a/landmark-09.png",
+        "roi": [
+          407,
+          430,
+          144,
+          117
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_map_a_lower_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          493,
+          541,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          211,
+          229,
+          230
+        ],
+        "upper": [
+          255,
+          255,
+          255
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_map_b_center": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/map-b/landmark-06.png",
+        "roi": [
+          648,
+          239,
+          117,
+          103
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_map_b_center_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          752,
+          339,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          125,
+          193,
+          201
+        ],
+        "upper": [
+          162,
+          230,
+          238
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_map_b_lower": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/map-b/landmark-09.png",
+        "roi": [
+          399,
+          404,
+          130,
+          87
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_map_b_lower_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          525,
+          407,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          136,
+          191,
+          201
+        ],
+        "upper": [
+          173,
+          228,
+          239
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_activity_title": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/activity/title.png",
+        "roi": [
+          492,
+          47,
+          200,
+          62
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_activity_title_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          517,
+          107,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          217,
+          168,
+          120
+        ],
+        "upper": [
+          255,
+          207,
+          157
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_profile_title": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/profile/title.png",
+        "roi": [
+          469,
+          41,
+          214,
+          55
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_profile_title_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          583,
+          47,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          230,
+          229,
+          184
+        ],
+        "upper": [
+          255,
+          255,
+          241
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_treasure_title": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/treasure/title.png",
+        "roi": [
+          522,
+          88,
+          105,
+          53
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_treasure_title_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          553,
+          96,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          194,
+          193,
+          153
+        ],
+        "upper": [
+          255,
+          255,
+          216
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_time_boat_title": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/time-boat/title.png",
+        "roi": [
+          547,
+          52,
+          306,
+          98
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_time_boat_title_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          778,
+          72,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          205,
+          135,
+          92
+        ],
+        "upper": [
+          241,
+          171,
+          128
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_theme_title": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/theme/title.png",
+        "roi": [
+          477,
+          73,
+          205,
+          57
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_theme_title_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          483,
+          128,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          227,
+          192,
+          147
+        ],
+        "upper": [
+          255,
+          231,
+          186
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_hell_title": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/hell/title.png",
+        "roi": [
+          470,
+          109,
+          205,
+          57
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_hell_title_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          470,
+          160,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          231,
+          194,
+          132
+        ],
+        "upper": [
+          255,
+          230,
+          168
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_arhat_title": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/arhat/title.png",
+        "roi": [
+          503,
+          109,
+          157,
+          57
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_arhat_title_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          503,
+          160,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          231,
+          194,
+          132
+        ],
+        "upper": [
+          255,
+          230,
+          168
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_fortune_title": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/fortune/title.png",
+        "roi": [
+          447,
+          97,
+          254,
+          60
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_fortune_title_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          447,
+          155,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          234,
+          197,
+          137
+        ],
+        "upper": [
+          255,
+          233,
+          173
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_mount_gather_title": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/mount-gather/title.png",
+        "roi": [
+          432,
+          59,
+          288,
+          53
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_mount_gather_title_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          639,
+          65,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          215,
+          219,
+          173
+        ],
+        "upper": [
+          255,
+          255,
+          222
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_arena_title": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/arena/title.png",
+        "roi": [
+          499,
+          18,
+          141,
+          51
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_arena_title_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          612,
+          59,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          230,
+          186,
+          86
+        ],
+        "upper": [
+          255,
+          225,
+          134
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_arena_list": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/arena/challenge-instruction.png",
+        "roi": [
+          324,
+          143,
+          243,
+          33
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_arena_list_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          341,
+          149,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          198,
+          174,
+          93
+        ],
+        "upper": [
+          255,
+          247,
+          152
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_shop_title": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/shop/title.png",
+        "roi": [
+          521,
+          87,
+          106,
+          53
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_shop_title_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          547,
+          91,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          211,
+          210,
+          170
+        ],
+        "upper": [
+          255,
+          255,
+          223
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_shop_mystery_selected": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/shop/mystery-tab.png",
+        "roi": [
+          266,
+          148,
+          118,
+          44
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_shop_mystery_selected_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          349,
+          165,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          147,
+          142,
+          123
+        ],
+        "upper": [
+          255,
+          255,
+          255
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_time_replay_1_title": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/time-replay-1/title.png",
+        "roi": [
+          471,
+          88,
+          205,
+          56
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_time_replay_1_title_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          471,
+          142,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          222,
+          176,
+          128
+        ],
+        "upper": [
+          255,
+          214,
+          164
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_time_replay_1_selected": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/time-replay-1/page-1.png",
+        "roi": [
+          528,
+          568,
+          42,
+          42
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_time_replay_1_selected_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          528,
+          568,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          221,
+          178,
+          125
+        ],
+        "upper": [
+          255,
+          214,
+          161
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_time_replay_2_title": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/time-replay-2/title.png",
+        "roi": [
+          471,
+          88,
+          205,
+          56
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_time_replay_2_title_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          471,
+          142,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          222,
+          176,
+          128
+        ],
+        "upper": [
+          255,
+          214,
+          164
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_time_replay_2_selected": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/time-replay-2/page-2.png",
+        "roi": [
+          572,
+          568,
+          42,
+          42
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_time_replay_2_selected_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          587,
+          583,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          153,
+          156,
+          159
+        ],
+        "upper": [
+          255,
+          255,
+          255
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_defend_south_title": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/defend-south/title.png",
+        "roi": [
+          418,
+          109,
+          322,
+          57
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_defend_south_title_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          418,
+          160,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          231,
+          194,
+          132
+        ],
+        "upper": [
+          255,
+          230,
+          168
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_defend_south_selected": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/defend-south/tab-south.png",
+        "roi": [
+          166,
+          153,
+          113,
+          81
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_defend_south_selected_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          256,
+          192,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          196,
+          194,
+          192
+        ],
+        "upper": [
+          255,
+          255,
+          255
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_defend_east_title": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/defend-east/title.png",
+        "roi": [
+          418,
+          109,
+          322,
+          57
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_defend_east_title_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          418,
+          160,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          231,
+          194,
+          132
+        ],
+        "upper": [
+          255,
+          230,
+          168
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_defend_east_selected": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/defend-east/tab-east.png",
+        "roi": [
+          166,
+          263,
+          113,
+          81
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_defend_east_selected_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          256,
+          301,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          188,
+          188,
+          187
+        ],
+        "upper": [
+          255,
+          255,
+          255
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_defend_north_title": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/defend-north/title.png",
+        "roi": [
+          418,
+          109,
+          322,
+          57
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_defend_north_title_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          418,
+          160,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          231,
+          194,
+          132
+        ],
+        "upper": [
+          255,
+          230,
+          168
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_defend_north_selected": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/defend-north/tab-north.png",
+        "roi": [
+          166,
+          374,
+          113,
+          81
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_defend_north_selected_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          256,
+          410,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          196,
+          188,
+          184
+        ],
+        "upper": [
+          255,
+          255,
+          255
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_bounty_board_title": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/bounty/title.png",
+        "roi": [
+          524,
+          15,
+          101,
+          57
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_bounty_board_title_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          546,
+          62,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          231,
+          191,
+          85
+        ],
+        "upper": [
+          255,
+          245,
+          136
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_bounty_board_tab": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/bounty/daily-tab.png",
+        "roi": [
+          43,
+          125,
+          126,
+          59
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_bounty_board_tab_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          99,
+          142,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          227,
+          200,
+          123
+        ],
+        "upper": [
+          255,
+          246,
+          168
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_alliance_title": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/alliance/title.png",
+        "roi": [
+          484,
+          9,
+          182,
+          48
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_alliance_title_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          563,
+          50,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          231,
+          189,
+          75
+        ],
+        "upper": [
+          255,
+          229,
+          123
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_alliance_overview": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/alliance/overview.png",
+        "roi": [
+          50,
+          41,
+          145,
+          38
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_alliance_overview_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          80,
+          54,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          237,
+          236,
+          0
+        ],
+        "upper": [
+          255,
+          255,
+          46
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_alliance_contribution_title": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/alliance-contribution/title.png",
+        "roi": [
+          476,
+          147,
+          188,
+          49
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_alliance_contribution_title_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          476,
+          194,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          222,
+          181,
+          123
+        ],
+        "upper": [
+          255,
+          218,
+          160
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_alliance_blessing_title": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/alliance-blessing/title.png",
+        "roi": [
+          473,
+          112,
+          187,
+          51
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_alliance_blessing_title_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          473,
+          161,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          222,
+          181,
+          123
+        ],
+        "upper": [
+          255,
+          218,
+          160
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_survival_week_title": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/survival-week/title.png",
+        "roi": [
+          461,
+          20,
+          260,
+          62
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_survival_week_title_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          692,
+          30,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          235,
+          200,
+          0
+        ],
+        "upper": [
+          255,
+          239,
+          25
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_survival_week_label": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/survival-week/weekly-score-label.png",
+        "roi": [
+          60,
+          64,
+          151,
+          35
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_survival_week_label_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          89,
+          72,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          214,
+          209,
+          122
+        ],
+        "upper": [
+          255,
+          255,
+          176
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_survival_question_title": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/survival-question/title.png",
+        "roi": [
+          461,
+          20,
+          260,
+          62
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_survival_question_title_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          692,
+          30,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          235,
+          200,
+          0
+        ],
+        "upper": [
+          255,
+          239,
+          25
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_survival_question_attributes": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/survival-question/attributes-label.png",
+        "roi": [
+          50,
+          199,
+          154,
+          38
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_survival_rewards_title": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/survival-rewards/title.png",
+        "roi": [
+          469,
+          37,
+          211,
+          65
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_survival_rewards_title_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          490,
+          89,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          237,
+          212,
+          85
+        ],
+        "upper": [
+          255,
+          250,
+          123
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_survival_rewards_choice": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/survival-rewards/choose-one.png",
+        "roi": [
+          444,
+          152,
+          232,
+          38
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_survival_rewards_choice_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          465,
+          163,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          202,
+          179,
+          45
+        ],
+        "upper": [
+          255,
+          255,
+          99
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_profile_sell_warning": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/profile-sell/warning.png",
+        "roi": [
+          381,
+          416,
+          396,
+          40
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_profile_sell_warning_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          539,
+          437,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          208,
+          206,
+          209
+        ],
+        "upper": [
+          255,
+          255,
+          255
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_profile_sell_quality": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/profile-sell/quality-label.png",
+        "roi": [
+          355,
+          214,
+          145,
+          42
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_profile_sell_quality_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          375,
+          223,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          185,
+          172,
+          119
+        ],
+        "upper": [
+          255,
+          255,
+          200
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_warehouse_title": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/warehouse/title.png",
+        "roi": [
+          522,
+          63,
+          101,
+          52
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_warehouse_title_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          582,
+          79,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          237,
+          236,
+          0
+        ],
+        "upper": [
+          255,
+          255,
+          46
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_warehouse_bag": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/warehouse/bag-label.png",
+        "roi": [
+          303,
+          127,
+          147,
+          38
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_warehouse_bag_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          317,
+          135,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          156,
+          133,
+          70
+        ],
+        "upper": [
+          255,
+          255,
+          180
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_settings_continue": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/settings-menu/continue.png",
+        "roi": [
+          452,
+          152,
+          244,
+          58
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_settings_continue_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          538,
+          172,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          147,
+          141,
+          89
+        ],
+        "upper": [
+          255,
+          255,
+          194
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_settings_return_map": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/settings-menu/map-return.png",
+        "roi": [
+          452,
+          220,
+          244,
+          58
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_settings_return_map_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          597,
+          241,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          198,
+          193,
+          125
+        ],
+        "upper": [
+          255,
+          255,
+          200
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_saves_close": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/saves/close.png",
+        "roi": [
+          854,
+          71,
+          74,
+          71
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_saves_close_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          854,
+          126,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          231,
+          180,
+          117
+        ],
+        "upper": [
+          255,
+          216,
+          153
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_map_a_world": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/map-a/world.png",
+        "roi": [
+          1053,
+          29,
+          90,
+          92
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_map_a_world_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          1103,
+          96,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          157,
+          153,
+          127
+        ],
+        "upper": [
+          255,
+          255,
+          246
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_map_a_activity_entry": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/map-a/activity.png",
+        "roi": [
+          691,
+          17,
+          63,
+          67
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_map_a_activity_entry_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          717,
+          31,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          236,
+          217,
+          179
+        ],
+        "upper": [
+          255,
+          255,
+          234
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_map_a_backpack_entry": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/map-a/backpack.png",
+        "roi": [
+          135,
+          14,
+          60,
+          70
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_map_a_backpack_entry_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          170,
+          60,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          169,
+          170,
+          120
+        ],
+        "upper": [
+          255,
+          255,
+          205
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_map_a_treasure_entry": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/map-a/treasure.png",
+        "roi": [
+          204,
+          13,
+          62,
+          71
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_map_a_treasure_entry_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          243,
+          60,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          205,
+          206,
+          149
+        ],
+        "upper": [
+          255,
+          255,
+          205
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_map_b_world": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/map-b/world.png",
+        "roi": [
+          1053,
+          29,
+          90,
+          92
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_map_b_world_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          1103,
+          96,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          157,
+          153,
+          127
+        ],
+        "upper": [
+          255,
+          255,
+          246
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_map_b_activity_entry": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/map-b/activity.png",
+        "roi": [
+          691,
+          17,
+          63,
+          67
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_map_b_activity_entry_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          717,
+          31,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          236,
+          217,
+          179
+        ],
+        "upper": [
+          255,
+          255,
+          234
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_map_b_backpack_entry": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/map-b/backpack.png",
+        "roi": [
+          135,
+          14,
+          60,
+          70
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_map_b_backpack_entry_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          170,
+          60,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          169,
+          170,
+          120
+        ],
+        "upper": [
+          255,
+          255,
+          205
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_map_b_treasure_entry": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/map-b/treasure.png",
+        "roi": [
+          204,
+          13,
+          62,
+          71
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_map_b_treasure_entry_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          243,
+          60,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          205,
+          206,
+          149
+        ],
+        "upper": [
+          255,
+          255,
+          205
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_home_entry": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/world/sumeru-entry.png",
+        "roi": [
+          522,
+          277,
+          105,
+          78
+        ],
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_hub_world_entry": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/daily-expanded/world.png",
+        "roi": [
+          338,
+          14,
+          67,
+          73
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_hub_world_entry_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          403,
+          70,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          235,
+          236,
+          228
+        ],
+        "upper": [
+          255,
+          255,
+          255
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_hub_profile_entry": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/daily-expanded/bottom-backpack.png",
+        "roi": [
+          411,
+          644,
+          60,
+          74
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_hub_profile_entry_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          448,
+          697,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          231,
+          229,
+          161
+        ],
+        "upper": [
+          255,
+          255,
+          209
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_hub_treasure_entry": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/daily-expanded/bottom-treasure.png",
+        "roi": [
+          520,
+          644,
+          55,
+          74
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_hub_treasure_entry_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          556,
+          697,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          232,
+          229,
+          162
+        ],
+        "upper": [
+          255,
+          255,
+          213
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_hub_settings_menu_entry": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/daily-expanded/bottom-settings.png",
+        "roi": [
+          682,
+          644,
+          56,
+          74
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_hub_settings_menu_entry_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          699,
+          697,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          207,
+          208,
+          148
+        ],
+        "upper": [
+          255,
+          255,
+          203
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_hub_alliance_entry": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/daily-expanded/alliance.png",
+        "roi": [
+          507,
+          14,
+          65,
+          74
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_hub_alliance_entry_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          553,
+          57,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          236,
+          219,
+          168
+        ],
+        "upper": [
+          255,
+          255,
+          222
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_hub_time_boat_entry": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/daily-expanded/time-boat.png",
+        "roi": [
+          502,
+          183,
+          80,
+          78
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_hub_time_boat_entry_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          520,
+          241,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          234,
+          208,
+          133
+        ],
+        "upper": [
+          255,
+          249,
+          179
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_hub_daily_toggle": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/daily-expanded/daily-menu.png",
+        "roi": [
+          416,
+          183,
+          77,
+          78
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_hub_daily_toggle_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          456,
+          233,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          221,
+          187,
+          166
+        ],
+        "upper": [
+          255,
+          255,
+          255
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_daily_arena_entry": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/daily-expanded/menu-arena.png",
+        "roi": [
+          378,
+          378,
+          64,
+          48
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_daily_arena_entry_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          428,
+          399,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          232,
+          0,
+          0
+        ],
+        "upper": [
+          255,
+          32,
+          18
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_daily_theme_entry": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/daily-expanded/menu-theme.png",
+        "roi": [
+          460,
+          376,
+          66,
+          50
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_daily_theme_entry_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          490,
+          384,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          217,
+          49,
+          237
+        ],
+        "upper": [
+          255,
+          98,
+          255
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_daily_hell_entry": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/daily-expanded/menu-hell.png",
+        "roi": [
+          297,
+          377,
+          58,
+          48
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_daily_hell_entry_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          337,
+          386,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          229,
+          99,
+          94
+        ],
+        "upper": [
+          255,
+          194,
+          184
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_daily_arhat_entry": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/daily-expanded/menu-arhat.png",
+        "roi": [
+          297,
+          292,
+          58,
+          47
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_daily_arhat_entry_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          301,
+          317,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          228,
+          194,
+          104
+        ],
+        "upper": [
+          255,
+          248,
+          211
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_daily_fortune_entry": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/daily-expanded/menu-fortune.png",
+        "roi": [
+          460,
+          288,
+          63,
+          51
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_daily_fortune_entry_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          514,
+          322,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          232,
+          82,
+          0
+        ],
+        "upper": [
+          255,
+          133,
+          30
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_daily_survival_week_entry": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/daily-expanded/menu-survival.png",
+        "roi": [
+          379,
+          290,
+          65,
+          49
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_daily_survival_week_entry_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          419,
+          314,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          222,
+          192,
+          100
+        ],
+        "upper": [
+          255,
+          230,
+          137
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_daily_defend_entry": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/daily-expanded/menu-defend.png",
+        "roi": [
+          543,
+          377,
+          74,
+          49
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_daily_defend_entry_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          566,
+          413,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          216,
+          204,
+          224
+        ],
+        "upper": [
+          253,
+          242,
+          255
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_defend_south_to_east": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/defend-south/tab-east.png",
+        "roi": [
+          166,
+          263,
+          113,
+          81
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_defend_south_to_east_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          239,
+          297,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          210,
+          222,
+          218
+        ],
+        "upper": [
+          255,
+          255,
+          255
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_defend_south_to_north": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/defend-south/tab-north.png",
+        "roi": [
+          166,
+          374,
+          113,
+          81
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_defend_south_to_north_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          237,
+          405,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          212,
+          220,
+          215
+        ],
+        "upper": [
+          255,
+          255,
+          255
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_defend_east_to_south": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/defend-east/tab-south.png",
+        "roi": [
+          166,
+          153,
+          113,
+          81
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_defend_east_to_south_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          236,
+          184,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          218,
+          216,
+          217
+        ],
+        "upper": [
+          255,
+          255,
+          255
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_defend_east_to_north": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/defend-east/tab-north.png",
+        "roi": [
+          166,
+          374,
+          113,
+          81
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_defend_east_to_north_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          237,
+          405,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          212,
+          220,
+          215
+        ],
+        "upper": [
+          255,
+          255,
+          255
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_defend_north_to_south": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/defend-north/tab-south.png",
+        "roi": [
+          166,
+          153,
+          113,
+          81
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_defend_north_to_south_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          236,
+          184,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          218,
+          216,
+          217
+        ],
+        "upper": [
+          255,
+          255,
+          255
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_defend_north_to_east": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/defend-north/tab-east.png",
+        "roi": [
+          166,
+          263,
+          113,
+          81
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_defend_north_to_east_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          239,
+          297,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          210,
+          222,
+          218
+        ],
+        "upper": [
+          255,
+          255,
+          255
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_time_boat_replay_entry": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/time-boat/replay.png",
+        "roi": [
+          475,
+          293,
+          134,
+          160
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_time_boat_replay_entry_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          539,
+          376,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          197,
+          233,
+          236
+        ],
+        "upper": [
+          239,
+          255,
+          255
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_time_replay_1_to_2": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/time-replay-1/page-2.png",
+        "roi": [
+          572,
+          568,
+          42,
+          42
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_time_replay_1_to_2_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          587,
+          583,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          155,
+          156,
+          157
+        ],
+        "upper": [
+          255,
+          255,
+          255
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_time_replay_1_close": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/time-replay-1/close.png",
+        "roi": [
+          804,
+          73,
+          69,
+          73
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_time_replay_1_close_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          804,
+          143,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          220,
+          174,
+          125
+        ],
+        "upper": [
+          255,
+          211,
+          162
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_time_replay_2_to_1": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/time-replay-2/page-1.png",
+        "roi": [
+          528,
+          568,
+          42,
+          42
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_time_replay_2_to_1_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          528,
+          568,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          221,
+          178,
+          125
+        ],
+        "upper": [
+          255,
+          214,
+          161
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_time_replay_2_close": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/time-replay-2/close.png",
+        "roi": [
+          804,
+          73,
+          69,
+          73
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_time_replay_2_close_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          804,
+          143,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          220,
+          174,
+          125
+        ],
+        "upper": [
+          255,
+          211,
+          162
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_alliance_contribution_entry": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/alliance/contribution-entry.png",
+        "roi": [
+          447,
+          384,
+          103,
+          109
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_alliance_contribution_entry_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          536,
+          384,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          224,
+          200,
+          149
+        ],
+        "upper": [
+          255,
+          236,
+          185
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_profile_warehouse_entry": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/profile/warehouse.png",
+        "roi": [
+          814,
+          606,
+          77,
+          45
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_profile_warehouse_entry_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          814,
+          606,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          205,
+          162,
+          105
+        ],
+        "upper": [
+          241,
+          198,
+          141
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_survival_reward_entry": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/survival-week/reward-entry.png",
+        "roi": [
+          71,
+          142,
+          118,
+          44
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_survival_reward_entry_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          155,
+          160,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          222,
+          208,
+          126
+        ],
+        "upper": [
+          255,
+          255,
+          172
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_activity_close": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/activity/close.png",
+        "roi": [
+          913,
+          39,
+          65,
+          73
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_activity_close_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          916,
+          110,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          215,
+          163,
+          115
+        ],
+        "upper": [
+          252,
+          200,
+          152
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_profile_close": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/profile/close.png",
+        "roi": [
+          971,
+          26,
+          71,
+          70
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_profile_close_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          985,
+          41,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          204,
+          64,
+          0
+        ],
+        "upper": [
+          255,
+          107,
+          18
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_treasure_close": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/treasure/close.png",
+        "roi": [
+          901,
+          75,
+          73,
+          68
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_treasure_close_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          921,
+          87,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          175,
+          68,
+          0
+        ],
+        "upper": [
+          255,
+          123,
+          18
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_arena_close": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/arena/close.png",
+        "roi": [
+          1069,
+          18,
+          70,
+          70
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_arena_close_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          1077,
+          85,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          194,
+          148,
+          82
+        ],
+        "upper": [
+          243,
+          195,
+          123
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_shop_mystery_close": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/shop/close.png",
+        "roi": [
+          972,
+          77,
+          71,
+          68
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_shop_mystery_close_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          989,
+          91,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          146,
+          50,
+          0
+        ],
+        "upper": [
+          255,
+          112,
+          18
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_time_boat_close": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/time-boat/close.png",
+        "roi": [
+          987,
+          140,
+          71,
+          72
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_time_boat_close_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          1024,
+          156,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          192,
+          113,
+          77
+        ],
+        "upper": [
+          229,
+          149,
+          114
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_theme_close": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/theme/close.png",
+        "roi": [
+          1038,
+          44,
+          77,
+          77
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_theme_close_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          1038,
+          114,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          225,
+          181,
+          131
+        ],
+        "upper": [
+          255,
+          218,
+          170
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_hell_close": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/hell/close.png",
+        "roi": [
+          880,
+          91,
+          74,
+          74
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_hell_close_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          882,
+          162,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          228,
+          189,
+          127
+        ],
+        "upper": [
+          255,
+          225,
+          163
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_arhat_close": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/arhat/close.png",
+        "roi": [
+          880,
+          91,
+          74,
+          74
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_arhat_close_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          882,
+          162,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          228,
+          189,
+          127
+        ],
+        "upper": [
+          255,
+          225,
+          163
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_fortune_close": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/fortune/close.png",
+        "roi": [
+          901,
+          74,
+          72,
+          71
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_fortune_close_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          901,
+          142,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          227,
+          188,
+          126
+        ],
+        "upper": [
+          255,
+          225,
+          163
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_bounty_board_close": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/bounty/close.png",
+        "roi": [
+          995,
+          23,
+          71,
+          74
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_bounty_board_close_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          1011,
+          40,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          226,
+          59,
+          0
+        ],
+        "upper": [
+          255,
+          105,
+          18
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_alliance_close": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/alliance/close.png",
+        "roi": [
+          1068,
+          23,
+          68,
+          66
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_alliance_close_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          1121,
+          87,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          193,
+          139,
+          52
+        ],
+        "upper": [
+          237,
+          181,
+          92
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_mount_gather_close": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/mount-gather/close.png",
+        "roi": [
+          969,
+          47,
+          68,
+          75
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_mount_gather_close_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          969,
+          120,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          187,
+          134,
+          86
+        ],
+        "upper": [
+          224,
+          171,
+          127
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_survival_week_close": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/survival-week/close.png",
+        "roi": [
+          1069,
+          6,
+          74,
+          71
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_survival_week_close_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          1086,
+          19,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          200,
+          70,
+          0
+        ],
+        "upper": [
+          255,
+          116,
+          18
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_defend_south_close": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/defend-south/close.png",
+        "roi": [
+          880,
+          91,
+          74,
+          74
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_defend_south_close_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          882,
+          162,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          228,
+          189,
+          127
+        ],
+        "upper": [
+          255,
+          225,
+          163
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_defend_east_close": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/defend-east/close.png",
+        "roi": [
+          880,
+          91,
+          74,
+          74
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_defend_east_close_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          882,
+          162,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          228,
+          189,
+          127
+        ],
+        "upper": [
+          255,
+          225,
+          163
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_defend_north_close": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/defend-north/close.png",
+        "roi": [
+          880,
+          91,
+          74,
+          74
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_defend_north_close_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          882,
+          162,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          228,
+          189,
+          127
+        ],
+        "upper": [
+          255,
+          225,
+          163
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_alliance_contribution_close": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/alliance-contribution/close.png",
+        "roi": [
+          915,
+          132,
+          74,
+          69
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_alliance_contribution_close_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          916,
+          199,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          220,
+          177,
+          120
+        ],
+        "upper": [
+          255,
+          215,
+          157
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_alliance_blessing_close": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/alliance-blessing/close.png",
+        "roi": [
+          968,
+          93,
+          75,
+          68
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_alliance_blessing_close_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          970,
+          159,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          218,
+          175,
+          117
+        ],
+        "upper": [
+          254,
+          211,
+          154
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_survival_rewards_close": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/survival-rewards/close.png",
+        "roi": [
+          871,
+          12,
+          71,
+          72
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_survival_rewards_close_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          889,
+          30,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          224,
+          61,
+          0
+        ],
+        "upper": [
+          255,
+          107,
+          18
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_warehouse_close": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/warehouse/close.png",
+        "roi": [
+          941,
+          33,
+          73,
+          72
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_warehouse_close_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          964,
+          44,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          172,
+          66,
+          0
+        ],
+        "upper": [
+          255,
+          122,
+          19
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Probe_profile_sell_cancel": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/profile-sell/cancel.png",
+        "roi": [
+          612,
+          461,
+          100,
+          44
+        ],
+        "method": 5,
+        "threshold": 0.94
+      }
+    },
+    "Nav_Probe_profile_sell_cancel_Color": {
+      "type": "ColorMatch",
+      "param": {
+        "roi": [
+          612,
+          463,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          233,
+          194,
+          132
+        ],
+        "upper": [
+          255,
+          230,
+          168
+        ],
+        "count": 4
+      }
+    },
+    "Nav_Portal_town1": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/hubs/portal-town1.png",
+        "roi": [
+          540,
+          477,
+          108,
+          64
+        ],
+        "threshold": 0.94
+      }
+    },
+    "Nav_Portal_town2": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/hubs/portal-town2.png",
+        "roi": [
+          928,
+          284,
+          108,
+          98
+        ],
+        "threshold": 0.94
+      }
+    },
+    "Nav_Portal_town3": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/hubs/portal-town3.png",
+        "roi": [
+          516,
+          89,
+          108,
+          98
+        ],
+        "threshold": 0.94
+      }
+    },
+    "Nav_Portal_town4": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/hubs/portal-town4.png",
+        "roi": [
+          83,
+          294,
+          98,
+          98
+        ],
+        "threshold": 0.94
+      }
+    },
+    "Nav_Portal_town5": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/hubs/portal-town5.png",
+        "roi": [
+          159,
+          524,
+          108,
+          98
+        ],
+        "threshold": 0.94
+      }
+    },
+    "Nav_Portal_town6": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/hubs/portal-town6.png",
+        "roi": [
+          746,
+          109,
+          108,
+          98
+        ],
+        "threshold": 0.94
+      }
+    },
+    "Nav_WorldCompass": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/hubs/world-compass.png",
+        "roi": [
+          1050,
+          25,
+          97,
+          100
+        ],
+        "threshold": 0.94
+      }
+    }
+  },
+  "screens": {
+    "daily_menu": {
+      "label": "须弥山日常活动菜单",
+      "all_of": [
+        "Nav_Probe_daily_menu_scene"
+      ]
+    },
+    "daily_expanded": {
+      "label": "日常活动菜单（暂停）",
+      "all_of": [
+        "Nav_Probe_daily_expanded_arhat",
+        "Nav_Probe_daily_expanded_arhat_Color",
+        "Nav_Probe_daily_expanded_arena",
+        "Nav_Probe_daily_expanded_arena_Color",
+        "Nav_Probe_paused_overlay"
+      ]
+    },
+    "login": {
+      "label": "开始游戏",
+      "all_of": [
+        "Nav_Probe_login_logo",
+        "Nav_Probe_login_logo_Color",
+        "Nav_Probe_login_start",
+        "Nav_Probe_login_start_Color"
+      ]
+    },
+    "saves": {
+      "label": "存档记录",
+      "all_of": [
+        "Nav_Probe_saves_title",
+        "Nav_Probe_saves_title_Color"
+      ]
+    },
+    "world": {
+      "label": "世界地图",
+      "all_of": [
+        "Nav_Probe_world_center",
+        "Nav_Probe_world_lower_left"
+      ]
+    },
+    "activity": {
+      "label": "活跃奖励",
+      "all_of": [
+        "Nav_Probe_activity_title",
+        "Nav_Probe_activity_title_Color"
+      ]
+    },
+    "profile": {
+      "label": "个人资料／背包",
+      "all_of": [
+        "Nav_Probe_profile_title",
+        "Nav_Probe_profile_title_Color"
+      ]
+    },
+    "treasure": {
+      "label": "法宝",
+      "all_of": [
+        "Nav_Probe_treasure_title",
+        "Nav_Probe_treasure_title_Color"
+      ]
+    },
+    "time_boat": {
+      "label": "时光之舟",
+      "all_of": [
+        "Nav_Probe_time_boat_title",
+        "Nav_Probe_time_boat_title_Color"
+      ]
+    },
+    "theme": {
+      "label": "主题挑战",
+      "all_of": [
+        "Nav_Probe_theme_title",
+        "Nav_Probe_theme_title_Color"
+      ]
+    },
+    "hell": {
+      "label": "螺旋地狱",
+      "all_of": [
+        "Nav_Probe_hell_title",
+        "Nav_Probe_hell_title_Color"
+      ]
+    },
+    "arhat": {
+      "label": "罗汉堂",
+      "all_of": [
+        "Nav_Probe_arhat_title",
+        "Nav_Probe_arhat_title_Color"
+      ]
+    },
+    "fortune": {
+      "label": "挑战福禄寿",
+      "all_of": [
+        "Nav_Probe_fortune_title",
+        "Nav_Probe_fortune_title_Color"
+      ]
+    },
+    "mount_gather": {
+      "label": "骑装加速养成",
+      "all_of": [
+        "Nav_Probe_mount_gather_title",
+        "Nav_Probe_mount_gather_title_Color"
+      ]
+    },
+    "arena": {
+      "label": "竞技场对手列表",
+      "all_of": [
+        "Nav_Probe_arena_title",
+        "Nav_Probe_arena_title_Color",
+        "Nav_Probe_arena_list",
+        "Nav_Probe_arena_list_Color"
+      ]
+    },
+    "shop_mystery": {
+      "label": "神秘商店",
+      "all_of": [
+        "Nav_Probe_shop_title",
+        "Nav_Probe_shop_title_Color",
+        "Nav_Probe_shop_mystery_selected",
+        "Nav_Probe_shop_mystery_selected_Color"
+      ]
+    },
+    "time_replay_1": {
+      "label": "时光重现 · 第 1 页",
+      "all_of": [
+        "Nav_Probe_time_replay_1_title",
+        "Nav_Probe_time_replay_1_title_Color",
+        "Nav_Probe_time_replay_1_selected",
+        "Nav_Probe_time_replay_1_selected_Color"
+      ]
+    },
+    "time_replay_2": {
+      "label": "时光重现 · 第 2 页",
+      "all_of": [
+        "Nav_Probe_time_replay_2_title",
+        "Nav_Probe_time_replay_2_title_Color",
+        "Nav_Probe_time_replay_2_selected",
+        "Nav_Probe_time_replay_2_selected_Color"
+      ]
+    },
+    "defend_south": {
+      "label": "守卫须弥山 · 城南",
+      "all_of": [
+        "Nav_Probe_defend_south_title",
+        "Nav_Probe_defend_south_title_Color",
+        "Nav_Probe_defend_south_selected",
+        "Nav_Probe_defend_south_selected_Color"
+      ]
+    },
+    "defend_east": {
+      "label": "守卫须弥山 · 城东",
+      "all_of": [
+        "Nav_Probe_defend_east_title",
+        "Nav_Probe_defend_east_title_Color",
+        "Nav_Probe_defend_east_selected",
+        "Nav_Probe_defend_east_selected_Color"
+      ]
+    },
+    "defend_north": {
+      "label": "守卫须弥山 · 城北",
+      "all_of": [
+        "Nav_Probe_defend_north_title",
+        "Nav_Probe_defend_north_title_Color",
+        "Nav_Probe_defend_north_selected",
+        "Nav_Probe_defend_north_selected_Color"
+      ]
+    },
+    "bounty_board": {
+      "label": "未接取悬赏榜",
+      "all_of": [
+        "Nav_Probe_bounty_board_title",
+        "Nav_Probe_bounty_board_title_Color",
+        "Nav_Probe_bounty_board_tab",
+        "Nav_Probe_bounty_board_tab_Color"
+      ]
+    },
+    "alliance": {
+      "label": "我的联盟",
+      "all_of": [
+        "Nav_Probe_alliance_title",
+        "Nav_Probe_alliance_title_Color",
+        "Nav_Probe_alliance_overview",
+        "Nav_Probe_alliance_overview_Color"
+      ]
+    },
+    "alliance_contribution": {
+      "label": "联盟贡献",
+      "all_of": [
+        "Nav_Probe_alliance_contribution_title",
+        "Nav_Probe_alliance_contribution_title_Color"
+      ]
+    },
+    "alliance_blessing": {
+      "label": "联盟祝福",
+      "all_of": [
+        "Nav_Probe_alliance_blessing_title",
+        "Nav_Probe_alliance_blessing_title_Color"
+      ]
+    },
+    "survival_week": {
+      "label": "生存大冒险 · 每周列表",
+      "all_of": [
+        "Nav_Probe_survival_week_title",
+        "Nav_Probe_survival_week_title_Color",
+        "Nav_Probe_survival_week_label",
+        "Nav_Probe_survival_week_label_Color"
+      ]
+    },
+    "survival_question": {
+      "label": "生存大冒险 · 答题",
+      "all_of": [
+        "Nav_Probe_survival_question_title",
+        "Nav_Probe_survival_question_title_Color",
+        "Nav_Probe_survival_question_attributes"
+      ]
+    },
+    "survival_rewards": {
+      "label": "生存大冒险 · 积分奖励",
+      "all_of": [
+        "Nav_Probe_survival_rewards_title",
+        "Nav_Probe_survival_rewards_title_Color",
+        "Nav_Probe_survival_rewards_choice",
+        "Nav_Probe_survival_rewards_choice_Color"
+      ]
+    },
+    "profile_sell": {
+      "label": "一键出售确认",
+      "all_of": [
+        "Nav_Probe_profile_sell_warning",
+        "Nav_Probe_profile_sell_warning_Color",
+        "Nav_Probe_profile_sell_quality",
+        "Nav_Probe_profile_sell_quality_Color"
+      ]
+    },
+    "warehouse": {
+      "label": "仓库",
+      "all_of": [
+        "Nav_Probe_warehouse_title",
+        "Nav_Probe_warehouse_title_Color",
+        "Nav_Probe_warehouse_bag",
+        "Nav_Probe_warehouse_bag_Color"
+      ]
+    },
+    "settings_menu": {
+      "label": "设置菜单",
+      "all_of": [
+        "Nav_Probe_settings_continue",
+        "Nav_Probe_settings_continue_Color",
+        "Nav_Probe_settings_return_map",
+        "Nav_Probe_settings_return_map_Color"
+      ]
+    },
+    "sumeru": {
+      "label": "须弥山",
+      "all_of": [
+        "Nav_HubSurface",
+        "Nav_NoHubOverlay"
+      ]
+    },
+    "paused_sumeru": {
+      "label": "须弥山暂停",
+      "all_of": [
+        "Nav_HubSurface",
+        "Nav_Probe_paused_overlay"
+      ]
+    }
+  },
+  "actions": {
+    "Nav_Go_task_map_world": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_sumeru",
+        "Nav_Probe_hub_world_entry_Color",
+        "Nav_Probe_hub_world_entry",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 2,
+      "source": "sumeru",
+      "destination": "world",
+      "label": "打开世界地图",
+      "post_delay": 400
+    },
+    "Nav_Go_task_map_profile": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_sumeru",
+        "Nav_Probe_hub_profile_entry_Color",
+        "Nav_Probe_hub_profile_entry",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 2,
+      "source": "sumeru",
+      "destination": "profile",
+      "label": "打开个人资料／背包",
+      "post_delay": 400
+    },
+    "Nav_Go_task_map_treasure": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_sumeru",
+        "Nav_Probe_hub_treasure_entry_Color",
+        "Nav_Probe_hub_treasure_entry",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 2,
+      "source": "sumeru",
+      "destination": "treasure",
+      "label": "打开法宝",
+      "post_delay": 400
+    },
+    "Nav_Go_task_map_alliance": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_sumeru",
+        "Nav_Probe_hub_alliance_entry_Color",
+        "Nav_Probe_hub_alliance_entry",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 2,
+      "source": "sumeru",
+      "destination": "alliance",
+      "label": "打开我的联盟",
+      "post_delay": 400
+    },
+    "Nav_Go_task_map_time_boat": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_sumeru",
+        "Nav_Probe_hub_time_boat_entry_Color",
+        "Nav_Probe_hub_time_boat_entry",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 2,
+      "source": "sumeru",
+      "destination": "time_boat",
+      "label": "打开时光之舟",
+      "post_delay": 400
+    },
+    "Nav_Go_task_map_daily_menu": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_sumeru",
+        "Nav_Probe_hub_daily_toggle_Color",
+        "Nav_Probe_hub_daily_toggle",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 2,
+      "source": "sumeru",
+      "destination": "daily_menu",
+      "label": "展开日常活动",
+      "post_delay": 400
+    },
+    "Nav_Close_daily_menu": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_daily_menu",
+        "Nav_Probe_hub_daily_toggle_Color",
+        "Nav_Probe_hub_daily_toggle",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 2,
+      "source": "daily_menu",
+      "destination": "sumeru",
+      "label": "收起日常活动",
+      "post_delay": 400
+    },
+    "Nav_Go_daily_menu_arena": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_daily_menu",
+        "Nav_Probe_daily_arena_entry_Color",
+        "Nav_Probe_daily_arena_entry",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 2,
+      "source": "daily_menu",
+      "destination": "arena",
+      "label": "打开竞技场对手列表",
+      "post_delay": 400
+    },
+    "Nav_Go_daily_menu_theme": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_daily_menu",
+        "Nav_Probe_daily_theme_entry_Color",
+        "Nav_Probe_daily_theme_entry",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 2,
+      "source": "daily_menu",
+      "destination": "theme",
+      "label": "打开主题挑战",
+      "post_delay": 400
+    },
+    "Nav_Go_daily_menu_hell": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_daily_menu",
+        "Nav_Probe_daily_hell_entry_Color",
+        "Nav_Probe_daily_hell_entry",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 2,
+      "source": "daily_menu",
+      "destination": "hell",
+      "label": "打开螺旋地狱",
+      "post_delay": 400
+    },
+    "Nav_Go_daily_menu_arhat": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_daily_menu",
+        "Nav_Probe_daily_arhat_entry_Color",
+        "Nav_Probe_daily_arhat_entry",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 2,
+      "source": "daily_menu",
+      "destination": "arhat",
+      "label": "打开罗汉堂",
+      "post_delay": 400
+    },
+    "Nav_Go_daily_menu_fortune": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_daily_menu",
+        "Nav_Probe_daily_fortune_entry_Color",
+        "Nav_Probe_daily_fortune_entry",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 2,
+      "source": "daily_menu",
+      "destination": "fortune",
+      "label": "打开挑战福禄寿",
+      "post_delay": 400
+    },
+    "Nav_Go_daily_menu_survival_week": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_daily_menu",
+        "Nav_Probe_daily_survival_week_entry_Color",
+        "Nav_Probe_daily_survival_week_entry",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 2,
+      "source": "daily_menu",
+      "destination": "survival_week",
+      "label": "打开生存大冒险 · 每周列表",
+      "post_delay": 400
+    },
+    "Nav_Go_daily_menu_defend_south": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_daily_menu",
+        "Nav_Probe_daily_defend_entry_Color",
+        "Nav_Probe_daily_defend_entry",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 2,
+      "source": "daily_menu",
+      "destination": "defend_south",
+      "label": "打开守卫须弥山并确认当前页签",
+      "post_delay": 400
+    },
+    "Nav_Go_defend_south_defend_east": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_defend_south",
+        "Nav_Probe_defend_north_title_Color",
+        "Nav_Probe_defend_north_to_east_Color",
+        "Nav_Probe_defend_south_to_east",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 3,
+      "source": "defend_south",
+      "destination": "defend_east",
+      "label": "切换守卫城市页签",
+      "post_delay": 400
+    },
+    "Nav_Go_defend_south_defend_north": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_defend_south",
+        "Nav_Probe_defend_north_title_Color",
+        "Nav_Probe_defend_east_to_north_Color",
+        "Nav_Probe_defend_south_to_north",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 3,
+      "source": "defend_south",
+      "destination": "defend_north",
+      "label": "切换守卫城市页签",
+      "post_delay": 400
+    },
+    "Nav_Go_defend_east_defend_south": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_defend_east",
+        "Nav_Probe_defend_north_title_Color",
+        "Nav_Probe_defend_north_to_south_Color",
+        "Nav_Probe_defend_east_to_south",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 3,
+      "source": "defend_east",
+      "destination": "defend_south",
+      "label": "切换守卫城市页签",
+      "post_delay": 400
+    },
+    "Nav_Go_defend_east_defend_north": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_defend_east",
+        "Nav_Probe_defend_north_title_Color",
+        "Nav_Probe_defend_east_to_north_Color",
+        "Nav_Probe_defend_east_to_north",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 3,
+      "source": "defend_east",
+      "destination": "defend_north",
+      "label": "切换守卫城市页签",
+      "post_delay": 400
+    },
+    "Nav_Go_defend_north_defend_south": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_defend_north",
+        "Nav_Probe_defend_north_to_south_Color",
+        "Nav_Probe_defend_north_to_south",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 2,
+      "source": "defend_north",
+      "destination": "defend_south",
+      "label": "切换守卫城市页签",
+      "post_delay": 400
+    },
+    "Nav_Go_defend_north_defend_east": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_defend_north",
+        "Nav_Probe_defend_north_to_east_Color",
+        "Nav_Probe_defend_north_to_east",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 2,
+      "source": "defend_north",
+      "destination": "defend_east",
+      "label": "切换守卫城市页签",
+      "post_delay": 400
+    },
+    "Nav_Go_time_boat_time_replay_1": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_time_boat",
+        "Nav_Probe_time_boat_replay_entry_Color",
+        "Nav_Probe_time_boat_replay_entry",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 2,
+      "source": "time_boat",
+      "destination": "time_replay_1",
+      "label": "打开时光重现并确认页码",
+      "post_delay": 400
+    },
+    "Nav_Go_time_replay_1_time_replay_2": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_time_replay_1",
+        "Nav_Probe_time_replay_2_title_Color",
+        "Nav_Probe_time_replay_2_to_1_Color",
+        "Nav_Probe_time_replay_1_to_2_Color",
+        "Nav_Probe_time_replay_1_to_2",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 4,
+      "source": "time_replay_1",
+      "destination": "time_replay_2",
+      "label": "切换时光重现页码",
+      "post_delay": 400
+    },
+    "Nav_Go_time_replay_1_time_boat": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_time_replay_1",
+        "Nav_Probe_time_replay_2_title_Color",
+        "Nav_Probe_time_replay_2_to_1_Color",
+        "Nav_Probe_time_replay_2_close_Color",
+        "Nav_Probe_time_replay_1_close",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 4,
+      "source": "time_replay_1",
+      "destination": "time_boat",
+      "label": "关闭当前面板并重新定位",
+      "post_delay": 400
+    },
+    "Nav_Go_time_replay_2_time_boat": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_time_replay_2",
+        "Nav_Probe_time_replay_2_close_Color",
+        "Nav_Probe_time_replay_2_close",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 2,
+      "source": "time_replay_2",
+      "destination": "time_boat",
+      "label": "关闭当前面板并重新定位",
+      "post_delay": 400
+    },
+    "Nav_Go_alliance_alliance_contribution": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_alliance",
+        "Nav_Probe_alliance_contribution_entry_Color",
+        "Nav_Probe_alliance_contribution_entry",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 2,
+      "source": "alliance",
+      "destination": "alliance_contribution",
+      "label": "打开联盟贡献面板",
+      "post_delay": 400
+    },
+    "Nav_Go_profile_warehouse": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_profile",
+        "Nav_Probe_profile_warehouse_entry_Color",
+        "Nav_Probe_profile_warehouse_entry",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 2,
+      "source": "profile",
+      "destination": "warehouse",
+      "label": "打开仓库",
+      "post_delay": 400
+    },
+    "Nav_Go_survival_week_survival_rewards": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_survival_week",
+        "Nav_Probe_survival_question_title_Color",
+        "Nav_Probe_survival_reward_entry_Color",
+        "Nav_Probe_survival_reward_entry",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 3,
+      "source": "survival_week",
+      "destination": "survival_rewards",
+      "label": "查看积分奖励",
+      "post_delay": 400
+    },
+    "Nav_Close_activity": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_activity",
+        "Nav_Probe_activity_close_Color",
+        "Nav_Probe_activity_close",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 2,
+      "source": "activity",
+      "destination": "map",
+      "label": "关闭当前面板并重新定位",
+      "post_delay": 400
+    },
+    "Nav_Close_profile": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_profile",
+        "Nav_Probe_profile_close_Color",
+        "Nav_Probe_profile_close",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 2,
+      "source": "profile",
+      "destination": "map",
+      "label": "关闭当前面板并重新定位",
+      "post_delay": 400
+    },
+    "Nav_Close_treasure": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_treasure",
+        "Nav_Probe_treasure_close_Color",
+        "Nav_Probe_treasure_close",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 2,
+      "source": "treasure",
+      "destination": "map",
+      "label": "关闭当前面板并重新定位",
+      "post_delay": 400
+    },
+    "Nav_Close_arena": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_arena",
+        "Nav_Probe_arena_close_Color",
+        "Nav_Probe_arena_close",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 2,
+      "source": "arena",
+      "destination": "map",
+      "label": "关闭当前面板并重新定位",
+      "post_delay": 400
+    },
+    "Nav_Close_shop_mystery": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_shop_mystery",
+        "Nav_Probe_shop_mystery_close_Color",
+        "Nav_Probe_shop_mystery_close",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 2,
+      "source": "shop_mystery",
+      "destination": "map",
+      "label": "关闭当前面板并重新定位",
+      "post_delay": 400
+    },
+    "Nav_Close_time_boat": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_time_boat",
+        "Nav_Probe_time_boat_close_Color",
+        "Nav_Probe_time_boat_close",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 2,
+      "source": "time_boat",
+      "destination": "map",
+      "label": "关闭当前面板并重新定位",
+      "post_delay": 400
+    },
+    "Nav_Close_theme": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_theme",
+        "Nav_Probe_theme_close_Color",
+        "Nav_Probe_theme_close",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 2,
+      "source": "theme",
+      "destination": "map",
+      "label": "关闭当前面板并重新定位",
+      "post_delay": 400
+    },
+    "Nav_Close_hell": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_hell",
+        "Nav_Probe_defend_north_close_Color",
+        "Nav_Probe_hell_close",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 2,
+      "source": "hell",
+      "destination": "map",
+      "label": "关闭当前面板并重新定位",
+      "post_delay": 400
+    },
+    "Nav_Close_arhat": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_arhat",
+        "Nav_Probe_defend_north_close_Color",
+        "Nav_Probe_arhat_close",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 2,
+      "source": "arhat",
+      "destination": "map",
+      "label": "关闭当前面板并重新定位",
+      "post_delay": 400
+    },
+    "Nav_Close_fortune": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_fortune",
+        "Nav_Probe_fortune_close_Color",
+        "Nav_Probe_fortune_close",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 2,
+      "source": "fortune",
+      "destination": "map",
+      "label": "关闭当前面板并重新定位",
+      "post_delay": 400
+    },
+    "Nav_Close_bounty_board": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_bounty_board",
+        "Nav_Probe_bounty_board_close_Color",
+        "Nav_Probe_bounty_board_close",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 2,
+      "source": "bounty_board",
+      "destination": "map",
+      "label": "关闭当前面板并重新定位",
+      "post_delay": 400
+    },
+    "Nav_Close_alliance": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_alliance",
+        "Nav_Probe_alliance_close_Color",
+        "Nav_Probe_alliance_close",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 2,
+      "source": "alliance",
+      "destination": "map",
+      "label": "关闭当前面板并重新定位",
+      "post_delay": 400
+    },
+    "Nav_Close_mount_gather": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_mount_gather",
+        "Nav_Probe_mount_gather_close_Color",
+        "Nav_Probe_mount_gather_close",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 2,
+      "source": "mount_gather",
+      "destination": "map",
+      "label": "关闭当前面板并重新定位",
+      "post_delay": 400
+    },
+    "Nav_Close_survival_week": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_survival_week",
+        "Nav_Probe_survival_question_title_Color",
+        "Nav_Probe_survival_week_close_Color",
+        "Nav_Probe_survival_week_close",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 3,
+      "source": "survival_week",
+      "destination": "map",
+      "label": "关闭当前面板并重新定位",
+      "post_delay": 400
+    },
+    "Nav_Close_defend_south": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_defend_south",
+        "Nav_Probe_defend_north_title_Color",
+        "Nav_Probe_defend_north_close_Color",
+        "Nav_Probe_defend_south_close",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 3,
+      "source": "defend_south",
+      "destination": "map",
+      "label": "关闭当前面板并重新定位",
+      "post_delay": 400
+    },
+    "Nav_Close_defend_east": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_defend_east",
+        "Nav_Probe_defend_north_title_Color",
+        "Nav_Probe_defend_north_close_Color",
+        "Nav_Probe_defend_east_close",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 3,
+      "source": "defend_east",
+      "destination": "map",
+      "label": "关闭当前面板并重新定位",
+      "post_delay": 400
+    },
+    "Nav_Close_defend_north": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_defend_north",
+        "Nav_Probe_defend_north_close_Color",
+        "Nav_Probe_defend_north_close",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 2,
+      "source": "defend_north",
+      "destination": "map",
+      "label": "关闭当前面板并重新定位",
+      "post_delay": 400
+    },
+    "Nav_Go_alliance_contribution_alliance": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_alliance_contribution",
+        "Nav_Probe_alliance_contribution_close_Color",
+        "Nav_Probe_alliance_contribution_close",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 2,
+      "source": "alliance_contribution",
+      "destination": "alliance",
+      "label": "关闭当前面板并重新定位",
+      "post_delay": 400
+    },
+    "Nav_Go_alliance_blessing_alliance": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_alliance_blessing",
+        "Nav_Probe_alliance_blessing_close_Color",
+        "Nav_Probe_alliance_blessing_close",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 2,
+      "source": "alliance_blessing",
+      "destination": "alliance",
+      "label": "关闭当前面板并重新定位",
+      "post_delay": 400
+    },
+    "Nav_Go_survival_rewards_survival_week": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_survival_rewards",
+        "Nav_Probe_survival_rewards_close_Color",
+        "Nav_Probe_survival_rewards_close",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 2,
+      "source": "survival_rewards",
+      "destination": "survival_week",
+      "label": "关闭当前面板并重新定位",
+      "post_delay": 400
+    },
+    "Nav_Go_warehouse_profile": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_warehouse",
+        "Nav_Probe_warehouse_close_Color",
+        "Nav_Probe_warehouse_close",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 2,
+      "source": "warehouse",
+      "destination": "profile",
+      "label": "关闭当前面板并重新定位",
+      "post_delay": 400
+    },
+    "Nav_Go_profile_sell_profile": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_profile_sell",
+        "Nav_Probe_profile_sell_cancel_Color",
+        "Nav_Probe_profile_sell_cancel"
+      ],
+      "box_index": 2,
+      "source": "profile_sell",
+      "destination": "profile",
+      "label": "取消出售并返回背包",
+      "post_delay": 400
+    },
+    "Nav_WorldSumeru": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_world",
+        "Nav_Probe_sumeru_recovery_entry",
+        "Nav_Probe_home_entry",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 2,
+      "source": "world",
+      "destination": "sumeru",
+      "label": "从世界地图进入须弥山",
+      "post_delay": 800
+    },
+    "Nav_OpenWorld": {
+      "base": "click",
+      "all_of": [
+        "Nav_ClearMap",
+        "Nav_WorldCompass"
+      ],
+      "box_index": 1,
+      "source": "map",
+      "destination": "world",
+      "label": "打开世界地图"
+    },
+    "Nav_OpenProfile": {
+      "base": "click",
+      "all_of": [
+        "Nav_ClearMap",
+        "Nav_Probe_map_a_backpack_entry"
+      ],
+      "box_index": 1,
+      "source": "map",
+      "destination": "profile",
+      "label": "打开背包"
+    },
+    "Nav_OpenTreasure": {
+      "base": "click",
+      "all_of": [
+        "Nav_ClearMap",
+        "Nav_Probe_map_a_treasure_entry"
+      ],
+      "box_index": 1,
+      "source": "map",
+      "destination": "treasure",
+      "label": "打开法宝"
+    },
+    "Nav_OpenActivity": {
+      "base": "click",
+      "all_of": [
+        "Nav_ClearMap",
+        "Nav_Probe_map_a_activity_entry"
+      ],
+      "box_index": 1,
+      "source": "map",
+      "destination": "activity",
+      "label": "打开活跃奖励"
+    },
+    "Nav_WorldNanzhan": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_world",
+        "Nav_Portal_town1",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 1,
+      "source": "world",
+      "destination": "map",
+      "label": "世界地图 → 南瞻部洲"
+    },
+    "Nav_World_town2": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_world",
+        "Nav_Portal_town2",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 1,
+      "source": "world",
+      "destination": "map",
+      "label": "世界地图 → 东胜神洲"
+    },
+    "Nav_World_town3": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_world",
+        "Nav_Portal_town3",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 1,
+      "source": "world",
+      "destination": "map",
+      "label": "世界地图 → 北俱芦洲"
+    },
+    "Nav_World_town4": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_world",
+        "Nav_Portal_town4",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 1,
+      "source": "world",
+      "destination": "map",
+      "label": "世界地图 → 西牛贺洲"
+    },
+    "Nav_World_town5": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_world",
+        "Nav_Portal_town5",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 1,
+      "source": "world",
+      "destination": "map",
+      "label": "世界地图 → 幽冥血海"
+    },
+    "Nav_World_town6": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_world",
+        "Nav_Portal_town6",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 1,
+      "source": "world",
+      "destination": "map",
+      "label": "世界地图 → 六欲魔天"
+    },
+    "Nav_ResumeSumeru": {
+      "base": "click",
+      "all_of": [
+        "Nav_See_paused_sumeru",
+        "Nav_Probe_paused_overlay",
+        "Result_NoRevivePrompt"
+      ],
+      "box_index": 1,
+      "source": "paused_sumeru",
+      "destination": "sumeru",
+      "label": "恢复暂停须弥山",
+      "post_delay": 350
+    }
+  },
+  "origins": {
+    "library": "agent/data/navigation/library.json",
+    "source_commit": "cd31785853ea850955310b5653b740fb72387ada"
+  },
+  "public_recognizers": [],
+  "nodes": {
+    "Nav_MapSurface": {
+      "action": {
+        "type": "DoNothing"
+      },
+      "next": [],
+      "post_delay": 0,
+      "recognition": {
+        "type": "And",
+        "param": {
+          "all_of": [
+            {
+              "sub_name": "task",
+              "recognition": {
+                "type": "And",
+                "param": {
+                  "all_of": [
+                    "Nav_TaskMap"
+                  ]
+                }
+              }
+            },
+            {
+              "recognition": {
+                "type": "ColorMatch",
+                "param": {
+                  "roi": "task",
+                  "roi_offset": [
+                    18,
+                    10,
+                    -26,
+                    -41
+                  ],
+                  "method": 4,
+                  "lower": [
+                    220,
+                    180,
+                    0
+                  ],
+                  "upper": [
+                    255,
+                    255,
+                    110
+                  ],
+                  "count": 12
+                }
+              }
+            }
+          ],
+          "box_index": 0
+        }
+      }
+    },
+    "Nav_MapOverlay": {
+      "action": {
+        "type": "DoNothing"
+      },
+      "next": [],
+      "post_delay": 0,
+      "recognition": {
+        "type": "Or",
+        "param": {
+          "any_of": [
+            "Nav_SettingsMenu",
+            "Nav_SettingsSubpanel",
+            "Nav_PausedTaskMap"
+          ]
+        }
+      }
+    },
+    "Nav_NoMapOverlay": {
+      "action": {
+        "type": "DoNothing"
+      },
+      "next": [],
+      "post_delay": 0,
+      "recognition": {
+        "type": "Custom",
+        "param": {
+          "custom_recognition": "battle_no_revive",
+          "custom_recognition_param": "map"
+        }
+      }
+    },
+    "Nav_ClearMap": {
+      "action": {
+        "type": "DoNothing"
+      },
+      "next": [],
+      "post_delay": 0,
+      "recognition": {
+        "type": "And",
+        "param": {
+          "all_of": [
+            "Nav_MapSurface",
+            "Nav_NoMapOverlay",
+            "Result_NoRevivePrompt"
+          ],
+          "box_index": 0
+        }
+      }
+    },
+    "Nav_ResumeDaily": {
+      "recognition": {
+        "type": "And",
+        "param": {
+          "all_of": [
+            {
+              "recognition": {
+                "type": "TemplateMatch",
+                "param": {
+                  "template": [
+                    "bounty-candle/pause.png",
+                    "bounty-candle/pause-cloudy.png",
+                    "navigation/panels/daily-pause-caption.png"
+                  ],
+                  "threshold": 0.9,
+                  "roi": [
+                    300,
+                    300,
+                    550,
+                    120
+                  ]
+                }
+              }
+            },
+            {
+              "recognition": {
+                "type": "And",
+                "param": {
+                  "all_of": [
+                    {
+                      "recognition": {
+                        "type": "TemplateMatch",
+                        "param": {
+                          "template": "navigation/templates/daily-expanded/menu-arhat.png",
+                          "roi": [
+                            297,
+                            292,
+                            58,
+                            47
+                          ],
+                          "threshold": 0.94
+                        }
+                      }
+                    },
+                    {
+                      "recognition": {
+                        "type": "TemplateMatch",
+                        "param": {
+                          "template": "navigation/templates/daily-expanded/menu-arena.png",
+                          "roi": [
+                            378,
+                            378,
+                            64,
+                            48
+                          ],
+                          "threshold": 0.94
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "Result_NoRevivePrompt"
+          ],
+          "box_index": 0
+        }
+      },
+      "action": {
+        "type": "Click",
+        "param": {
+          "target": true
+        }
+      },
+      "next": [],
+      "timeout": 10000,
+      "post_delay": 350
+    },
+    "Nav_Province_town1": {
+      "action": {
+        "type": "DoNothing"
+      },
+      "next": [],
+      "post_delay": 0,
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/hubs/town1-0.png",
+            "navigation/hubs/town1-1.png"
+          ],
+          "roi": [
+            120,
+            135,
+            920,
+            465
+          ],
+          "threshold": 0.88
+        }
+      }
+    },
+    "Nav_Province_town2": {
+      "action": {
+        "type": "DoNothing"
+      },
+      "next": [],
+      "post_delay": 0,
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/hubs/town2-0.png",
+            "navigation/hubs/town2-1.png"
+          ],
+          "roi": [
+            120,
+            135,
+            920,
+            465
+          ],
+          "threshold": 0.88
+        }
+      }
+    },
+    "Nav_Province_town3": {
+      "action": {
+        "type": "DoNothing"
+      },
+      "next": [],
+      "post_delay": 0,
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/hubs/town3-0.png",
+            "navigation/hubs/town3-1.png"
+          ],
+          "roi": [
+            120,
+            135,
+            920,
+            465
+          ],
+          "threshold": 0.88
+        }
+      }
+    },
+    "Nav_Province_town4": {
+      "action": {
+        "type": "DoNothing"
+      },
+      "next": [],
+      "post_delay": 0,
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/hubs/town4-0.png",
+            "navigation/hubs/town4-1.png"
+          ],
+          "roi": [
+            120,
+            135,
+            920,
+            465
+          ],
+          "threshold": 0.88
+        }
+      }
+    },
+    "Nav_Province_town5": {
+      "action": {
+        "type": "DoNothing"
+      },
+      "next": [],
+      "post_delay": 0,
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/scroll/town5-00.png",
+            "navigation/scroll/town5-01.png",
+            "navigation/scroll/town5-02.png",
+            "navigation/scroll/town5-03.png",
+            "navigation/scroll/town5-04.png",
+            "navigation/scroll/town5-05.png"
+          ],
+          "roi": [
+            50,
+            120,
+            990,
+            480
+          ],
+          "threshold": 0.9
+        }
+      }
+    },
+    "Nav_Province_town6": {
+      "action": {
+        "type": "DoNothing"
+      },
+      "next": [],
+      "post_delay": 0,
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/scroll/town6-00.png",
+            "navigation/scroll/town6-01.png",
+            "navigation/scroll/town6-02.png",
+            "navigation/scroll/town6-03.png",
+            "navigation/scroll/town6-04.png",
+            "navigation/scroll/town6-05.png",
+            "navigation/scroll/town6-06.png",
+            "navigation/scroll/town6-07.png",
+            "navigation/scroll/town6-08.png",
+            "navigation/scroll/town6-09.png",
+            "navigation/scroll/town6-10.png",
+            "navigation/scroll/town6-11.png",
+            "navigation/scroll/town6-12.png",
+            "navigation/scroll/town6-13.png",
+            "navigation/scroll/town6-14.png",
+            "navigation/scroll/town6-15.png",
+            "navigation/scroll/town6-16.png",
+            "navigation/scroll/town6-17.png",
+            "navigation/scroll/town6-18.png",
+            "navigation/scroll/town6-19.png",
+            "navigation/scroll/town6-20.png",
+            "navigation/scroll/town6-21.png",
+            "navigation/scroll/town6-22.png",
+            "navigation/scroll/town6-23.png",
+            "navigation/scroll/town6-24.png",
+            "navigation/scroll/town6-25.png"
+          ],
+          "roi": [
+            50,
+            120,
+            990,
+            480
+          ],
+          "threshold": 0.9
+        }
+      }
+    },
+    "Nav_Nanzhan": {
+      "action": {
+        "type": "DoNothing"
+      },
+      "next": [],
+      "post_delay": 0,
+      "recognition": {
+        "type": "And",
+        "param": {
+          "all_of": [
+            "Nav_ClearMap",
+            "Nav_Province_town1"
+          ]
+        }
+      }
+    },
+    "Nav_HubSurface": {
+      "action": {
+        "type": "DoNothing"
+      },
+      "next": [],
+      "post_delay": 0,
+      "recognition": {
+        "type": "And",
+        "param": {
+          "all_of": [
+            "Nav_Probe_hub_world_entry_Color",
+            "Nav_Probe_hub_profile_entry_Color",
+            "Nav_Probe_hub_world_entry",
+            "Nav_Probe_hub_profile_entry"
+          ]
+        }
+      }
+    },
+    "Nav_HubOverlay": {
+      "action": {
+        "type": "DoNothing"
+      },
+      "next": [],
+      "post_delay": 0,
+      "recognition": {
+        "type": "Or",
+        "param": {
+          "any_of": [
+            "Nav_See_daily_menu",
+            "Nav_Probe_paused_overlay",
+            "Nav_SettingsMenu",
+            "Nav_SettingsSubpanel"
+          ]
+        }
+      }
+    },
+    "Nav_NoHubOverlay": {
+      "action": {
+        "type": "DoNothing"
+      },
+      "next": [],
+      "post_delay": 0,
+      "recognition": {
+        "type": "Custom",
+        "param": {
+          "custom_recognition": "battle_no_revive",
+          "custom_recognition_param": "hub"
+        }
+      }
+    }
+  },
+  "routines": {
+    "version": 2,
+    "max_seconds": 120,
+    "max_steps": 20,
+    "locate_attempts": 3,
+    "settle_ms": 300,
+    "screens": {
+      "daily_menu": {
+        "detector": "Nav_See_daily_menu",
+        "label": "须弥山日常活动菜单",
+        "exit": "Nav_Close_daily_menu"
+      },
+      "daily_expanded": {
+        "detector": "Nav_See_daily_expanded",
+        "label": "日常活动菜单（暂停）",
+        "exit": "Nav_ResumeDaily"
+      },
+      "login": {
+        "detector": "Nav_See_login",
+        "label": "开始游戏"
+      },
+      "saves": {
+        "detector": "Nav_See_saves",
+        "label": "存档记录"
+      },
+      "world": {
+        "detector": "Nav_See_world",
+        "label": "世界地图",
+        "exit": "Nav_WorldNanzhan"
+      },
+      "activity": {
+        "detector": "Nav_See_activity",
+        "label": "活跃奖励",
+        "exit": "Nav_Close_activity"
+      },
+      "profile": {
+        "detector": "Nav_See_profile",
+        "label": "个人资料／背包",
+        "exit": "Nav_Close_profile"
+      },
+      "treasure": {
+        "detector": "Nav_See_treasure",
+        "label": "法宝",
+        "exit": "Nav_Close_treasure"
+      },
+      "time_boat": {
+        "detector": "Nav_See_time_boat",
+        "label": "时光之舟",
+        "exit": "Nav_Close_time_boat"
+      },
+      "theme": {
+        "detector": "Nav_See_theme",
+        "label": "主题挑战",
+        "exit": "Nav_Close_theme"
+      },
+      "hell": {
+        "detector": "Nav_See_hell",
+        "label": "螺旋地狱",
+        "exit": "Nav_Close_hell"
+      },
+      "arhat": {
+        "detector": "Nav_See_arhat",
+        "label": "罗汉堂",
+        "exit": "Nav_Close_arhat"
+      },
+      "fortune": {
+        "detector": "Nav_See_fortune",
+        "label": "挑战福禄寿",
+        "exit": "Nav_Close_fortune"
+      },
+      "mount_gather": {
+        "detector": "Nav_See_mount_gather",
+        "label": "骑装加速养成",
+        "exit": "Nav_Close_mount_gather"
+      },
+      "arena": {
+        "detector": "Nav_See_arena",
+        "label": "竞技场对手列表",
+        "exit": "Nav_Close_arena"
+      },
+      "shop_mystery": {
+        "detector": "Nav_See_shop_mystery",
+        "label": "神秘商店",
+        "exit": "Nav_Close_shop_mystery"
+      },
+      "time_replay_1": {
+        "detector": "Nav_See_time_replay_1",
+        "label": "时光重现 · 第 1 页",
+        "exit": "Nav_Go_time_replay_1_time_boat"
+      },
+      "time_replay_2": {
+        "detector": "Nav_See_time_replay_2",
+        "label": "时光重现 · 第 2 页",
+        "exit": "Nav_Go_time_replay_2_time_boat"
+      },
+      "defend_south": {
+        "detector": "Nav_See_defend_south",
+        "label": "守卫须弥山 · 城南",
+        "exit": "Nav_Close_defend_south"
+      },
+      "defend_east": {
+        "detector": "Nav_See_defend_east",
+        "label": "守卫须弥山 · 城东",
+        "exit": "Nav_Close_defend_east"
+      },
+      "defend_north": {
+        "detector": "Nav_See_defend_north",
+        "label": "守卫须弥山 · 城北",
+        "exit": "Nav_Close_defend_north"
+      },
+      "bounty_board": {
+        "detector": "Nav_See_bounty_board",
+        "label": "未接取悬赏榜",
+        "exit": "Nav_Close_bounty_board"
+      },
+      "alliance": {
+        "detector": "Nav_See_alliance",
+        "label": "我的联盟",
+        "exit": "Nav_Close_alliance"
+      },
+      "alliance_contribution": {
+        "detector": "Nav_See_alliance_contribution",
+        "label": "联盟贡献",
+        "exit": "Nav_Go_alliance_contribution_alliance"
+      },
+      "alliance_blessing": {
+        "detector": "Nav_See_alliance_blessing",
+        "label": "联盟祝福",
+        "exit": "Nav_Go_alliance_blessing_alliance"
+      },
+      "survival_week": {
+        "detector": "Nav_See_survival_week",
+        "label": "生存大冒险 · 每周列表",
+        "exit": "Nav_Close_survival_week"
+      },
+      "survival_question": {
+        "detector": "Nav_See_survival_question",
+        "label": "生存大冒险 · 答题"
+      },
+      "survival_rewards": {
+        "detector": "Nav_See_survival_rewards",
+        "label": "生存大冒险 · 积分奖励",
+        "exit": "Nav_Go_survival_rewards_survival_week"
+      },
+      "profile_sell": {
+        "detector": "Nav_See_profile_sell",
+        "label": "一键出售确认",
+        "exit": "Nav_Go_profile_sell_profile"
+      },
+      "warehouse": {
+        "detector": "Nav_See_warehouse",
+        "label": "仓库",
+        "exit": "Nav_Go_warehouse_profile"
+      },
+      "settings_menu": {
+        "detector": "Nav_SettingsMenu",
+        "label": "设置菜单",
+        "exit": "Nav_SettingsReturn"
+      },
+      "sumeru": {
+        "detector": "Nav_See_sumeru",
+        "label": "须弥山",
+        "exit": "Nav_Go_task_map_world"
+      },
+      "map": {
+        "detector": "Nav_ClearMap",
+        "label": "人物大地图"
+      },
+      "quest_panel": {
+        "detector": "Nav_QuestPanel",
+        "label": "任务面板",
+        "exit": "Nav_CloseQuest"
+      },
+      "accepted_bounties": {
+        "detector": "Nav_AcceptedBounties",
+        "label": "已接悬赏任务",
+        "exit": "Nav_CloseQuest"
+      },
+      "settings_subpanel": {
+        "detector": "Nav_SettingsSubpanel",
+        "label": "设置子窗口",
+        "exit": "Nav_CloseSettingsSubpanel"
+      },
+      "paused_task_map": {
+        "detector": "Nav_PausedTaskMap",
+        "label": "大地图暂停",
+        "exit": "Nav_ResumeTaskMap"
+      },
+      "challenge_failed": {
+        "detector": "Result_Failed",
+        "label": "挑战失败",
+        "exit": "Result_FailedReturn"
+      },
+      "challenge_succeeded": {
+        "detector": "Result_Succeeded",
+        "label": "挑战成功",
+        "exit": "Result_SucceededReturn"
+      },
+      "revive_prompt": {
+        "detector": "Result_RevivePrompt",
+        "label": "复活确认",
+        "exit": "Result_DeclineRevive"
+      },
+      "nanzhan": {
+        "detector": "Nav_Nanzhan",
+        "label": "南瞻部洲",
+        "exit": "Nav_OpenWorld"
+      },
+      "paused_sumeru": {
+        "detector": "Nav_See_paused_sumeru",
+        "label": "须弥山暂停",
+        "exit": "Nav_ResumeSumeru"
+      }
+    },
+    "actions": {
+      "Nav_Go_task_map_world": {
+        "from": [
+          "sumeru"
+        ],
+        "verify": [
+          "world"
+        ],
+        "label": "打开世界地图"
+      },
+      "Nav_Go_task_map_profile": {
+        "from": [
+          "sumeru"
+        ],
+        "verify": [
+          "profile"
+        ],
+        "label": "打开个人资料／背包"
+      },
+      "Nav_Go_task_map_treasure": {
+        "from": [
+          "sumeru"
+        ],
+        "verify": [
+          "treasure"
+        ],
+        "label": "打开法宝"
+      },
+      "Nav_Go_task_map_alliance": {
+        "from": [
+          "sumeru"
+        ],
+        "verify": [
+          "alliance"
+        ],
+        "label": "打开我的联盟"
+      },
+      "Nav_Go_task_map_time_boat": {
+        "from": [
+          "sumeru"
+        ],
+        "verify": [
+          "time_boat"
+        ],
+        "label": "打开时光之舟"
+      },
+      "Nav_Go_task_map_daily_menu": {
+        "from": [
+          "sumeru"
+        ],
+        "verify": [
+          "daily_menu"
+        ],
+        "label": "展开日常活动"
+      },
+      "Nav_Close_daily_menu": {
+        "from": [
+          "daily_menu"
+        ],
+        "verify": [
+          "sumeru",
+          "paused_sumeru"
+        ],
+        "label": "收起日常活动"
+      },
+      "Nav_Go_daily_menu_arena": {
+        "from": [
+          "daily_menu"
+        ],
+        "verify": [
+          "arena"
+        ],
+        "label": "打开竞技场对手列表"
+      },
+      "Nav_Go_daily_menu_theme": {
+        "from": [
+          "daily_menu"
+        ],
+        "verify": [
+          "theme"
+        ],
+        "label": "打开主题挑战"
+      },
+      "Nav_Go_daily_menu_hell": {
+        "from": [
+          "daily_menu"
+        ],
+        "verify": [
+          "hell"
+        ],
+        "label": "打开螺旋地狱"
+      },
+      "Nav_Go_daily_menu_arhat": {
+        "from": [
+          "daily_menu"
+        ],
+        "verify": [
+          "arhat"
+        ],
+        "label": "打开罗汉堂"
+      },
+      "Nav_Go_daily_menu_fortune": {
+        "from": [
+          "daily_menu"
+        ],
+        "verify": [
+          "fortune"
+        ],
+        "label": "打开挑战福禄寿"
+      },
+      "Nav_Go_daily_menu_survival_week": {
+        "from": [
+          "daily_menu"
+        ],
+        "verify": [
+          "survival_week"
+        ],
+        "label": "打开生存大冒险 · 每周列表"
+      },
+      "Nav_Go_daily_menu_defend_south": {
+        "from": [
+          "daily_menu"
+        ],
+        "verify": [
+          "defend_south"
+        ],
+        "label": "打开守卫须弥山并确认当前页签"
+      },
+      "Nav_Go_defend_south_defend_east": {
+        "from": [
+          "defend_south"
+        ],
+        "verify": [
+          "defend_east"
+        ],
+        "label": "切换守卫城市页签"
+      },
+      "Nav_Go_defend_south_defend_north": {
+        "from": [
+          "defend_south"
+        ],
+        "verify": [
+          "defend_north"
+        ],
+        "label": "切换守卫城市页签"
+      },
+      "Nav_Go_defend_east_defend_south": {
+        "from": [
+          "defend_east"
+        ],
+        "verify": [
+          "defend_south"
+        ],
+        "label": "切换守卫城市页签"
+      },
+      "Nav_Go_defend_east_defend_north": {
+        "from": [
+          "defend_east"
+        ],
+        "verify": [
+          "defend_north"
+        ],
+        "label": "切换守卫城市页签"
+      },
+      "Nav_Go_defend_north_defend_south": {
+        "from": [
+          "defend_north"
+        ],
+        "verify": [
+          "defend_south"
+        ],
+        "label": "切换守卫城市页签"
+      },
+      "Nav_Go_defend_north_defend_east": {
+        "from": [
+          "defend_north"
+        ],
+        "verify": [
+          "defend_east"
+        ],
+        "label": "切换守卫城市页签"
+      },
+      "Nav_Go_time_boat_time_replay_1": {
+        "from": [
+          "time_boat"
+        ],
+        "verify": [
+          "time_replay_1"
+        ],
+        "label": "打开时光重现并确认页码"
+      },
+      "Nav_Go_time_replay_1_time_replay_2": {
+        "from": [
+          "time_replay_1"
+        ],
+        "verify": [
+          "time_replay_2"
+        ],
+        "label": "切换时光重现页码"
+      },
+      "Nav_Go_time_replay_1_time_boat": {
+        "from": [
+          "time_replay_1"
+        ],
+        "verify": [
+          "time_boat"
+        ],
+        "label": "关闭当前面板并重新定位"
+      },
+      "Nav_Go_time_replay_2_time_boat": {
+        "from": [
+          "time_replay_2"
+        ],
+        "verify": [
+          "time_boat"
+        ],
+        "label": "关闭当前面板并重新定位"
+      },
+      "Nav_Go_alliance_alliance_contribution": {
+        "from": [
+          "alliance"
+        ],
+        "verify": [
+          "alliance_contribution"
+        ],
+        "label": "打开联盟贡献面板"
+      },
+      "Nav_Go_profile_warehouse": {
+        "from": [
+          "profile"
+        ],
+        "verify": [
+          "warehouse"
+        ],
+        "label": "打开仓库"
+      },
+      "Nav_Go_survival_week_survival_rewards": {
+        "from": [
+          "survival_week"
+        ],
+        "verify": [
+          "survival_rewards"
+        ],
+        "label": "查看积分奖励"
+      },
+      "Nav_Close_activity": {
+        "from": [
+          "activity"
+        ],
+        "verify": [
+          "map",
+          "sumeru",
+          "paused_task_map",
+          "paused_sumeru"
+        ],
+        "label": "关闭当前面板并重新定位"
+      },
+      "Nav_Close_profile": {
+        "from": [
+          "profile"
+        ],
+        "verify": [
+          "map",
+          "sumeru",
+          "paused_task_map",
+          "paused_sumeru"
+        ],
+        "label": "关闭当前面板并重新定位"
+      },
+      "Nav_Close_treasure": {
+        "from": [
+          "treasure"
+        ],
+        "verify": [
+          "map",
+          "sumeru",
+          "paused_task_map",
+          "paused_sumeru"
+        ],
+        "label": "关闭当前面板并重新定位"
+      },
+      "Nav_Close_arena": {
+        "from": [
+          "arena"
+        ],
+        "verify": [
+          "map",
+          "sumeru",
+          "paused_task_map",
+          "paused_sumeru"
+        ],
+        "label": "关闭当前面板并重新定位"
+      },
+      "Nav_Close_shop_mystery": {
+        "from": [
+          "shop_mystery"
+        ],
+        "verify": [
+          "map",
+          "sumeru",
+          "paused_task_map",
+          "paused_sumeru"
+        ],
+        "label": "关闭当前面板并重新定位"
+      },
+      "Nav_Close_time_boat": {
+        "from": [
+          "time_boat"
+        ],
+        "verify": [
+          "map",
+          "sumeru",
+          "paused_task_map",
+          "paused_sumeru"
+        ],
+        "label": "关闭当前面板并重新定位"
+      },
+      "Nav_Close_theme": {
+        "from": [
+          "theme"
+        ],
+        "verify": [
+          "map",
+          "sumeru",
+          "paused_task_map",
+          "paused_sumeru"
+        ],
+        "label": "关闭当前面板并重新定位"
+      },
+      "Nav_Close_hell": {
+        "from": [
+          "hell"
+        ],
+        "verify": [
+          "map",
+          "sumeru",
+          "paused_task_map",
+          "paused_sumeru"
+        ],
+        "label": "关闭当前面板并重新定位"
+      },
+      "Nav_Close_arhat": {
+        "from": [
+          "arhat"
+        ],
+        "verify": [
+          "map",
+          "sumeru",
+          "paused_task_map",
+          "paused_sumeru"
+        ],
+        "label": "关闭当前面板并重新定位"
+      },
+      "Nav_Close_fortune": {
+        "from": [
+          "fortune"
+        ],
+        "verify": [
+          "map",
+          "sumeru",
+          "paused_task_map",
+          "paused_sumeru"
+        ],
+        "label": "关闭当前面板并重新定位"
+      },
+      "Nav_Close_bounty_board": {
+        "from": [
+          "bounty_board"
+        ],
+        "verify": [
+          "map",
+          "sumeru",
+          "paused_task_map",
+          "paused_sumeru"
+        ],
+        "label": "关闭当前面板并重新定位"
+      },
+      "Nav_Close_alliance": {
+        "from": [
+          "alliance"
+        ],
+        "verify": [
+          "map",
+          "sumeru",
+          "paused_task_map",
+          "paused_sumeru"
+        ],
+        "label": "关闭当前面板并重新定位"
+      },
+      "Nav_Close_mount_gather": {
+        "from": [
+          "mount_gather"
+        ],
+        "verify": [
+          "map",
+          "sumeru",
+          "paused_task_map",
+          "paused_sumeru"
+        ],
+        "label": "关闭当前面板并重新定位"
+      },
+      "Nav_Close_survival_week": {
+        "from": [
+          "survival_week"
+        ],
+        "verify": [
+          "map",
+          "sumeru",
+          "paused_task_map",
+          "paused_sumeru"
+        ],
+        "label": "关闭当前面板并重新定位"
+      },
+      "Nav_Close_defend_south": {
+        "from": [
+          "defend_south"
+        ],
+        "verify": [
+          "map",
+          "sumeru",
+          "paused_task_map",
+          "paused_sumeru"
+        ],
+        "label": "关闭当前面板并重新定位"
+      },
+      "Nav_Close_defend_east": {
+        "from": [
+          "defend_east"
+        ],
+        "verify": [
+          "map",
+          "sumeru",
+          "paused_task_map",
+          "paused_sumeru"
+        ],
+        "label": "关闭当前面板并重新定位"
+      },
+      "Nav_Close_defend_north": {
+        "from": [
+          "defend_north"
+        ],
+        "verify": [
+          "map",
+          "sumeru",
+          "paused_task_map",
+          "paused_sumeru"
+        ],
+        "label": "关闭当前面板并重新定位"
+      },
+      "Nav_Go_alliance_contribution_alliance": {
+        "from": [
+          "alliance_contribution"
+        ],
+        "verify": [
+          "alliance"
+        ],
+        "label": "关闭当前面板并重新定位"
+      },
+      "Nav_Go_alliance_blessing_alliance": {
+        "from": [
+          "alliance_blessing"
+        ],
+        "verify": [
+          "alliance"
+        ],
+        "label": "关闭当前面板并重新定位"
+      },
+      "Nav_Go_survival_rewards_survival_week": {
+        "from": [
+          "survival_rewards"
+        ],
+        "verify": [
+          "survival_week"
+        ],
+        "label": "关闭当前面板并重新定位"
+      },
+      "Nav_Go_warehouse_profile": {
+        "from": [
+          "warehouse"
+        ],
+        "verify": [
+          "profile"
+        ],
+        "label": "关闭当前面板并重新定位"
+      },
+      "Nav_Go_profile_sell_profile": {
+        "from": [
+          "profile_sell"
+        ],
+        "verify": [
+          "profile"
+        ],
+        "label": "取消出售并返回背包"
+      },
+      "Nav_WorldSumeru": {
+        "from": [
+          "world"
+        ],
+        "verify": [
+          "sumeru"
+        ],
+        "label": "从世界地图进入须弥山"
+      },
+      "Nav_OpenWorld": {
+        "from": [
+          "map"
+        ],
+        "verify": [
+          "world"
+        ],
+        "label": "打开世界地图"
+      },
+      "Nav_OpenProfile": {
+        "from": [
+          "map"
+        ],
+        "verify": [
+          "profile"
+        ],
+        "label": "打开背包"
+      },
+      "Nav_OpenTreasure": {
+        "from": [
+          "map"
+        ],
+        "verify": [
+          "treasure"
+        ],
+        "label": "打开法宝"
+      },
+      "Nav_OpenActivity": {
+        "from": [
+          "map"
+        ],
+        "verify": [
+          "activity"
+        ],
+        "label": "打开活跃奖励"
+      },
+      "Nav_OpenQuest": {
+        "from": [
+          "map"
+        ],
+        "verify": [
+          "quest_panel"
+        ],
+        "label": "打开任务面板"
+      },
+      "Nav_SelectBountyTab": {
+        "from": [
+          "quest_panel"
+        ],
+        "verify": [
+          "accepted_bounties"
+        ],
+        "label": "切换已接悬赏"
+      },
+      "Nav_ChooseBounty": {
+        "from": [
+          "accepted_bounties"
+        ],
+        "verify": [
+          "task_destination"
+        ],
+        "label": "选择本任务悬赏"
+      },
+      "Nav_CloseQuest": {
+        "from": [
+          "quest_panel",
+          "accepted_bounties"
+        ],
+        "verify": [
+          "map"
+        ],
+        "label": "关闭任务面板"
+      },
+      "Nav_CloseSettingsSubpanel": {
+        "from": [
+          "settings_subpanel"
+        ],
+        "verify": [
+          "settings_menu"
+        ],
+        "label": "关闭设置子窗口"
+      },
+      "Nav_ResumeTaskMap": {
+        "from": [
+          "paused_task_map"
+        ],
+        "verify": [
+          "map"
+        ],
+        "label": "恢复暂停地图"
+      },
+      "Nav_ResumeDaily": {
+        "from": [
+          "daily_expanded"
+        ],
+        "verify": [
+          "daily_menu"
+        ],
+        "label": "恢复暂停须弥山"
+      },
+      "Result_FailedReturn": {
+        "from": [
+          "challenge_failed"
+        ],
+        "verify": [
+          "map"
+        ],
+        "label": "战败返回地图"
+      },
+      "Result_SucceededReturn": {
+        "from": [
+          "challenge_succeeded"
+        ],
+        "verify": [
+          "map"
+        ],
+        "label": "通关返回地图"
+      },
+      "Result_DeclineRevive": {
+        "from": [
+          "revive_prompt"
+        ],
+        "verify": [
+          "challenge_failed"
+        ],
+        "label": "拒绝复活",
+        "timeout_ms": 15000,
+        "verify_ms": 15000,
+        "wait_for_clear": true
+      },
+      "Nav_WorldNanzhan": {
+        "from": [
+          "world"
+        ],
+        "verify": [
+          "map"
+        ],
+        "label": "世界地图 → 南瞻部洲"
+      },
+      "Nav_World_town2": {
+        "from": [
+          "world"
+        ],
+        "verify": [
+          "map"
+        ],
+        "label": "世界地图 → 东胜神洲"
+      },
+      "Nav_World_town3": {
+        "from": [
+          "world"
+        ],
+        "verify": [
+          "map"
+        ],
+        "label": "世界地图 → 北俱芦洲"
+      },
+      "Nav_World_town4": {
+        "from": [
+          "world"
+        ],
+        "verify": [
+          "map"
+        ],
+        "label": "世界地图 → 西牛贺洲"
+      },
+      "Nav_World_town5": {
+        "from": [
+          "world"
+        ],
+        "verify": [
+          "map"
+        ],
+        "label": "世界地图 → 幽冥血海"
+      },
+      "Nav_World_town6": {
+        "from": [
+          "world"
+        ],
+        "verify": [
+          "map"
+        ],
+        "label": "世界地图 → 六欲魔天"
+      },
+      "Nav_ResumeSumeru": {
+        "from": [
+          "paused_sumeru"
+        ],
+        "verify": [
+          "sumeru"
+        ],
+        "label": "恢复暂停须弥山"
+      },
+      "Nav_SettingsReturn": {
+        "from": [
+          "settings_menu"
+        ],
+        "verify": [
+          "map",
+          "sumeru",
+          "paused_task_map",
+          "paused_sumeru"
+        ],
+        "label": "从设置菜单返回地图"
+      }
+    },
+    "routes": {
+      "map": [],
+      "world": [
+        "Nav_OpenWorld",
+        "Nav_Go_task_map_world"
+      ],
+      "profile": [
+        "Nav_OpenProfile",
+        "Nav_Go_task_map_profile"
+      ],
+      "treasure": [
+        "Nav_OpenTreasure",
+        "Nav_Go_task_map_treasure"
+      ],
+      "activity": [
+        "Nav_OpenActivity"
+      ],
+      "sumeru": [
+        "Nav_WorldSumeru",
+        "Nav_OpenWorld"
+      ],
+      "daily_menu": [
+        "Nav_Go_task_map_daily_menu",
+        "Nav_WorldSumeru",
+        "Nav_OpenWorld"
+      ],
+      "alliance": [
+        "Nav_Go_task_map_alliance",
+        "Nav_WorldSumeru",
+        "Nav_OpenWorld"
+      ],
+      "time_boat": [
+        "Nav_Go_task_map_time_boat",
+        "Nav_WorldSumeru",
+        "Nav_OpenWorld"
+      ],
+      "arena": [
+        "Nav_Go_daily_menu_arena",
+        "Nav_Go_task_map_daily_menu",
+        "Nav_WorldSumeru",
+        "Nav_OpenWorld"
+      ],
+      "theme": [
+        "Nav_Go_daily_menu_theme",
+        "Nav_Go_task_map_daily_menu",
+        "Nav_WorldSumeru",
+        "Nav_OpenWorld"
+      ],
+      "hell": [
+        "Nav_Go_daily_menu_hell",
+        "Nav_Go_task_map_daily_menu",
+        "Nav_WorldSumeru",
+        "Nav_OpenWorld"
+      ],
+      "arhat": [
+        "Nav_Go_daily_menu_arhat",
+        "Nav_Go_task_map_daily_menu",
+        "Nav_WorldSumeru",
+        "Nav_OpenWorld"
+      ],
+      "fortune": [
+        "Nav_Go_daily_menu_fortune",
+        "Nav_Go_task_map_daily_menu",
+        "Nav_WorldSumeru",
+        "Nav_OpenWorld"
+      ],
+      "survival_week": [
+        "Nav_Go_daily_menu_survival_week",
+        "Nav_Go_task_map_daily_menu",
+        "Nav_WorldSumeru",
+        "Nav_OpenWorld"
+      ],
+      "defend_south": [
+        "Nav_Go_defend_east_defend_south",
+        "Nav_Go_defend_north_defend_south",
+        "Nav_Go_daily_menu_defend_south",
+        "Nav_Go_task_map_daily_menu",
+        "Nav_WorldSumeru",
+        "Nav_OpenWorld"
+      ],
+      "defend_east": [
+        "Nav_Go_defend_south_defend_east",
+        "Nav_Go_defend_north_defend_east",
+        "Nav_Go_daily_menu_defend_south",
+        "Nav_Go_task_map_daily_menu",
+        "Nav_WorldSumeru",
+        "Nav_OpenWorld"
+      ],
+      "defend_north": [
+        "Nav_Go_defend_south_defend_north",
+        "Nav_Go_defend_east_defend_north",
+        "Nav_Go_daily_menu_defend_south",
+        "Nav_Go_task_map_daily_menu",
+        "Nav_WorldSumeru",
+        "Nav_OpenWorld"
+      ],
+      "warehouse": [
+        "Nav_Go_profile_warehouse",
+        "Nav_OpenProfile",
+        "Nav_Go_task_map_profile"
+      ],
+      "alliance_contribution": [
+        "Nav_Go_alliance_alliance_contribution",
+        "Nav_Go_task_map_alliance",
+        "Nav_WorldSumeru",
+        "Nav_OpenWorld"
+      ],
+      "time_replay_1": [
+        "Nav_Go_time_boat_time_replay_1",
+        "Nav_Go_task_map_time_boat",
+        "Nav_WorldSumeru",
+        "Nav_OpenWorld"
+      ],
+      "time_replay_2": [
+        "Nav_Go_time_replay_1_time_replay_2",
+        "Nav_Go_time_boat_time_replay_1",
+        "Nav_Go_task_map_time_boat",
+        "Nav_WorldSumeru",
+        "Nav_OpenWorld"
+      ],
+      "survival_rewards": [
+        "Nav_Go_survival_week_survival_rewards",
+        "Nav_Go_daily_menu_survival_week",
+        "Nav_Go_task_map_daily_menu",
+        "Nav_WorldSumeru",
+        "Nav_OpenWorld"
+      ],
+      "nanzhan": [
+        "Nav_WorldNanzhan",
+        "Nav_OpenWorld",
+        "Nav_Go_task_map_world"
+      ]
+    },
+    "nearby": {
+      "bounty": [
+        "accepted_bounties",
+        "quest_panel"
+      ],
+      "stage": [
+        "quest_panel"
+      ]
+    },
+    "fallback": [
+      "challenge_failed",
+      "challenge_succeeded",
+      "profile_sell",
+      "daily_expanded",
+      "daily_menu",
+      "warehouse",
+      "time_replay_1",
+      "time_replay_2",
+      "alliance_contribution",
+      "alliance_blessing",
+      "survival_rewards",
+      "login",
+      "saves",
+      "activity",
+      "profile",
+      "treasure",
+      "time_boat",
+      "theme",
+      "hell",
+      "arhat",
+      "fortune",
+      "mount_gather",
+      "arena",
+      "shop_mystery",
+      "defend_south",
+      "defend_east",
+      "defend_north",
+      "bounty_board",
+      "alliance",
+      "survival_week",
+      "survival_question",
+      "paused_sumeru",
+      "sumeru",
+      "quest_panel",
+      "accepted_bounties"
+    ],
+    "stages": {
+      "朱电（琉璃宫）-关卡入口": "town2",
+      "烛时（钟晷极地）-关卡入口": "town3",
+      "摩多（七叶树窟）-关卡入口": "town4",
+      "摩多（幕山）-关卡入口": "town4",
+      "无冥（孤魂岭）-关卡入口": "town5",
+      "伽岚（万世冥阁）-关卡入口": "town5",
+      "贪妄（金蟾宝宫）-关卡入口": "town6"
+    }
+  }
+}

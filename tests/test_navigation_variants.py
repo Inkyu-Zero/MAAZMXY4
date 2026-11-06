@@ -37,17 +37,9 @@ class StageVariantAssetsTests(unittest.TestCase):
             self.assertEqual(node['recognition']['type'],'And')
             self.assertEqual(node['recognition']['param']['box_index'],1)
             self.assertEqual(node['action'],{'type':'Click'})
-            # Upstream adds two bounded retries. Each must keep the same target
-            # recognition/modal guard and end at failure, not a blind click.
-            previous = node
-            for attempt in (1, 2):
-                name = stage['task'] + '-关卡入口_重试' + str(attempt)
-                self.assertEqual(previous['on_error'], [name])
-                retry = pipeline[name]
-                self.assertEqual(retry['recognition'], node['recognition'])
-                self.assertEqual(retry['action'], {'type':'Click'})
-                previous = retry
-            self.assertEqual(previous['on_error'], [stage['task']+'-失败'])
+            # Retries now re-use this same guarded action, rather than three copies.
+            self.assertFalse(any('关卡入口_重试' in name for name in pipeline))
+            self.assertEqual(node['next'],[])
             if stage['town'] == 'town5':
                 # Both legacy and SWF states must follow a movable icon across
                 # the viewport, instead of assuming its initial map position.
@@ -61,7 +53,6 @@ class StageVariantNativeTests(unittest.TestCase):
     def test_non_blood_sea_button_states_match_only_the_intended_stage(self):
         self.check_states(blood_sea=False)
 
-    @unittest.skipUnless(os.environ.get('NAVIGATION_BLOOD_SEA_TESTS')=='1','blood-sea validation explicitly deferred')
     def test_blood_sea_button_states_match_only_the_intended_stage(self):
         self.check_states(blood_sea=True)
 

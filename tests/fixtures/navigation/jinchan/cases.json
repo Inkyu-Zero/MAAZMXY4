@@ -1,0 +1,27 @@
+{
+  "note": "Only the palace decoration matched by the upstream scene template is retained. Player, account, HUD, chat and all other pixels are removed. These are masked regression excerpts, not full-screen gameplay simulations.",
+  "cases": [
+    {
+      "file": "left.png",
+      "roi": [
+        800,
+        482,
+        134,
+        125
+      ],
+      "source_sha256": "5882f9408a1fd2ec0e386fa04f77b22d53d5b44c23341a650f16e9e7d9ece4ec",
+      "sha256": "5b26237ea5159dd569139050e8f83c24a9c0bcbbd46f98dcbf13b8d3d5c96e38"
+    },
+    {
+      "file": "right.png",
+      "roi": [
+        882,
+        482,
+        134,
+        125
+      ],
+      "source_sha256": "4906b1e746947daebf1016e954361260c2c79574c1c6f6b8cb52f44ebec86d99",
+      "sha256": "5450e4484769449f58d4e3623c941d460865b11d8cc55ad818fb26d80a9b1dbd"
+    }
+  ]
+}

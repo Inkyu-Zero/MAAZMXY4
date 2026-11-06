@@ -1,0 +1,6 @@
+{
+  "description": "input-only-queue-entry",
+  "path": "MFAAvalonia/Extensions/MaaFW/MaaProcessor.cs",
+  "find": "            InitializeConnectionTasksAsync(token);",
+  "replace": "            await SetInputOnlyPlaybackAsync(taskAndParams.FirstOrDefault()?.Entry == MFAAvalonia.Services.GenericScriptPlayback.Entry, token);\n            InitializeConnectionTasksAsync(token);"
+}

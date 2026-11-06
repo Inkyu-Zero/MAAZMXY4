@@ -31,6 +31,7 @@ PYTHON_REQUIRED = (
     'Lib/os.py', 'Lib/site-packages/maa/__init__.py', 'Lib/site-packages/numpy/__init__.py',
     'Lib/site-packages/strenum/__init__.py', 'Lib/site-packages/pynput/__init__.py',
     'Lib/site-packages/PIL/__init__.py', 'Lib/site-packages/PIL/_imaging.pyd',
+    'Lib/site-packages/cv2/__init__.py', 'Lib/site-packages/cv2/cv2.pyd',
     'Lib/site-packages/six.py', 'Lib/site-packages/MaaAgentBinary', 'Lib/tkinter/__init__.py',
     'DLLs/_tkinter.pyd', 'DLLs/tcl86t.dll', 'DLLs/tk86t.dll',
     'tcl/tcl8.6/init.tcl', 'tcl/tk8.6/tk.tcl',
@@ -39,14 +40,18 @@ REQUIRED = list(PYTHON_REQUIRED)
 
 # 导入检查（在子进程里跑，避免污染本进程）
 PROBE = (
-    "import sys, numpy, strenum, tkinter, pynput, six\n"
+    "import sys, numpy, strenum, tkinter, pynput, six, cv2\n"
     "from PIL import Image\n"
     "tkinter.Tcl()\n"
     "from maa.agent.agent_server import AgentServer\n"
     "from maa.toolkit import Toolkit\n"
     "from maa.custom_action import CustomAction\n"
     "from maa.custom_recognition import CustomRecognition\n"
-    "print('OK', sys.version.split()[0], numpy.__version__)\n"
+    # Alchemy imports OpenCV lazily; importing jzld alone misses this dependency.
+    "image = numpy.arange(25, dtype=numpy.float32).reshape(5, 5)\n"
+    "assert float(cv2.matchTemplate(image, image, cv2.TM_CCOEFF_NORMED)[0, 0]) > .99\n"
+    "assert numpy.isfinite(cv2.Sobel(image, cv2.CV_32F, 1, 0, ksize=3)).all()\n"
+    "print('OK', sys.version.split()[0], numpy.__version__, 'OpenCV', cv2.__version__)\n"
 )
 
 
@@ -73,6 +78,8 @@ def required_path_exists(root, relative):
     candidates = [path]
     if relative == 'Lib/site-packages/PIL/_imaging.pyd':
         candidates.append(path.with_name('_imaging.cp312-win_amd64.pyd'))
+    elif relative == 'Lib/site-packages/cv2/cv2.pyd':
+        candidates.extend(path.with_name(name) for name in ('cv2.abi3.pyd', 'cv2.cp312-win_amd64.pyd'))
     is_directory = relative in ('DLLs', 'Lib/site-packages/MaaAgentBinary')
     return any(not item.is_symlink() and (item.is_dir() if is_directory else item.is_file())
                for item in candidates)

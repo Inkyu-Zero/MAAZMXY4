@@ -10,9 +10,16 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'agent'))
 from navigation.stage_view import DATA, restore_stage_view
+from navigation.runtime import Navigator
 
 
 class StageScrollTests(unittest.TestCase):
+    def navigator(self, context, *, capture=lambda:object(), check=lambda:None):
+        nav=Navigator(context,{},capture=capture,check=check,log=lambda _:None)
+        nav.locate=lambda:'map'
+        nav._settle=lambda:None
+        return nav
+
     def test_horizontal_targets_keep_opposite_native_match_relative_drags(self):
         data = json.loads(DATA.read_text(encoding='utf8'))
         nodes = json.loads((ROOT / 'assets/resource/base/pipeline/game_management_scroll.json').read_text(encoding='utf8'))
@@ -30,7 +37,7 @@ class StageScrollTests(unittest.TestCase):
             x, y, w, h = nodes[guard['all_of'][2]]['recognition']['param']['roi']
             self.assertGreaterEqual(x + dx, 0)
             self.assertLessEqual(x + w + dx, 1101)
-            self.assertLess(y + h, 600)
+            self.assertLessEqual(y + h, 600)
 
     def test_cancellation_after_recognition_prevents_pending_drag(self):
         recipe = json.loads(DATA.read_text(encoding='utf8'))['maps'][0]
@@ -42,9 +49,8 @@ class StageScrollTests(unittest.TestCase):
             cancelled = name == recipe['drag_node']
             return SimpleNamespace(hit=cancelled)
         actions = []
-        context = SimpleNamespace(run_recognition=recognize, run_task=lambda *args: actions.append(args))
-        navigator = SimpleNamespace(clock=lambda: 0, _check=check, locate=lambda: 'task_map',
-                                    capture=lambda: None, log=lambda _: None, _settle=lambda: None)
+        context = SimpleNamespace(run_recognition=recognize, run_action=lambda *args,**kwargs: actions.append(args))
+        navigator = self.navigator(context,check=check)
         with self.assertRaises(InterruptedError): restore_stage_view(context, navigator, recipe['target'])
         self.assertFalse(actions)
 
@@ -54,11 +60,11 @@ class StageScrollTests(unittest.TestCase):
         seen, actions = [], []
         def recognize(name, frame):
             seen.append((name, frame))
-            return SimpleNamespace(hit=name == recipe['drag_node'] or frame == 'after')
-        context = SimpleNamespace(run_recognition=recognize, run_task=lambda *args:
-            actions.append(args) or SimpleNamespace(status=SimpleNamespace(succeeded=True)))
-        navigator = SimpleNamespace(clock=lambda: 0, _check=lambda: None, locate=lambda: 'task_map',
-                                    capture=lambda: next(frames), log=lambda _: None, _settle=lambda: None)
+            return SimpleNamespace(hit=name == recipe['drag_node'] or frame == 'after',box=(10,20,30,40))
+        context = SimpleNamespace(run_recognition=recognize, run_action=lambda name,box:
+            actions.append((name,box)) or SimpleNamespace(success=True))
+        navigator = self.navigator(context,capture=lambda:next(frames))
+        navigator.locate=lambda:'task_destination' if navigator.recognize(recipe['target']).hit else 'map'
         self.assertTrue(restore_stage_view(context, navigator, recipe['target']))
         self.assertEqual(len(actions), 1)
         self.assertEqual(seen[-1], (recipe['target'], 'after'))
@@ -80,13 +86,13 @@ class StageScrollTests(unittest.TestCase):
         target = recipe['target']
         actions = []
         context = SimpleNamespace(
-            run_recognition=lambda name, frame: SimpleNamespace(hit=name == recipe['drag_node']),
-            run_task=lambda name, patch: actions.append((name, patch)) or SimpleNamespace(status=SimpleNamespace(succeeded=True)))
-        navigator = SimpleNamespace(clock=lambda: 0, _check=lambda: None, locate=lambda: 'profile',
-                                    capture=lambda: None, log=lambda _: None, _settle=lambda: None)
+            run_recognition=lambda name, frame: SimpleNamespace(hit=name == recipe['drag_node'],box=(10,20,30,40)),
+            run_action=lambda name, box: actions.append((name, box)) or SimpleNamespace(success=True))
+        navigator = self.navigator(context)
+        navigator.locate=lambda:'profile'
         self.assertFalse(restore_stage_view(context, navigator, target))
         self.assertEqual(actions, [])
-        navigator.locate = lambda: 'task_map'
+        navigator.locate = lambda: 'map'
         context.run_recognition = lambda *_: SimpleNamespace(hit=False)
         self.assertFalse(restore_stage_view(context, navigator, target))
         self.assertEqual(actions, [])
@@ -95,10 +101,11 @@ class StageScrollTests(unittest.TestCase):
         with self.assertRaises(InterruptedError): restore_stage_view(context, navigator, target)
         self.assertEqual(actions, [])
         navigator._check = lambda: None
-        context.run_recognition = lambda name, _: SimpleNamespace(hit=name == recipe['drag_node'])
+        navigator.invalidate()
+        context.run_recognition = lambda name, _: SimpleNamespace(hit=name == recipe['drag_node'],box=(10,20,30,40))
         self.assertFalse(restore_stage_view(context, navigator, target))
         self.assertEqual(len(actions), recipe['max_steps'])
-        self.assertTrue(all(p[n]['next'] == [recipe['drag_node']] for n, p in actions))
+        self.assertTrue(all(n == recipe['drag_node'] and box==(10,20,30,40) for n,box in actions))
 
 
 @unittest.skipUnless(os.environ.get('NAVIGATION_NATIVE_TESTS') == '1', 'opt-in Maa memory controller')
@@ -111,8 +118,8 @@ class StageScrollNativeTests(unittest.TestCase):
         from maa.tasker import Tasker
         from battle_ui import NoRevivePrompt
         from fixture_pixels import read_png_bgr
-        from navigation.catalog import task_graph
-        from navigation.runtime import GraphNavigator
+        from navigation.catalog import task_routine
+        from navigation.runtime import Navigator
         fixtures = ROOT / 'tests/fixtures/game-management/scroll'
         recipes = json.loads(DATA.read_text(encoding='utf8'))['maps']
         maps = {r['town']: read_png_bgr(fixtures / r['fixture']) for r in recipes}
@@ -124,6 +131,9 @@ class StageScrollNativeTests(unittest.TestCase):
             recipe = recipes[0]
             offset = 0
             gestures = []
+            entering = False
+            entries = []
+            stage_bounds = ()
             def connect(self): return True
             def request_uuid(self): return 'scroll-memory-only'
             def screencap(self):
@@ -143,6 +153,14 @@ class StageScrollNativeTests(unittest.TestCase):
                 self.end = (x, y)
                 return True
             def touch_up(self, contact):
+                if self.entering:
+                    x, y = self.start
+                    x += self.offset if self.recipe['axis'] == 'x' else 0
+                    y += self.offset if self.recipe['axis'] == 'y' else 0
+                    x1,y1,x2,y2 = [v*720/590 for v in self.stage_bounds]
+                    assert x1 <= x <= x2 and y1 <= y <= y2, ('stale stage click',self.recipe['task'],self.offset,self.start)
+                    self.entries.append((self.offset,self.start))
+                    return True
                 self.gestures.append((self.start, self.end))
                 axis = 0 if self.recipe['axis'] == 'x' else 1
                 delta = self.start[axis] - self.end[axis]
@@ -158,6 +176,28 @@ class StageScrollNativeTests(unittest.TestCase):
                 try:
                     for recipe in recipes:
                         controller.recipe = recipe
+                        # Authored stage bounds from Town5/6 levels_container,
+                        # independent of the cropped runtime templates. Check
+                        # endpoints and intermediate cached viewport positions.
+                        stage_bounds = {'伽岚（万世冥阁）': (1099.8, 342.95, 1202.8, 426.95),
+                                        '无冥（孤魂岭）': (211, 66, 361, 216),
+                                        '贪妄（金蟾宝宫）': (71, 2352, 346, 2560)}[recipe['task']]
+                        maximum = round(((1500-940) if recipe['axis']=='x' else (2714-590))*720/590)
+                        positions=[round(maximum*f) for f in (0, .25, .5, .75, 1)]
+                        if recipe['town']=='town6':positions += [1850,1887,1920]
+                        for position in positions:
+                            controller.offset = position
+                            pixels = controller.screencap()
+                            hit = context.run_recognition(recipe['target'], pixels)
+                            assert hit is not None
+                            if hit.hit:
+                                x,y,w,h = hit.box
+                                map_x = x+w/2+(controller.offset if recipe['axis']=='x' else 0)
+                                map_y = y+h/2+(controller.offset if recipe['axis']=='y' else 0)
+                                x1,y1,x2,y2 = [v*720/590 for v in stage_bounds]
+                                assert x1 <= map_x <= x2 and y1 <= map_y <= y2, (recipe['task'], controller.offset, hit.box)
+                            else:
+                                assert context.run_recognition(recipe['drag_node'], pixels).hit, ('viewport gap',recipe['task'],controller.offset)
                         controller.offset = round((1500-940)*720/590) if recipe['drag_node'].endswith('Back') else 0
                         controller.gestures = []
                         frame = controller.screencap()
@@ -171,12 +211,29 @@ class StageScrollNativeTests(unittest.TestCase):
                         # Preserve recognized map/mode/terrain under the modal.
                         modal = frame.copy(); modal[100:550, 270:880] = prompt[100:550, 270:880]
                         assert not context.run_recognition(recipe['drag_node'], modal).hit, 'revival prompt'
-                        graph = task_graph(context, dict(navigation=dict(kind='stage', target_node=recipe['target'])))
-                        navigator = GraphNavigator(context, graph, capture=controller.screencap, check=lambda: None)
+                        graph = task_routine(context, dict(navigation=dict(kind='stage', target_node=recipe['target'])))
+                        navigator = Navigator(context, graph, capture=controller.screencap, check=lambda: None)
                         assert restore_stage_view(context, navigator, recipe['target']), (recipe['town'], controller.offset)
                         assert 0 < len(controller.gestures) <= recipe['max_steps'], controller.gestures
                         assert context.run_recognition(recipe['target'], controller.screencap()).hit
                         checks.append((recipe['town'], controller.offset, len(controller.gestures)))
+                        # Enter twice with a changed view between rounds. The
+                        # real native target action must use each fresh match,
+                        # never the position observed by the first navigator.
+                        controller.stage_bounds, controller.entries = stage_bounds, []
+                        initial_offset = controller.offset
+                        changed_offset=initial_offset+80 if initial_offset+80<=maximum else initial_offset-80
+                        for offset in (initial_offset, changed_offset):
+                            controller.offset = offset
+                            nav = Navigator(context, graph, capture=controller.screencap, check=lambda: None)
+                            assert restore_stage_view(context, nav, recipe['target'])
+                            controller.entering = True
+                            try:
+                                assert nav.perform(recipe['target']), ('entry failed',recipe['task'])
+                            finally:
+                                controller.entering = False
+                        assert len(controller.entries) == 2
+                        assert controller.entries[0][0] != controller.entries[1][0], controller.entries
                     return True
                 except Exception as error:
                     import traceback
