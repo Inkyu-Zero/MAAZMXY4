@@ -234,7 +234,7 @@ class CaptureSession:
             if self._api is None:
                 self._api = _Win32WindowAPI()
                 from window_geometry import WindowLease
-                self._lease_factory = self._lease_factory or WindowLease
+                self._lease_factory = self._lease_factory or (lambda handle: WindowLease(handle,adapt=False))
             if self._lease_factory:
                 self._lease = self._lease_factory(hwnd)
             try:
@@ -403,12 +403,7 @@ class CaptureSession:
 
     def _check_target(self, now):
         try:
-            if self._lease:
-                paused = self._lease.paused_seconds
-                self._lease.ensure()
-                if self._lease.paused_seconds != paused:
-                    self._pause(now, '窗口尺寸已恢复，录制暂停；请确认游戏后继续。')
-            current = self._api.inspect(self._hwnd)
+            current = self._lease.ensure() if self._lease else self._api.inspect(self._hwnd)
             if any(current[key] != self._identity[key] for key in ("pid", "class_name", "width", "height")):
                 raise RuntimeError("目标窗口身份或客户区尺寸已改变，录制已停止。")
             if self._state == "recording" and not self._api.is_foreground(self._hwnd):
@@ -586,7 +581,7 @@ class CaptureSession:
                 try:
                     self._lease.close()
                 except Exception as error:
-                    self._error = '窗口尺寸锁清理失败：' + str(error)
+                    self._error = '窗口会话清理失败：' + str(error)
                 finally:
                     self._lease = None
             with self._lock:

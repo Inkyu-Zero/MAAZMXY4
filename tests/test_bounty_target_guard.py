@@ -79,7 +79,7 @@ class BountyTargetGuardTests(unittest.TestCase):
             if n.get('action',{}).get('param',{}).get('custom_action_param',{}).get('phase')=='begin')
         task_routine(Context(),params)
         node = nodes['Bounty_Target']
-        self.assertEqual(node['action']['type'], 'Click')
+        self.assertEqual(node['action'], {'type':'LongPress','param':{'duration':300}})
         def expand(rec):
             for field in ('all_of','any_of'):
                 if field in rec.get('param',{}):

@@ -48,11 +48,13 @@ def generate(source, root=ROOT):
         return relative
 
     def match(paths, **params):
-        return dict(type='TemplateMatch', param=dict(template=paths, threshold=.9, **params))
+        return dict(type='TemplateMatch', param=dict(template=paths, **params))
 
     labels = [template(images / f'sprites/DefineSprite_63_btn_txt/{frame}.png', name, mask=True)
               for frame, name in [(1, 'continue'), (2, 'return')]]
-    menu = [dict(sub_name='continue', recognition=match(labels[0], green_mask=True, roi=[400, 130, 370, 220])),
+    # Small physical clients resampled to 720 score ~0.817 on this text anchor.
+    # The independent return label keeps the shared 0.83 threshold and ROI.
+    menu = [dict(sub_name='continue', recognition=match(labels[0], threshold=.80, green_mask=True, roi=[400, 130, 370, 220])),
             dict(recognition=match(labels[1], green_mask=True, roi='continue', roi_offset=[-15, 35, 30, 95]))]
     readonly = dict(action=dict(type='DoNothing'), next=[], post_delay=0)
     nodes = {'Nav_SettingsMenu': dict(recognition=dict(type='And', param=dict(all_of=menu, box_index=0)), **readonly)}

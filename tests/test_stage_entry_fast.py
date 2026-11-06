@@ -11,9 +11,10 @@ runtime = load_runtime()
 
 
 class FastEntryTests(unittest.TestCase):
-    def enter(self, *, ignored=0, loading=0, cancel=False):
+    def enter(self, *, ignored=0, loading=0, cancel=False, recognition_costs=None,
+              click_trace=None, cancel_after=1, blocked=False):
         ctx = Context(); ctx.tasker.controller.info = {}
-        clock = [0.0]; calls = []; images = []; clicks = []
+        clock = [0.0]; calls = []; images = []; clicks = [] if click_trace is None else click_trace
         state = dict(parameters=dict(navigation=dict(kind='stage',target_node='Target'),
                                      round_flow=dict(scene_node='Scene',load_timeout_ms=15000)))
         current = ['map']; remaining = [loading]
@@ -24,9 +25,11 @@ class FastEntryTests(unittest.TestCase):
             image = (len(images)+1, current[0]); images.append(image); return image
         def recognize(name, image):
             calls.append((name, image))
-            if cancel and name == 'Target' and clicks: ctx.tasker.stopping = True
+            clock[0] += (recognition_costs or {}).get(name, 0)
+            if cancel and name == 'Target' and len(clicks)>=cancel_after: ctx.tasker.stopping = True
             return SimpleNamespace(hit=(name == 'Scene' and image[1] == 'stage') or
-                (name == 'Target' and image[1] == 'map'), box=(image[0]*10,100,10,10))
+                (name == 'Target' and image[1] == 'map') or
+                (name == 'Nav_BlockedDialog' and blocked), box=(image[0]*10,100,10,10))
         def action(name, box):
             self.assertEqual(name,'Target'); clicks.append((clock[0],box))
             if len(clicks)>ignored: current[0]='loading' if loading else 'stage'
@@ -55,6 +58,42 @@ class FastEntryTests(unittest.TestCase):
         result,_,clicks,_,images=self.enter(loading=3)
         self.assertTrue(result);self.assertEqual(len(clicks),1)
         self.assertTrue(any(scene=='loading' for _,scene in images))
+
+    def test_third_click_is_reserved_until_the_loading_window_expires(self):
+        result,_,clicks,_,_=self.enter(ignored=2)
+        self.assertTrue(result)
+        self.assertEqual(len(clicks),3)
+        self.assertLess(clicks[1][0],2)
+        self.assertGreaterEqual(clicks[2][0]-clicks[1][0],15)
+
+    def test_slow_recognition_cannot_skip_the_last_entry_retry(self):
+        # A real failed round crossed its deadline inside the final blocker
+        # recognition. Instantaneous mocks used to miss this timeout boundary.
+        for probe in ('Result_FailedClear', 'Bounty_StageSettings',
+                      'Bounty_StagePause', 'Nav_BlockedDialog'):
+            with self.subTest(probe=probe):
+                result,_,clicks,_,_=self.enter(ignored=2,recognition_costs={probe:.31})
+                self.assertIs(result,True)
+                self.assertEqual(len(clicks),3)
+                self.assertGreaterEqual(clicks[2][0]-clicks[1][0],15)
+
+    def test_final_ignored_click_exhausts_the_budget_without_a_fourth_click(self):
+        clicks=[]
+        with self.assertRaisesRegex(runtime.NavigationError,'进关后未确认副本场景'):
+            self.enter(ignored=3,recognition_costs={'Nav_BlockedDialog':.31},click_trace=clicks)
+        self.assertEqual(len(clicks),3)
+
+    def test_cancellation_at_the_final_retry_does_not_send_input(self):
+        result,_,clicks,_,_=self.enter(ignored=2,cancel=True,cancel_after=2,
+                                      recognition_costs={'Nav_BlockedDialog':.31})
+        self.assertEqual(result,'cancelled')
+        self.assertEqual(len(clicks),2)
+
+    def test_blocker_is_not_overridden_by_a_remaining_retry(self):
+        clicks=[]
+        with self.assertRaisesRegex(runtime.NavigationError,'进关被登录或其他提示阻断'):
+            self.enter(ignored=2,blocked=True,recognition_costs={'Nav_BlockedDialog':.31},click_trace=clicks)
+        self.assertEqual(len(clicks),2)
 
     def test_cancel_before_retry_does_not_click_again(self):
         result,_,clicks,_,_=self.enter(ignored=1,cancel=True)

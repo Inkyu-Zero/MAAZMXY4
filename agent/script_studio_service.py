@@ -263,6 +263,8 @@ class StudioService:
                 return dict(state='idle', error='')
             return self.playback.stop() if method == 'playback_stop' else self.playback.snapshot()
         if method == 'window_prepare':
+            # Keep the older frontend RPC, but opening/reconnecting now only
+            # reads geometry. Playback owns the one-time script adaptation.
             self.require_idle()
             from window_geometry import prepare_window, STANDARD_BASE
             return prepare_window(params.get('hwnd'), params.get('base', STANDARD_BASE))
@@ -396,6 +398,13 @@ class StudioService:
             return self.replace(document.delete_many(params["ids"]))
         if method == "move_many":
             return self.replace(document.move_many(params["ids"], params["delta_ms"]))
+        if method == 'copy_many':
+            return document.copy_many(params['ids'])
+        if method == 'paste_many':
+            pasted, selected = document.paste_many(params['clipboard'], params['at_ms'])
+            result = self.replace(pasted)
+            result['selected_ids'] = selected
+            return result
         if method == "marker":
             return self.replace(document.add_marker(params["at_ms"], params.get("label") or "阶段标记"))
         if method == "repair":

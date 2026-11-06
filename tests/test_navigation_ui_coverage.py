@@ -14,6 +14,13 @@ def read(path):
 
 
 class NavigationUICoverageTests(unittest.TestCase):
+    def test_small_window_menu_regression_fixture_has_provenance(self):
+        base=ROOT/'tests/fixtures/navigation/regressions/settings-small-window'
+        data=json.loads(base.with_suffix('.json').read_text(encoding='utf8'))
+        self.assertEqual(hashlib.sha256(base.with_suffix('.png').read_bytes()).hexdigest(),data['sha256'])
+        self.assertEqual(len(data['source_sha256']),64)
+        self.assertEqual(data['retained_roi'],[400,110,370,535])
+
     def test_new_sources_and_fixtures_have_exact_provenance(self):
         for name in ('common-ui', 'settings-ui'):
             data = read('agent/data/navigation/' + name + '.json')

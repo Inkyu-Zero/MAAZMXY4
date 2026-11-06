@@ -501,18 +501,17 @@ class BountyCandleTests(unittest.TestCase):
         white.assert_not_called()
         self.assertEqual(self.outcome()['reason'],'recording_changed')
 
-    def test_recording_frame_tolerance_accepts_eight_pixels_but_not_nine(self):
-        # A restart can round the restored window one pixel beyond the previous
-        # tolerance. Exercise the same saved-recording preflight as a task.
+    def test_round_preflight_defers_script_aspect_adaptation_to_playback(self):
         params = dict(file='@task:bounty-candle', playback_node='Bounty_Play')
         cases = [((720, 1140, 3), True), ((720, 1145, 3), True),
-                 ((720, 1156, 3), True), ((720, 1139, 3), False),
-                 ((720, 1157, 3), False), ((719, 1148, 3), False),
+                 ((720, 1156, 3), True), ((720, 1139, 3), True),
+                 ((720, 1157, 3), True), ((719, 1148, 3), False),
                  ((721, 1148, 3), False)]
         for shape, accepted in cases:
             with self.subTest(shape=shape):
                 context = Context()
-                with patch.object(runtime, 'write_status'):
+                with patch.object(runtime, 'write_status'), \
+                        patch('window_geometry.WindowLease',side_effect=AssertionError('navigation must not lock')):
                     if accepted:
                         state = {}
                         runtime.begin_round(context, params, state, frame=SimpleNamespace(shape=shape))
@@ -520,9 +519,19 @@ class BountyCandleTests(unittest.TestCase):
                         self.assertEqual(context.patches[0]['Bounty_Play']['action']['param']
                                          ['custom_action_param']['expected_base'], [1148, 720])
                     else:
-                        with self.assertRaisesRegex(ValueError, '尺寸不一致'):
+                        with self.assertRaisesRegex(ValueError, '短边720'):
                             runtime.begin_round(context, params, {}, frame=SimpleNamespace(shape=shape))
                         self.assertEqual(context.patches, [])
+
+    def test_round_preflight_returns_fresh_frame_after_script_adaptation(self):
+        context=Context(); fresh=Frame(); old=SimpleNamespace(shape=(720,1048,3))
+        params=dict(file='@task:bounty-candle',playback_node='Bounty_Play')
+        with patch.object(runtime,'prepare_playback_controller',return_value=True,create=True) as prepare, \
+                patch.object(runtime,'capture',return_value=fresh) as capture,patch.object(runtime,'write_status'):
+            result=runtime.begin_round(context,params,{},frame=old)
+        self.assertIs(result,fresh)
+        prepare.assert_called_once_with(context.tasker.controller,[1148,720])
+        capture.assert_called_once_with(context)
 
     def test_different_frame_geometry_and_unbalanced_recording_are_fatal(self):
         self.context.tasker.controller.frame=SimpleNamespace(ndim=3,shape=(737,1175,3))

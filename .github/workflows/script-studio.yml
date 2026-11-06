@@ -100,6 +100,16 @@ jobs:
           STAGE_ENTRY_TEST_LOG: '${{ runner.temp }}/navigation-native/entry'
           OMP_NUM_THREADS: '2'
         run: python -m unittest discover -s tests -p "test_stage_entry_transport.py" -v
+      - name: Entry press ordering and small-window settings recognition
+        env:
+          NAVIGATION_NATIVE_TESTS: '1'
+          MAA_RESULT_UI_TESTS: '1'
+          MAAFW_BINARY_PATH: '${{ github.workspace }}/dist/script-studio/runtimes/win-x64/native'
+          MAA_RESULT_TEST_LOG: '${{ runner.temp }}/navigation-native/settings'
+          OMP_NUM_THREADS: '2'
+        run: |
+          python -m unittest discover -s tests -p "test_entry_press_native.py" -v
+          python -m unittest discover -s tests -p "test_settings_ui_native.py" -v
       - name: Built task options and AFK dependencies without a real window
         shell: pwsh
         run: dotnet run --project frontend/tests/TaskOptions/TaskOptions.csproj -c Release -- assets/interface.json

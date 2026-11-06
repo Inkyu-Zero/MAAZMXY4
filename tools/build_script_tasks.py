@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+ENTRY_PRESS_MS = 300
 
 def write(path, value):
     path.write_text(json.dumps(value, ensure_ascii=False, indent=2)+'\n', encoding='utf8', newline='\n')
@@ -44,13 +45,13 @@ def build_bounties(root=ROOT):
                param=dict(template=template['scenes']))),'Result_NoRevivePrompt']))
     common={'Round_PlayDone':node(),
             'Nav_BountyDetailTitle':node(dict(type='OCR',param=dict(expected=['^__unconfigured_bounty__$'],roi=[500,165,430,75]))),
-            'Bounty_Target':node(rec['target'],dict(type='Click')),
+            'Bounty_Target':node(rec['target'],dict(type='LongPress',param=dict(duration=ENTRY_PRESS_MS))),
             'Bounty_ResumeStage':node(rec['resume_stage'],dict(type='Click')),
             'Bounty_StageSettings':node(rec['settings_stage']),
             'Bounty_StagePause':node(rec['paused_stage']),
             'Bounty_Play':play_node(stage),
             'Bounty_OpenSettings':node(rec['open_settings'],dict(type='Click'))}
-    common['Bounty_Target']['post_delay']=1000
+    common['Bounty_Target']['post_delay']=2000
     common['Bounty_ResumeStage']['post_delay']=350
     common['Bounty_OpenSettings']['post_delay']=500
     write(folder/'bounty_common.json',common)
@@ -80,6 +81,10 @@ def build(root=ROOT):
         target_definition=deepcopy(profile['target']);target_definition['next']=[]
         # No delay between recognition and dispatch: a dialog can appear there.
         target_definition['pre_delay']=0
+        # Native Click holds for 100 ms. Entry targets use an explicit 300 ms
+        # press and release dwell before the shared background hover cleanup.
+        target_definition['action']=dict(type='LongPress',param=dict(duration=ENTRY_PRESS_MS))
+        target_definition['post_delay']=1000
         icon=target_definition['recognition']['param']['all_of'][1]
         if profile.get('view_roi'):
             def set_roi(value):

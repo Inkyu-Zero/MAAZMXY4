@@ -45,7 +45,7 @@ from maa.custom_action import CustomAction
 from script_studio.model import MAX_FILE_BYTES, RecordingDocument
 from script_library import resolve_recording_reference
 from battle_outcomes import BattleOutcomeMonitor, UnrecognizedDialog
-from window_geometry import controller_hwnd, WindowLease
+from window_geometry import controller_hwnd, WindowLease, matches_layout
 import recording_playback as playback
 from mouse_input import finish_mouse_operation
 
@@ -328,7 +328,12 @@ class BattlePlay(CustomAction):
                     # Normal tasks use native scaling and may inspect the game.
                     # Refresh after changing borders/size; input-only jobs bypass
                     # this native action and call the shared timeline directly.
-                    _wait_job(ctrl.post_screencap())
+                    if lease.changed:
+                        _wait_job(ctrl.post_screencap())
+                    frame = ctrl.cached_image
+                    if frame is None or min(frame.shape[:2]) != 720 or not matches_layout(
+                            (frame.shape[1],frame.shape[0]),rec['base']):
+                        raise ValueError('播放前的窗口截图尚未匹配脚本比例，已停止输入。')
                 if param.get('result_guard') is not None:
                     try:
                         monitor = BattleOutcomeMonitor(context, param['result_guard'])

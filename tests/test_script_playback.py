@@ -11,7 +11,7 @@ from unittest.mock import patch
 from test_battle_player_studio import player, FakeController
 from test_window_geometry import Geometry
 from window_geometry import WindowLease
-from script_playback import PlaybackJob
+from script_playback import PlaybackJob, InputOnlyController, CompletedInput
 from script_studio_service import StudioService
 from task_catalog import task_catalog, execution_plan
 from script_library import bind_task_recording
@@ -78,7 +78,7 @@ class PlaybackTests(unittest.TestCase):
         self.ctrl.after_call=fail
         result=self.finish(self.job())
         self.assertEqual(result['state'],'failed',result)
-        self.assertIn('无法将',result['error'])
+        self.assertIn('播放期间窗口尺寸',result['error'])
         self.assertEqual([c[0] for c in self.ctrl.calls],['post_key_down','post_key_up'])
         self.assertFalse(self.geometry.claimed)
 
@@ -101,6 +101,28 @@ class PlaybackTests(unittest.TestCase):
         self.assertEqual(plan['recording']['sha256'],self.params['sha256'])
         self.assertEqual(plan['recording']['base'],[1148,720])
         self.assertEqual(self.file.read_bytes(),before)
+
+
+class InputCoordinateTests(unittest.TestCase):
+    def test_mouse_and_wheel_map_script_coordinates_without_capture(self):
+        api=Geometry();api.bits=0;api.info.update(width=1722,height=1080)
+        with WindowLease(42,(1148,720),api=api) as lease:
+            controller=object.__new__(InputOnlyController)
+            controller.lease=lease
+            controller.position=(0,0);controller.buttons=set()
+            messages=[]
+            controller._message=lambda *args:(messages.append(args),CompletedInput())[1]
+            controller.post_touch_down(100,200)
+            controller.post_touch_up()
+            self.assertIn((0x201,1,(300<<16)|150),messages)
+            self.assertIn((0x202,0,(300<<16)|150),messages)
+            controller.post_touch_move(200,300)
+            self.assertEqual(messages[-1],(0x200,0,(450<<16)|300))
+            controller.post_scroll(0,120)
+            self.assertEqual(messages[-1],(0x20a,120<<16,(500<<16)|400))
+            controller.clear_hover()
+            self.assertEqual(messages[-1],(0x200,0,(20<<16)|20))
+            self.assertFalse(api.changes)
 
 
 if __name__=='__main__':unittest.main()

@@ -53,7 +53,7 @@ class InputOnlyController:
         # Cleanup may run after a size failure, but must still target only the
         # original live HWND. It never redirects input to another process.
         self.lease.require_identity()
-        x, y = self.position
+        x, y = self.lease.map_point(*self.position)
         flags = sum({0: 1, 1: 2, 2: 16}[button] for button in self.buttons)
         point = ((y & 0xffff) << 16) | (x & 0xffff)
         return self._message(message, flags, point)
@@ -91,7 +91,7 @@ class InputOnlyController:
 
     def clear_hover(self):
         self.lease.require_identity()
-        self.position = (20, 20)
+        self.position = tuple(round(20*base/size) for base,size in zip(self.lease.base,self.lease.client_size))
         self._message(0x200, 0, (20 << 16) | 20)
 
     def post_input_text(self, text):
@@ -109,7 +109,8 @@ class InputOnlyController:
         # Wheel messages carry screen coordinates; preserve the preceding
         # script mouse position without consulting or moving the real cursor.
         current = self.lease.ensure()
-        x, y = self.position[0] + current['x'], self.position[1] + current['y']
+        x, y = self.lease.map_point(*self.position)
+        x, y = x + current['x'], y + current['y']
         point = ((y & 0xffff) << 16) | (x & 0xffff)
         for message, delta in ((0x20a, dy), (0x20e, dx)):
             if delta:

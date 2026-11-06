@@ -1,0 +1,19 @@
+{
+  "source": "Settings-menu pixels from the 2026-11-06 window adaptation regression; static panel only, all HUD and personal data removed",
+  "source_sha256": "fd5225b5137c96e8eb8064af3b1263320ef1d3febf043ac4396fc1a112d7987a",
+  "client_size": [
+    1075,
+    675
+  ],
+  "normalized_size": [
+    1147,
+    720
+  ],
+  "retained_roi": [
+    400,
+    110,
+    370,
+    535
+  ],
+  "sha256": "8fd25438bdc22f730c9c629101248876354734ffd0963f9fe90e976745f60d9c"
+}

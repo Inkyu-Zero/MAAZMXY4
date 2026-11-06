@@ -50,8 +50,14 @@ public sealed partial class ScriptStudioView
         var remove = IconButton(4, "删除操作（Delete）", DeleteAsync); _operationActions.Add(remove);
         var duplicate = IconButton(5, "复制操作（Ctrl+D）", DuplicateOperationAsync); _operationActions.Add(duplicate);
         _duplicateOperationButton = duplicate;
+        var copy = Button("复制", CopySelectionAsync); _operationActions.Add(copy);
+        ToolTip.SetTip(copy, "Ctrl+C：复制选中的完整操作，支持跨行选择");
+        var paste = Button("粘贴", PasteSelectionAsync); _documentActions.Add(paste);
+        copy.Foreground=paste.Foreground=Brushes.White;
+        copy.MinHeight=paste.MinHeight=32;
+        ToolTip.SetTip(paste, "Ctrl+V：以播放头为起点，保留原轨道、相对间隔与按住时长；重叠冲突时保留原脚本");
         var toolbar = Wrap(IconButton(0, "保存（Ctrl+S）", SaveAsync), _undo, _redo,
-            IconButton(3, "添加操作", async () => { if (await EnsureInspectorAsync()) BeginInsert(); }), remove, duplicate,
+            IconButton(3, "添加操作", async () => { if (await EnsureInspectorAsync()) BeginInsert(); }), remove, duplicate, copy, paste,
             IconButton(6, "添加标记", async () => { if (await EnsureInspectorAsync()) await _vm.ChangeAsync("marker", new JsonObject { ["at_ms"] = Milliseconds(_cursor), ["label"] = "阶段标记" }); }),
             IconButton(7, "分割脚本：在当前位置生成两个文件", SplitAsync),
             IconButton(8, "缩小时间轴", async () => { _timeline.Zoom(.8); await Task.CompletedTask; }, false),

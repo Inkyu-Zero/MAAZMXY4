@@ -107,7 +107,6 @@
                           "navigation/stages/s61-frame1.png",
                           "navigation/stages/s61-frame3.png"
                         ],
-                        "threshold": 0.82,
                         "method": 5,
                         "roi": [
                           625,
@@ -127,10 +126,13 @@
       }
     },
     "pre_delay": 0,
-    "post_delay": 500,
+    "post_delay": 1000,
     "timeout": 10000,
     "action": {
-      "type": "Click"
+      "type": "LongPress",
+      "param": {
+        "duration": 300
+      }
     },
     "next": []
   },

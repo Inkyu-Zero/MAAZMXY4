@@ -106,7 +106,6 @@
                           "navigation/stages/s47-frame1.png",
                           "navigation/stages/s47-frame3.png"
                         ],
-                        "threshold": 0.82,
                         "method": 5,
                         "roi": [
                           240,
@@ -127,9 +126,12 @@
     },
     "pre_delay": 0,
     "action": {
-      "type": "Click"
+      "type": "LongPress",
+      "param": {
+        "duration": 300
+      }
     },
-    "post_delay": 500,
+    "post_delay": 1000,
     "timeout": 10000,
     "next": []
   },

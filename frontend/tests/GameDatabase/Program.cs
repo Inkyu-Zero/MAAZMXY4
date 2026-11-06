@@ -43,6 +43,15 @@ internal static class Program
         Check(GameDatabasePresentation.Facts(boss).All(fact => fact.Label != "编号"), "Player facts exclude technical IDs");
         Check(GameDatabasePresentation.Stat(new("命中","0.03;0.04")) == "3% ～ 4%", "Stat ranges use readable percentages");
         Check(GameDatabasePresentation.Stat(new("攻击","404;520")) == "404 ～ 520", "Stat ranges preserve numeric meaning");
+        Check(GameDatabasePresentation.Stat(new("破魔","0.1"))=="10%", "Magic penetration is a percentage");
+        Check(GameDatabasePresentation.Stat(new("生命增幅（比例）","0.125"))=="12.5%", "Ratio variants use percent units");
+        Check(GameDatabasePresentation.FormatText("魔抗: 0.05;0.07\n魔抗+ 0.007\n防御+ 5.4\n暴击: 4%-6%")
+            =="魔抗: 5% ～ 7%\n魔抗+ 0.7%\n防御+ 5.4\n暴击: 4% ～ 6%", "Inline attributes convert ratios once while absolute values stay numeric");
+        var recipe=GameDatabasePresentation.Facts(catalog.Search("朱电霹雳棍")[0]).First(f=>f.Label=="制作方法");
+        Check(string.Concat(catalog.LinkSpans(recipe).Select(s=>s.Text))==recipe.Value,"Links preserve the complete fact text");
+        Check(catalog.LinkSpans(recipe).Any(s=>s.Text=="七彩晶" && catalog.FindLinkEntry(s.Target!)?.Name=="七彩晶"),"Recipes resolve to stable local entries");
+        var unsafeFact=new GameFact("用途","禁止链接") { Links=[new("禁止链接","file:///C:/Windows")] };
+        Check(catalog.LinkSpans(unsafeFact).All(span=>span.Target==null),"Disallowed links remain harmless text");
         Check(catalog.Search("复活8次", "Boss").Any(entry => entry.Name=="九尾天狐"), "Skill descriptions are searchable");
         Check(catalog.Entries.Count > 2000,"Catalogue should contain the audited official indexes");
         Check(catalog.Search("琉璃宫", "Boss").Any(e=>e.Name=="九尾天狐"),"Boss acquisition/location search");
@@ -77,6 +86,16 @@ internal static class Program
         search.Text="朱电霹雳棍";
         PumpUntil(()=>(results.SelectedItem as GameDatabaseEntry)?.Name=="朱电霹雳棍");
         Check(Field<Avalonia.Media.Imaging.Bitmap?>(view,"_bitmap")!=null,"Selected equipment decodes its packaged icon");
+        window.UpdateLayout();Dispatcher.UIThread.RunJobs();
+        var materialLink=view.GetVisualDescendants().OfType<HyperlinkButton>().First(link=>Avalonia.Automation.AutomationProperties.GetName(link)=="七彩晶");
+        var linkLabel=(TextBlock)materialLink.Content!;
+        var paragraph=materialLink.GetVisualAncestors().OfType<SelectableTextBlock>().First();
+        var baseline=linkLabel.TranslatePoint(new Point(0,linkLabel.TextLayout.TextLines[0].Baseline),paragraph)!.Value.Y;
+        Check(Math.Abs(baseline-paragraph.TextLayout.TextLines[0].Baseline)<1.1,"Inline link glyphs share the prose baseline");
+        materialLink.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+        Check(Field<GameDatabaseEntry?>(view,"_currentEntry")?.Name=="七彩晶","Inline hyperlink opens the material without launching a browser");
+        Field<Button>(view,"_back").RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+        Check(Field<GameDatabaseEntry?>(view,"_currentEntry")?.Name=="朱电霹雳棍" && search.Text=="朱电霹雳棍","Back restores the previous entry and preserves search");
         if (renderDirectory!=null)
         {
             Render(window,Path.Combine(renderDirectory,"database-equipment.png"));

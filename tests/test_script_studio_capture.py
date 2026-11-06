@@ -5,6 +5,7 @@ import sys
 import threading
 from types import SimpleNamespace
 import unittest
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "agent"))
 from script_studio.capture import CaptureSession, key_vk
@@ -416,35 +417,43 @@ class CaptureTests(unittest.TestCase):
 
 
 class CaptureWindowLockTests(unittest.TestCase):
-    def test_adjust_before_recording_lock_pause_and_release_for_next_recording(self):
+    def test_recording_preserves_window_and_records_its_actual_aspect(self):
         from test_window_geometry import Geometry
         from window_geometry import WindowLease, SIZING_STYLE
         api=Geometry();api.is_foreground=lambda hwnd: True
         hooks=FakeHooks()
-        session=CaptureSession(window_api=api,listener_factory=hooks,
-            lease_factory=lambda hwnd:WindowLease(hwnd,api=api))
+        session=CaptureSession(listener_factory=hooks)
         self.addCleanup(session.close)
-        session.start(42,0)
-        self.assertEqual(session._recording()['base'],[1148,720])
-        self.assertFalse(api.bits&SIZING_STYLE)
+        def ownership_only(hwnd,**kwargs):
+            self.assertEqual(kwargs,dict(adapt=False))
+            return WindowLease(hwnd,api=api,**kwargs)
+        with patch('script_studio.capture._Win32WindowAPI',return_value=api), \
+                patch('window_geometry.WindowLease',side_effect=ownership_only):
+            session.start(42,0)
+        self.assertEqual(session._recording()['base'],[1152,720])
+        self.assertTrue(api.bits&SIZING_STYLE)
+        self.assertFalse(api.changes)
+        with self.assertRaisesRegex(RuntimeError,'busy'):
+            WindowLease(42,api=api)
         api.info['width']=1000
         session._command('barrier')
-        self.assertEqual(api.info['width'],1148)
-        self.assertEqual(session.snapshot()['state'],'paused')
+        self.assertEqual(api.info['width'],1000)
+        self.assertIn('尺寸已改变',session.snapshot()['error'])
         session.stop()
         self.assertTrue(api.bits&SIZING_STYLE);self.assertFalse(api.claimed)
         session.start(42,0);session.stop()
         self.assertFalse(api.claimed)
 
-    def test_hook_failure_releases_new_size_lock(self):
+    def test_hook_failure_does_not_change_window(self):
         from test_window_geometry import Geometry
         from window_geometry import WindowLease, SIZING_STYLE
         api=Geometry();api.is_foreground=lambda hwnd: True
         session=CaptureSession(window_api=api,listener_factory=lambda callbacks:[FakeListener(fail=True)],
-            lease_factory=lambda hwnd:WindowLease(hwnd,api=api))
+            lease_factory=lambda hwnd:WindowLease(hwnd,api=api,adapt=False))
         self.addCleanup(session.close)
         with self.assertRaises(RuntimeError):session.start(42,0)
         self.assertFalse(api.claimed);self.assertTrue(api.bits&SIZING_STYLE)
+        self.assertFalse(api.changes)
 
 
 if __name__ == "__main__":
