@@ -684,22 +684,23 @@ class JzldRun(CustomAction):
             _RES_SET[0] = False
 
     def _run_impl(self, context: Context, argv: CustomAction.RunArg) -> bool:
-        try:
-            os.makedirs(os.path.dirname(_LOG_PATH), exist_ok=True)
-            io.open(_LOG_PATH, "w", encoding="utf-8").close()
-        except Exception:  # noqa: BLE001
-            pass
-        # 每局开头归档上一局的日志，而不是直接删。之前是 os.remove，结果
-        # 「刚跑完那局」的盘面/候选全没了，排查问题只能靠猜（真实踩过）。
+        # 先归档上一局，再清空本局。顺序不能反：之前是「先 open(..., "w") 清空
+        # 再归档」，于是归档到 run_prev.log 的永远是刚创建出来的空文件，
+        # 上一局的盘面/候选全丢（真实踩过：一局只打两万，日志却查不到）。
         for _p in (_SCORE_PATH, _LOG_PATH):
             try:
-                if os.path.isfile(_p):
+                if os.path.isfile(_p) and os.path.getsize(_p) > 0:
                     _arch = os.path.splitext(_p)[0] + "_prev" + os.path.splitext(_p)[1]
                     if os.path.isfile(_arch):
                         os.remove(_arch)
                     os.rename(_p, _arch)
             except Exception:  # noqa: BLE001
                 pass
+        try:
+            os.makedirs(os.path.dirname(_LOG_PATH), exist_ok=True)
+            io.open(_LOG_PATH, "w", encoding="utf-8").close()
+        except Exception:  # noqa: BLE001
+            pass
         # 每局开头把读分状态清空：_LAST_SCORE 是模块级变量，不清的话上一局
         # 的高分会带进来，第一步就判成「已达目标」直接收工（真实踩过）。
         _LAST_SCORE[0] = 0

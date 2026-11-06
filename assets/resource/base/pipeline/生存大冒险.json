@@ -27,32 +27,35 @@
     },
     "生存大冒险_继续冒险": {
         "recognition": {
-            "type": "TemplateMatch",
+            "type": "OCR",
             "param": {
-                "template": [
-                    "继续冒险.png"
-                ],
-                "threshold": 0.7,
                 "roi": [
-                    780,
-                    280,
-                    300,
-                    340
-                ]
+                    820,
+                    480,
+                    220,
+                    120
+                ],
+                "expected": [
+                    "继续冒险"
+                ],
+                "only_rec": false
             }
         },
         "action": {
             "type": "Click"
         },
         "next": [
-            "生存大冒险_答题循环"
+            "生存大冒险_继续冒险_确认"
         ],
         "post_delay": 300,
         "post_wait_freezes": {
             "time": 400,
             "timeout": 6000,
             "rate_limit": 200
-        }
+        },
+        "on_error": [
+            "生存大冒险_界面检查"
+        ]
     },
     "生存大冒险_界面检查": {
         "recognition": {
@@ -63,7 +66,11 @@
                     232,
                     680,
                     66
-                ]
+                ],
+                "expected": [
+                    ".*"
+                ],
+                "only_rec": false
             }
         },
         "action": {
@@ -367,5 +374,30 @@
         },
         "pre_delay": 0,
         "post_delay": 0
+    },
+    "生存大冒险_继续冒险_确认": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    335,
+                    232,
+                    680,
+                    66
+                ],
+                "expected": [
+                    ".*"
+                ],
+                "only_rec": false
+            }
+        },
+        "next": [
+            "生存大冒险_答题循环"
+        ],
+        "on_error": [
+            "生存大冒险_答题循环"
+        ],
+        "timeout": 8000,
+        "post_delay": 200
     }
 }
