@@ -7,6 +7,12 @@ on:
       - 'frontend/**'
       - 'tests/**'
       - 'tools/build_frontend.ps1'
+      - 'tools/build_navigation.py'
+      - 'tools/build_script_tasks.py'
+      - 'tools/build_bounty_tasks.py'
+      - 'tools/navigation_library.json'
+      - 'tools/script_task_profiles.json'
+      - 'tools/bounty_task_template.json'
       - 'tools/migrate_zaomeng_scripts.py'
       - 'tools/import_navigation_library.py'
       - 'tools/configure_task_navigation.py'
@@ -78,6 +84,22 @@ jobs:
       - name: Build native MFAAvalonia page
         shell: pwsh
         run: ./tools/build_frontend.ps1
+      - name: Install pinned memory-only Maa regression dependencies
+        run: python -m pip install maafw==5.12.3 numpy==2.2.6 pillow==12.2.0
+      - name: Blood-sea endpoint recovery on stored pixels
+        env:
+          NAVIGATION_NATIVE_TESTS: '1'
+          MAAFW_BINARY_PATH: '${{ github.workspace }}/dist/script-studio/runtimes/win-x64/native'
+          NAVIGATION_SCROLL_TEST_LOG: '${{ runner.temp }}/navigation-native/scroll'
+          OMP_NUM_THREADS: '2'
+        run: python -m unittest discover -s tests -p "test_game_management_scroll.py" -v
+      - name: Endpoint reuse and missed entry clicks over real Agent IPC
+        env:
+          MAA_AGENT_NATIVE_TESTS: '1'
+          MAAFW_BINARY_PATH: '${{ github.workspace }}/dist/script-studio/runtimes/win-x64/native'
+          STAGE_ENTRY_TEST_LOG: '${{ runner.temp }}/navigation-native/entry'
+          OMP_NUM_THREADS: '2'
+        run: python -m unittest discover -s tests -p "test_stage_entry_transport.py" -v
       - name: Built task options and AFK dependencies without a real window
         shell: pwsh
         run: dotnet run --project frontend/tests/TaskOptions/TaskOptions.csproj -c Release -- assets/interface.json
@@ -93,6 +115,13 @@ jobs:
         with:
           name: personal-transfer-headless-screenshots
           path: ${{ runner.temp }}/personal-transfer-renders/*.png
+          if-no-files-found: warn
+      - name: Save memory-only navigation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: navigation-native-regression
+          path: ${{ runner.temp }}/navigation-native/
           if-no-files-found: warn
       - name: Save frontend for assembling the manually distributed client
         uses: actions/upload-artifact@v4
