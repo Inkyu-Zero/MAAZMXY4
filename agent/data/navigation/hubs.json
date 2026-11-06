@@ -1,0 +1,529 @@
+{
+  "version": 1,
+  "assets": [
+    {
+      "path": "navigation/hubs/town1-0.png",
+      "crop": [
+        425,
+        240,
+        500,
+        305
+      ],
+      "source_origin": [
+        0.0,
+        0.0
+      ],
+      "source": {
+        "name": "town1",
+        "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/ui/town_20260629_1.swf",
+        "file": "town_20260629_1.swf",
+        "sha256": "ad053e895194a0ea3e0cf173b4e0dbc3b0d4503341aad54d278d40053a7e1111",
+        "bytes": 1011387,
+        "referer": "https://www.4399.com/flash/zmhj.htm?g=4"
+      },
+      "sha256": "72159ac714078eb55835302accf8541aa07678997c23b61487ee3328e69e8831"
+    },
+    {
+      "path": "navigation/hubs/town1-1.png",
+      "crop": [
+        400,
+        420,
+        475,
+        485
+      ],
+      "source_origin": [
+        0.0,
+        0.0
+      ],
+      "source": {
+        "name": "town1",
+        "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/ui/town_20260629_1.swf",
+        "file": "town_20260629_1.swf",
+        "sha256": "ad053e895194a0ea3e0cf173b4e0dbc3b0d4503341aad54d278d40053a7e1111",
+        "bytes": 1011387,
+        "referer": "https://www.4399.com/flash/zmhj.htm?g=4"
+      },
+      "sha256": "3174da5b5a548e35eeb9fc0f59b5109a06132371c052432b885cc42a5233f5c8"
+    },
+    {
+      "path": "navigation/hubs/town2-0.png",
+      "crop": [
+        500,
+        160,
+        575,
+        225
+      ],
+      "source_origin": [
+        0.0,
+        0.0
+      ],
+      "source": {
+        "name": "town2",
+        "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/ui/town2_20250407_1.swf",
+        "file": "town2_20250407_1.swf",
+        "sha256": "2d6dabb469d495511080c48ef053cbd013dc37794551d326f5d7eeab64c324c4",
+        "bytes": 810828,
+        "referer": "https://www.4399.com/flash/zmhj.htm?g=4"
+      },
+      "sha256": "7ab57da27636e6e1f4bff21e43a8ccab9e011ffb826c90aac9dcd3a94e69ba5e"
+    },
+    {
+      "path": "navigation/hubs/town2-1.png",
+      "crop": [
+        775,
+        280,
+        850,
+        345
+      ],
+      "source_origin": [
+        0.0,
+        0.0
+      ],
+      "source": {
+        "name": "town2",
+        "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/ui/town2_20250407_1.swf",
+        "file": "town2_20250407_1.swf",
+        "sha256": "2d6dabb469d495511080c48ef053cbd013dc37794551d326f5d7eeab64c324c4",
+        "bytes": 810828,
+        "referer": "https://www.4399.com/flash/zmhj.htm?g=4"
+      },
+      "sha256": "6bd48f3617e8329b7a9387493193d217e38d5c56e0b3f7d1d0dce1941e3f0d6b"
+    },
+    {
+      "path": "navigation/hubs/town3-0.png",
+      "crop": [
+        575,
+        220,
+        650,
+        285
+      ],
+      "source_origin": [
+        0.0,
+        0.0
+      ],
+      "source": {
+        "name": "town3",
+        "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/ui/town3_20161219_1.swf",
+        "file": "town3_20161219_1.swf",
+        "sha256": "035f5058f32bab9d4b7f72eb6485b4699543e4edf3cc09ccbc73ce128dd6909b",
+        "bytes": 847962,
+        "referer": "https://www.4399.com/flash/zmhj.htm?g=4"
+      },
+      "sha256": "6cae95c0fc6cb92188cffc2f055858bbe3150647103b4e351c005dc72fbd6c23"
+    },
+    {
+      "path": "navigation/hubs/town3-1.png",
+      "crop": [
+        275,
+        280,
+        350,
+        345
+      ],
+      "source_origin": [
+        0.0,
+        0.0
+      ],
+      "source": {
+        "name": "town3",
+        "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/ui/town3_20161219_1.swf",
+        "file": "town3_20161219_1.swf",
+        "sha256": "035f5058f32bab9d4b7f72eb6485b4699543e4edf3cc09ccbc73ce128dd6909b",
+        "bytes": 847962,
+        "referer": "https://www.4399.com/flash/zmhj.htm?g=4"
+      },
+      "sha256": "eecd3eeb82bb429fd7e71e4940e4c8206b13816921adfc52b50a0488dc573049"
+    },
+    {
+      "path": "navigation/hubs/town4-0.png",
+      "crop": [
+        775,
+        420,
+        850,
+        485
+      ],
+      "source_origin": [
+        0.0,
+        0.0
+      ],
+      "source": {
+        "name": "town4",
+        "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/ui/town4_20230508_1.swf",
+        "file": "town4_20230508_1.swf",
+        "sha256": "a8c8bd45d78368734c985dca10a499453350dc0b004e4806987c30d28c6d4d39",
+        "bytes": 760020,
+        "referer": "https://www.4399.com/flash/zmhj.htm?g=4"
+      },
+      "sha256": "a6e70103b684c69b77ea3c22afffe306d7cdd605da379879a39c785f97dd7837"
+    },
+    {
+      "path": "navigation/hubs/town4-1.png",
+      "crop": [
+        725,
+        300,
+        800,
+        365
+      ],
+      "source_origin": [
+        0.0,
+        0.0
+      ],
+      "source": {
+        "name": "town4",
+        "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/ui/town4_20230508_1.swf",
+        "file": "town4_20230508_1.swf",
+        "sha256": "a8c8bd45d78368734c985dca10a499453350dc0b004e4806987c30d28c6d4d39",
+        "bytes": 760020,
+        "referer": "https://www.4399.com/flash/zmhj.htm?g=4"
+      },
+      "sha256": "05b93cf714939046b7cf163092a89641c6628550abca43dc62401336adaf5400"
+    },
+    {
+      "path": "navigation/hubs/portal-town1.png",
+      "sha256": "9b83b2a2c87cc15d8089c79342d7b7b36b98c5e1c8dba3627bbd1f21e3b249e2",
+      "crop": [
+        552,
+        489,
+        84,
+        40
+      ],
+      "source": {
+        "path": "tests/fixtures/navigation/world.png",
+        "sha256": "e60954e8cd42699c6043d5bc5834c022c17ccf5d70f01069375fa6eb488dd65b"
+      },
+      "shape_source": {
+        "name": "town0",
+        "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/ui/town0_20260914_1.swf",
+        "file": "town0_20260914_1.swf",
+        "sha256": "a39bb6d27015bf2944d9d822358d4de67389b199e8e3b674f393f3dbb4764bf1",
+        "bytes": 874045,
+        "referer": "https://www.4399.com/flash/zmhj.htm?g=4"
+      },
+      "sprite": "16",
+      "opaque_crop": [
+        167,
+        34,
+        84,
+        40
+      ],
+      "source_match_score": 0.940812
+    },
+    {
+      "path": "navigation/hubs/portal-town2.png",
+      "sha256": "beab43d82889e68a6ae6ebd952537bb13990d26ec0a1fce830a44880df4e158b",
+      "crop": [
+        940,
+        296,
+        84,
+        74
+      ],
+      "source": {
+        "path": "tests/fixtures/navigation/world.png",
+        "sha256": "e60954e8cd42699c6043d5bc5834c022c17ccf5d70f01069375fa6eb488dd65b"
+      },
+      "shape_source": {
+        "name": "town0",
+        "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/ui/town0_20260914_1.swf",
+        "file": "town0_20260914_1.swf",
+        "sha256": "a39bb6d27015bf2944d9d822358d4de67389b199e8e3b674f393f3dbb4764bf1",
+        "bytes": 874045,
+        "referer": "https://www.4399.com/flash/zmhj.htm?g=4"
+      },
+      "sprite": "9",
+      "opaque_crop": [
+        89,
+        116,
+        84,
+        74
+      ],
+      "source_match_score": 0.949659
+    },
+    {
+      "path": "navigation/hubs/portal-town3.png",
+      "sha256": "d755596172c3e3eb8f741ce10a09c76305821b3ee5d023fb42b70924ad727b91",
+      "crop": [
+        528,
+        101,
+        84,
+        74
+      ],
+      "source": {
+        "path": "tests/fixtures/navigation/world.png",
+        "sha256": "e60954e8cd42699c6043d5bc5834c022c17ccf5d70f01069375fa6eb488dd65b"
+      },
+      "shape_source": {
+        "name": "town0",
+        "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/ui/town0_20260914_1.swf",
+        "file": "town0_20260914_1.swf",
+        "sha256": "a39bb6d27015bf2944d9d822358d4de67389b199e8e3b674f393f3dbb4764bf1",
+        "bytes": 874045,
+        "referer": "https://www.4399.com/flash/zmhj.htm?g=4"
+      },
+      "sprite": "28",
+      "opaque_crop": [
+        109,
+        79,
+        84,
+        74
+      ],
+      "source_match_score": 0.991695
+    },
+    {
+      "path": "navigation/hubs/portal-town4.png",
+      "sha256": "63407fc2083e66e13d412dc81499addffe982ed6031f78fd43ff9cf51f8466f8",
+      "crop": [
+        95,
+        306,
+        74,
+        74
+      ],
+      "source": {
+        "path": "tests/fixtures/navigation/world.png",
+        "sha256": "e60954e8cd42699c6043d5bc5834c022c17ccf5d70f01069375fa6eb488dd65b"
+      },
+      "shape_source": {
+        "name": "town0",
+        "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/ui/town0_20260914_1.swf",
+        "file": "town0_20260914_1.swf",
+        "sha256": "a39bb6d27015bf2944d9d822358d4de67389b199e8e3b674f393f3dbb4764bf1",
+        "bytes": 874045,
+        "referer": "https://www.4399.com/flash/zmhj.htm?g=4"
+      },
+      "sprite": "33",
+      "opaque_crop": [
+        64,
+        122,
+        74,
+        74
+      ],
+      "source_match_score": 0.95836
+    },
+    {
+      "path": "navigation/hubs/portal-town5.png",
+      "sha256": "cebbd0a860e509ea352f57e66202606b7cd9bd937e16e6705cb3e56a9fa87bef",
+      "crop": [
+        171,
+        536,
+        84,
+        74
+      ],
+      "source": {
+        "path": "tests/fixtures/navigation/world.png",
+        "sha256": "e60954e8cd42699c6043d5bc5834c022c17ccf5d70f01069375fa6eb488dd65b"
+      },
+      "shape_source": {
+        "name": "town0",
+        "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/ui/town0_20260914_1.swf",
+        "file": "town0_20260914_1.swf",
+        "sha256": "a39bb6d27015bf2944d9d822358d4de67389b199e8e3b674f393f3dbb4764bf1",
+        "bytes": 874045,
+        "referer": "https://www.4399.com/flash/zmhj.htm?g=4"
+      },
+      "sprite": "38",
+      "opaque_crop": [
+        82,
+        119,
+        84,
+        74
+      ],
+      "source_match_score": 0.996682
+    },
+    {
+      "path": "navigation/hubs/portal-town6.png",
+      "sha256": "798b5f42f14acf33ebc530b007aaeb8681ab247c8285402fcb09194cd3fe3cd5",
+      "crop": [
+        758,
+        121,
+        84,
+        74
+      ],
+      "source": {
+        "path": "tests/fixtures/navigation/world.png",
+        "sha256": "e60954e8cd42699c6043d5bc5834c022c17ccf5d70f01069375fa6eb488dd65b"
+      },
+      "shape_source": {
+        "name": "town0",
+        "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/ui/town0_20260914_1.swf",
+        "file": "town0_20260914_1.swf",
+        "sha256": "a39bb6d27015bf2944d9d822358d4de67389b199e8e3b674f393f3dbb4764bf1",
+        "bytes": 874045,
+        "referer": "https://www.4399.com/flash/zmhj.htm?g=4"
+      },
+      "sprite": "46",
+      "opaque_crop": [
+        80,
+        89,
+        84,
+        74
+      ],
+      "source_match_score": 0.9927
+    },
+    {
+      "path": "navigation/hubs/world-compass.png",
+      "crop": [
+        23,
+        15,
+        70,
+        68
+      ],
+      "source": {
+        "path": "navigation/templates/map-a/world.png",
+        "sha256": "a73b0c0810b6bd01e9a1fb16a2a169c7756cb431e20bfef3285d7bd1528930f4"
+      },
+      "sha256": "8a2dd79b1f8584e395c6ad894e9a0ea1de0f1251d73609eab294757ea0440491"
+    }
+  ],
+  "portals": [
+    {
+      "town": "town1",
+      "instance": "st1",
+      "template": "navigation/hubs/portal-town1.png",
+      "roi": [
+        540,
+        477,
+        108,
+        64
+      ],
+      "click_region": [
+        552,
+        489,
+        84,
+        40
+      ],
+      "reference_roi": [
+        397,
+        460,
+        330,
+        202
+      ]
+    },
+    {
+      "town": "town2",
+      "instance": "st17",
+      "template": "navigation/hubs/portal-town2.png",
+      "roi": [
+        928,
+        284,
+        108,
+        98
+      ],
+      "click_region": [
+        940,
+        296,
+        84,
+        74
+      ],
+      "reference_roi": [
+        865,
+        188,
+        247,
+        266
+      ]
+    },
+    {
+      "town": "town3",
+      "instance": "st30",
+      "template": "navigation/hubs/portal-town3.png",
+      "roi": [
+        516,
+        89,
+        108,
+        98
+      ],
+      "click_region": [
+        528,
+        101,
+        84,
+        74
+      ],
+      "reference_roi": [
+        427,
+        33,
+        228,
+        193
+      ]
+    },
+    {
+      "town": "town4",
+      "instance": "st40",
+      "template": "navigation/hubs/portal-town4.png",
+      "roi": [
+        83,
+        294,
+        98,
+        98
+      ],
+      "click_region": [
+        95,
+        306,
+        74,
+        74
+      ],
+      "reference_roi": [
+        44,
+        207,
+        250,
+        241
+      ]
+    },
+    {
+      "town": "town5",
+      "instance": "st47",
+      "template": "navigation/hubs/portal-town5.png",
+      "roi": [
+        159,
+        524,
+        108,
+        98
+      ],
+      "click_region": [
+        171,
+        536,
+        84,
+        74
+      ],
+      "reference_roi": [
+        88,
+        471,
+        262,
+        189
+      ]
+    },
+    {
+      "town": "town6",
+      "instance": "st63",
+      "template": "navigation/hubs/portal-town6.png",
+      "roi": [
+        746,
+        109,
+        108,
+        98
+      ],
+      "click_region": [
+        758,
+        121,
+        84,
+        74
+      ],
+      "reference_roi": [
+        694,
+        36,
+        243,
+        213
+      ]
+    }
+  ],
+  "evidence": "TownMapMediator maps st1/17/30/40/47 to town1/2/3/4/5; current town0 has st63 and Dungeon.xml starts town6 at 63. Clicks use matched native template boxes, never placement coordinates.",
+  "fixture": {
+    "path": "hubs/nanzhan-source.png",
+    "source": {
+      "name": "town1",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/ui/town_20260629_1.swf",
+      "file": "town_20260629_1.swf",
+      "sha256": "ad053e895194a0ea3e0cf173b4e0dbc3b0d4503341aad54d278d40053a7e1111",
+      "bytes": 1011387,
+      "referer": "https://www.4399.com/flash/zmhj.htm?g=4"
+    },
+    "sha256": "99b0e94ab183ce17cff8236d2390d1f74261d0f8d75451c7cffa74cdaa297649",
+    "note": "Offline SWF map render; tests add a synthetic toolbar, not a real game screenshot."
+  }
+}

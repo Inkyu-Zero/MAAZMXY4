@@ -3,6 +3,24 @@ import struct
 import zlib
 
 
+def read_stage_state(directory, case):
+    """Place independently rendered button states in the authored endpoint view."""
+    import numpy as np
+
+    pixels = read_png_bgr(directory / case['file'])
+    if 'viewport_translation' in case:
+        dx, dy = case['viewport_translation']
+        background = pixels[0, 0].copy()
+        # The fixture's only foreground above the bottom task button is the
+        # complete SWF sprite. Keep its independent resampling and all states.
+        y, x = np.nonzero(np.any(pixels[:600] != background, axis=2))
+        assert np.all((x+dx >= 0) & (x+dx < pixels.shape[1]) & (y+dy >= 0) & (y+dy < 600))
+        sprite = pixels[y, x].copy()
+        pixels[y, x] = background
+        pixels[y+dy, x+dx] = sprite
+    return pixels
+
+
 def read_png_bgr(path):
     import numpy as np
 

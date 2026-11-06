@@ -21,6 +21,44 @@ import runtime_check
 
 
 class ReleasePackageTests(unittest.TestCase):
+    def test_full_client_rejects_missing_alchemy_opencv_loader_or_native_extension(self):
+        frontend, runtime, launcher = self.client_fixture()
+        required = ('Lib/site-packages/cv2/__init__.py', 'Lib/site-packages/cv2/cv2.pyd')
+        for name in required:
+            (runtime/name).parent.mkdir(parents=True, exist_ok=True)
+            (runtime/name).write_bytes(b'fixture OpenCV')
+        with patch.object(build_release, 'LAUNCHER_SHA256', self.launcher_hash):
+            for name in required:
+                with self.subTest(missing=name):
+                    (runtime/name).unlink()
+                    with self.assertRaisesRegex(ValueError, 'cv2'):
+                        client_files(ROOT, frontend, runtime, launcher)
+                    (runtime/name).write_bytes(b'fixture OpenCV')
+
+    def test_runtime_builder_copies_opencv_loader_native_library_and_distribution_metadata(self):
+        prefix = self.root/'system'
+        destination = self.root/'built-runtime'
+        for package in ('opencv_python', 'opencv_python_headless'):
+            self.write(f'system/Lib/site-packages/{package}-5.0.0.93.dist-info/METADATA', b'fixture metadata')
+        for name in ('__init__.py', 'config.py', 'config-3.py', 'cv2.pyd'):
+            self.write('system/Lib/site-packages/cv2/'+name, b'fixture OpenCV')
+        with patch.object(setup_runtime, 'PY_DIR', str(destination)):
+            setup_runtime.build(str(prefix))
+        for name in ('__init__.py', 'config.py', 'config-3.py', 'cv2.pyd'):
+            self.assertEqual((destination/'Lib/site-packages/cv2'/name).read_bytes(), b'fixture OpenCV')
+        for package in ('opencv_python', 'opencv_python_headless'):
+            self.assertTrue((destination/f'Lib/site-packages/{package}-5.0.0.93.dist-info/METADATA').is_file())
+
+    def test_opencv_native_extension_rejects_wrong_python_abi(self):
+        relative = 'Lib/site-packages/cv2/cv2.pyd'
+        self.write('Lib/site-packages/cv2/cv2.cp313-win_amd64.pyd', b'wrong ABI')
+        self.assertFalse(runtime_check.required_path_exists(self.root, relative))
+        for filename in ('cv2.pyd', 'cv2.abi3.pyd', 'cv2.cp312-win_amd64.pyd'):
+            with self.subTest(filename=filename):
+                self.write('Lib/site-packages/cv2/'+filename, b'fixture supported extension')
+                self.assertTrue(runtime_check.required_path_exists(self.root, relative))
+                (self.root/'Lib/site-packages/cv2'/filename).unlink()
+
     def test_pillow_native_extension_accepts_only_supported_312_windows_names(self):
         relative = 'Lib/site-packages/PIL/_imaging.pyd'
         tagged = self.root/'Lib/site-packages/PIL/_imaging.cp312-win_amd64.pyd'

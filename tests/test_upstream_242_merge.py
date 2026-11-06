@@ -10,7 +10,7 @@ from unittest.mock import Mock, patch
 ROOT=Path(__file__).resolve().parents[1]
 sys.path[:0]=[str(ROOT/'tools'),str(ROOT/'agent')]
 from build_release import collect
-from navigation.catalog import task_graph
+from navigation.catalog import task_routine
 from task_catalog import custom_parameters
 
 
@@ -22,22 +22,23 @@ class UpstreamMergeTests(unittest.TestCase):
                      'agent/recordings/manifest.json','agent/recordings/示例-移动与攻击.json'):
             self.assertIn(name,names)
         interface=json.loads((ROOT/'assets/interface.json').read_bytes())
-        self.assertEqual(len(interface['task']),13)
+        self.assertEqual(len(interface['task']),14)
+        self.assertIn('GenericScriptPlayback',[t['entry'] for t in interface['task']])
         self.assertIn('九转炼丹-入口',[t['entry'] for t in interface['task']])
         self.assertFalse((ROOT/'updater.py').exists())
         self.assertFalse(list((ROOT/'update_engine').glob('*.py')))
 
-    def test_renamed_bounty_navigation_accepts_exact_alias_without_dropping_guards(self):
+    def test_bounty_navigation_keeps_known_name_aliases_and_tab_guard(self):
         nodes={k:v for p in (ROOT/'assets/resource/base/pipeline').glob('*.json') for k,v in json.loads(p.read_bytes()).items()}
         class Context:
             def get_node_data(self,name):return nodes[name]
             def override_pipeline(self,values):nodes.update(values);return True
-        params=custom_parameters(nodes['悬赏（遁地大盗）-准备本轮'])
-        task_graph(Context(),params)
+        params=custom_parameters(nodes['悬赏（遁地大盗）-刷取次数'])
+        task_routine(Context(),params)
         parts=nodes['Nav_ChooseBounty']['recognition']['param']['all_of']
         expected=parts[0]['recognition']['param']['expected']
-        self.assertIn('^遁地大盗$',expected)
-        self.assertIn('^捉拿大盗$',expected)
+        self.assertEqual(expected,['^遁地大盗$','^遁地大盜$','^捉拿大盗$','^捉拿大盜$'])
+        self.assertIn('Nav_AcceptedBounties',parts)
         self.assertIn('Result_NoRevivePrompt',parts)
 
     def test_runtime_builder_includes_alchemy_imaging_dependency(self):

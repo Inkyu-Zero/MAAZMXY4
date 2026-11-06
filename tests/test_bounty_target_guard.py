@@ -1,4 +1,4 @@
-"""Verify that normal bounty routes cannot click another bounty's button.
+"""Only the selected, accepted bounty detail may authorize a stage click.
 
 The first fixture uses OCR text and bounding boxes observed during the
 2026-10-27 wrong-bounty incident.  These are recognition-configuration tests;
@@ -7,15 +7,19 @@ they do not replace an actual Maa OCR or game-window check.
 import json
 from pathlib import Path
 import re
+import sys
 import unittest
 
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0,str(ROOT/'agent'))
+from navigation.catalog import task_routine
 PIPELINES = ROOT / 'assets/resource/base/pipeline'
 TASKS = ('守卫太宗', '守卫宝烛', '追捕飞贼', '遁地大盗')
 
 # 720-pixel reference frame: accepted wrong bounty and its own detail panel.
 WRONG_BOUNTY_FRAME = (
+    ('完成悬赏任务，获得高额奖励', (208, 180, 280, 24)),
     ('守卫宝烛', (222, 223, 98, 29)),
     ('已接受', (431, 230, 39, 21)),
     ('守卫宝烛', (665, 185, 98, 30)),
@@ -57,13 +61,35 @@ def evaluate_config(recognition, observations):
 
 
 class BountyTargetGuardTests(unittest.TestCase):
-    def recognition(self, task):
-        pipeline = json.loads((PIPELINES / f'悬赏（{task}）.json').read_text(encoding='utf8'))
-        node = pipeline[f'悬赏（{task}）-点击前往副本']
-        self.assertEqual(node['action']['type'], 'Click')
-        return node['recognition']
+    def test_main_quest_seen_in_195847_log_cannot_be_a_bounty_destination(self):
+        frame=(('完成主线任务，获得高额奖励',(208,180,271,24)),
+               ('日月星河',(221,221,101,35)),('已接受',(422,221,63,36)),
+               ('日月星河',(665,185,100,30)),('前往副本',(670,590,100,38)))
+        for task in TASKS:
+            with self.subTest(task=task):
+                self.assertIsNone(evaluate_config(self.recognition(task),frame))
 
-    def test_wrong_bounty_is_rejected_even_when_target_is_in_left_list(self):
+    def recognition(self, task):
+        nodes={n:v for p in PIPELINES.glob('*.json') for n,v in json.loads(p.read_text(encoding='utf8')).items()}
+        class Context:
+            def get_node_data(self,name):return nodes[name]
+            def override_pipeline(self,patch):nodes.update(patch);return True
+        wrapper=json.loads((PIPELINES/('悬赏（'+task+'）.json')).read_text(encoding='utf8'))
+        params=next(n['action']['param']['custom_action_param'] for n in wrapper.values()
+            if n.get('action',{}).get('param',{}).get('custom_action_param',{}).get('phase')=='begin')
+        task_routine(Context(),params)
+        node = nodes['Bounty_Target']
+        self.assertEqual(node['action']['type'], 'Click')
+        def expand(rec):
+            for field in ('all_of','any_of'):
+                if field in rec.get('param',{}):
+                    rec['param'][field]=[item if item=='Result_NoRevivePrompt' else
+                        dict(recognition=expand(nodes[item]['recognition'] if isinstance(item,str) else item['recognition']))
+                        for item in rec['param'][field]]
+            return rec
+        return expand(node['recognition'])
+
+    def test_wrong_bounty_detail_is_rejected_even_when_the_list_has_the_right_name(self):
         for task in TASKS:
             with self.subTest(task=task):
                 # A matching left-hand list entry does not establish that it is
@@ -79,15 +105,15 @@ class BountyTargetGuardTests(unittest.TestCase):
                 self.assertEqual(evaluate_config(self.recognition(task), frame),
                                  (587, 593, 94, 29))
 
-    def test_missing_title_acceptance_or_button_fails_closed(self):
+    def test_acceptance_button_title_and_selected_bounty_tab_are_all_required(self):
         for task in TASKS:
             frame = frame_for(task)
-            for omitted in ('已接受', task, '前往副本'):
+            for omitted in ('已接受', '前往副本', task, '完成悬赏任务，获得高额奖励'):
                 with self.subTest(task=task, omitted=omitted):
                     self.assertIsNone(evaluate_config(self.recognition(task),
                                       tuple(item for item in frame if item[0] != omitted)))
 
-    def test_partial_and_unrelated_labels_do_not_match(self):
+    def test_unapproved_title_suffix_is_rejected(self):
         for task in TASKS:
             with self.subTest(task=task):
                 frame = frame_for(task + '奖励')
@@ -97,7 +123,7 @@ class BountyTargetGuardTests(unittest.TestCase):
         for task in TASKS:
             with self.subTest(task=task):
                 checks = self.recognition(task)['param']['all_of']
-                status = checks[2]['recognition']
+                status = checks[1]['recognition']
                 self.assertEqual(status['type'], 'Or')
                 original, fallback = [item['recognition'] for item in status['param']['any_of']]
                 self.assertEqual(original['param']['expected'], ['^已接受$'])
@@ -115,7 +141,7 @@ class BountyTargetGuardTests(unittest.TestCase):
         self.assertEqual(evaluate_config(self.recognition('遁地大盗'), frame),
                          (587, 593, 94, 29))
 
-    def test_renamed_thief_still_requires_exact_name_and_acceptance(self):
+    def test_known_renamed_bounty_belongs_only_to_its_own_profile(self):
         for name in ('捉拿大盗','捉拿大盜'):
             self.assertEqual(evaluate_config(self.recognition('遁地大盗'),frame_for(name)),(587,593,94,29))
             self.assertIsNone(evaluate_config(self.recognition('守卫太宗'),frame_for(name)))

@@ -1,0 +1,6 @@
+{
+  "description": "input-only-end",
+  "path": "MFAAvalonia/Extensions/MaaFW/MaaProcessor.cs",
+  "find": "    private void EndTaskRun()\n    {",
+  "replace": "    private void EndTaskRun()\n    {\n        _inputOnlyPlayback = false;"
+}

@@ -34,6 +34,7 @@ public sealed partial class ScriptStudioView : UserControl
     private readonly TextBlock _diagnostics = new() { TextWrapping = TextWrapping.Wrap };
     private readonly ComboBox _windows = new() { HorizontalAlignment = HorizontalAlignment.Stretch, MinWidth = 200 };
     private readonly NumericUpDown _countdown = Number(3, 0, 30, "0");
+    private readonly CheckBox _doubleClickDiscard = new() { Content = "双击放弃本次录制" };
     private readonly ScriptTimeline _timeline = new();
     private readonly ScrollViewer _timelineScroll = new() { HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto, HorizontalContentAlignment = HorizontalAlignment.Left, VerticalContentAlignment = VerticalAlignment.Top };
     private readonly NumericUpDown _cursor = Number(0, 0, 604800, "0.000");
@@ -46,7 +47,7 @@ public sealed partial class ScriptStudioView : UserControl
     private readonly TextBox _keyCapture = new() { Watermark = "点此后按一个键", IsReadOnly = true };
     private readonly StackPanel _inspector = new() { Spacing = 8 };
     private Control? _keyFields, _mouseFields, _scrollFields;
-    private readonly Button _save, _record, _pause, _stop, _apply, _undo, _redo;
+    private readonly Button _save, _record, _pause, _stop, _discardRecording, _discardRecordingDraft, _apply, _undo, _redo;
     private Button? _refreshWindows, _mark;
     private readonly DispatcherTimer _poll = new() { Interval = TimeSpan.FromMilliseconds(250) };
     private JsonArray _files = new();
@@ -55,6 +56,7 @@ public sealed partial class ScriptStudioView : UserControl
     private Window? _owner;
     private string _recordingName = "";
     private string _state = "idle";
+    private int _captureGeneration;
     private string _renderedName = "";
     private string? _renderedFile;
     private bool _fitNextTimeline = true;
@@ -74,6 +76,26 @@ public sealed partial class ScriptStudioView : UserControl
         _record = Button("开始录制", StartRecordingAsync, true);
         _pause = Button("暂停", async () => RenderCapture(await _vm.Client.CallAsync(_state == "paused" ? "capture_resume" : "capture_pause")));
         _stop = Button("停止并编辑", FinishRecordingAsync);
+        _discardRecording = new Button { Content = "放弃本次录制", Padding = new Thickness(14, 9), MinHeight = 38 };
+        // DoubleTapped arrives on the second press; Click confirms release inside the button.
+        var discardDoublePress = false;
+        _discardRecording.AddHandler(PointerPressedEvent, (_, _) => discardDoublePress = false,
+            Avalonia.Interactivity.RoutingStrategies.Tunnel, handledEventsToo: true);
+        _discardRecording.AddHandler(DoubleTappedEvent, (_, _) => discardDoublePress = true,
+            Avalonia.Interactivity.RoutingStrategies.Bubble, handledEventsToo: true);
+        _discardRecording.Click += async (_, _) =>
+        {
+            var allowed = _doubleClickDiscard.IsChecked != true || discardDoublePress;
+            discardDoublePress = false;
+            if (allowed && _discardRecording.IsEnabled) await Run(DiscardRecordingAsync);
+        };
+        _discardRecording.AddHandler(PointerReleasedEvent, (_, _) =>
+        {
+            discardDoublePress = false;
+        }, Avalonia.Interactivity.RoutingStrategies.Bubble, handledEventsToo: true);
+        _discardRecordingDraft = Button("放弃本次录制", DiscardRecordingAsync);
+        foreach (var discard in new[] { _discardRecording, _discardRecordingDraft })
+            ToolTip.SetTip(discard, "直接丢弃本次未保存的录制，不生成恢复草稿；已保存的脚本保持原样。");
         _apply = Button("应用更改", ApplyInspectorAsync, true);
         _undo = IconButton(1, "撤销（Ctrl+Z）", async () => { if (await EnsureInspectorAsync()) await _vm.ChangeAsync("undo"); }, false);
         _redo = IconButton(2, "重做（Ctrl+Shift+Z）", async () => { if (await EnsureInspectorAsync()) await _vm.ChangeAsync("redo"); }, false);
@@ -416,6 +438,7 @@ public sealed partial class ScriptStudioView : UserControl
         ScriptStudioGuard.BeginCapture();
         try
         {
+            _captureGeneration++;
             var snapshot = await _vm.Client.CallAsync("capture_start", new JsonObject { ["hwnd"] = (long)window.Handle, ["countdown_seconds"] = (int)(_countdown.Value ?? 3) });
             _vm.Capturing = true; RenderCapture(snapshot);
             _status.Text = "请切回游戏。F8 暂停 / 继续，F9 停止，F10 停止并保存。"; _poll.Start();
@@ -434,22 +457,46 @@ public sealed partial class ScriptStudioView : UserControl
         UpdateControls();
         if (_polling || _busy || !_vm.Capturing) return;
         _polling = true;
+        var generation = _captureGeneration;
         try
         {
-            var snapshot = await _vm.Client.CallAsync("capture_status"); RenderCapture(snapshot);
+            var snapshot = await _vm.Client.CallAsync("capture_status");
+            // A status response may belong to a take the user just discarded.
+            if (_busy || !_vm.Capturing || generation != _captureGeneration) return;
+            RenderCapture(snapshot);
             if (_state is "stopped" or "failed" or "closed")
             {
-                await FinishRecordingAsync();
-                if (!string.IsNullOrEmpty(snapshot["error"]?.GetValue<string>())) _status.Text = snapshot["error"]!.GetValue<string>();
-                if (snapshot["save_requested"]?.GetValue<bool>() == true) await SaveAsync();
+                await Run(async () =>
+                {
+                    await FinishRecordingAsync();
+                    if (!string.IsNullOrEmpty(snapshot["error"]?.GetValue<string>())) _status.Text = snapshot["error"]!.GetValue<string>();
+                    if (snapshot["save_requested"]?.GetValue<bool>() == true) await SaveAsync();
+                });
             }
         }
         catch (Exception error)
         {
+            if (generation != _captureGeneration) return;
             _status.Text = error.Message;
             if (_vm.Client.IsDisconnected) { _vm.Capturing = false; _state = "failed"; ScriptStudioGuard.EndCapture(); }
         }
         finally { _polling = false; UpdateControls(); }
+    }
+    private async Task DiscardRecordingAsync()
+    {
+        if (!_vm.Capturing && !_vm.CaptureDraft) return;
+        _captureGeneration++;
+        var document = await _vm.Client.CallAsync("capture_discard");
+        _vm.Capturing = false; ScriptStudioGuard.EndCapture();
+        _selection.Clear(); _selected = null; _adding = false; _inspectorDirty = false;
+        _vm.Apply(document);
+        _recordingName = ""; _state = "idle";
+        _captureState.Text = "准备就绪";
+        _captureHint.Text = "已清空本次录制，点击“开始录制”即可重录。";
+        _status.Text = "已放弃本次未保存的录制，已有脚本和绑定保持原样。";
+        _tabs.SelectedIndex = 0;
+        if (_recordingExpander != null) _recordingExpander.IsExpanded = true;
+        Dispatcher.UIThread.Post(() => _record.Focus(), DispatcherPriority.Background);
     }
     private async Task FinishRecordingAsync()
     {
@@ -495,6 +542,9 @@ public sealed partial class ScriptStudioView : UserControl
         _pause.Content = _state == "paused" ? "继续（3秒准备）" : _state == "resume_countdown" ? "取消继续" : "暂停";
         _stop.IsEnabled = !_busy && _vm.Capturing;
         _stop.Content = _state == "countdown" ? "取消倒计时" : "停止并编辑";
+        _discardRecording.IsEnabled = !_busy && !tasks && (_vm.Capturing || _vm.CaptureDraft);
+        _discardRecordingDraft.IsVisible = !_vm.Capturing && _vm.CaptureDraft;
+        _discardRecordingDraft.IsEnabled = editable && _vm.CaptureDraft;
         _windows.IsEnabled = _countdown.IsEnabled = editable;
         if (_refreshWindows != null) _refreshWindows.IsEnabled = !_busy && !_vm.Capturing;
         if (_mark != null) _mark.IsEnabled = !_busy && _vm.Capturing && _state is "recording" or "paused";

@@ -13,6 +13,12 @@ ROOT=Path(__file__).resolve().parents[1]
 
 
 def native_case(kind):
+    width = None
+    for size in (1139, 1140, 1154, 1155):
+        suffix = '-' + str(size)
+        if kind.endswith(suffix):
+            kind, width = kind[:-len(suffix)], size
+            break
     from maa.agent_client import AgentClient
     from maa.controller import CustomController
     from maa.resource import Resource
@@ -26,6 +32,9 @@ def native_case(kind):
         paths.append(ROOT/'tests/fixtures/navigation/task-map-real.png')
     if kind=='captcha':paths=[ROOT/'tests/fixtures/game-management/box-captcha.png']
     frames=[read_png_bgr(p) for p in paths]
+    if width is not None:
+        import cv2
+        frames=[cv2.resize(frame,(width,720),interpolation=cv2.INTER_AREA) for frame in frames]
     if kind=='live-slot8':
         # Keep the real eight-slot layout; synthesize an occupied final tile.
         frames[3][504:609,655:905]=frames[3][150:255,328:578].copy()
@@ -95,6 +104,25 @@ AgentServer.shut_down()
 
 @unittest.skipUnless(os.environ.get('MAA_AGENT_NATIVE_TESTS')=='1','opt-in memory-only Maa Agent integration')
 class ManagedLoginTransportTests(unittest.TestCase):
+    def test_slightly_different_login_ratios_still_verify_each_stage(self):
+        for width in (1140,1154):
+            with self.subTest(width=width):
+                result=self.run_case('live-'+str(width))
+                self.assertTrue(result['succeeded'],result)
+                self.assertEqual(result['status'],'ready',result)
+                self.assertEqual([c[0] for c in result['clicks']],[0,2,3],result)
+                for (_,x,y),(left,top,right,bottom) in zip(result['clicks'],
+                        [(100,540,420,625),(450,590,710,690),(328,150,510,255)]):
+                    self.assertTrue(left<=x<=right and top<=y<=bottom,result)
+
+    def test_scaled_login_keeps_captcha_role_and_aspect_guards(self):
+        for kind,expected in (('captcha-1140',[]),('live-wrong-role-1140',[0,2]),
+                              ('live-empty-slot-1140',[0,2]),('live-1139',[]),('live-1155',[])):
+            with self.subTest(kind=kind):
+                result=self.run_case(kind)
+                self.assertEqual(result['status'],'fatal',result)
+                self.assertEqual([c[0] for c in result['clicks']],expected,result)
+
     def test_role_transition_does_not_reclick_title_after_verified_save(self):
         result=self.run_case('live-role-transition')
         self.assertTrue(result['succeeded'],result)

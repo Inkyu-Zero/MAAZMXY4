@@ -107,6 +107,7 @@ public static class TaskRecovery
         session.CaptureTarget();
         if (operation == "connect")
         {
+            await session.PrepareBoundWindowAsync(token);
             await session.ReconnectAsync(token);
             return await session.ResumeAsync(options.SaveSlot, token);
         }
@@ -192,7 +193,11 @@ public static class TaskRecovery
                     var observed = await TaskRecoveryPolicy.ObserveExecutionAsync(execution, IsLostTarget,
                         () => { processor.AddLog("游戏管理：目标窗口已丢失，停止旧任务后重新建立连接。"); processor.MaaTasker?.Stop(); }, token);
                     token.ThrowIfCancellationRequested();
-                    if (observed.TargetLost) return new(TaskAttemptStatus.Recoverable, "window_lost");
+                    if (observed.TargetLost && !File.Exists(statusPath))
+                        return resume ? TaskAttempt.Fatal("重启恢复期间目标窗口丢失。")
+                            : new(TaskAttemptStatus.Recoverable, "window_lost");
+                    // A completed checkpoint may already contain a blocker or
+                    // recording change; read it before classifying window loss.
                     status = observed.Result;
                 }
                 else status = await execution;
@@ -201,17 +206,22 @@ public static class TaskRecovery
             catch (Exception error)
             {
                 token.ThrowIfCancellationRequested();
-                return IsLostTarget() ? new(TaskAttemptStatus.Recoverable, "window_lost") : TaskAttempt.Fatal(error.Message);
+                if (!resume && options.Enabled && !File.Exists(statusPath))
+                {
+                    var failure = await IdentifyWindowFailureAsync(token);
+                    if (failure != null) return failure;
+                }
+                return TaskAttempt.Fatal(error.Message);
             }
             token.ThrowIfCancellationRequested();
             if (!File.Exists(statusPath))
             {
-                // 没有状态文件不等于失败：旧版 pipeline（v2.3.7 及更早的悬赏/副本任务）
-                // 根本没声明 script_task_state 的 begin/success，自然不会有这个文件。
-                // 这种情况以 Maa 原生任务结果为准，跑通就算这一轮完成。
-                processor.AddLog("游戏管理：本轮任务没有声明轮次状态，按原生结果判定。");
-                if (status == MaaJobStatus.Succeeded) return new(TaskAttemptStatus.Success, "native");
-                return IsLostTarget() ? new(TaskAttemptStatus.Recoverable, "window_lost") : TaskAttempt.Fatal("任务未成功结束。");
+                if (!resume && options.Enabled && status != MaaJobStatus.Succeeded)
+                {
+                    var failure = await IdentifyWindowFailureAsync(token);
+                    if (failure != null) return failure;
+                }
+                return TaskAttempt.Fatal("缺少本轮确认状态。");
             }
             if (new FileInfo(statusPath).Length > 65536) return TaskAttempt.Fatal("本轮状态文件无效。");
             var checkpoint = JsonNode.Parse(await File.ReadAllTextAsync(statusPath, token)) as JsonObject;
@@ -223,7 +233,7 @@ public static class TaskRecovery
                 return TaskAttempt.Fatal("原生任务未成功结束，未计入完成次数。");
             if (result.Status == TaskAttemptStatus.Recoverable && result.Reason == "window_lost" && !IsLostTarget())
                 return TaskAttempt.Fatal("目标窗口仍然有效，未确认窗口丢失。");
-            if (result.Status == TaskAttemptStatus.Fatal
+            if (!resume && options.Enabled && result.Status == TaskAttemptStatus.Fatal
                 && TaskRecoveryPolicy.IsCaptureLossCandidate(checkpoint, runId, processor.InstanceId)
                 && IsLostTarget())
                 return new(TaskAttemptStatus.Recoverable, "window_lost");
@@ -234,16 +244,25 @@ public static class TaskRecovery
         {
             token.ThrowIfCancellationRequested();
             if (_target == null) return TaskAttempt.Fatal("没有经过校验的恢复目标。");
+            if (!SelectionStillCompatible()) return TaskAttempt.Fatal("所选游戏窗口已变化，未重启原目标。");
             processor.AddLog($"任务：本轮自动恢复 {attempt}/{options.MaxRetries}，已完成轮数保持不变。");
             using var reconnection = GameManagementService.SuppressReconnection(processor);
-            return await TaskRecoveryPolicy.RestartAsync(this, slot, token);
+            return await TaskRecoveryPolicy.RestartAsync(this, slot, token,
+                () => GameManagementService.RefreshRecoveredTarget(processor));
         }
 
         public async Task StopInputsAndAgentAsync(CancellationToken token)
         {
+            if (_target != null && _window != IntPtr.Zero && !SelectionStillCompatible())
+                throw new InvalidOperationException("所选游戏窗口已变化，未重置当前连接。");
             await Task.Run(() => processor.SetTasker(requireAllStopped: true), token);
             token.ThrowIfCancellationRequested();
-            await DispatcherHelper.RunOnMainThreadAsync(() => processor.ViewModel?.InvalidateCurrentWin32Window());
+            await DispatcherHelper.RunOnMainThreadAsync(() =>
+            {
+                if (_target != null && _window != IntPtr.Zero && !SelectionStillCompatible())
+                    throw new InvalidOperationException("所选游戏窗口已变化，未清除当前选择。");
+                processor.ViewModel?.InvalidateCurrentWin32Window();
+            });
         }
 
         public Task StopSelectedProcessAsync(CancellationToken token) =>
@@ -257,24 +276,10 @@ public static class TaskRecovery
                 WorkingDirectory = Path.GetDirectoryName(options.ExePath)!, UseShellExecute = false,
                 CreateNoWindow = false, WindowStyle = ProcessWindowStyle.Normal
             }) ?? throw new InvalidOperationException("游戏进程未启动。");
-            var until = DateTime.UtcNow + TimeSpan.FromSeconds(5);
-            while (DateTime.UtcNow < until)
-            {
-                token.ThrowIfCancellationRequested();
-                if (started.HasExited) throw new InvalidOperationException("游戏进程启动后立即结束。");
-                try
-                {
-                    _target = Identity(started.Id);
-                    _target.RequireConfiguredPath(options.ExePath);
-                    return;
-                }
-                catch (System.ComponentModel.Win32Exception)
-                {
-                    // Windows may not expose MainModule until loader initialization completes.
-                    await Task.Delay(100, token);
-                }
-            }
-            throw new InvalidOperationException("无法核验新启动的游戏进程身份。");
+            processor.AddLog($"游戏管理：已启动盒子进程 PID={started.Id}，正在核验程序身份。");
+            _target = await TaskRecoveryPolicy.WaitForStartedProcessAsync(started.Id, options.ExePath,
+                () => ReadProcessIdentity(started.Id), () => started.HasExited, token, message => processor.AddLog(message));
+            processor.AddLog($"游戏管理：新进程 PID={_target.Pid} 身份已核验，继续等待游戏窗口。");
         }
 
         public async Task BindUniqueWindowAsync(CancellationToken token)
@@ -310,45 +315,24 @@ public static class TaskRecovery
 
         private async Task<bool> RestoreClientSizeAsync(DesktopWindowInfo window, int pid, CancellationToken token)
         {
+            _target!.RequireSame(Identity(pid));
+            if (!MatchesWindow(ReadWindow(window.Handle), window, pid)) return false;
+            using var studio = new ScriptStudioClient(AppPaths.DataRoot, releaseCaptureOnDisconnect: false);
+            var size = await studio.CallAsync("window_prepare", new JsonObject { ["hwnd"] = (long)window.Handle }, token);
+            _clientSize = new(size["width"]!.GetValue<int>(), size["height"]!.GetValue<int>());
             var clock = Stopwatch.StartNew();
-            var nextCorrection = TimeSpan.Zero;
             var readiness = new TaskWindowReadiness(pid, new(window.Name, window.ClassName));
-            TaskWindowCandidate? last = null;
             while (clock.Elapsed < TimeSpan.FromSeconds(5))
             {
                 token.ThrowIfCancellationRequested();
-                _target!.RequireSame(Identity(pid));
+                _target.RequireSame(Identity(pid));
                 var current = ReadWindow(window.Handle);
-                if (!MatchesWindow(current, window, pid)) return false; // Re-enumerate a replacement HWND.
-                if (current != last)
-                {
-                    LoggerHelper.Info($"游戏管理尺寸采样：原客户区={_clientSize}，窗口={current}。");
-                    last = current;
-                }
-                var stable = readiness.Observe(new[] { current }, clock.Elapsed);
-                if (current.HasUsableBounds && _clientSize.SameNormalizedFrame(current.ClientSize))
-                {
-                    if (stable != null) return true;
-                }
-                else if (stable != null && clock.Elapsed >= nextCorrection)
-                {
-                    token.ThrowIfCancellationRequested();
-                    // Read and resize synchronously in the same physical-pixel
-                    // context. Never resize an AIR placeholder or a changed HWND.
-                    TaskWindowCoordinates.InPhysicalPixels(SetThreadDpiAwarenessContext, () =>
-                    {
-                        var measured = ReadWindowPhysical(window.Handle);
-                        if (!MatchesWindow(measured, window, pid) || !measured.HasUsableBounds) return false;
-                        var target = _clientSize.OuterSizeFor(measured.ClientSize, measured.OuterSize);
-                        if (!SetWindowPos(window.Handle, IntPtr.Zero, 0, 0, target.Width, target.Height, 0x0002 | 0x0004 | 0x0010))
-                            throw new InvalidOperationException("无法调整新游戏窗口尺寸。");
-                        return true;
-                    });
-                    nextCorrection = clock.Elapsed + TimeSpan.FromSeconds(1);
-                }
+                if (!MatchesWindow(current, window, pid)) return false;
+                if (readiness.Observe(new[] { current }, clock.Elapsed) != null
+                    && current.HasUsableBounds && current.ClientSize == _clientSize) return true;
                 await Task.Delay(100, token);
             }
-            throw new InvalidOperationException($"游戏窗口尺寸未稳定或比例不匹配（原客户区 {_clientSize}，最后采样 {last}），未连接或发送游戏输入。");
+            throw new InvalidOperationException("标准窗口尺寸未稳定，未连接或发送游戏输入。");
         }
 
         public async Task ReconnectAsync(CancellationToken token)
@@ -367,6 +351,14 @@ public static class TaskRecovery
             }
         }
 
+        public async Task PrepareBoundWindowAsync(CancellationToken token)
+        {
+            RequireBoundWindow();
+            using var studio = new ScriptStudioClient(AppPaths.DataRoot, releaseCaptureOnDisconnect: false);
+            var size = await studio.CallAsync("window_prepare", new JsonObject { ["hwnd"] = (long)_window }, token);
+            _clientSize = new(size["width"]!.GetValue<int>(), size["height"]!.GetValue<int>());
+        }
+
         private void RequireBoundWindow()
         {
             _target!.RequireSame(Identity(_target.Pid));
@@ -382,6 +374,7 @@ public static class TaskRecovery
 
         private async Task StopSelectedProcessAsync(TaskProcessIdentity expected, CancellationToken token)
         {
+            if (!SelectionStillCompatible()) throw new InvalidOperationException("所选游戏窗口已变化，未结束原进程。");
             Process? selected;
             try { selected = Process.GetProcessById(expected.Pid); }
             catch (ArgumentException) { return; }
@@ -435,9 +428,55 @@ public static class TaskRecovery
             RequireUnshared(processor, pid);
         }
 
+        private async Task<TaskAttempt?> IdentifyWindowFailureAsync(CancellationToken token)
+        {
+            if (IsLostTarget()) return new(TaskAttemptStatus.Recoverable, "window_lost");
+            if (await ConfirmControllerLossAsync(token))
+                return new(TaskAttemptStatus.Recoverable, "window_connection_lost");
+            token.ThrowIfCancellationRequested();
+            // The process may have exited while the connection was sampled.
+            return IsLostTarget() ? new(TaskAttemptStatus.Recoverable, "window_lost") : null;
+        }
+
+        private async Task<bool> ConfirmControllerLossAsync(CancellationToken token)
+        {
+            var lost = await TaskRecoveryPolicy.ConfirmControllerLossAsync(
+                IsVerifiedTargetCurrent, processor.IsMainControllerConnected, token);
+            if (lost) processor.AddLog("游戏管理：已核验的游戏窗口控制器持续断连，交由失败恢复处理。");
+            return lost;
+        }
+
+        private bool IsVerifiedTargetCurrent()
+        {
+            if (_target == null || _window == IntPtr.Zero || _windowIdentity == null
+                || !SelectionStillCompatible()) return false;
+            try
+            {
+                _target.RequireSame(Identity(_target.Pid));
+                EnsureUnshared(_target.Pid);
+                var window = ReadWindow(_window);
+                return window.Pid == _target.Pid && window.Visible && window.HasUsableBounds
+                    && _windowIdentity.Matches(window.Identity);
+            }
+            catch (Exception) { return false; }
+        }
+
+        private bool SelectionStillCompatible()
+        {
+            try
+            {
+                var view = processor.ViewModel;
+                var device = view?.CurrentDevice;
+                return TaskRecoveryPolicy.SelectionAllowsRecovery(view?.CurrentController == MaaControllerTypes.Win32,
+                    device != null && device is not DesktopWindowInfo,
+                    (device as DesktopWindowInfo)?.Handle, processor.Config.DesktopWindow.HWnd, _window);
+            }
+            catch (Exception) { return false; }
+        }
+
         private bool IsLostTarget()
         {
-            if (_target == null) return false;
+            if (_target == null || !SelectionStillCompatible()) return false;
             try { _target.RequireSame(Identity(_target.Pid)); return WindowPid(_window) != _target.Pid; }
             catch (ArgumentException) { return true; }
             catch (InvalidOperationException) { return false; }
@@ -446,12 +485,15 @@ public static class TaskRecovery
 
     private static bool Matches(string? value, string? pattern) => string.IsNullOrEmpty(pattern)
         || Regex.IsMatch(value ?? "", pattern, RegexOptions.None, TimeSpan.FromSeconds(1));
-    private static TaskProcessIdentity Identity(int pid)
+    private static TaskProcessIdentity Identity(int pid) =>
+        ReadProcessIdentity(pid) ?? throw new InvalidOperationException("无法核验游戏程序路径。");
+
+    private static TaskProcessIdentity? ReadProcessIdentity(int pid)
     {
         using var process = Process.GetProcessById(pid);
         if (process.HasExited) throw new ArgumentException("游戏进程已结束。");
-        return new(pid, process.StartTime.ToUniversalTime().Ticks,
-            process.MainModule?.FileName ?? throw new InvalidOperationException("无法核验游戏程序路径。"));
+        var path = process.MainModule?.FileName;
+        return string.IsNullOrWhiteSpace(path) ? null : new(pid, process.StartTime.ToUniversalTime().Ticks, path);
     }
     private static int WindowPid(IntPtr window)
     {

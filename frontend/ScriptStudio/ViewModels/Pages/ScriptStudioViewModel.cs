@@ -65,6 +65,7 @@ public sealed class ScriptStudioViewModel : ViewModelBase, IDisposable
     public string Name => Document?["name"]?.GetValue<string>() ?? "";
     public double Duration => Document?["duration_ms"]?.GetValue<double>() ?? 0;
     public bool Capturing { get; set; }
+    public bool CaptureDraft => Document?["capture_draft"]?.GetValue<bool>() == true;
     public event Action? Changed;
 
     public void Apply(JsonNode snapshot)

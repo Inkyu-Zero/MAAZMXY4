@@ -115,16 +115,23 @@ def generate(source, root=ROOT):
             raise ValueError('Unexpected legacy stage detector: ' + task)
         # Cheap legacy path first. The native Or evaluates extracted variants
         # only after the existing crop misses. Keep the click's matched box.
+        profile=json.loads((root/'tools/script_task_profiles.json').read_text(encoding='utf8'))[task]
+        view_roi=profile.get('view_roi')
+        if view_roi: original_recognition['param']['roi']=view_roi
         node['recognition'] = dict(type='And', param=dict(all_of=[
-            dict(recognition=dict(type='TemplateMatch', param=dict(template='任务.png', roi=[0,540,1147,180]))),
+            'Nav_ClearMap',
             dict(recognition=dict(type='Or', param=dict(any_of=[
                 dict(recognition=deepcopy(original_recognition)),
                 dict(recognition=dict(type='TemplateMatch', param=dict(template=variants,
-                    threshold=.82, **({} if town == 'town5' else dict(roi=[0,115,1045,500])), method=5))),
+                    threshold=.82, **(dict(roi=view_roi) if view_roi else
+                        {} if town == 'town5' else dict(roi=[0,115,1045,500])), method=5))),
             ]))),
-            'Result_NoRevivePrompt',
         ], box_index=1))
         write_json(path, pipeline)
+        profiles_path = root / 'tools/script_task_profiles.json'
+        profiles = json.loads(profiles_path.read_text(encoding='utf8'))
+        profiles[task]['target']['recognition'] = deepcopy(node['recognition'])
+        write_json(profiles_path, profiles)
         metadata['stages'].append(dict(task=task, stage_id=stage, town=town, sprite_id=int(sprite),
             source_url=origin['url'], source_sha256=origin['sha256'], variants=records))
     write_json(root / 'agent/data/navigation/stage-variants.json', metadata)

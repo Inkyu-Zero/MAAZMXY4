@@ -8,6 +8,7 @@ import time
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0,str(ROOT/'agent'))
 FIXTURES = ROOT / 'tests/fixtures/navigation/revival-live'
 
 
@@ -19,20 +20,13 @@ class RevivalAnchorAssetsTests(unittest.TestCase):
             self.assertTrue(case['redactions'])
             self.assertEqual(hashlib.sha256((FIXTURES / case['file']).read_bytes()).hexdigest(), case['sha256'])
 
-    def test_all_tasks_wait_through_game_countdown_and_keep_confirmed_failure(self):
-        found = 0
-        for path in (ROOT / 'assets/resource/base/pipeline').glob('*.json'):
-            nodes = json.loads(path.read_text(encoding='utf8'))
-            for name, node in nodes.items():
-                if not name.endswith('-等待拒绝复活'): continue
-                found += 1
-                prefix = name.removesuffix('等待拒绝复活')
-                self.assertEqual(node['next'], [prefix+'拒绝还魂丹', prefix+'战斗失败'])
-                self.assertGreaterEqual(node['timeout'], 15000)
-                self.assertEqual(node['on_error'], [prefix+'失败'])
-                self.assertEqual(nodes[prefix+'拒绝还魂丹']['pre_delay'], 0)
-                self.assertEqual(nodes[prefix+'拒绝还魂丹']['next'], [prefix+'战斗失败'])
-        self.assertEqual(found, 11)
+    def test_shared_revival_wait_exceeds_countdown_and_requires_defeat(self):
+        routine=json.loads((ROOT/'agent/data/navigation/routines.json').read_text(encoding='utf8'))
+        action=routine['actions']['Result_DeclineRevive']
+        self.assertTrue(action['wait_for_clear'])
+        self.assertGreaterEqual(action['timeout_ms'],15000)
+        self.assertGreaterEqual(action['verify_ms'],15000)
+        self.assertEqual(action['verify'],['challenge_failed'])
 
 
 @unittest.skipUnless(os.environ.get('NAVIGATION_NATIVE_TESTS') == '1', 'opt-in memory-only revival regression')
@@ -83,6 +77,32 @@ class RevivalAnchorNativeTests(unittest.TestCase):
         self.assertEqual(errors, [])
         self.assertEqual(completed, [True])
 
+    def test_captured_paid_revival_with_weak_caption_stays_safe(self):
+        # 2026-11-03 log screenshot SHA256:
+        # 00ef93f57bc08c265d4841ed9a67dfdf53f1d565edebcc8c1d510bce15526a84
+        # Only dialog [291,239,853,491] is retained; the item and its
+        # quantity [350,284,420,355] are covered, with a neutral background.
+        from fixture_pixels import read_png_bgr
+        path = ROOT/'tests/fixtures/navigation/revival-threshold-20261103.png'
+        self.assertEqual(hashlib.sha256(path.read_bytes()).hexdigest(),
+                         'c27e86bc697dbd267dea3a16daa4677160a220e2da8a70744fa67e78baaaaabb')
+        frame = read_png_bgr(path)
+
+        def inspect(context, controller, events):
+            self.assertTrue(context.run_recognition('Nav_ModalPresent', frame).hit)
+            self.assertTrue(context.run_recognition('Result_RevivePrompt', frame).hit)
+            result = context.run_recognition('Result_DeclineRevive', frame)
+            self.assertTrue(result and result.hit)
+            x, y, w, h = result.box
+            self.assertTrue(614 <= x and y >= 416 and x+w <= 710 and y+h <= 458)
+            obscured = frame.copy()
+            obscured[400:452, 330:810] = 0
+            self.assertTrue(context.run_recognition('Result_RevivePrompt', obscured).hit)
+            self.assertFalse(context.run_recognition('Result_DeclineRevive', obscured).hit)
+            self.assertEqual(events, [])
+
+        self.run_memory_case(inspect, frame)
+
     def test_actual_log_dialogs_produce_cancel_boxes(self):
         from maa.controller import CustomController
         from maa.custom_action import CustomAction
@@ -120,6 +140,8 @@ class RevivalAnchorNativeTests(unittest.TestCase):
         self.assertTrue(controller.post_connection().wait().succeeded)
         controller.set_screenshot_use_raw_size(True)
         self.assertTrue(resource.post_bundle(ROOT / 'assets/resource/base').wait().succeeded)
+        from battle_ui import NoRevivePrompt
+        resource.register_custom_recognition('battle_no_revive',NoRevivePrompt())
         resource.register_custom_action('__inspect_revival_anchor', Inspect())
         resource.override_pipeline({'__RevivalAnchorTest': dict(action=dict(type='Custom', param=dict(custom_action='__inspect_revival_anchor')))})
         self.assertTrue(tasker.bind(resource, controller))
@@ -132,10 +154,8 @@ class RevivalAnchorNativeTests(unittest.TestCase):
         from battle_outcomes import BattleOutcomeMonitor
         prompt = read_png_bgr(FIXTURES/'vip-p1-countdown10.png')
         failed = read_png_bgr(ROOT/'tests/fixtures/navigation/challenge-failed.png')
-        prefix = '悬赏（守卫太宗）-'
-        policy = dict(failed_next=[prefix+'已确认战斗失败'],
-            succeeded_next=[prefix+'已确认战斗成功'], default_next=[prefix+'回放后分流'],
-            revive_next=[prefix+'拒绝还魂丹', prefix+'等待拒绝复活', prefix+'战斗失败'])
+        policy = dict(failed_next=['Result_Failed'], succeeded_next=['Result_Succeeded'],
+                      default_next=['Round_PlayDone'],revive_next=['Result_RevivePrompt'])
 
         def inspect(context, controller, events):
             # The semantic fallback may identify a resurrection prompt, but
@@ -144,25 +164,26 @@ class RevivalAnchorNativeTests(unittest.TestCase):
             obscured[400:460,430:720] = 0
             self.assertTrue(context.run_recognition('Result_RevivePrompt', obscured).hit)
             self.assertFalse(context.run_recognition('Result_DeclineRevive', obscured).hit)
-            pending = [name for path in (ROOT/'assets/resource/base/pipeline').glob('*.json')
-                for name in json.loads(path.read_text(encoding='utf8'))
-                if name.endswith('-等待拒绝复活')]
-            self.assertEqual(len(pending), 11)
-            for name in pending:
-                self.assertTrue(context.run_recognition(name, obscured).hit, name)
-            # This captured caption misses the template. Text by itself must
-            # not enable the fallback without a confirmation frame.
+            # The lowered template threshold can recognize this caption alone.
+            # It must never authorize a cancel click without the actual panel.
             import numpy as np
             caption_only = np.full_like(prompt, (50,60,70))
             caption_only[316:350,440:810] = prompt[316:350,440:810]
-            self.assertFalse(context.run_recognition('Result_RevivePrompt', caption_only).hit)
+            self.assertFalse(context.run_recognition('Result_DeclineRevive', caption_only).hit)
+            # Independently exercise the existing free-revival OCR fallback;
+            # it still requires a matched confirmation frame.
+            nodes = json.loads((ROOT/'assets/resource/base/pipeline/battle_outcomes.json').read_text(encoding='utf8'))
+            fallback = nodes['Result_ReviveEvidence']['recognition']['param']['any_of'][1]['recognition']
+            self.assertTrue(context.override_pipeline({'__FreeRevivalOcrOnly': dict(recognition=fallback,
+                action=dict(type='DoNothing'), next=[], post_delay=0)}))
+            self.assertTrue(context.run_recognition('__FreeRevivalOcrOnly', prompt).hit)
+            self.assertFalse(context.run_recognition('__FreeRevivalOcrOnly', caption_only).hit)
             for path in sorted((ROOT/'tests/fixtures/navigation/common-dialog').glob('*.png')):
                 other = read_png_bgr(path)
                 self.assertFalse(context.run_recognition('Result_RevivePrompt', other).hit, path.name)
                 self.assertFalse(context.run_recognition('Result_DeclineRevive', other).hit, path.name)
-            # This real free-revival caption scored 0.858 against the SWF
-            # template (threshold 0.88). It used to fall into common-confirm
-            # fatal handling before the decline / defeat route could run.
+            # This captured free-revival caption scored 0.858 against the SWF
+            # template. The monitor must still enter the safe decline route.
             monitor = BattleOutcomeMonitor(context, policy)
             try:
                 monitor.start()
@@ -172,12 +193,14 @@ class RevivalAnchorNativeTests(unittest.TestCase):
             finally:
                 monitor.close()
             controller.source = lambda: failed if events and events[-1][0]=='up' else prompt
-            result = context.run_task('__CapturedRevive', {
-                '__CapturedRevive': dict(action=dict(type='DoNothing'),
-                    next=policy['revive_next'], timeout=2000, post_delay=0),
-                prefix+'战斗失败': dict(action=dict(type='DoNothing'), next=[]),
-            })
-            self.assertTrue(result and result.status.succeeded)
+            from navigation.runtime import Navigator
+            from navigation.catalog import task_routine
+            def capture():
+                controller.post_screencap().wait()
+                return controller.cached_image
+            nav=Navigator(context,task_routine(context,{}),capture=capture,check=lambda:None)
+            nav.deadline=time.monotonic()+25
+            self.assertEqual(nav._execute('Result_DeclineRevive'),'challenge_failed')
             self.assertEqual([e[0] for e in events], ['down', 'up'])
             self.assertTrue(614<=events[0][1]<710 and 416<=events[0][2]<458, events)
 
@@ -232,16 +255,17 @@ class RevivalAnchorNativeTests(unittest.TestCase):
             self.assertFalse(context.run_recognition('Result_DeclineRevive',prompt).hit)
             start=time.monotonic()
             controller.source=lambda: prompt if time.monotonic()-start<10.1 else failed
-            result=context.run_task('__WaitForNaturalDefeat',{
-                '__WaitForNaturalDefeat':dict(action=dict(type='DoNothing'),next=[prefix+'等待拒绝复活'],timeout=2000,post_delay=0),
-                # Keep the production recognition and predecessor's budget;
-                # end at the actual defeat instead of entering another battle.
-                prefix+'战斗失败':dict(action=dict(type='DoNothing'),next=[]),
-            })
-            self.assertTrue(result and result.status.succeeded)
+            from navigation.runtime import Navigator
+            from navigation.catalog import task_routine
+            def capture():
+                controller.post_screencap().wait()
+                return controller.cached_image
+            nav=Navigator(context,task_routine(context,{}),capture=capture,check=lambda:None)
+            nav.deadline=time.monotonic()+25
+            self.assertEqual(nav._execute('Result_DeclineRevive'),'challenge_failed')
             self.assertGreaterEqual(time.monotonic()-start,10.1)
             self.assertEqual(events,[])
-            self.assertTrue(context.run_recognition(prefix+'战斗失败',failed).hit)
+            self.assertTrue(context.run_recognition('Result_FailedClear',failed).hit)
 
         self.run_memory_case(inspect,prompt)
 

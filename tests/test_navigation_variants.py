@@ -35,25 +35,19 @@ class StageVariantAssetsTests(unittest.TestCase):
             pipeline=json.loads((ROOT/'assets/resource/base/pipeline'/(stage['task']+'.json')).read_text(encoding='utf8'))
             node=pipeline[stage['task']+'-关卡入口']
             self.assertEqual(node['recognition']['type'],'And')
+            self.assertEqual(node['recognition']['param']['all_of'][0],'Nav_ClearMap')
             self.assertEqual(node['recognition']['param']['box_index'],1)
             self.assertEqual(node['action'],{'type':'Click'})
-            # Upstream adds two bounded retries. Each must keep the same target
-            # recognition/modal guard and end at failure, not a blind click.
-            previous = node
-            for attempt in (1, 2):
-                name = stage['task'] + '-关卡入口_重试' + str(attempt)
-                self.assertEqual(previous['on_error'], [name])
-                retry = pipeline[name]
-                self.assertEqual(retry['recognition'], node['recognition'])
-                self.assertEqual(retry['action'], {'type':'Click'})
-                previous = retry
-            self.assertEqual(previous['on_error'], [stage['task']+'-失败'])
+            # Retries now re-use this same guarded action, rather than three copies.
+            self.assertFalse(any('关卡入口_重试' in name for name in pipeline))
+            self.assertEqual(node['next'],[])
             if stage['town'] == 'town5':
-                # Both legacy and SWF states must follow a movable icon across
-                # the viewport, instead of assuming its initial map position.
+                # Both template families share the small endpoint viewport.
+                # A miss restores that viewport instead of a full-map search.
                 alternatives = node['recognition']['param']['all_of'][1]['recognition']['param']['any_of']
+                expected = [240,60,220,230] if stage['task']=='无冥（孤魂岭）' else [625,390,210,175]
                 for choice in alternatives:
-                    self.assertNotIn('roi', choice['recognition']['param'])
+                    self.assertEqual(choice['recognition']['param']['roi'],expected)
 
 
 @unittest.skipUnless(os.environ.get('NAVIGATION_NATIVE_TESTS')=='1','opt-in memory-only native recognition')
@@ -61,7 +55,6 @@ class StageVariantNativeTests(unittest.TestCase):
     def test_non_blood_sea_button_states_match_only_the_intended_stage(self):
         self.check_states(blood_sea=False)
 
-    @unittest.skipUnless(os.environ.get('NAVIGATION_BLOOD_SEA_TESTS')=='1','blood-sea validation explicitly deferred')
     def test_blood_sea_button_states_match_only_the_intended_stage(self):
         self.check_states(blood_sea=True)
 
@@ -70,7 +63,7 @@ class StageVariantNativeTests(unittest.TestCase):
         from maa.custom_action import CustomAction
         from maa.resource import Resource
         from maa.tasker import Tasker
-        from fixture_pixels import read_png_bgr
+        from fixture_pixels import read_stage_state
         import sys
         sys.path.insert(0,str(ROOT/'agent'))
         from battle_ui import NoRevivePrompt
@@ -82,13 +75,13 @@ class StageVariantNativeTests(unittest.TestCase):
         class Pixels(CustomController):
             def connect(self):return True
             def request_uuid(self):return 'swf-states-memory-only'
-            def screencap(self):return read_png_bgr(FIXTURES/cases[0]['file'])
+            def screencap(self):return read_stage_state(FIXTURES,cases[0])
             def forbidden(self,*args):raise AssertionError('This analysis must never send input')
             click=swipe=touch_down=touch_up=touch_move=key_down=key_up=input_text=start_app=stop_app=forbidden
         class Inspect(CustomAction):
             def run(self,context,argv):
                 for case in cases:
-                    pixels=read_png_bgr(FIXTURES/case['file'])
+                    pixels=read_stage_state(FIXTURES,case)
                     hits=[]
                     for task in tasks:
                         detail=context.run_recognition(task+'-关卡入口',pixels)
@@ -97,7 +90,7 @@ class StageVariantNativeTests(unittest.TestCase):
                     assert hits==[case['task']],(case,hits)
                     checks.append(case)
                 # Removing the map's task button must block even a perfect icon.
-                pixels=read_png_bgr(FIXTURES/cases[0]['file']);pixels[600:]=0
+                pixels=read_stage_state(FIXTURES,cases[0]);pixels[600:]=0
                 detail=context.run_recognition(tasks[0]+'-关卡入口',pixels)
                 assert detail is not None and not detail.hit
                 completed.append(True)

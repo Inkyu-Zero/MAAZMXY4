@@ -1,0 +1,6 @@
+{
+  "description": "input-only-repeat",
+  "path": "MFAAvalonia/Extensions/MaaFW/MaaProcessor.cs",
+  "find": "MFAAvalonia.Services.TaskScriptPlan.IsAfkMode(taskParams) ? -1 : (task.InterfaceItem?.RepeatCount ?? 1)",
+  "replace": "(task.InterfaceItem?.Entry == MFAAvalonia.Services.GenericScriptPlayback.Entry ? MFAAvalonia.Services.GenericScriptPlayback.IsContinuous(taskParams) : MFAAvalonia.Services.TaskScriptPlan.IsAfkMode(taskParams)) ? -1 : (task.InterfaceItem?.RepeatCount ?? 1)"
+}

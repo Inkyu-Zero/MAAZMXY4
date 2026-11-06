@@ -284,6 +284,8 @@ def build_client(root, frontend, python_runtime, destination, launcher, *, clien
 FILES = [
     ("agent/adventure.py", "agent/adventure.py"),
     ("agent/adventure_logic.py", "agent/adventure_logic.py"),
+    ("agent/mouse_input.py", "agent/mouse_input.py"),
+    ("agent/cursor_action.py", "agent/cursor_action.py"),
     ("assets/data/adventure.json", "assets/data/adventure.json"),
     ("assets/data/adventure_ui.json", "assets/data/adventure_ui.json"),
     ("assets/resource/base/pipeline/生存大冒险.json", "resource/base/pipeline/生存大冒险.json"),
@@ -348,6 +350,7 @@ INSTALL_DOC = """# 造梦西游4 · 生存大冒险 自动答题（纯脚本包�
 
    ```python
    import adventure
+   import cursor_action
    ```
 
 3. **追加任务**：把 `interface_patch.json` 里的 `task` 合并进 `interface.json` 的 `task` 数组；

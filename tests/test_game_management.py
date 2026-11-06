@@ -45,14 +45,16 @@ class GameManagementTests(unittest.TestCase):
         self.assertTrue(adventure['management_completion_only'])
         self.assertIsNone(adventure['management_profile'])
 
-    def scenario(self,states,**params):
+    def scenario(self,states,*,frame_size=(1147,720),**params):
         class Context:
             def __init__(self):
-                self.index=0;self.actions=[];self.patches=[];self.now=0
+                self.index=0;self.actions=[];self.patches=[];self.recognitions=[];self.now=0
                 self.tasker=SimpleNamespace(stopping=False,controller=SimpleNamespace(post_screencap=lambda:
-                    SimpleNamespace(wait=lambda:SimpleNamespace(succeeded=True,get=lambda:SimpleNamespace(ndim=3,shape=(720,1147,3))))))
+                    SimpleNamespace(wait=lambda:SimpleNamespace(succeeded=True,get=lambda:SimpleNamespace(ndim=3,shape=(frame_size[1],frame_size[0],3))))))
             def override_pipeline(self,p):self.patches.append(deepcopy(p));return True
-            def run_recognition(self,name,frame):return SimpleNamespace(hit=name.removeprefix('GameManagement_') in states[self.index])
+            def run_recognition(self,name,frame):
+                self.recognitions.append(name)
+                return SimpleNamespace(hit=name.removeprefix('GameManagement_') in states[self.index])
             def run_task(self,name,overrides):
                 self.assert_wrapper=(name=='GameManagement_Invoke' and overrides[name]['action']['type']=='DoNothing')
                 self.actions.append(overrides[name]['next'][0]);self.index=min(self.index+1,len(states)-1)
@@ -61,6 +63,20 @@ class GameManagementTests(unittest.TestCase):
         ctx=Context()
         values=dict(account_name='历史昵称',role_name='角色名',save_slot=1,**params)
         return ctx,lambda:login.restore(ctx,values,clock=lambda:ctx.now,sleep=ctx.sleep)
+
+    def test_near_reference_login_frame_sizes_are_accepted_but_larger_deviations_stop(self):
+        for width in (1140,1141,1147,1149,1154):
+            with self.subTest(width=width):
+                ctx,run=self.scenario([{'MapReady'}],frame_size=(width,720),allow_existing_map=True)
+                run()
+                self.assertIn('GameManagement_MapReady',ctx.recognitions)
+                self.assertEqual(ctx.actions,[])
+        for size in ((1139,720),(1155,720),(1147,719),(1147,721)):
+            with self.subTest(size=size):
+                ctx,run=self.scenario([{'MapReady'}],frame_size=size,allow_existing_map=True)
+                with self.assertRaisesRegex(ValueError,'盒子画面比例'):run()
+                self.assertEqual(ctx.recognitions,[])
+                self.assertEqual(ctx.actions,[])
 
     def test_full_saved_account_login_is_guarded_and_checks_role_before_map(self):
         ctx,run=self.scenario([{'BoxLogin'},{'BoxLogin','SelectAccount'},{'BoxLogin','AccountSelected'},
@@ -77,6 +93,23 @@ class GameManagementTests(unittest.TestCase):
 
     def test_explicitly_connecting_selected_map_does_not_relogin(self):
         ctx,run=self.scenario([{'MapReady'}],allow_existing_map=True);run();self.assertEqual(ctx.actions,[])
+
+    def test_loading_wait_crossing_deadline_never_sleeps_negative(self):
+        ctx,run=self.scenario([{'Loading'},{'MapReady'}],allow_existing_map=True)
+        original_check=login._check
+        def check(context):
+            original_check(context)
+            # A reverse RPC can consume the rest of the sleep interval.
+            if ctx.now >= .25:
+                ctx.now += .1
+                ctx.index=1
+        original_sleep=ctx.sleep
+        def sleep(seconds):
+            self.assertGreaterEqual(seconds,0)
+            original_sleep(seconds)
+        ctx.sleep=sleep
+        with patch.object(login,'_check',side_effect=check):run()
+        self.assertEqual(ctx.actions,[])
 
     def test_selected_role_waits_through_title_transition_without_starting_again(self):
         ctx,run=self.scenario([{'SavePage','ChooseRole'},{'StartGame'},{'MapReady'}])
@@ -195,7 +228,8 @@ class GameManagementTests(unittest.TestCase):
         files = {relative for _, relative in builder.collect(str(ROOT))}
         expected = {'agent/game_management_login.py', 'agent/navigation/stage_view.py',
                     'agent/data/navigation/game-management.json', 'agent/data/navigation/stage-scroll.json',
-                    'resource/base/pipeline/game_management.json', 'resource/base/pipeline/game_management_scroll.json'}
+                    'resource/base/pipeline/game_management.json', 'resource/base/pipeline/game_management_scroll.json',
+                    'resource/base/pipeline/bounty_common.json'}
         self.assertTrue(expected <= files, expected-files)
         self.assertFalse(any('tests/' in path or 'fixtures/' in path for path in files))
         data = json.loads((ROOT/'agent/data/navigation/stage-scroll.json').read_text(encoding='utf8'))

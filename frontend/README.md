@@ -1,6 +1,6 @@
 # 脚本工具前端
 
-> 2.4.3 使用完整客户端手动升级，内置个人配置与脚本 ZIP 备份/恢复。继续沿用 2.4.2 移除自动更新后的安装方式；旧更新器协议及历史命令仅作归档参考。请备份并保留 `recordings/`、`config/` 和个人设置。
+> 自 2.4.2 起通过完整客户端手动升级。2.4.3 增加个人配置与脚本 ZIP 备份/恢复；下一版本的录制放弃操作仍在开发。版本状态与早期炼丹安装包的依赖问题见[项目 README](../README.md#版本状态)。
 
 “版本与手动升级”页面支持个人配置与录制脚本的 ZIP 导出/导入。压缩与解压集成在助手中，使用其现有 .NET 运行时，无需外部程序；校验、预览并确认后，在下次启动读取配置之前备份及恢复。操作范围、覆盖规则和离线验证见[个人配置备份与迁移](../docs/zh_cn/个人配置备份与迁移.md)。
 
@@ -10,11 +10,13 @@
 
 用户操作说明见 [脚本工具使用说明](../docs/zh_cn/脚本工具-使用说明.md)。
 
-下一版本另有原生“游戏百科”侧栏页，数据从 `agent/data/game_database/` 离线读取。相关来源、布局、开发工具与验收边界见[游戏数据库与导航素材](../docs/zh_cn/游戏数据库与导航素材.md)。它需要本轮定制前端与相应资源一起安装，单独更新资源不会给旧前端增加页签。
+完整客户端提供原生“游戏百科”侧栏页，数据从 `agent/data/game_database/` 离线读取。相关来源、布局、开发工具与验收边界见[游戏数据库与导航素材](../docs/zh_cn/游戏数据库与导航素材.md)。前端与相应资源需一起安装，单独更新资源不会给旧前端增加页签。
+
+下一版本在录制区和未保存录制的时间轴上方提供“放弃本次录制”，复用同一服务操作。录制区可勾选“双击放弃本次录制”防止误触；选项仅影响录制区按钮，在当前页面有效，默认不勾选。放弃后清空本次未保存内容并释放录制监听；在录制区操作时不切换页面，保留窗口选择和倒计时，可直接重新开始。已保存脚本和绑定不变。该改动及 OpenCV 收集/校验修复仍属工作区待发布内容。
 
 ## 源码与构建
 
-`upstream.json` 固定与本机 Core 2.14.0 对应的 MFAAvalonia 提交、源码归档 SHA-256 和构建入口。`ScriptStudio/` 内的文件按 MFAAvalonia Core 项目目录布局存放。构建脚本将其复制到下载源码的 `MFAAvalonia/` 下，纯 C# `UserControl` 也可使用，不要求额外的 `.axaml` 文件。
+`upstream.json` 固定 MFAAvalonia 提交、源码归档 SHA-256 和构建入口，依赖版本以该清单和固定源码为准。`ScriptStudio/` 内的文件按 MFAAvalonia Core 项目目录布局存放。构建脚本将其复制到下载源码的 `MFAAvalonia/` 下，纯 C# `UserControl` 也可使用，不要求额外的 `.axaml` 文件。
 
 需要 .NET 10 SDK；仅安装 .NET Runtime 无法编译。脚本优先使用 `.runtime-cache/dotnet-sdk/dotnet.exe`，也可通过 `-DotnetPath` 指定。
 
@@ -46,46 +48,83 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/build_frontend.ps1 -In
 
 安装备份位于 `backup/frontend-script-studio-日期-随机后缀/`。其中 `installation.json` 记录覆盖前已存在和新建的文件；需要恢复时，关闭前端，将备份文件按相同相对路径复制回项目。脚本不会主动关闭任何现有 MFAAvalonia 进程。
 
-## 发布与统一更新
+## 打包与手动升级
 
-2.3.8 正在引入统一更新器，发布与兼容边界以[更新协议与发布规范](../docs/zh_cn/更新协议与发布规范.md)为准。小更新仍只修改 `resource/`、`agent/`、`interface.json`；完整更新使用与 EXE 同源的客户端 ZIP。旧客户端必须先手动安装一次新版完整客户端，旧更新器不能安装新的前端和更新引擎。CI 提供的 `script-studio-frontend-win-x64` 仍只是前端附件，不含完整运行依赖；源码构建通过不等于已完成实机验收。
+当前源码已移除 `updater.py`、`update_engine/` 及项目自动更新流程，交付完整 EXE 和 ZIP 后由用户手动安装。CI 的 `script-studio-frontend-win-x64` 只是前端附件，不含 Python 和全部项目资源，不能当作完整客户端分发。
 
-完整客户端的标准入口为 `MAA造梦西游4.exe`：启动器调用 `runtimes/python/pythonw.exe` 运行 `updater.py`，再启动 MFA 前端。`MFAAvalonia.exe` 是直接启动前端的入口，不能用它启动成功代替标准入口验证。本轮首个候选整包曾漏掉官方启动器，包内服务及直接启动前端的检查没有发现此问题；最终包必须重新检查完整启动链路。
+完整客户端的标准入口为 `MAA造梦西游4.exe`，直接启动同目录的 `MFAAvalonia.exe`。Python 用于 Agent 和脚本服务。发布验收需验证标准启动入口，不能只测试某个程序集或脚本能运行。
 
 完整包保留空的 `runtimes/win-x64/native/plugins/` 目录，供 MaaFramework 按其原有机制查找可选插件；该目录可以为空，不需要添加假插件。缺少目录时框架可能把目录路径当作动态库并输出加载错误。
 
-启动器现在从 `tools/launcher/Program.cs` 构建。正常入口仍调用内嵌 Python 和 `updater.py`；若存在待恢复事务，则先启动独立复制的恢复运行时，避免依赖正在替换的 Python DLL。`tools/build_launcher.ps1` 使用 Windows .NET Framework 编译器及项目图标，生成 EXE 和 `launcher-build.json`，打包核对源码、图标及二进制摘要。不能再把旧 v2.3.1 启动器混入统一更新客户端。手动自解压 EXE 的 7-Zip 外壳继续复用原有固定来源和校验规则。
+启动器从 `tools/launcher/Program.cs` 构建。`tools/build_launcher.ps1` 使用 Windows .NET Framework 编译器及项目图标，生成 EXE 和 `launcher-build.json`，打包核对源码、图标及二进制摘要。Inno Setup 安装 EXE 与安装后的项目启动器是不同文件，不可互相替代。
 
 完整客户端还应包含 `script-studio-build.json`、`LICENSE-MFAAvalonia.txt`、`agent/recordings/` 和 `agent/task_asset_sync.py`，不得夹带发布者的 `recordings/`、`config/`、个人绑定、日志或缓存。根目录 `recordings/` 是用户库，与 `agent/recordings/` 发布模板分开；默认模板首次入库后不覆盖用户编辑，不恢复用户删除。
 
-整包使用现有发布工具的新入口，统一从规范源码取资源，避免混入旧的根目录 `resource/`：
+正式打包前先统一资源、启动器和发布标签的版本，以下示例读取当前资源版本。整包从规范源码取资源，不混入日常运行副本：
 
 ```powershell
 ./tools/build_frontend.ps1
-./tools/build_launcher.ps1 -Version 2.3.8
+$version = (Get-Content assets/interface.json -Raw | ConvertFrom-Json).version
+./tools/build_launcher.ps1 -Version $version
+python tools/runtime_check.py
 python tools/build_release.py --client --launcher "dist/launcher/MAA造梦西游4.exe" --frontend "<编译输出目录>" --python-runtime "<完整内嵌Python目录>" --repository "<发布者>/<仓库>"
-python tools/build_release.py --verify-client <完整包解压目录>
+python tools/build_release.py --verify-client "<完整包解压目录>"
 ```
 
-输出 `dist/MAAZMXY4-v<资源版本>-win-x64.zip`；不会覆盖已有同名包。`--frontend` 可指定 CI 前端附件的解压目录。启动器、前端、完整内嵌 Python、项目资源、依赖安装 BAT、更新器均被显式收集；预览目录中的配置、录制和日志不会进入整包。`--verify-client` 核对解压后的启动器、必需依赖、公共任务、选项及全部普通刷关任务的录制返回确认节点；BAT 保持 v2.3.1 的 CRLF 和首次 `/install` 行为。文件校验不能代替实际启动与游戏验收。禁止直接压缩个人运行目录代替这一步。
+输出 `dist/MAAZMXY4-v<资源版本>-win-x64.zip`，不会覆盖已有同名包。`--frontend` 可指定 CI 前端附件的解压目录。启动器、前端、完整内嵌 Python、项目资源及依赖安装 BAT 均被显式收集；个人配置、录制和日志不作为公共内容打包。`--verify-client` 检查解压后的启动器、必需依赖文件、公共任务及录制返回确认节点，不能替代下方的实际功能探针和启动验收。`runtime_check.py` 默认检查源码树下的 `runtimes/python/`；若打包使用另一个运行时，必须另外检查实际输入及最终包。
 
-若发布单文件 EXE，可将上述完整 ZIP 包装成与官方 2.3.1 同类的 7-Zip 自解压包：
+单文件 EXE 使用 Inno Setup 图形安装器，输入仍是同一份已验证完整 ZIP：
 
 ```powershell
-python -B tools/build_sfx.py --client-zip "<完整客户端.zip>" --official-sfx "<官方v2.3.1自解压包.exe>" --seven-zr "<已核实的7zr.exe>" --seven-zip-license "<官方7-Zip license.txt>" --lgpl-license "<LGPL-2.1全文.txt>" --out "<新输出.exe>"
+python -B tools/build_installer.py --client-zip "<完整客户端.zip>" --compiler "<Inno Setup 7.1.1/ISCC.exe>" --cache "<依赖缓存>" --download --out "<新输出-setup.exe>" --work "<新的构建工作目录>"
 ```
 
-工具核对官方自解压包、前缀与 7zr 的固定 SHA-256，检查 ZIP 中的客户端和路径，附带 7-Zip、LGPL 许可与来源声明，再生成不覆盖已有文件的 EXE。官方许可来源为 [7-Zip](https://www.7-zip.org/license.txt) 和 [GNU LGPL 2.1](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt)。该 EXE 是自解压包，不创建卸载项或快捷方式；实际发行前仍须从发布地址重新下载并验证图形解压和运行。
+固定工具和依赖清单在 `tools/installer/dependencies.json`。构建器检查编译器和依赖 EXE 的 SHA-256、Authenticode 状态与发布者；下载地址更新但摘要不符时失败，不自动信任新版二进制。当前前端要求 `Microsoft.NETCore.App 10.0.0`，已有正式 10.0 补丁版本即可运行；不额外要求 Desktop Runtime。VC++ 按清单最低版本检测，较新版本不降级。安装时再次核对包内依赖摘要，缺失才补装；失败或取消权限提示时停止，3010 表示成功但需要重启。原始依赖包及许可链接随包记录，不在安装时联网下载。
 
-现有版本更新页改为项目统一更新页，展示客户端/资源版本、渠道、来源和更新说明。检查、下载与安装分开；任务或录制运行时不能安装。MFA 的软件、资源、框架更新及本地包入口均转到项目流程，禁止通用 MFA 包覆盖定制前端。完整包导入只接受当前发布清单匹配的 ZIP，支持显式检查同版本完整修复包。启动器与前端使用同一 `update_engine`；旧 `updater.py` 中保留的兼容函数不再作为新版入口。
+新目录自动追加 `MAAZMXY4`，已确认的旧客户端原位保留个人数据并清理旧程序，不产生旧程序备份；存在其它文件不直接拒绝安装。识别不确定时采用子目录安装，不能据文件夹名称删除内容。原配置目录、录制、绑定、草稿、个人布局和未知根目录文件保留；旧任务选择通过现有迁移规划转换，规划失败先停止清理。安装器建立卸载登记和可选快捷方式，不自动启动客户端或结束正在运行的进程；卸载保留个人数据，不卸载系统共享运行库。
+
+`tools/build_sfx.py` 仅供复现历史自解压资产；新 EXE 不再依赖旧官方 EXE 前缀。安装器仅是完整客户端手动安装入口，不恢复自动更新。构建输出附 `.build.json`，记录客户端 ZIP、安装器、依赖与安装脚本摘要。发布仍需在独立目录实际安装、核验包内依赖及获准启动验收。
+
+“版本与手动升级”页提供版本说明和个人 ZIP 迁移，不安装完整客户端或自动更新程序。通用 MFA 自动更新保持禁用，以免覆盖定制页面。个人配置备份 ZIP 与完整客户端 ZIP 不同：前者只能通过迁移页面恢复，后者按完整安装流程解压。
 
 手动升级的迁移命令与文件覆盖顺序见[使用说明](../docs/zh_cn/脚本工具-使用说明.md#手动升级客户端)。必须在替换旧 `interface.json` 前迁移，单纯保留 `config/` 和录制文件不等于保留旧任务的脚本选择。
 
 发布前应在隔离目录验证完整客户端；fork 试发布后重新下载实际 Release 资产，检查首次安装、旧版手动升级、启动器及用户数据。最终包的哈希、实际安装和远端 CI 各自取证，不以前一版本候选包的测试结果代替。是否提交上游 PR 由发布者决定。
 
-新版更新源在打包时生成的 `update-config.json` 中，默认正式源为所选仓库 Release 的 `client-version.json` 附件；R2/CDN 可通过重复 `--manifest-url` 配置，但必须发布相同协议和序号的清单。fork 候选必须显式传 `--repository Algreenses/MAAZMXY4 --channel preview --manifest-url <独立候选清单地址>`，不修改上游或共享 R2。资源包由 `build_update.py` 默认生成协议 2 的清单内置包；旧 `version.json` 仅在显式 `--legacy` 时生成，不将新资源推给不兼容旧客户端。
+## 发布前依赖检查
 
-用 `tools/build_update_manifest.py --client <完整ZIP> --resource <资源ZIP> --repository <发布仓库> --tag <实际标签> --sequence <递增序号> --channel <stable或preview> --out <新清单路径>` 从最终资产生成候选清单。它校验包内摘要，只写本地文件，不上传；正式启用前先完成审核、授权实机、真实资产下载复验。旧清单与新清单相互独立，构建版本增加不能视为线上已发布。
+运行时收集使用 `tools/setup_runtime.py`，必需文件与基础原生调用检查使用 `tools/runtime_check.py`。下一版本已将 OpenCV 的 `cv2` 包、本机扩展和分发元数据加入收集与检查；缺少依赖时应阻止打包，不以任务能显示或模块能导入代替验证。
+
+对候选包及实际公开下载的 EXE、ZIP，分别安装到独立目录，核对版本、哈希、文件清单和依赖来源。必须使用包内解释器，禁止向搜索路径追加系统 Python、研究环境或旧客户端的依赖。检查延迟导入和异常被静默忽略的路径，并用合成数据执行代表性函数；例如在**待验证客户端根目录**运行以下炼丹探针：
+
+```powershell
+@'
+from pathlib import Path
+import sys
+import numpy as np
+import PIL
+import cv2
+
+root = Path.cwd().resolve()
+sys.path.insert(0, str(root / 'agent'))
+from jzld import board
+for module in (np, PIL, cv2, board):
+    path = Path(module.__file__).resolve()
+    assert path.is_relative_to(root), str(path)
+    print(module.__name__, path)
+image = np.arange(25, dtype=np.float32).reshape(5, 5)
+assert board._best_ncc(image, image) > .99
+assert np.isfinite(cv2.Sobel(image, cv2.CV_32F, 1, 0, ksize=3)).all()
+assert len(board._templates()) == 9
+assert board._empty_template() is not None
+assert board._slag_template() is not None
+print('PASS', sys.version.split()[0], np.__version__, PIL.__version__, cv2.__version__)
+'@ | .\runtimes\python\python.exe -B -E -s -X utf8 -
+```
+
+该探针不连接游戏、不截图、不发送输入；通过只代表这些依赖和离线函数可用，不代表已完成真实炼丹验收。正式验证还需按授权范围检查标准启动器及相关功能。
+
+对比上一正式版和最终包的文件清单、压缩前后大小，逐项解释依赖删减。2.4.3 早期包的体积缩小主要来自遗漏 `cv2`，炼丹源码本身未丢；仅比对源码或加载 Pillow 模板不能发现这一错误。缺依赖、ABI/DLL 加载失败、模块来源越界或功能探针失败均阻止发布，保留失败与修复后的证据。同名版本的附件若发生变化，应重新下载检查，不能沿用旧资产的结果。
 
 ## 宿主接入
 
@@ -101,8 +140,8 @@ python -B tools/build_sfx.py --client-zip "<完整客户端.zip>" --official-sfx
 - `11-script-studio-icons.json`：通过现有 Avalonia 资源系统加载 imagegen 生成的工具栏图集，提示词与 PNG 同目录保存。
 - `12-option-default-array.json`、`13-option-default-string.json`：字符串形式的选项先保留未选择状态，由现有 TaskLoader 应用 `default_case`，修复默认值总落到第一项的问题。已有配置对象的明确索引保持不变。
 - `14-shared-recording-windows.json`：录制页复用当前任务页的窗口发现、控制器筛选与已选窗口顺序，适配通用 Win32 控制器；刷新只读窗口信息，不连接或切换设备。
-- `15-manual-frontend-version-check.json`、`16-manual-frontend-download.json`：前端按项目完整客户端手动分发，阻止通用前端更新覆盖工作台；资源更新逻辑保持原样。
-- `17-manual-frontend-help.json`：在软件版本旁提供“前端升级说明”，复用已有命令展示升级方式。
+- `15-manual-only-updates.json`、`16-manual-only-updates.json`、`25`—`28` 的 `manual-only-updates` 补丁：移除通用软件、资源和框架自动更新入口，改为项目手动升级说明，避免覆盖定制前端。
+- `58-personal-transfer-startup.json`：在宿主读取配置前处理已确认的个人 ZIP 导入，备份旧内容并在失败时回滚。
 - `36-game-management-card.json`、`37-task-description-in-settings.json`：游戏管理替换原任务说明卡片，原 Markdown 说明控件移入任务设置，保留布局标识和绑定。
 - `38-disable-first-use-tutorial.json`：以功能开关暂时跳过首次指引，不改写用户的完成标记。
 - `39-game-management-lifetime.json`、`40-game-reconnect-preview.json`：实例释放时结束监测，重连期间沿用实时预览的连接暂停机制。

@@ -2,9 +2,11 @@
 import hashlib
 import json
 from pathlib import Path
+import sys
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / 'agent'))
 
 
 def read(path):
@@ -43,34 +45,40 @@ class NavigationUICoverageTests(unittest.TestCase):
 
     def test_task_entry_settings_and_returns_keep_foreground_guards(self):
         stage_count = settings_count = 0
+        clear_map = read('assets/resource/base/pipeline/navigation.json')['Nav_ClearMap']
+        self.assertIn('Result_NoRevivePrompt', clear_map['recognition']['param']['all_of'])
+        self.assertIn('Nav_NoMapOverlay', clear_map['recognition']['param']['all_of'])
         for path in (ROOT / 'assets/resource/base/pipeline').glob('*.json'):
             for name, node in json.loads(path.read_text(encoding='utf8')).items():
                 if name.endswith('-关卡入口'):
                     stage_count += 1
-                    self.assertIn('Result_NoRevivePrompt', node['recognition']['param']['all_of'])
+                    self.assertEqual(node['recognition']['param']['all_of'][0], 'Nav_ClearMap')
                     self.assertEqual(node['recognition']['param']['box_index'], 1)
-                if name.endswith('-点击设置'):
+                if name.endswith('-点击设置') or name=='Bounty_OpenSettings':
                     settings_count += 1
                     self.assertIn('Result_NoRevivePrompt', node['recognition']['param']['all_of'])
                     self.assertEqual(node.get('pre_delay', 0), 0)
-                if name.endswith('-返回地图'):
+                if name.endswith('-返回地图') or name=='Bounty_ReturnSettings':
                     self.assertEqual(node['recognition'], dict(type='And', param=dict(all_of=['Nav_SettingsReturn'])))
         self.assertEqual(stage_count, 7)
-        self.assertEqual(settings_count, 11)
+        self.assertEqual(settings_count, 1)
 
     def test_shared_navigation_clicks_are_guarded_except_known_sell_cancel(self):
         nodes = read('assets/resource/base/pipeline/navigation.json')
-        graph = read('agent/data/navigation/graph.json')
-        exemptions = set()
-        pending = [e['entry'] for e in graph['edges'] if e['source'] == 'profile_sell']
-        while pending:
-            name = pending.pop()
-            if name not in exemptions:
-                exemptions.add(name)
-                pending.extend(nodes[name].get('next', []))
+        exemptions = {'Nav_Go_profile_sell_profile'}
         for name, node in nodes.items():
             if node['action']['type'] == 'Click' and name not in exemptions:
-                self.assertIn('Result_NoRevivePrompt', node['recognition']['param']['all_of'], name)
+                parts=node['recognition']['param']['all_of']
+                self.assertTrue('Result_NoRevivePrompt' in parts or 'Nav_ClearMap' in parts,name)
+
+    def test_all_profiles_use_the_same_guarded_return_actions(self):
+        from task_catalog import task_catalog
+        profiles=[t['management_profile'] for t in task_catalog(ROOT,bindings={}) if t['management_profile']]
+        self.assertEqual(len(profiles),11)
+        for profile in profiles:
+            self.assertIn('round_flow',profile['parameters'])
+        nodes=read('assets/resource/base/pipeline/navigation_settings.json')
+        self.assertIn('Result_NoRevivePrompt',nodes['Nav_SettingsReturn']['recognition']['param']['all_of'])
 
 
 if __name__ == '__main__':

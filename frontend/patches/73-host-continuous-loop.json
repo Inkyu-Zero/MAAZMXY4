@@ -1,0 +1,6 @@
+{
+  "description": "Negative host repeat count runs until cancellation",
+  "path": "MFAAvalonia/Helper/ValueType/MFATask.cs",
+  "find": "            for (int i = 0; i < Count; i++)",
+  "replace": "            for (long i = 0; Count < 0 || i < Count; i++)"
+}

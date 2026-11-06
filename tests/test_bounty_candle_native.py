@@ -9,8 +9,48 @@ ROOT = Path(__file__).resolve().parents[1]
 PREFIX = '悬赏（守卫宝烛）-'
 
 
+def panel_title(frame, title):
+    """Synthetic text only, for four profile titles on the same panel layout."""
+    import numpy as np
+    from PIL import Image, ImageDraw, ImageFont
+    image=Image.fromarray(frame[:,:,::-1].copy())
+    draw=ImageDraw.Draw(image);font=ImageFont.truetype('C:/Windows/Fonts/msyh.ttc',24)
+    draw.rectangle((500,175,930,235),fill=(31,43,52))
+    draw.text((665,185),title,fill='white',font=font)
+    return np.asarray(image)[:,:,::-1].copy()
+
+
+def quest_frames(frames):
+    """Keep real tabs and badge; main-quest text reproduces the logged collision."""
+    import numpy as np
+    from PIL import Image, ImageDraw, ImageFont
+    from fixture_pixels import read_png_bgr
+    header=read_png_bgr(ROOT/'tests/fixtures/navigation/quest-taizong-real.png')
+    frames['quest-map']=read_png_bgr(ROOT/'tests/fixtures/navigation/map-a.png')
+    frames['quest-tab'][55:175,175:980]=header[55:175,175:980]
+    panel=frames['quest-candle']
+    panel[55:175,175:980]=header[55:175,175:980]
+    panel[175:215,180:500]=header[175:215,180:500]
+    panel[215:265,410:520]=panel[300,400]
+    panel[220:260,420:486]=read_png_bgr(ROOT/'tests/fixtures/bounty-candle/accepted-badge.png')
+    image=Image.fromarray(header[:,:,::-1].copy())
+    draw=ImageDraw.Draw(image);font=ImageFont.truetype('C:/Windows/Fonts/msyh.ttc',22)
+    draw.rectangle((200,178,495,215),fill=(230,193,135))
+    draw.text((208,182),'完成主线任务，获得高额奖励',fill='black',font=font)
+    draw.rectangle((215,220,410,258),fill=(255,172,42))
+    draw.text((221,222),'日月星河',fill='black',font=font)
+    draw.rectangle((640,182,820,220),fill=(230,193,135))
+    draw.text((665,185),'日月星河',fill='black',font=font)
+    frames['quest-main']=np.asarray(image)[:,:,::-1].copy()
+    return frames
+
+
 @unittest.skipUnless(os.environ.get('CANDLE_NATIVE_TESTS') == '1', 'opt-in Maa recognition test')
 class NativeCandleRecognitionTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        sys.path.insert(0,str(ROOT/'agent'))
+
     def test_current_ocr_and_native_pipeline_on_packaged_fixtures(self):
         os.environ.setdefault('MAAFW_BINARY_PATH', str(ROOT / 'runtimes/win-x64/native'))
         import numpy as np
@@ -22,6 +62,7 @@ class NativeCandleRecognitionTests(unittest.TestCase):
 
         directory = ROOT / 'tests/fixtures/bounty-candle'
         frames = {path.stem: read_png_bgr(path) for path in directory.glob('*.png')}
+        quest_frames(frames)
         pipeline = json.loads((ROOT / 'assets/resource/base/pipeline/悬赏（守卫宝烛）.json').read_text(encoding='utf8'))
         results = []
 
@@ -35,67 +76,32 @@ class NativeCandleRecognitionTests(unittest.TestCase):
 
         class Inspect(CustomAction):
             def run(self, context, argv):
-                def hit(suffix, pixels):
-                    value = context.run_recognition(PREFIX + suffix, pixels)
-                    if value is None:
-                        raise AssertionError('Recognition did not start: ' + suffix)
-                    return value.hit
-
-                def check(label, actual, expected):
-                    results.append(dict(check=label, actual=bool(actual), expected=bool(expected), ok=bool(actual)==bool(expected)))
-                    print('[candle native] ' + json.dumps(results[-1], ensure_ascii=True), flush=True)
-
-                check('normal task icon', hit('点击任务', frames['quest-map']), True)
-                check('bounty tab', hit('点击悬赏任务', frames['quest-tab']), True)
-                check('matching accepted quest', hit('点击前往副本', frames['quest-candle']), True)
-                wrong = frames['quest-candle'].copy()
-                wrong[165:240, 500:930] = 0
-                check('button without the correct detail title', hit('点击前往副本', wrong), False)
-                unaccepted = frames['quest-candle'].copy()
-                unaccepted[215:265, 410:520] = unaccepted[200, 400]
-                check('matching detail without an accepted status', hit('点击前往副本', unaccepted), False)
-                for name in ('bounty', 'world', 'map-a', 'map-b', 'candle-board',
-                             'candle-board-refreshed', 'candle-loading', 'saves'):
-                    check(name + ': no quest-panel entry', hit('点击前往副本', frames[name]), False)
-                for name in ('world', 'candle-board'):
-                    check(name + ': cannot resume the normal route', hit('恢复地图就绪', frames[name]), False)
-                for name in ('map-a', 'map-b'):
-                    check(name + ': existing task icon can resume directly', hit('恢复地图就绪', frames[name]), True)
-                for name in ('candle-loading', 'bounty', 'saves', 'world'):
-                    check(name + ': no cave playback', hit('回放战斗', frames[name]), False)
-                    check(name + ': no return completion', hit('返回复检', frames[name]), False)
-                check('login entry', hit('恢复登录页', frames['login']), True)
-                check('save list', hit('恢复存档页', frames['saves']), True)
-                for populated in range(1, 5):
-                    frame = frames['saves' if populated == 1 else 'saves-slot' + str(populated)]
-                    for selected in range(1, 5):
-                        check(f'save slot {selected} with slots 1/{populated} populated',
-                              hit('恢复存档' + str(selected), frame), selected in (1, populated))
-                # Priority is part of the task contract: a persistent pause must
-                # win over a still-visible cave before any playback can start.
-                paused_map = frames['quest-map'].copy()
-                pause = read_png_bgr(ROOT / 'assets/resource/base/image/bounty-candle/pause.png')
-                h, w = pause.shape[:2]
-                paused_map[342:342+h, 381:381+w] = pause
-                frames['quest-map-paused'] = paused_map
-                for current, frame, expected in (
-                    ('等待场内', 'candle-battle-paused', '场内恢复'),
-                    ('场内初检', 'candle-battle-paused', '场内暂停中止'),
-                    ('等待场内', 'candle-battle-settings', '场内设置中止'),
-                    ('场内初检', 'candle-battle-settings', '场内设置中止'),
-                    ('定位', 'quest-map-paused', '暂停地图'),
-                    ('地图恢复核对', 'quest-map-paused', '地图暂停中止'),
-                    ('等待返回', 'quest-map-paused', '返回恢复'),
-                    ('返回初检', 'quest-map-paused', '返回暂停中止'),
-                    ('恢复等待进图', 'quest-map-paused', '恢复地图暂停')):
-                    first = next((node for node in pipeline[PREFIX + current]['next']
-                                  if hit(node[len(PREFIX):], frames[frame])), None)
-                    check(current + ': pause priority', first == PREFIX + expected, True)
-                check('black frame cannot complete', hit('返回复检', np.zeros_like(frames['world'])), False)
-                check('ready cave can start playback', hit('回放战斗', frames['candle-battle-ready']), True)
-                check('settings menu must not be treated as clear', hit('场内设置中止', frames['candle-battle-settings']), True)
-                check('clear cave must not be blocked', hit('场内设置中止', frames['candle-battle-ready']), False)
-                check('normal task map can finish return', hit('返回复检', frames['quest-map']), True)
+                from navigation.catalog import task_routine
+                task_routine(context,dict(navigation=dict(kind='bounty',title='守卫宝烛',target_node='Bounty_Target')))
+                checks=[('Bounty_Target','quest-candle',True),('Bounty_Target','quest-tab',False),
+                        ('Bounty_Target','quest-main',False),('Nav_QuestPanel','quest-main',True),
+                        ('Nav_AcceptedBounties','quest-main',False),('Nav_SelectBountyTab','quest-main',True),
+                        ('Bounty_Target','world',False),('Bounty_Target','saves',False),
+                        ('Bounty_Play','candle-battle-ready',True),('Bounty_Play','world',False),
+                        ('Bounty_StageSettings','candle-battle-settings',True),
+                        ('Bounty_StageSettings','candle-battle-ready',False),
+                        ('Nav_ClearMap','quest-map',True),('Nav_ClearMap','world',False),
+                        ('Bounty_ResumeStage','candle-battle-paused',True),
+                        ('Bounty_StagePause','candle-battle-paused',True)]
+                for name,frame,expected in checks:
+                    result=context.run_recognition(name,frames[frame])
+                    actual=bool(result and result.hit)
+                    results.append(dict(check=name+':'+frame,actual=actual,expected=expected,ok=actual==expected))
+                for title in ('守卫太宗','追捕飞贼','遁地大盗'):
+                    wrapper=json.loads((ROOT/'assets/resource/base/pipeline'/('悬赏（'+title+'）.json')).read_text(encoding='utf8'))
+                    params=next(n['action']['param']['custom_action_param'] for n in wrapper.values()
+                        if n.get('action',{}).get('param',{}).get('custom_action_param',{}).get('phase')=='begin')
+                    task_routine(context,params)
+                    for label,pixels,expected in [('wrong candle',frames['quest-candle'],False),
+                        ('own detail',panel_title(frames['quest-candle'],title),True)]:
+                        result=context.run_recognition('Bounty_Target',pixels)
+                        actual=bool(result and result.hit)
+                        results.append(dict(check=title+':'+label,actual=actual,expected=expected,ok=actual==expected))
                 return True
 
         log = ROOT / '.runtime-cache/native-candle-recognition'
@@ -114,7 +120,7 @@ class NativeCandleRecognitionTests(unittest.TestCase):
         self.assertTrue(tasker.bind(resource, controller))
         self.assertTrue(tasker.post_task('__NativeCandleInspect').wait().succeeded)
         (log / 'checks.json').write_text(json.dumps(results, ensure_ascii=False, indent=2), encoding='utf8')
-        self.assertGreaterEqual(len(results), 40)
+        self.assertGreaterEqual(len(results), 12)
         self.assertEqual([item for item in results if not item['ok']], [])
 
     def test_native_round_executes_saved_library_file_and_confirms_return(self):
@@ -146,36 +152,39 @@ class NativeCandleRecognitionTests(unittest.TestCase):
             playback = load('native_fixture_battle_player', 'battle_player.py')
             from script_library import bind_task_recording
 
+        module_patch = patch.dict(sys.modules, {'battle_player': playback})
+        module_patch.start(); self.addCleanup(module_patch.stop)
         frames = {name: read_png_bgr(ROOT / 'tests/fixtures/bounty-candle' / (name + '.png'))
                   for name in ('quest-map', 'quest-tab', 'quest-candle', 'candle-battle-ready', 'candle-battle-settings',
                                'login', 'saves-slot4', 'world')}
-        # This memory-controller fixture was deliberately synthetic. Include
-        # the real panel's header/tab anchors required by shared navigation;
-        # retain the synthetic candle detail to exercise its existing guards.
-        header = read_png_bgr(ROOT / 'tests/fixtures/navigation/quest-taizong-real.png')
-        frames['quest-tab'][55:175,175:980] = header[55:175,175:980]
-        # Use the real, tilted status badge on an otherwise synthetic panel.
-        # The actual route first scans the whole frame for blocking dialogs;
-        # that OCR cache can miss the small badge and must not prevent entry.
-        panel = frames['quest-candle']
-        panel[215:265, 410:520] = panel[200, 400]
-        panel[220:260, 420:486] = read_png_bgr(ROOT / 'tests/fixtures/bounty-candle/accepted-badge.png')
+        quest_frames(frames)
+        candle_panel=frames['quest-candle'].copy()
         events = []
+        clicked_screens=[]
+        captures=[]
 
         class SimulatedGame(CustomController):
             stage = 'quest-map'
             open_settings_on_entry = False
+            return_stage = 'quest-map'
             def connect(self): return True
             def request_uuid(self): return 'native-candle-round-simulation'
-            def screencap(self): return frames[self.stage].copy()
+            def screencap(self):
+                captures.append(dict(stage=self.stage,after_inputs=len(events)))
+                return frames[self.stage].copy()
             def touch_down(self, contact, x, y, pressure):
                 events.append(('mouse_down', contact, x, y))
+                clicked_screens.append(self.stage)
+                if self.stage=='quest-main' and not (310<x<430 and 120<y<180):
+                    raise AssertionError('Must click the bounty tab, never the main-quest stage button')
                 self.last_down = (x, y)
                 return True
             def touch_move(self, contact, x, y, pressure): return True
             def touch_up(self, contact):
                 events.append(('mouse_up', contact))
-                if self.stage == 'quest-map': self.stage = 'quest-tab'
+                if self.stage.startswith('map:'): self.stage = 'stage:' + self.stage[4:]
+                elif self.stage == 'quest-map': self.stage = 'quest-main'
+                elif self.stage == 'quest-main': self.stage = 'quest-candle'
                 elif self.stage == 'quest-tab': self.stage = 'quest-candle'
                 elif self.stage == 'quest-candle':
                     self.stage = 'candle-battle-settings' if self.open_settings_on_entry else 'candle-battle-ready'
@@ -191,7 +200,7 @@ class NativeCandleRecognitionTests(unittest.TestCase):
                 return True
             def key_up(self, keycode):
                 events.append(('key_up', keycode))
-                self.stage = 'quest-map'
+                self.stage = self.return_stage
                 return True
             def forbidden(self, *args): raise AssertionError('Unexpected simulated device action')
             start_app = stop_app = click = swipe = click_key = input_text = forbidden
@@ -233,6 +242,10 @@ class NativeCandleRecognitionTests(unittest.TestCase):
             self.assertEqual(checkpoint['recording_file'], filename)
             self.assertEqual([event for event in events if event[0].startswith('key_')], [('key_down',65),('key_up',65)])
             self.assertEqual(len([event for event in events if event[0]=='mouse_down']), 3)
+            self.assertEqual(clicked_screens,['quest-map','quest-main','quest-candle'])
+            if os.environ.get('MAA_FRAME_BUDGET_REPORT'):
+                Path(os.environ['MAA_FRAME_BUDGET_REPORT']).write_text(json.dumps(
+                    dict(captures=captures,total_captures=len(captures),inputs=events),ensure_ascii=False,indent=2),encoding='utf8')
             # Save an edit to the same file, without rebinding or creating a copy.
             script['actions'] = [dict(t=0,op='keydown',key=66),dict(t=1,op='keyup',key=66)]
             (library / filename).write_text(json.dumps(script), encoding='utf8')
@@ -244,38 +257,65 @@ class NativeCandleRecognitionTests(unittest.TestCase):
             checkpoint = json.loads((checkpoints / (run_id + '.json')).read_text(encoding='utf8'))
             self.assertEqual(checkpoint['status'], 'success')
             self.assertEqual([event for event in events if event[0].startswith('key_')], [('key_down',66),('key_up',66)])
-            events.clear()
-            controller.stage = 'login'
-            run_id = str(uuid4())
-            parameters.update(canonical[PREFIX+'恢复登录']['action']['param']['custom_action_param'])
-            parameters.update(phase='recovery_begin', save_slot=4, run_id=run_id,
-                              status_path=str(checkpoints / (run_id + '.json')))
-            resume_overrides = {PREFIX + '恢复登录': {'action': {'param': {'custom_action_param': parameters}}}}
-            self.assertTrue(tasker.post_task(PREFIX + '恢复登录', resume_overrides).wait().succeeded)
-            checkpoint = json.loads((checkpoints / (run_id + '.json')).read_text(encoding='utf8'))
-            self.assertEqual(checkpoint['status'], 'ready')
-            self.assertEqual(checkpoint['save_slot'], 4)
-            self.assertEqual(controller.stage, 'quest-map')
-            self.assertEqual(len([event for event in events if event[0]=='mouse_down']), 2)
-            # A world/continent map cannot be declared ready just because the
-            # retired route knew how to navigate from it to the old hub.
-            events.clear()
-            controller.stage = 'world'
-            run_id = str(uuid4())
-            parameters.update(run_id=run_id, status_path=str(checkpoints / (run_id + '.json')))
-            blocked_overrides = {
-                PREFIX + '恢复登录': {'action': {'param': {'custom_action_param': parameters}}},
-                PREFIX + '恢复界面分流': {'timeout': 50},
-            }
-            tasker.post_task(PREFIX + '恢复登录', blocked_overrides).wait()
-            checkpoint = json.loads((checkpoints / (run_id + '.json')).read_text(encoding='utf8'))
-            self.assertEqual(checkpoint['status'], 'fatal')
-            self.assertIn('主线地图', checkpoint['reason'])
-            self.assertEqual(controller.stage, 'world')
-            self.assertEqual(events, [])
+            # Four bindings share the lifecycle, but each requires its own detail title.
+            from task_catalog import task_catalog
+            profiles=[t for t in task_catalog(ROOT,bindings={}) if t['name'].startswith('悬赏（')]
+            for index,task in enumerate(profiles):
+                key=70+index
+                path=library/('profile-'+str(index)+'.json')
+                data=dict(version=1,name='Shared profile',base=[1148,720],duration_ms=3,
+                          actions=[dict(t=0,op='keydown',key=key),dict(t=1,op='keyup',key=key)])
+                raw=json.dumps(data).encode('utf8');path.write_bytes(raw)
+                bind_task_recording(library,task['id'],path.name,expected_revision=hashlib.sha256(raw).hexdigest())
+                profile=task['management_profile'];params=dict(profile['parameters'])
+                frames['quest-candle']=panel_title(candle_panel,params['navigation']['title'])
+                ident=str(uuid4());params.update(run_id=ident,status_path=str(checkpoints/(ident+'.json')),exit_mode='recorded_return')
+                events.clear();controller.stage='quest-map'
+                patch={profile['entry']:{'action':{'param':{'custom_action_param':params}}}}
+                patch.setdefault(profile['success_node'],{})['next']=[]
+                self.assertTrue(tasker.post_task(profile['entry'],patch).wait().succeeded,task['name'])
+                self.assertEqual([e[1] for e in events if e[0]=='key_down'],[key],task['name'])
+                status=json.loads((checkpoints/(ident+'.json')).read_text(encoding='utf8'))
+                self.assertEqual(status['status'],'success');self.assertEqual(status['recording_file'],path.name)
+
+            # Seven ordinary stages use the same coordinator and their own
+            # real map fixtures. Scene assets are placed on synthetic canvases.
+            import numpy as np
+            cases=json.loads((ROOT/'tests/fixtures/navigation/stage-states/cases.json').read_text(encoding='utf8'))
+            stages=[t for t in task_catalog(ROOT,bindings={}) if t['management_profile']
+                    and t['management_profile']['parameters']['navigation']['kind']=='stage']
+            source_profiles=json.loads((ROOT/'tools/script_task_profiles.json').read_text(encoding='utf8'))
+            stage_reports=[]
+            for index,task in enumerate(stages):
+                profile=task['management_profile'];params=dict(profile['parameters'])
+                case=next(c for c in cases if c['task']==task['name'])
+                map_name='map:'+str(index);stage_name='stage:'+str(index)
+                from fixture_pixels import read_stage_state
+                frames[map_name]=read_stage_state(ROOT/'tests/fixtures/navigation/stage-states',case)
+                scene=source_profiles[task['name']]['scene']['recognition']['param']['template']
+                scene=scene[0] if isinstance(scene,list) else scene
+                template=read_png_bgr(ROOT/'assets/resource/base/image'/scene)
+                canvas=np.zeros_like(frames[map_name]);h,w=template.shape[:2]
+                canvas[150:150+h,200:200+w]=template;frames[stage_name]=canvas
+                path=library/('stage-'+str(index)+'.json')
+                raw=json.dumps(dict(version=1,name='Stage profile',base=[1148,720],duration_ms=3,
+                    actions=[dict(t=0,op='keydown',key=80+index),dict(t=1,op='keyup',key=80+index)])).encode('utf8')
+                path.write_bytes(raw);bind_task_recording(library,task['id'],path.name,expected_revision=hashlib.sha256(raw).hexdigest())
+                ident=str(uuid4());params.update(run_id=ident,status_path=str(checkpoints/(ident+'.json')),exit_mode='recorded_return')
+                events.clear();captures.clear();controller.stage=map_name;controller.return_stage=map_name
+                patch={profile['entry']:{'action':{'param':{'custom_action_param':params}},'next':[]}}
+                self.assertTrue(tasker.post_task(profile['entry'],patch).wait().succeeded,task['name'])
+                self.assertEqual([e[1] for e in events if e[0]=='key_down'],[80+index])
+                self.assertEqual(len(captures),3,(task['name'],captures))
+                stage_reports.append(dict(task=task['name'],captures=list(captures)))
+            if os.environ.get('MAA_FRAME_BUDGET_REPORT'):
+                Path(os.environ['MAA_FRAME_BUDGET_REPORT']+'.stages.json').write_text(json.dumps(stage_reports,ensure_ascii=False,indent=2),encoding='utf8')
+            controller.return_stage='quest-map'
+
             # The scene template is still visible behind the settings menu.
             # Even so, the real pipeline must stop without replaying a key.
             events.clear()
+            frames['quest-candle']=candle_panel
             controller.stage = 'quest-map'
             controller.open_settings_on_entry = True
             run_id = str(uuid4())
@@ -288,7 +328,7 @@ class NativeCandleRecognitionTests(unittest.TestCase):
             checkpoint = json.loads((checkpoints / (run_id + '.json')).read_text(encoding='utf8'))
             self.assertFalse(blocked_job.succeeded)
             self.assertEqual(checkpoint['status'], 'fatal')
-            self.assertIn('设置菜单', checkpoint['reason'])
+            self.assertEqual(checkpoint['reason'],'stage_settings_open')
             self.assertEqual(controller.stage, 'candle-battle-settings')
             self.assertEqual([event for event in events if event[0].startswith('key_')], [])
 

@@ -1,14 +1,61 @@
 {
-  "烛时（钟晷极地）-刷取次数": {
-    "post_delay": 1000,
-    "next": [
-      "烛时（钟晷极地）-点击钟晷极地"
-    ],
-    "$__mpe_code": {
-      "position": {
-        "x": 0,
-        "y": 0
+  "烛时（钟晷极地）-点击钟晷极地": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "begin",
+          "file": "@task:task-84721e228779a69a61fb97bd2e1fc9ca",
+          "task_binding_id": "task-84721e228779a69a61fb97bd2e1fc9ca",
+          "playback_node": "烛时（钟晷极地）-回放战斗",
+          "navigation": {
+            "kind": "stage",
+            "target_node": "烛时（钟晷极地）-关卡入口",
+            "label": "烛时（钟晷极地）"
+          },
+          "settings_node": "脚本任务设置",
+          "exit_mode": "battle_only",
+          "failure_retry": {
+            "enabled": false,
+            "max_retries": 3
+          },
+          "round_flow": {
+            "scene_node": "烛时（钟晷极地）-识别场景1",
+            "load_timeout_ms": 15000,
+            "repeat_node": "烛时（钟晷极地）-刷取次数"
+          },
+          "result_guard": {
+            "failed_next": [
+              "Result_Failed"
+            ],
+            "succeeded_next": [
+              "Result_Succeeded"
+            ],
+            "revive_next": [
+              "Result_RevivePrompt"
+            ],
+            "error_next": [
+              "Result_MonitorStopped"
+            ]
+          }
+        }
       }
+    },
+    "next": [
+      "烛时（钟晷极地）-点击钟晷极地",
+      "停止运行"
+    ],
+    "post_delay": 0,
+    "max_hit": 1,
+    "pre_delay": 0
+  },
+  "烛时（钟晷极地）-刷取次数": {
+    "recognition": {
+      "type": "DirectHit"
     },
     "action": {
       "type": "Custom",
@@ -19,199 +66,130 @@
         }
       }
     },
-    "focus": {
-      "Node.Action.Succeeded": {
-        "content": "./debug/loop/panel.md",
-        "display": "log"
+    "next": [],
+    "post_delay": 0,
+    "max_hit": 1,
+    "pre_delay": 0
+  },
+  "烛时（钟晷极地）-关卡入口": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          "Nav_ClearMap",
+          {
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": [
+                          "钟晷极地.png"
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": [
+                          "navigation/stages/s38-frame1.png",
+                          "navigation/stages/s38-frame3.png"
+                        ],
+                        "threshold": 0.82,
+                        "roi": [
+                          0,
+                          115,
+                          1045,
+                          500
+                        ],
+                        "method": 5
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "box_index": 1
       }
-    }
+    },
+    "pre_delay": 0,
+    "action": {
+      "type": "Click"
+    },
+    "post_delay": 500,
+    "timeout": 10000,
+    "next": []
+  },
+  "烛时（钟晷极地）-识别场景1": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": [
+                  "钟晷极地场景.png"
+                ]
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0,
+    "pre_delay": 0
   },
   "烛时（钟晷极地）-回放战斗": {
-    "pre_delay": 0,
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": [
+                  "钟晷极地场景.png"
+                ]
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
+        ]
+      }
+    },
     "action": {
       "type": "Custom",
       "param": {
         "custom_action": "battle_play",
         "custom_action_param": {
-          "file": "@task:task-84721e228779a69a61fb97bd2e1fc9ca",
-          "speed": 1,
           "script_binding": {
             "recorded_return_next": [
-              "烛时（钟晷极地）-脚本返回确认"
+              "Round_PlayDone"
             ]
-          }
+          },
+          "file": "@task:task-84721e228779a69a61fb97bd2e1fc9ca"
         }
       }
     },
-    "post_delay": 1000,
     "next": [
-      "烛时（钟晷极地）-点击设置"
+      "Round_PlayDone"
     ],
-    "$__mpe_code": {
-      "position": {
-        "x": 320,
-        "y": 103
-      }
-    }
-  },
-  "烛时（钟晷极地）-点击设置": {
-    "recognition": {
-      "type": "TemplateMatch",
-      "param": {
-        "template": [
-          "设置.png"
-        ]
-      }
-    },
-    "pre_delay": 2000,
-    "action": {
-      "type": "Click"
-    },
-    "timeout": 8000,
-    "next": [
-      "烛时（钟晷极地）-返回地图"
-    ],
-    "$__mpe_code": {
-      "position": {
-        "x": 640,
-        "y": 93
-      }
-    },
-    "post_delay": 1000,
-    "rate_limit": 200
-  },
-  "烛时（钟晷极地）-点击钟晷极地": {
-    "recognition": {
-      "type": "TemplateMatch",
-      "param": {
-        "template": [
-          "钟晷极地.png"
-        ]
-      }
-    },
-    "pre_delay": 80,
-    "action": {
-      "type": "Click"
-    },
-    "post_delay": 1000,
-    "timeout": 10000,
-    "next": [
-      "烛时（钟晷极地）-识别钟晷极地场景"
-    ],
-    "on_error": [
-      "烛时（钟晷极地）-移动光标"
-    ],
-    "$__mpe_code": {
-      "position": {
-        "x": 1280,
-        "y": 0
-      }
-    },
-    "rate_limit": 200
-  },
-  "烛时（钟晷极地）-识别钟晷极地场景": {
-    "recognition": {
-      "type": "TemplateMatch",
-      "param": {
-        "template": [
-          "钟晷极地场景.png"
-        ]
-      }
-    },
-    "pre_delay": 100,
-    "post_delay": 1000,
-    "timeout": 10000,
-    "next": [
-      "烛时（钟晷极地）-回放战斗"
-    ],
-    "on_error": [
-      "烛时（钟晷极地）-移动光标"
-    ],
-    "$__mpe_code": {
-      "position": {
-        "x": 0,
-        "y": 65
-      }
-    }
-  },
-  "烛时（钟晷极地）-返回地图": {
-    "recognition": {
-      "type": "OCR",
-      "param": {
-        "expected": [
-          "返回地图"
-        ]
-      }
-    },
-    "action": {
-      "type": "Click"
-    },
-    "timeout": 10000,
-    "next": [
-      "烛时（钟晷极地）-刷取次数",
-      "停止运行"
-    ],
-    "$__mpe_code": {
-      "position": {
-        "x": 960,
-        "y": 135
-      }
-    },
-    "post_delay": 300,
-    "on_error": [
-      "烛时（钟晷极地）-返回地图重试"
-    ],
-    "rate_limit": 200
-  },
-  "烛时（钟晷极地）-返回地图重试": {
-    "recognition": {
-      "type": "OCR",
-      "param": {
-        "expected": [
-          "返回地图"
-        ]
-      }
-    },
-    "action": {
-      "type": "Click"
-    },
-    "timeout": 20000,
-    "next": [
-      "烛时（钟晷极地）-刷取次数",
-      "停止运行"
-    ],
-    "$__mpe_code": {
-      "position": {
-        "x": 960,
-        "y": 135
-      }
-    },
-    "post_delay": 300,
-    "on_error": [
-      "停止运行"
-    ],
-    "rate_limit": 200
-  },
-  "烛时（钟晷极地）-移动光标": {
-    "pre_delay": 0,
-    "post_delay": 300,
-    "rate_limit": 200,
-    "recognition": {
-      "type": "DirectHit"
-    },
-    "action": {
-      "type": "Custom",
-      "param": {
-        "custom_action_param": {
-          "x": 20,
-          "y": 20
-        },
-        "custom_action": "move_cursor"
-      }
-    },
-    "next": [
-      "烛时（钟晷极地）-点击钟晷极地"
-    ],
-    "on_error": []
+    "post_delay": 0,
+    "pre_delay": 0
   }
 }

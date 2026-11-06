@@ -129,9 +129,11 @@ class CaptureSession:
     on the worker, including UI commands and hotkeys.
     """
 
-    def __init__(self, on_change=None, *, window_api=None, listener_factory=None, clock=None):
+    def __init__(self, on_change=None, *, window_api=None, listener_factory=None, clock=None, lease_factory=None):
         self._on_change = on_change
         self._api = window_api
+        self._lease_factory = lease_factory
+        self._lease = None
         self._listener_factory = listener_factory or _default_listeners
         self._clock = clock or time.monotonic
         self._lock = threading.RLock()
@@ -231,9 +233,19 @@ class CaptureSession:
                 raise RuntimeError("请先停止录制并等待监听器清理完成。")
             if self._api is None:
                 self._api = _Win32WindowAPI()
-            identity = self._api.inspect(hwnd)
-            if any(type(identity.get(field)) is not int or identity[field] <= 0 for field in ("pid", "width", "height")):
-                raise ValueError("目标窗口身份或客户区尺寸无效。")
+                from window_geometry import WindowLease
+                self._lease_factory = self._lease_factory or WindowLease
+            if self._lease_factory:
+                self._lease = self._lease_factory(hwnd)
+            try:
+                identity = self._api.inspect(hwnd)
+                if any(type(identity.get(field)) is not int or identity[field] <= 0 for field in ("pid", "width", "height")):
+                    raise ValueError("目标窗口身份或客户区尺寸无效。")
+            except BaseException:
+                if self._lease:
+                    self._lease.close()
+                    self._lease = None
+                raise
             with self._lock:
                 self._hwnd, self._identity = hwnd, identity
                 self._base = _base_size(identity["width"], identity["height"])
@@ -391,6 +403,11 @@ class CaptureSession:
 
     def _check_target(self, now):
         try:
+            if self._lease:
+                paused = self._lease.paused_seconds
+                self._lease.ensure()
+                if self._lease.paused_seconds != paused:
+                    self._pause(now, '窗口尺寸已恢复，录制暂停；请确认游戏后继续。')
             current = self._api.inspect(self._hwnd)
             if any(current[key] != self._identity[key] for key in ("pid", "class_name", "width", "height")):
                 raise RuntimeError("目标窗口身份或客户区尺寸已改变，录制已停止。")
@@ -565,6 +582,13 @@ class CaptureSession:
         finally:
             self._ready.set()
             self._cleanup_listeners()
+            if self._lease:
+                try:
+                    self._lease.close()
+                except Exception as error:
+                    self._error = '窗口尺寸锁清理失败：' + str(error)
+                finally:
+                    self._lease = None
             with self._lock:
                 self._state = "stopping" if self._listeners_alive() else "failed" if self._error else "stopped"
             # Wake commands queued concurrently with a terminal hotkey.
