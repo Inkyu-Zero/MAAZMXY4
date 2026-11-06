@@ -2,6 +2,7 @@
 import json
 import re
 import time
+from mouse_input import finish_mouse_operation
 
 from maa.agent.agent_server import AgentServer
 from maa.custom_action import CustomAction
@@ -63,10 +64,13 @@ def restore(context, params, *, clock=time.monotonic, sleep=time.sleep):
             phase('恢复画面可能已切换，重新识别后再决定操作：'+name)
             return False
         failed_actions.pop(name,None)
+        finish_mouse_operation(context.tasker.controller)
         return True
     while clock()<deadline:
         _check(context); frame=capture(context);last_frame=frame
-        if abs(frame.shape[1]-1147)>2 or frame.shape[0]!=720:
+        # The same 940×590 layout can normalize to 1140×720 after a window
+        # resize; allow this small variation while retaining the aspect guard.
+        if abs(frame.shape[1]-1147)>7 or frame.shape[0]!=720:
             raise ValueError('盒子画面比例与已适配的 940×590 布局不一致，请恢复窗口比例。')
         def hit(name):
             detail=context.run_recognition(name,frame)
@@ -110,7 +114,10 @@ def restore(context, params, *, clock=time.monotonic, sleep=time.sleep):
                 if perform('GameManagement_SelectAccount'):account_opened=False
         end=min(clock()+.3,deadline)
         while clock()<end:
-            _check(context);sleep(min(.05,end-clock()))
+            _check(context)
+            remaining=end-clock()
+            if remaining<=0:break
+            sleep(min(.05,remaining))
     if white_frame(last_frame):raise TimeoutError('white_screen')
     raise ValueError('等待登录、存档或地图超时；请核对当前画面后重试。')
 

@@ -23,7 +23,7 @@ internal static class Program
     {
         AppBuilder.Configure<TestApplication>().UseSkia().UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
         var failed = 0;
-        var tests = new Action[] { FirstOpenDuringTask, RefreshAndMutationGuard, RetryFailedInitialization, RecordingUsesCurrentTaskController, NoImplicitRecordingTarget, RenameCancelCollisionAndSave, RenameOtherFileKeepsEditorState, DurationTextApplies, DurationTextSavesWithoutExtraApply, TimelineBoxSelectMoveAndCancel, TimelineDocumentChangeCancelsGesture, EditorBatchRequestsAndTaskGuard };
+        var tests = new Action[] { FirstOpenDuringTask, RefreshAndMutationGuard, RetryFailedInitialization, RecordingUsesCurrentTaskController, NoImplicitRecordingTarget, RenameCancelCollisionAndSave, RenameOtherFileKeepsEditorState, DurationTextApplies, DurationTextSavesWithoutExtraApply, TimelineBoxSelectMoveAndCancel, TimelineDocumentChangeCancelsGesture, EditorBatchRequestsAndTaskGuard, DiscardRecordingStatesAndRestart, DiscardStoppedDraftAndProtectSavedScript, DiscardFailureCanRetry, DiscardIgnoresLateStatusAndSaveRequest, TerminalPollLocksUntilDraftIsReady, RecordingActionLayout, RecordingDiscardClickModes, RecordingDoubleClickCancellationAndRetry };
         foreach (var test in tests)
         {
             try { test(); Console.WriteLine("PASS " + test.Method.Name); }
@@ -187,6 +187,331 @@ internal static class Program
         }
         finally { Close(window,model); }
     }
+    private static JsonObject CaptureSnapshot(string state, bool save = false) => new()
+    { ["state"] = state, ["elapsed_ms"] = 1200.0, ["event_count"] = 6, ["countdown_seconds"] = 3.0, ["save_requested"] = save };
+    private static JsonObject RecordingDraft() => new()
+    { ["name"] = "本次录制", ["duration_ms"] = 1200.0, ["operations"] = new JsonArray(), ["dirty"] = true, ["capture_draft"] = true };
+    private static void StartCapture(ScriptStudioView view)
+    {
+        Field<DispatcherTimer>(view, "_poll").Stop();
+        Field<ComboBox>(view, "_windows").SelectedIndex = 0;
+        Click(Field<Button>(view, "_record"));
+        Field<DispatcherTimer>(view, "_poll").Stop();
+    }
+    private static Task Poll(ScriptStudioView view) => (Task)view.GetType()
+        .GetMethod("PollCaptureAsync", BindingFlags.Instance | BindingFlags.NonPublic)!.Invoke(view, null)!;
+    private static void DiscardRecordingStatesAndRestart()
+    {
+        foreach (var state in new[] { "countdown", "recording", "paused", "resume_countdown" })
+        {
+            var (window, view, model) = Open(false);
+            try
+            {
+                var before = JsonNode.Parse("""{"file":"user.json","name":"User recording","duration_ms":1000,"operations":[],"dirty":false}""")!;
+                model.Apply(before.DeepClone());
+                model.Client.Handler = (method, _) => method switch
+                {
+                    "capture_start" or "capture_status" => Task.FromResult<JsonNode>(CaptureSnapshot(state)),
+                    "capture_discard" => Task.FromResult(before.DeepClone()), _ => null
+                };
+                StartCapture(view);
+                var discard = Field<Button>(view, "_discardRecording");
+                var record = Field<Button>(view, "_record");
+                var target = Field<ComboBox>(view, "_windows").SelectedItem;
+                var countdown = Field<NumericUpDown>(view, "_countdown").Value;
+                var tabs = Field<TabControl>(view, "_tabs");
+                var tabChanges = 0;
+                tabs.SelectionChanged += (_, args) => { if (ReferenceEquals(args.Source, tabs)) tabChanges++; };
+                Check(ReferenceEquals(record.Parent, discard.Parent), "Recording actions must share a layout");
+                Check(model.Capturing && ScriptStudioGuard.Capturing && discard.IsEnabled, "Discard must be available in " + state);
+                if (state == "recording")
+                {
+                    Draw(window, "recording-discard-wide.png");
+                    window.Width = 840; Draw(window, "recording-discard-narrow.png");
+                    var point = discard.TranslatePoint(new Point(), window)!.Value;
+                    Check(point.X >= 0 && point.Y >= 0 && point.X + discard.Bounds.Width <= window.Width
+                        && point.Y + discard.Bounds.Height <= window.Height, "Discard button must fit the narrow layout");
+                }
+                Click(discard);
+                Check(!model.Capturing && !ScriptStudioGuard.Capturing, "Discard must release capture ownership");
+                Check(JsonNode.DeepEquals(model.Document, before), "Active discard must retain the prior saved document");
+                Check(window.OwnedWindows.Count == 0 && !model.Client.Calls.Contains("save")
+                    && !model.Client.Calls.Contains("capture_stop"), "One click must discard without dialogs or importing a draft");
+                Check(Field<Button>(view, "_record").IsEnabled && !discard.IsEnabled, "Recording must be ready immediately");
+                Check(tabChanges == 0 && tabs.SelectedIndex == 0, "Discard in the recording area must not switch tabs");
+                Check(ReferenceEquals(target, Field<ComboBox>(view, "_windows").SelectedItem)
+                    && countdown == Field<NumericUpDown>(view, "_countdown").Value, "Discard preserves the selected window and countdown");
+                Click(record); // No helper may reselect a window or reset the form for the next take.
+                Field<DispatcherTimer>(view, "_poll").Stop();
+                Check(model.Capturing && model.Client.Calls.Count(call => call == "capture_start") == 2, "Can record again after discard");
+                Check(tabChanges == 0 && window.OwnedWindows.Count == 0, "Re-record must stay on the same page without prompts");
+                Click(discard);
+            }
+            finally { Close(window, model); }
+        }
+    }
+    private static void DiscardStoppedDraftAndProtectSavedScript()
+    {
+        var (window, view, model) = Open(false);
+        try
+        {
+            model.Client.Handler = (method, _) => method switch
+            {
+                "capture_start" => Task.FromResult<JsonNode>(CaptureSnapshot("recording")),
+                "capture_stop" or "rename" => Task.FromResult<JsonNode>(RecordingDraft()),
+                "capture_discard" => Task.FromResult<JsonNode>(new JsonObject { ["empty"] = true }), _ => null
+            };
+            StartCapture(view); Click(Field<Button>(view, "_stop"));
+            var discard = Field<Button>(view, "_discardRecordingDraft");
+            Check(!model.Capturing && model.CaptureDraft && discard.IsVisible && discard.IsEnabled, "Stopped unsaved take must have a discard action in the editor");
+            Check(Field<TabControl>(view, "_tabs").SelectedIndex == 1, "Normal stop still opens the editor");
+            Draw(window, "recording-draft-discard.png");
+            Field<NumericUpDown>(view, "_scriptDuration").Value = 5;
+            Click(discard);
+            Check(model.Document == null && !model.Dirty && window.OwnedWindows.Count == 0, "Discard must clear the recording draft and pending form edits directly");
+            Check(Field<TabControl>(view, "_tabs").SelectedIndex == 0 && Field<Button>(view, "_record").IsEnabled, "Discard returns to recording");
+            model.Apply(JsonNode.Parse("""{"file":"user.json","name":"Saved","duration_ms":1000,"operations":[],"dirty":true}""")!);
+            var calls = model.Client.Calls.Count;
+            Check(!discard.IsVisible && !Field<Button>(view, "_discardRecording").IsEnabled, "Saved script edits must not be exposed as a disposable take");
+            Click(discard);
+            Check(model.Client.Calls.Count == calls && model.Dirty && model.File == "user.json", "A stale discard event must not delete saved script edits");
+        }
+        finally { Close(window, model); }
+    }
+    private static void DiscardFailureCanRetry()
+    {
+        var (window, view, model) = Open(false);
+        try
+        {
+            var fail = true;
+            model.Client.Handler = (method, _) => method switch
+            {
+                "capture_start" => Task.FromResult<JsonNode>(CaptureSnapshot("recording")),
+                "capture_discard" => fail ? Task.FromException<JsonNode>(new IOException("监听器尚未退出"))
+                    : Task.FromResult<JsonNode>(new JsonObject { ["empty"] = true }), _ => null
+            };
+            StartCapture(view); Click(Field<Button>(view, "_discardRecording"));
+            Check(model.Capturing && ScriptStudioGuard.Capturing && Field<TextBlock>(view, "_status").Text == "监听器尚未退出", "Cleanup failure must retain ownership and report the error");
+            fail = false; Click(Field<Button>(view, "_discardRecording"));
+            Check(!model.Capturing && !ScriptStudioGuard.Capturing, "Retry must be available after cleanup failure");
+        }
+        finally { Close(window, model); }
+    }
+    private static void DiscardIgnoresLateStatusAndSaveRequest()
+    {
+        var (window, view, model) = Open(false);
+        try
+        {
+            var status = new TaskCompletionSource<JsonNode>();
+            model.Client.Handler = (method, _) => method switch
+            {
+                "capture_start" => Task.FromResult<JsonNode>(CaptureSnapshot("recording")),
+                "capture_status" => status.Task,
+                "capture_discard" => Task.FromResult<JsonNode>(new JsonObject { ["empty"] = true }), _ => null
+            };
+            StartCapture(view);
+            var polling = Poll(view);
+            Click(Field<Button>(view, "_discardRecording"));
+            StartCapture(view);
+            status.SetResult(CaptureSnapshot("stopped", save: true)); Dispatcher.UIThread.RunJobs();
+            Check(polling.IsCompletedSuccessfully && model.Capturing && Field<string>(view, "_state") == "recording", "Late old status must not stop the next take");
+            Check(!model.Client.Calls.Contains("capture_stop") && !model.Client.Calls.Contains("save") && window.OwnedWindows.Count == 0, "Discard must suppress stale F10 save prompts");
+            Click(Field<Button>(view, "_discardRecording"));
+        }
+        finally { Close(window, model); }
+    }
+    private static void TerminalPollLocksUntilDraftIsReady()
+    {
+        var (window, view, model) = Open(false);
+        try
+        {
+            var stopped = new TaskCompletionSource<JsonNode>();
+            model.Client.Handler = (method, _) => method switch
+            {
+                "capture_start" => Task.FromResult<JsonNode>(CaptureSnapshot("recording")),
+                "capture_status" => Task.FromResult<JsonNode>(CaptureSnapshot("stopped")),
+                "capture_stop" => stopped.Task,
+                "rename" => Task.FromResult<JsonNode>(RecordingDraft()),
+                "capture_discard" => Task.FromResult<JsonNode>(new JsonObject { ["empty"] = true }), _ => null
+            };
+            StartCapture(view);
+            Field<CheckBox>(view, "_doubleClickDiscard").IsChecked = true;
+            var polling = Poll(view);
+            Check(!Field<Button>(view, "_discardRecording").IsEnabled, "Stop finalization must temporarily lock recording actions");
+            Click(Field<Button>(view, "_discardRecording"));
+            Check(!model.Client.Calls.Contains("capture_discard"), "Discard must not interleave with stop importing a draft");
+            stopped.SetResult(RecordingDraft()); Dispatcher.UIThread.RunJobs();
+            Check(polling.IsCompletedSuccessfully && model.CaptureDraft, "Hotkey stop must still produce an editable draft");
+            Click(Field<Button>(view, "_discardRecordingDraft"));
+            Check(model.Document == null, "The finished draft must be discardable");
+        }
+        finally { Close(window, model); }
+    }
+    private static void RecordingActionLayout()
+    {
+        var (window, view, model) = Open(false);
+        try
+        {
+            model.Client.Handler = (method, _) => method == "capture_start"
+                ? Task.FromResult<JsonNode>(CaptureSnapshot("paused")) : null;
+            StartCapture(view);
+            var record = Field<Button>(view, "_record");
+            var stop = Field<Button>(view, "_stop");
+            var pause = Field<Button>(view, "_pause");
+            var discard = Field<Button>(view, "_discardRecording");
+            var option = Field<CheckBox>(view, "_doubleClickDiscard");
+            Check(Equals(option.Content, "双击放弃本次录制") && option.IsChecked == false,
+                "Double-click option must be labeled and unchecked by default");
+            Check(discard.Background is ISolidColorBrush red && red.Color.R > red.Color.G * 1.5 && red.Color.R > red.Color.B * 1.5,
+                "The recording discard button must be red");
+            foreach (var (width, height) in new[] { (1200.0, 800.0), (840.0, 800.0), (640.0, 600.0) })
+            {
+                window.Width = width; window.Height = height;
+                Draw(window, $"recording-panel-{width:0}.png");
+                var buttons = new[] { record, stop, pause, discard };
+                var positions = buttons.Select(button => button.TranslatePoint(new Point(), window)!.Value).ToArray();
+                Check(buttons.All(button => Math.Abs(button.Bounds.Width - record.Bounds.Width) < .1
+                    && Math.Abs(button.Bounds.Height - record.Bounds.Height) < .1), "All recording buttons must have equal size at " + width);
+                Check(Math.Abs(positions[0].Y - positions[1].Y) < .1 && positions[0].X < positions[1].X
+                    && Math.Abs(positions[2].Y - positions[3].Y) < .1 && positions[2].X < positions[3].X
+                    && positions[0].Y < positions[2].Y, "Recording action order must be start/stop, pause/discard at " + width);
+                Check(buttons.All(button =>
+                {
+                    var point = button.TranslatePoint(new Point(), window)!.Value;
+                    return point.X >= 0 && point.Y >= 0 && point.X + button.Bounds.Width <= window.Width
+                        && point.Y + button.Bounds.Height <= window.Height;
+                }), "Recording buttons must fit within the window at " + width);
+                var optionPoint = option.TranslatePoint(new Point(), window)!.Value;
+                Check(optionPoint.Y >= positions[3].Y + discard.Bounds.Height && optionPoint.X >= 0
+                    && optionPoint.X + option.Bounds.Width <= window.Width && optionPoint.Y + option.Bounds.Height <= window.Height,
+                    "Double-click option must be visible below the actions at " + width);
+                if (height == 600)
+                {
+                    var scroll = Field<Expander>(view, "_recordingExpander").GetVisualAncestors().OfType<ScrollViewer>().FirstOrDefault();
+                    Check(scroll != null && scroll.Extent.Height > scroll.Viewport.Height,
+                        "A short window must allow the rest of the recording panel to scroll");
+                    var top = scroll!.TranslatePoint(new Point(), window)!.Value.Y;
+                    Check(optionPoint.Y + option.Bounds.Height <= top + scroll.Bounds.Height,
+                        "The double-click option must remain visible in the short recording panel");
+                    scroll.Offset = new Vector(0, scroll.Extent.Height - scroll.Viewport.Height); Draw(window);
+                    Check(scroll.Offset.Y > 0, "Recording panel instructions must remain reachable by scrolling");
+                }
+            }
+            Application.Current!.RequestedThemeVariant = Avalonia.Styling.ThemeVariant.Dark;
+            Draw(window, "recording-panel-dark.png");
+            Application.Current!.RequestedThemeVariant = Avalonia.Styling.ThemeVariant.Light;
+        }
+        finally { Application.Current!.RequestedThemeVariant = Avalonia.Styling.ThemeVariant.Light; Close(window, model); }
+    }
+    private static void RecordingDoubleClickCancellationAndRetry()
+    {
+        var (window, view, model) = Open(false);
+        try
+        {
+            var fail = true;
+            model.Client.Handler = (method, _) => method switch
+            {
+                "capture_start" => Task.FromResult<JsonNode>(CaptureSnapshot("recording")),
+                "capture_discard" => fail ? Task.FromException<JsonNode>(new IOException("监听器尚未退出"))
+                    : Task.FromResult<JsonNode>(new JsonObject { ["empty"] = true }), _ => null
+            };
+            StartCapture(view);
+            var discard = Field<Button>(view, "_discardRecording");
+            var option = Field<CheckBox>(view, "_doubleClickDiscard");
+            MouseClick(window, option);
+            MouseClick(window, discard);
+            var point = discard.TranslatePoint(new Point(discard.Bounds.Width / 2, discard.Bounds.Height / 2), window)!.Value;
+            window.MouseDown(point, MouseButton.Left);
+            window.MouseMove(new Point(point.X - 200, point.Y), RawInputModifiers.LeftMouseButton);
+            window.MouseUp(new Point(point.X - 200, point.Y), MouseButton.Left);
+            Dispatcher.UIThread.RunJobs();
+            Check(model.Capturing && !model.Client.Calls.Contains("capture_discard"),
+                "Releasing the second click outside the button must cancel discard");
+            discard.Focus(); window.KeyPressQwerty(PhysicalKey.Space, RawInputModifiers.None);
+            window.KeyReleaseQwerty(PhysicalKey.Space, RawInputModifiers.None); Dispatcher.UIThread.RunJobs();
+            Check(model.Capturing && !model.Client.Calls.Contains("capture_discard"),
+                "A canceled double-click must not arm a later keyboard activation");
+            MouseClick(window, option); MouseClick(window, option); // End the old gesture before retrying.
+            MouseClick(window, discard); MouseClick(window, discard);
+            Check(model.Capturing && model.Client.Calls.Count(call => call == "capture_discard") == 1,
+                "A cleanup error must preserve the active recording");
+            fail = false;
+            MouseClick(window, discard); MouseClick(window, discard);
+            Check(!model.Capturing && model.Client.Calls.Count(call => call == "capture_discard") == 2,
+                "A new double-click must retry after a cleanup error");
+        }
+        finally { Close(window, model); }
+    }
+    private static void MouseClick(Window window, Control control)
+    {
+        Draw(window);
+        var point = control.TranslatePoint(new Point(control.Bounds.Width / 2, control.Bounds.Height / 2), window)!.Value;
+        window.MouseMove(point);
+        window.MouseDown(point, MouseButton.Left);
+        window.MouseUp(point, MouseButton.Left);
+        Dispatcher.UIThread.RunJobs();
+    }
+    private static void RecordingDiscardClickModes()
+    {
+        var (window, view, model) = Open(false);
+        try
+        {
+            model.Client.Handler = (method, _) => method switch
+            {
+                "capture_start" => Task.FromResult<JsonNode>(CaptureSnapshot("recording")),
+                "capture_discard" => Task.FromResult<JsonNode>(new JsonObject { ["empty"] = true }), _ => null
+            };
+            StartCapture(view);
+            var discard = Field<Button>(view, "_discardRecording");
+            var option = Field<CheckBox>(view, "_doubleClickDiscard");
+            MouseClick(window, discard);
+            Check(!model.Capturing && model.Client.Calls.Count(call => call == "capture_discard") == 1,
+                "Unchecked option must preserve the existing single-click behavior");
+            StartCapture(view);
+            MouseClick(window, option);
+            Check(option.IsChecked == true, "Mouse click must enable the double-click option");
+            var tabs = Field<TabControl>(view, "_tabs");
+            tabs.SelectedIndex = 1; tabs.SelectedIndex = 0; Draw(window);
+            Check(option.IsChecked == true, "Changing tabs must preserve the current-page option");
+            var point = discard.TranslatePoint(new Point(discard.Bounds.Width / 2, discard.Bounds.Height / 2), window)!.Value;
+            window.MouseDown(point, MouseButton.Right); window.MouseUp(point, MouseButton.Right);
+            window.MouseDown(point, MouseButton.Right); window.MouseUp(point, MouseButton.Right);
+            Dispatcher.UIThread.RunJobs();
+            Check(model.Capturing && model.Client.Calls.Count(call => call == "capture_discard") == 1,
+                "Double right-click must not discard");
+            discard.Focus();
+            var keys = new List<Key>();
+            view.AddHandler(InputElement.KeyDownEvent, (_, e) =>
+            {
+                if (!e.Handled && e.Key is Key.F8 or Key.F9 or Key.F10 or Key.F12) keys.Add(e.Key);
+            }, RoutingStrategies.Bubble, handledEventsToo: true);
+            foreach (var key in new[] { PhysicalKey.F8, PhysicalKey.F9, PhysicalKey.F10, PhysicalKey.F12 })
+            {
+                window.KeyPressQwerty(key, RawInputModifiers.None);
+                window.KeyReleaseQwerty(key, RawInputModifiers.None);
+            }
+            Check(keys.SequenceEqual(new[] { Key.F8, Key.F9, Key.F10, Key.F12 }),
+                "Double-click option must not consume recording hotkey events");
+            MouseClick(window, discard);
+            Check(model.Capturing && model.Client.Calls.Count(call => call == "capture_discard") == 1,
+                "First click in double-click mode must not discard");
+            window.MouseDown(point, MouseButton.Left);
+            Dispatcher.UIThread.RunJobs();
+            Check(model.Capturing, "A double-click must not discard until the second click is released");
+            window.MouseUp(point, MouseButton.Left);
+            Dispatcher.UIThread.RunJobs();
+            Check(!model.Capturing && model.Client.Calls.Count(call => call == "capture_discard") == 2,
+                "Second click must discard exactly once");
+            Check(Field<Button>(view, "_record").IsFocused, "After discard, focus must return to the next recording action");
+            StartCapture(view);
+            MouseClick(window, option);
+            Check(option.IsChecked == false, "Mouse click must disable the double-click option");
+            MouseClick(window, discard);
+            Check(!model.Capturing && model.Client.Calls.Count(call => call == "capture_discard") == 3,
+                "Disabling the option must immediately restore single-click behavior");
+        }
+        finally { Close(window, model); }
+    }
     private static void Check(bool condition, string message) { if (!condition) throw new Exception(message); }
     private static void Click(Button button) { button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); Dispatcher.UIThread.RunJobs(); }
     private static Button Find(Window window, string name) => window.GetVisualDescendants().OfType<Button>().First(b => Equals(b.Content, name));
@@ -203,7 +528,8 @@ internal static class Program
     }
     private static void Close(Window window, ScriptStudioViewModel model)
     {
-        MaaProcessor.Processors.Clear(); model.Apply(new JsonObject { ["empty"] = true }); window.Close(); Dispatcher.UIThread.RunJobs();
+        MaaProcessor.Processors.Clear(); model.Capturing = false; ScriptStudioGuard.EndCapture();
+        model.Apply(new JsonObject { ["empty"] = true }); window.Close(); Dispatcher.UIThread.RunJobs();
     }
     private static void RenameCancelCollisionAndSave()
     {
@@ -356,8 +682,9 @@ namespace MFAAvalonia.Services
     }
     public static class ScriptStudioGuard
     {
-        public static void BeginCapture() { if (MaaProcessor.Processors.Any(p=>p.IsTaskRunActive)) throw new InvalidOperationException("Task is active"); }
-        public static void EndCapture() { }
+        public static bool Capturing { get; private set; }
+        public static void BeginCapture() { if (Capturing || MaaProcessor.Processors.Any(p=>p.IsTaskRunActive)) throw new InvalidOperationException("Task or capture is active"); Capturing = true; }
+        public static void EndCapture() { Capturing = false; }
     }
     public sealed class ScriptStudioClient : IDisposable
     {
@@ -367,11 +694,13 @@ namespace MFAAvalonia.Services
         public string? LastBatchMethod;
         public JsonObject? LastBatchParameters;
         public JsonNode? BatchSnapshot;
+        public Func<string, JsonObject?, Task<JsonNode>?>? Handler;
         private string? _renamed, _renamedFile;
         public bool IsDisconnected => false;
         public Task<JsonNode> CallAsync(string method, JsonObject? parameters = null)
         {
             Calls.Add(method);
+            if (Handler?.Invoke(method, parameters) is { } handled) return handled;
             if (method is "move_many" or "delete_many")
             {
                 LastBatchMethod=method; LastBatchParameters=parameters?.DeepClone().AsObject();

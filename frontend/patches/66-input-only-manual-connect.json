@@ -1,0 +1,6 @@
+{
+  "description": "input-only-manual-connect",
+  "path": "MFAAvalonia/Extensions/MaaFW/MaaProcessor.cs",
+  "find": "    async private Task HandleDeviceConnectionAsync(CancellationToken token, bool showMessage = true)\n    {",
+  "replace": "    async private Task HandleDeviceConnectionAsync(CancellationToken token, bool showMessage = true)\n    {\n        if (_inputOnlyPlayback) return;"
+}

@@ -40,6 +40,16 @@ public sealed class GameManagementService : IDisposable
     public static bool IsReconnecting(MaaProcessor processor) => Instances.TryGetValue(processor, out var service)
         && Volatile.Read(ref service._reconnecting) != 0;
     public static bool HasArmedSession(MaaProcessor processor) => Instances.TryGetValue(processor, out var service) && service.IsArmed;
+    public static void RefreshRecoveredTarget(MaaProcessor processor)
+    {
+        // Publish the new PID while the recovery lease still suppresses polls.
+        // Waiting for a successful round leaves the monitor reading the dead PID.
+        if (Instances.TryGetValue(processor, out var service) && service.Options.Enabled)
+        {
+            service.Arm();
+            lock (service._sync) service._schedule.CompleteRestart(service.Clock);
+        }
+    }
     public static IDisposable SuppressReconnection(MaaProcessor processor)
     {
         var service = For(processor);
@@ -219,6 +229,7 @@ public sealed class GameManagementService : IDisposable
             using var timer = new PeriodicTimer(TimeSpan.FromSeconds(5));
             while (await timer.WaitForNextTickAsync(_lifetime.Token))
             {
+                if (_processor.IsInputOnlyPlayback) continue;
                 TaskProcessIdentity? identity;
                 lock (_sync) identity = _identity;
                 if (identity == null || _operation.CurrentCount == 0 || IsReconnecting(_processor) || !Options.Enabled) continue;
@@ -390,8 +401,8 @@ public sealed class GameManagementService : IDisposable
         var app = XDocument.Load(descriptor);
         if (!app.Descendants().Any(e => e.Name.LocalName == "id" && e.Value == "dusk.zmBox"))
             throw new InvalidDataException("所选程序不是已适配的造梦盒子 AIR 客户端。");
-        // 版本号不设限：造梦盒子 1.9 / 1.10 及后续版本都能直接用，
-        // 只校验它确实是造梦盒子（id = dusk.zmBox），不再锁死具体版本。
+        // Windows 1.2～1.9 的公开描述文件均为 dusk.zmBox；不锁定版本。
+        // 后续仍核验进程、窗口和画面布局，版本号本身不证明能够安全恢复。
     }
     public void Dispose()
     {

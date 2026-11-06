@@ -1,0 +1,6 @@
+{
+  "description": "input-only-connect",
+  "path": "MFAAvalonia/Extensions/MaaFW/MaaProcessor.cs",
+  "find": "    public async Task<MaaTasker?> GetTaskerAsync(CancellationToken token = default)\n    {",
+  "replace": "    public async Task<MaaTasker?> GetTaskerAsync(CancellationToken token = default)\n    {\n        if (_inputOnlyPlayback) return null;"
+}

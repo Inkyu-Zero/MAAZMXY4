@@ -83,7 +83,9 @@ class StudioService:
         self.capture = None
         self.capture_factory = capture_factory
         self.capture_finished = False
+        self.capture_draft = False
         self._closed = False
+        self.playback = None
 
     def initialize_library(self):
         try:
@@ -102,6 +104,7 @@ class StudioService:
         self.document, self.file, self.revision = document, file, revision
         self._clear_history()
         self.dirty = edited
+        self.capture_draft = False
         return self.snapshot()
 
     def require_document(self):
@@ -110,6 +113,8 @@ class StudioService:
         return self.document
 
     def require_idle(self):
+        if self.playback is not None and self.playback.snapshot()['state'] == 'running':
+            raise ValueError('请先停止脚本播放。')
         if self.capture is not None and self.capture.snapshot()["state"] not in {"idle", "stopped", "failed", "closed"}:
             raise ValueError("请先停止录制。")
 
@@ -119,7 +124,7 @@ class StudioService:
 
     def snapshot(self):
         result = self.require_document().snapshot()
-        result.update(file=self.file, revision=self.revision, dirty=self.dirty,
+        result.update(file=self.file, revision=self.revision, dirty=self.dirty, capture_draft=self.capture_draft,
                       can_undo=bool(self.undo), can_redo=bool(self.redo),
                       history_bytes=self._history_bytes, history_budget_bytes=HISTORY_MAX_BYTES)
         return result
@@ -246,6 +251,21 @@ class StudioService:
         if self._closed:
             raise RuntimeError("脚本工具服务已关闭。")
         params = params or {}
+        if method == 'playback_start':
+            self.require_idle()
+            if self.playback and self.playback.snapshot()['state'] == 'running':
+                raise RuntimeError('脚本仍在播放，请先停止。')
+            from script_playback import PlaybackJob
+            self.playback = PlaybackJob(self.root, params)
+            return self.playback.snapshot()
+        if method in ('playback_status', 'playback_stop'):
+            if self.playback is None:
+                return dict(state='idle', error='')
+            return self.playback.stop() if method == 'playback_stop' else self.playback.snapshot()
+        if method == 'window_prepare':
+            self.require_idle()
+            from window_geometry import prepare_window, STANDARD_BASE
+            return prepare_window(params.get('hwnd'), params.get('base', STANDARD_BASE))
         if method == "list":
             return self.list()
         if method == 'execution_plan':
@@ -292,21 +312,17 @@ class StudioService:
             if revision != params.get('revision'): raise ValueError('脚本已被其他窗口修改，请刷新后重试。')
             document = RecordingDocument.from_dict(saved)
             document.to_dict(strict=True)
-            if not saved.get('actions'):
-                raise ValueError('请先保存有完整操作的脚本。')
-            if document.diagnostics:
-                print('[script_studio] 脚本存在 %d 条诊断，仍然继续：%s'
-                      % (len(document.diagnostics), '; '.join(document.diagnostics[:3])),
-                      file=sys.stderr, flush=True)
+            if not saved.get('actions') or document.diagnostics or min(document.base) != 720:
+                raise ValueError('请先保存有完整操作的720基准脚本。')
             if method == 'set_file_bindings':
                 return set_file_bindings(self.directory, filename, targets, revision, params.get('binding_revision'))
             return bind_task_recording(self.directory, params['task_id'], filename, expected_revision=revision, mode=params.get('mode','pipeline'))
+        if method == 'capture_discard':
+            return self.discard_capture()
         if method == 'capture_cancel':
             if self.capture is None or self.capture.snapshot()['state'] != 'countdown':
                 raise ValueError('仅录制开始前可以取消准备。')
-            self.capture.stop()
-            self.capture_finished = True
-            return dict(cancelled=True, document=self.snapshot() if self.document else dict(empty=True))
+            return dict(cancelled=True, document=self.discard_capture())
         if method == "snapshot":
             return self.snapshot()
         if method == "capture_status":
@@ -321,6 +337,7 @@ class StudioService:
                 self._clear_history()
                 self.dirty = True
                 self.capture_finished = True
+                self.capture_draft = True
             return self.snapshot()
         if method in {"capture_pause", "capture_resume", "capture_mark"}:
             if self.capture is None:
@@ -353,6 +370,7 @@ class StudioService:
                 return self.open_document(RecordingDocument.from_dict(data), file=self.file, revision=revision)
             self.document = None
             self.dirty = False
+            self.capture_draft = False
             self._clear_history()
             return dict(empty=True, dirty=False)
         if method == "capture_start":
@@ -409,6 +427,7 @@ class StudioService:
             revision = atomic_json(path, document.to_dict(), overwrite=existed)
             self.file, self.revision = name, revision
             self.dirty = False
+            self.capture_draft = False
             return self.snapshot()
         if method == "export":
             target = Path(params["path"])
@@ -450,8 +469,7 @@ class StudioService:
             if not saved.get("actions"):
                 raise ValueError("空白脚本不能绑定到任务。")
             if min(saved_document.base) != 720:
-                print('[script_studio] 任务脚本基准为 %dx%d，非 720，仍允许绑定'
-                      % tuple(saved_document.base), file=sys.stderr, flush=True)
+                raise ValueError("任务脚本必须使用短边720坐标，请先通过脚本库导入转换。")
             return bind_task_recording(self.directory, task_id, self.file, expected_revision=self.revision, mode=mode)
         if method == "split":
             left, right = document.split(params["at_ms"])
@@ -475,12 +493,37 @@ class StudioService:
             return dict(files=[path.name for path, _ in paths])
         raise ValueError("不支持的脚本工具操作：" + method)
 
+    def discard_capture(self):
+        """Explicitly abandon only the active take or its unsaved editor draft."""
+        unfinished = self.capture is not None and not self.capture_finished
+        if not unfinished and not self.capture_draft:
+            raise ValueError("没有可放弃的本次录制；已保存的脚本不会被删除。")
+        # Keep state intact on cleanup failure so the caller can retry. Do not
+        # import the stopped payload or let shutdown recover an abandoned take.
+        if self.capture is not None:
+            if unfinished:
+                self.capture.stop()
+            self.capture.close()
+        self.capture = None
+        self.capture_finished = True
+        if self.capture_draft:
+            self.document = None
+            self.file, self.revision, self.dirty = None, None, False
+            self._clear_history()
+            self.capture_draft = False
+        return self.snapshot() if self.document is not None else dict(empty=True, dirty=False)
+
     def close(self):
         # A crash/host shutdown must not discard an unfinished recording. Drafts
         # are separate files and never overwrite a user's saved recording.
         if self._closed:
             return
         errors = []
+        if self.playback is not None:
+            try:
+                self.playback.stop()
+            except Exception as error:
+                errors.append(error)
         if self.capture is not None:
             try:
                 if not self.capture_finished:

@@ -1,0 +1,6 @@
+{
+  "description": "input-only-benchmark",
+  "path": "MFAAvalonia/Extensions/MaaFW/MaaProcessor.cs",
+  "find": "    public async Task MeasureScreencapPerformanceAsync(CancellationToken token)\n    {",
+  "replace": "    public async Task MeasureScreencapPerformanceAsync(CancellationToken token)\n    {\n        if (_inputOnlyPlayback) return;"
+}

@@ -1,0 +1,6 @@
+{
+  "description": "input-only-preview-fence",
+  "path": "MFAAvalonia/Extensions/MaaFW/MaaProcessor.cs",
+  "find": "        lock (_liveViewScreencapJobLock)\n        {\n            if (screenshotTaskerGeneration != Volatile.Read(ref _screenshotTaskerGeneration))\n            {",
+  "replace": "        lock (_liveViewScreencapJobLock)\n        {\n            if (_inputOnlyPlayback) return null;\n            if (screenshotTaskerGeneration != Volatile.Read(ref _screenshotTaskerGeneration))\n            {"
+}

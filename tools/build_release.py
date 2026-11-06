@@ -241,6 +241,7 @@ def client_files(root, frontend, python_runtime, launcher):
                  'docs/zh_cn/游戏数据库与导航素材.md', 'docs/zh_cn/游戏管理.md',
                  'docs/zh_cn/个人配置备份与迁移.md',
                  'docs/zh_cn/2026-10-31更新日志.md',
+                 'docs/zh_cn/2026-11-06更新日志.md',
                  'docs/zh_cn/通用导航迁移与失败重试说明.md', 'docs/zh_cn/2.3.9更新说明.md',
                  'docs/zh_cn/2.4.1-rc.1更新说明.md'):
         files.append((root / name, name))
@@ -284,6 +285,8 @@ def build_client(root, frontend, python_runtime, destination, launcher, *, clien
 FILES = [
     ("agent/adventure.py", "agent/adventure.py"),
     ("agent/adventure_logic.py", "agent/adventure_logic.py"),
+    ("agent/mouse_input.py", "agent/mouse_input.py"),
+    ("agent/cursor_action.py", "agent/cursor_action.py"),
     ("assets/data/adventure.json", "assets/data/adventure.json"),
     ("assets/data/adventure_ui.json", "assets/data/adventure_ui.json"),
     ("assets/resource/base/pipeline/生存大冒险.json", "resource/base/pipeline/生存大冒险.json"),
@@ -348,6 +351,7 @@ INSTALL_DOC = """# 造梦西游4 · 生存大冒险 自动答题（纯脚本包�
 
    ```python
    import adventure
+   import cursor_action
    ```
 
 3. **追加任务**：把 `interface_patch.json` 里的 `task` 合并进 `interface.json` 的 `task` 数组；

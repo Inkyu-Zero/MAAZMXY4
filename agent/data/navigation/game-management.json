@@ -1,6 +1,5 @@
 {
   "version": 1,
-  "box_version": "1.9",
   "application_id": "dusk.zmBox",
   "stage": [
     940,
@@ -26,7 +25,10 @@
     "No password, saved account cache, token, or user profile is read or copied.",
     "Account selection coordinates require the complete recognized box login page.",
     "Game start, save slots and map recognizers reuse existing bounty-candle sources.",
-    "Current v5870 sets townID from curRecord.areaId and sends changes through scene.playerHandler.changeArea. Scroll offsets are not persisted; two large maps use bounded native terrain-guarded drags."
+    "Windows v1.2 through v1.9 use the same 940x590 stage, saved-account ComboBox (370,110), scale 2.5, and game4 button (110,450), scale 2.2. v1.2 names the same view LoginPanel; v1.3 uses LoginLayer; v1.4 only adds wrench buttonMode.",
+    "Identity is verified by AIR application id, executable path, PID and the selected window. Versions are not selected by enumerating the first AIR window.",
+    "v1.8.1 changes the login endpoint to HTTPS. Earlier client network/authentication defects are outside the assistant; an existing logged-in window remains usable, but automatic relogin depends on the box server connection.",
+    "TownMap caches levels_container within a process; a fresh process restores curRecord.areaId but not that scroll position. Returning to a map is confirmed independently of target visibility; each next round re-localizes and restores the viewport when needed."
   ],
   "saved_area_evidence": [
     {
@@ -40,6 +42,289 @@
     {
       "path": "viewers/container/TownMap.as",
       "sha256": "4a44dffe61f9306cde6a327830e35a68d473504ab68d39a64704431a1bc8045d"
+    }
+  ],
+  "reference_box_version": "1.9",
+  "compatibility": [
+    {
+      "version": "1.2",
+      "application_id": "dusk.zmBox",
+      "stage": [
+        940,
+        590
+      ],
+      "login_layout": "saved-account-combobox",
+      "sources": [
+        {
+          "url": "https://gitee.com/duskeye/zmBox/blob/v1.2/src/app_win.xml",
+          "sha256": "aa49b687de3b0008f7477141b4aaa6b5870649cc630eb708f7e555bafa17ec06"
+        },
+        {
+          "url": "https://gitee.com/duskeye/zmBox/blob/v1.2/src/app_win64.xml",
+          "sha256": "ef666d537bd4d37beea71e092ec3b007b3df1a86d809f828486241e27e4a6298"
+        },
+        {
+          "url": "https://gitee.com/duskeye/zmBox/blob/v1.2/src/AppEntry.as",
+          "sha256": "475e982e3e189e57c522f3f8b8ddbbc988f87d3e18132cca68c6468eb89406e3"
+        },
+        {
+          "url": "https://gitee.com/duskeye/zmBox/blob/v1.2/src/com/zmbox/view/LoginPanel.as",
+          "sha256": "b2ba552130a2052a63e27b8e59f630aae42026e638c59b7df8531d21a8e793fe"
+        }
+      ],
+      "verification": "source_layout_verified; shared_login_memory_fixture; this_box_version_not_launched"
+    },
+    {
+      "version": "1.3",
+      "application_id": "dusk.zmBox",
+      "stage": [
+        940,
+        590
+      ],
+      "login_layout": "saved-account-combobox",
+      "sources": [
+        {
+          "url": "https://gitee.com/duskeye/zmBox/blob/v1.3/src/app_win.xml",
+          "sha256": "d9871a615e70f5785e514ce8122758545fd080c35eaa3e4974df9c6beda75c73"
+        },
+        {
+          "url": "https://gitee.com/duskeye/zmBox/blob/v1.3/src/app_win64.xml",
+          "sha256": "fdf041216c886e58f1f450278aab6ef73fcf5b2d494a6c4982cc09826a441ca5"
+        },
+        {
+          "url": "https://gitee.com/duskeye/zmBox/blob/v1.3/src/AppEntry.as",
+          "sha256": "1a18fcd7216d5cdc3d649827b4585c5f1ca350c6be8db42d5cc7513d671aed8f"
+        },
+        {
+          "url": "https://gitee.com/duskeye/zmBox/blob/v1.3/src/com/zmbox/view/LoginLayer.as",
+          "sha256": "612df6738051e62e41e0113dec593105acf04b6115f29dc968f21cf9c51896ab"
+        }
+      ],
+      "verification": "source_layout_verified; shared_login_memory_fixture; this_box_version_not_launched"
+    },
+    {
+      "version": "1.4",
+      "application_id": "dusk.zmBox",
+      "stage": [
+        940,
+        590
+      ],
+      "login_layout": "saved-account-combobox",
+      "sources": [
+        {
+          "url": "https://gitee.com/duskeye/zmBox/blob/v1.4/src/app_win.xml",
+          "sha256": "80f7670c7a04d9240fb658e3658eb794307cec9c57525309ef5fd2d67af5bcee"
+        },
+        {
+          "url": "https://gitee.com/duskeye/zmBox/blob/v1.4/src/app_win64.xml",
+          "sha256": "78d54c4908936a171c112a1be82ff3524c04b849183fbe3af4d78f834d606920"
+        },
+        {
+          "url": "https://gitee.com/duskeye/zmBox/blob/v1.4/src/AppEntry.as",
+          "sha256": "5a3aba1aad0950a0aa09eacc9e0d270f9e39f62595dd5b0e9dcac3cefd11b6f0"
+        },
+        {
+          "url": "https://gitee.com/duskeye/zmBox/blob/v1.4/src/com/zmbox/view/LoginLayer.as",
+          "sha256": "adf6d81d9e634cf39ff1ec8300f4b1f1eaf14ef12cda526906c6c6ff6d366fab"
+        }
+      ],
+      "verification": "source_layout_verified; shared_login_memory_fixture; this_box_version_not_launched"
+    },
+    {
+      "version": "1.5",
+      "application_id": "dusk.zmBox",
+      "stage": [
+        940,
+        590
+      ],
+      "login_layout": "saved-account-combobox",
+      "sources": [
+        {
+          "url": "https://gitee.com/duskeye/zmBox/blob/v1.5/src/app_win.xml",
+          "sha256": "95df24cca1b35626d20c4ef6ec7ed8a0904fa7476b14b9dbbe3b4a8218f1ee07"
+        },
+        {
+          "url": "https://gitee.com/duskeye/zmBox/blob/v1.5/src/app_win64.xml",
+          "sha256": "d8f9dab03df85188986cb86b9250c398e120566985ed68e2fc321fcf93efe307"
+        },
+        {
+          "url": "https://gitee.com/duskeye/zmBox/blob/v1.5/src/AppEntry.as",
+          "sha256": "db53d940472e99e0da2631f93b0cc91e8732e94650287dc342420dbf92357035"
+        },
+        {
+          "url": "https://gitee.com/duskeye/zmBox/blob/v1.5/src/com/zmbox/view/LoginLayer.as",
+          "sha256": "adf6d81d9e634cf39ff1ec8300f4b1f1eaf14ef12cda526906c6c6ff6d366fab"
+        }
+      ],
+      "verification": "source_layout_verified; shared_login_memory_fixture; this_box_version_not_launched"
+    },
+    {
+      "version": "1.5.1",
+      "application_id": "dusk.zmBox",
+      "stage": [
+        940,
+        590
+      ],
+      "login_layout": "saved-account-combobox",
+      "sources": [
+        {
+          "url": "https://gitee.com/duskeye/zmBox/blob/v1.5.1/src/app_win.xml",
+          "sha256": "95df24cca1b35626d20c4ef6ec7ed8a0904fa7476b14b9dbbe3b4a8218f1ee07"
+        },
+        {
+          "url": "https://gitee.com/duskeye/zmBox/blob/v1.5.1/src/app_win64.xml",
+          "sha256": "d8f9dab03df85188986cb86b9250c398e120566985ed68e2fc321fcf93efe307"
+        },
+        {
+          "url": "https://gitee.com/duskeye/zmBox/blob/v1.5.1/src/AppEntry.as",
+          "sha256": "db53d940472e99e0da2631f93b0cc91e8732e94650287dc342420dbf92357035"
+        },
+        {
+          "url": "https://gitee.com/duskeye/zmBox/blob/v1.5.1/src/com/zmbox/view/LoginLayer.as",
+          "sha256": "adf6d81d9e634cf39ff1ec8300f4b1f1eaf14ef12cda526906c6c6ff6d366fab"
+        }
+      ],
+      "verification": "source_layout_verified; shared_login_memory_fixture; this_box_version_not_launched"
+    },
+    {
+      "version": "1.6",
+      "application_id": "dusk.zmBox",
+      "stage": [
+        940,
+        590
+      ],
+      "login_layout": "saved-account-combobox",
+      "sources": [
+        {
+          "url": "https://gitee.com/duskeye/zmBox/blob/v1.6/src/app_win.xml",
+          "sha256": "f1741269efa09b2fa61c03fc72cb8b75914ed7e2d21980e7f1ff23234f88a200"
+        },
+        {
+          "url": "https://gitee.com/duskeye/zmBox/blob/v1.6/src/app_win64.xml",
+          "sha256": "e978ad80152928e05eb23b8e11e168a07416e5fb0b00dba1c2f6e8edbf67dd4f"
+        },
+        {
+          "url": "https://gitee.com/duskeye/zmBox/blob/v1.6/src/AppEntry.as",
+          "sha256": "4133b4ddfcc63405a4f3cf188b95f739189ee82efb21683b72066ef20cb6099a"
+        },
+        {
+          "url": "https://gitee.com/duskeye/zmBox/blob/v1.6/src/com/zmbox/view/LoginLayer.as",
+          "sha256": "adf6d81d9e634cf39ff1ec8300f4b1f1eaf14ef12cda526906c6c6ff6d366fab"
+        }
+      ],
+      "verification": "source_layout_verified; shared_login_memory_fixture; this_box_version_not_launched"
+    },
+    {
+      "version": "1.7",
+      "application_id": "dusk.zmBox",
+      "stage": [
+        940,
+        590
+      ],
+      "login_layout": "saved-account-combobox",
+      "sources": [
+        {
+          "url": "https://gitee.com/duskeye/zmBox/blob/v1.7/src/app_win.xml",
+          "sha256": "a8c968cd6a3a9089f06b6eefa45a72e94e32e6c9554ab899a8b170a55b0561b5"
+        },
+        {
+          "url": "https://gitee.com/duskeye/zmBox/blob/v1.7/src/app_win64.xml",
+          "sha256": "d210970b2a92dc5c6fd9cbaf9ced15e3a3be0947e43b78cbce6086b361b90242"
+        },
+        {
+          "url": "https://gitee.com/duskeye/zmBox/blob/v1.7/src/AppEntry.as",
+          "sha256": "cae7abc8228040feda615a623a6447e7d914ac6c65bed3f912a3d7c223939a1c"
+        },
+        {
+          "url": "https://gitee.com/duskeye/zmBox/blob/v1.7/src/com/zmbox/view/LoginLayer.as",
+          "sha256": "adf6d81d9e634cf39ff1ec8300f4b1f1eaf14ef12cda526906c6c6ff6d366fab"
+        }
+      ],
+      "verification": "source_layout_verified; shared_login_memory_fixture; this_box_version_not_launched"
+    },
+    {
+      "version": "1.8",
+      "application_id": "dusk.zmBox",
+      "stage": [
+        940,
+        590
+      ],
+      "login_layout": "saved-account-combobox",
+      "sources": [
+        {
+          "url": "https://gitee.com/duskeye/zmBox/blob/v1.8/src/app_win.xml",
+          "sha256": "e751179b949517218528eea5cc7b197829dab09472dd48794ac3f5175ba2354a"
+        },
+        {
+          "url": "https://gitee.com/duskeye/zmBox/blob/v1.8/src/app_win64.xml",
+          "sha256": "995ca557472329b6e592d9131b77e0d238884c6182344c2a4eb34ddfef350bdf"
+        },
+        {
+          "url": "https://gitee.com/duskeye/zmBox/blob/v1.8/src/AppEntry.as",
+          "sha256": "b12ac51b22106d227ba9c12734e45158aef8ce6c74cc659dc19fe846762ab67b"
+        },
+        {
+          "url": "https://gitee.com/duskeye/zmBox/blob/v1.8/src/com/zmbox/view/LoginLayer.as",
+          "sha256": "adf6d81d9e634cf39ff1ec8300f4b1f1eaf14ef12cda526906c6c6ff6d366fab"
+        }
+      ],
+      "verification": "source_layout_verified; shared_login_memory_fixture; this_box_version_not_launched"
+    },
+    {
+      "version": "1.8.1",
+      "application_id": "dusk.zmBox",
+      "stage": [
+        940,
+        590
+      ],
+      "login_layout": "saved-account-combobox",
+      "sources": [
+        {
+          "url": "https://gitee.com/duskeye/zmBox/blob/v1.8.1/src/app_win.xml",
+          "sha256": "7165a8567ef051497d2b27862dd106bfc85a23669387fa2a441440dbda1b2875"
+        },
+        {
+          "url": "https://gitee.com/duskeye/zmBox/blob/v1.8.1/src/app_win64.xml",
+          "sha256": "0634a81b54619529b8df29a77fdbc41895b2fc9de0e117a531f007ec12696353"
+        },
+        {
+          "url": "https://gitee.com/duskeye/zmBox/blob/v1.8.1/src/AppEntry.as",
+          "sha256": "b12ac51b22106d227ba9c12734e45158aef8ce6c74cc659dc19fe846762ab67b"
+        },
+        {
+          "url": "https://gitee.com/duskeye/zmBox/blob/v1.8.1/src/com/zmbox/view/LoginLayer.as",
+          "sha256": "adf6d81d9e634cf39ff1ec8300f4b1f1eaf14ef12cda526906c6c6ff6d366fab"
+        }
+      ],
+      "verification": "source_layout_verified; shared_login_memory_fixture; this_box_version_not_launched"
+    },
+    {
+      "version": "1.9",
+      "application_id": "dusk.zmBox",
+      "stage": [
+        940,
+        590
+      ],
+      "login_layout": "saved-account-combobox",
+      "sources": [
+        {
+          "url": "https://gitee.com/duskeye/zmBox/blob/v1.9/src/app_win.xml",
+          "sha256": "4a197440b676e351cf823d933f241a1c8a917ab855fac67ac357f93d2bd8b9e2"
+        },
+        {
+          "url": "https://gitee.com/duskeye/zmBox/blob/v1.9/src/app_win64.xml",
+          "sha256": "7751a04a2f036b49c57182d98f3ec18e1b201e102f5bf5246a0fca989636fe63"
+        },
+        {
+          "url": "https://gitee.com/duskeye/zmBox/blob/v1.9/src/AppEntry.as",
+          "sha256": "8e322af93aec6d0ff3f9c7e965c75d687c50cd86fc7ac6e36b7033afbf78e68f"
+        },
+        {
+          "url": "https://gitee.com/duskeye/zmBox/blob/v1.9/src/com/zmbox/view/LoginLayer.as",
+          "sha256": "adf6d81d9e634cf39ff1ec8300f4b1f1eaf14ef12cda526906c6c6ff6d366fab"
+        }
+      ],
+      "verification": "source_layout_verified; shared_login_memory_fixture; this_box_version_not_launched"
     }
   ]
 }

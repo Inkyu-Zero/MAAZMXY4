@@ -1,0 +1,608 @@
+{
+  "伽岚（万世冥阁）": {
+    "entry": "伽岚（万世冥阁）-点击万世冥阁",
+    "playback_node": "伽岚（万世冥阁）-回放战斗",
+    "target_node": "伽岚（万世冥阁）-关卡入口",
+    "scene_node": "伽岚（万世冥阁）-识别场景1",
+    "repeat_node": "伽岚（万世冥阁）-刷取次数",
+    "target": {
+      "recognition": {
+        "type": "And",
+        "param": {
+          "all_of": [
+            {
+              "recognition": {
+                "type": "TemplateMatch",
+                "param": {
+                  "template": "任务.png",
+                  "roi": [
+                    0,
+                    540,
+                    1147,
+                    180
+                  ]
+                }
+              }
+            },
+            {
+              "recognition": {
+                "type": "Or",
+                "param": {
+                  "any_of": [
+                    {
+                      "recognition": {
+                        "type": "TemplateMatch",
+                        "param": {
+                          "template": [
+                            "万世冥阁.png",
+                            "万世冥阁（高亮）.png"
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "recognition": {
+                        "type": "TemplateMatch",
+                        "param": {
+                          "template": [
+                            "navigation/stages/s61-frame1.png",
+                            "navigation/stages/s61-frame3.png"
+                          ],
+                          "threshold": 0.82,
+                          "method": 5
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "Result_NoRevivePrompt"
+          ],
+          "box_index": 1
+        }
+      },
+      "pre_delay": 0,
+      "post_delay": 500,
+      "timeout": 10000,
+      "action": {
+        "type": "Click"
+      }
+    },
+    "scene": {
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "万世冥阁场景.png"
+          ]
+        }
+      }
+    },
+    "view_roi": [
+      625,
+      390,
+      210,
+      175
+    ]
+  },
+  "贪妄（金蟾宝宫）": {
+    "entry": "贪妄（金蟾宝宫）-点击金蟾宝宫",
+    "playback_node": "贪妄（金蟾宝宫）-回放战斗",
+    "target_node": "贪妄（金蟾宝宫）-关卡入口",
+    "scene_node": "贪妄（金蟾宝宫）-识别场景1",
+    "repeat_node": "贪妄（金蟾宝宫）-刷取次数",
+    "target": {
+      "recognition": {
+        "type": "And",
+        "param": {
+          "all_of": [
+            {
+              "recognition": {
+                "type": "TemplateMatch",
+                "param": {
+                  "template": "任务.png",
+                  "roi": [
+                    0,
+                    540,
+                    1147,
+                    180
+                  ]
+                }
+              }
+            },
+            {
+              "recognition": {
+                "type": "Or",
+                "param": {
+                  "any_of": [
+                    {
+                      "recognition": {
+                        "type": "TemplateMatch",
+                        "param": {
+                          "template": [
+                            "金蟾宝宫.png"
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "recognition": {
+                        "type": "TemplateMatch",
+                        "param": {
+                          "template": [
+                            "navigation/stages/s65-frame1.png",
+                            "navigation/stages/s65-frame2.png",
+                            "navigation/stages/s65-frame3.png"
+                          ],
+                          "threshold": 0.82,
+                          "roi": [
+                            0,
+                            115,
+                            1045,
+                            500
+                          ],
+                          "method": 5
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "Result_NoRevivePrompt"
+          ],
+          "box_index": 1
+        }
+      },
+      "pre_delay": 0,
+      "action": {
+        "type": "Click"
+      },
+      "post_delay": 500,
+      "timeout": 10000
+    },
+    "scene": {
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "金蟾宝宫场景.png"
+          ]
+        }
+      }
+    }
+  },
+  "无冥（孤魂岭）": {
+    "entry": "无冥（孤魂岭）-点击孤魂岭",
+    "playback_node": "无冥（孤魂岭）-回放战斗",
+    "target_node": "无冥（孤魂岭）-关卡入口",
+    "scene_node": "无冥（孤魂岭）-识别场景1",
+    "repeat_node": "无冥（孤魂岭）-刷取次数",
+    "target": {
+      "recognition": {
+        "type": "And",
+        "param": {
+          "all_of": [
+            {
+              "recognition": {
+                "type": "TemplateMatch",
+                "param": {
+                  "template": "任务.png",
+                  "roi": [
+                    0,
+                    540,
+                    1147,
+                    180
+                  ]
+                }
+              }
+            },
+            {
+              "recognition": {
+                "type": "Or",
+                "param": {
+                  "any_of": [
+                    {
+                      "recognition": {
+                        "type": "TemplateMatch",
+                        "param": {
+                          "template": [
+                            "孤魂岭.png"
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "recognition": {
+                        "type": "TemplateMatch",
+                        "param": {
+                          "template": [
+                            "navigation/stages/s47-frame1.png",
+                            "navigation/stages/s47-frame3.png"
+                          ],
+                          "threshold": 0.82,
+                          "method": 5
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "Result_NoRevivePrompt"
+          ],
+          "box_index": 1
+        }
+      },
+      "pre_delay": 0,
+      "action": {
+        "type": "Click"
+      },
+      "post_delay": 500,
+      "timeout": 10000
+    },
+    "scene": {
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "孤魂岭场景.png"
+          ]
+        }
+      }
+    },
+    "view_roi": [
+      240,
+      60,
+      220,
+      230
+    ]
+  },
+  "摩多（七叶树窟）": {
+    "entry": "摩多（七叶树窟）-点击七叶树窟",
+    "playback_node": "摩多（七叶树窟）-回放战斗",
+    "target_node": "摩多（七叶树窟）-关卡入口",
+    "scene_node": "摩多（七叶树窟）-识别场景1",
+    "repeat_node": "摩多（七叶树窟）-刷取次数",
+    "target": {
+      "recognition": {
+        "type": "And",
+        "param": {
+          "all_of": [
+            {
+              "recognition": {
+                "type": "TemplateMatch",
+                "param": {
+                  "template": "任务.png",
+                  "roi": [
+                    0,
+                    540,
+                    1147,
+                    180
+                  ]
+                }
+              }
+            },
+            {
+              "recognition": {
+                "type": "Or",
+                "param": {
+                  "any_of": [
+                    {
+                      "recognition": {
+                        "type": "TemplateMatch",
+                        "param": {
+                          "template": [
+                            "七叶树窟.png"
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "recognition": {
+                        "type": "TemplateMatch",
+                        "param": {
+                          "template": [
+                            "navigation/stages/s43-frame1.png",
+                            "navigation/stages/s43-frame3.png"
+                          ],
+                          "threshold": 0.82,
+                          "roi": [
+                            0,
+                            115,
+                            1045,
+                            500
+                          ],
+                          "method": 5
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "Result_NoRevivePrompt"
+          ],
+          "box_index": 1
+        }
+      },
+      "pre_delay": 0,
+      "action": {
+        "type": "Click"
+      },
+      "post_delay": 500,
+      "timeout": 10000
+    },
+    "scene": {
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "七叶树窟场景.png"
+          ]
+        }
+      }
+    }
+  },
+  "摩多（幕山）": {
+    "entry": "摩多（幕山）-点击幕山",
+    "playback_node": "摩多（幕山）-回放战斗",
+    "target_node": "摩多（幕山）-关卡入口",
+    "scene_node": "摩多（幕山）-识别场景1",
+    "repeat_node": "摩多（幕山）-刷取次数",
+    "target": {
+      "recognition": {
+        "type": "And",
+        "param": {
+          "all_of": [
+            {
+              "recognition": {
+                "type": "TemplateMatch",
+                "param": {
+                  "template": "任务.png",
+                  "roi": [
+                    0,
+                    540,
+                    1147,
+                    180
+                  ]
+                }
+              }
+            },
+            {
+              "recognition": {
+                "type": "Or",
+                "param": {
+                  "any_of": [
+                    {
+                      "recognition": {
+                        "type": "TemplateMatch",
+                        "param": {
+                          "template": [
+                            "幕山.png"
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "recognition": {
+                        "type": "TemplateMatch",
+                        "param": {
+                          "template": [
+                            "navigation/stages/s45-frame1.png",
+                            "navigation/stages/s45-frame2.png",
+                            "navigation/stages/s45-frame3.png"
+                          ],
+                          "threshold": 0.82,
+                          "roi": [
+                            0,
+                            115,
+                            1045,
+                            500
+                          ],
+                          "method": 5
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "Result_NoRevivePrompt"
+          ],
+          "box_index": 1
+        }
+      },
+      "pre_delay": 0,
+      "action": {
+        "type": "Click"
+      },
+      "post_delay": 500,
+      "timeout": 10000
+    },
+    "scene": {
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "幕山场景.png"
+          ]
+        }
+      }
+    }
+  },
+  "烛时（钟晷极地）": {
+    "entry": "烛时（钟晷极地）-点击钟晷极地",
+    "playback_node": "烛时（钟晷极地）-回放战斗",
+    "target_node": "烛时（钟晷极地）-关卡入口",
+    "scene_node": "烛时（钟晷极地）-识别场景1",
+    "repeat_node": "烛时（钟晷极地）-刷取次数",
+    "target": {
+      "recognition": {
+        "type": "And",
+        "param": {
+          "all_of": [
+            {
+              "recognition": {
+                "type": "TemplateMatch",
+                "param": {
+                  "template": "任务.png",
+                  "roi": [
+                    0,
+                    540,
+                    1147,
+                    180
+                  ]
+                }
+              }
+            },
+            {
+              "recognition": {
+                "type": "Or",
+                "param": {
+                  "any_of": [
+                    {
+                      "recognition": {
+                        "type": "TemplateMatch",
+                        "param": {
+                          "template": [
+                            "钟晷极地.png"
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "recognition": {
+                        "type": "TemplateMatch",
+                        "param": {
+                          "template": [
+                            "navigation/stages/s38-frame1.png",
+                            "navigation/stages/s38-frame3.png"
+                          ],
+                          "threshold": 0.82,
+                          "roi": [
+                            0,
+                            115,
+                            1045,
+                            500
+                          ],
+                          "method": 5
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "Result_NoRevivePrompt"
+          ],
+          "box_index": 1
+        }
+      },
+      "pre_delay": 0,
+      "action": {
+        "type": "Click"
+      },
+      "post_delay": 500,
+      "timeout": 10000
+    },
+    "scene": {
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "钟晷极地场景.png"
+          ]
+        }
+      }
+    }
+  },
+  "朱电（琉璃宫）": {
+    "entry": "朱电（琉璃宫）-点击琉璃宫",
+    "playback_node": "朱电（琉璃宫）-回放战斗",
+    "target_node": "朱电（琉璃宫）-关卡入口",
+    "scene_node": "朱电（琉璃宫）-识别场景1",
+    "repeat_node": "朱电（琉璃宫）-刷取次数",
+    "target": {
+      "recognition": {
+        "type": "And",
+        "param": {
+          "all_of": [
+            {
+              "recognition": {
+                "type": "TemplateMatch",
+                "param": {
+                  "template": "任务.png",
+                  "roi": [
+                    0,
+                    540,
+                    1147,
+                    180
+                  ]
+                }
+              }
+            },
+            {
+              "recognition": {
+                "type": "Or",
+                "param": {
+                  "any_of": [
+                    {
+                      "recognition": {
+                        "type": "TemplateMatch",
+                        "param": {
+                          "template": [
+                            "琉璃宫.png"
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "recognition": {
+                        "type": "TemplateMatch",
+                        "param": {
+                          "template": [
+                            "navigation/stages/s26-frame1.png",
+                            "navigation/stages/s26-frame2.png",
+                            "navigation/stages/s26-frame3.png"
+                          ],
+                          "threshold": 0.82,
+                          "roi": [
+                            0,
+                            115,
+                            1045,
+                            500
+                          ],
+                          "method": 5
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "Result_NoRevivePrompt"
+          ],
+          "box_index": 1
+        }
+      },
+      "pre_delay": 0,
+      "action": {
+        "type": "Click"
+      },
+      "post_delay": 500,
+      "timeout": 10000
+    },
+    "scene": {
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "琉璃宫场景.png"
+          ]
+        }
+      }
+    }
+  }
+}

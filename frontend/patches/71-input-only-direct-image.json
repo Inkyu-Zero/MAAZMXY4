@@ -1,0 +1,6 @@
+{
+  "description": "Gate direct host screenshot helpers during input-only playback",
+  "path": "MFAAvalonia/Extensions/MaaFW/MaaProcessor.cs",
+  "find": "    public MaaImageBuffer? GetImage(IMaaController? maaController, bool screencap = true)\n    {",
+  "replace": "    public MaaImageBuffer? GetImage(IMaaController? maaController, bool screencap = true)\n    {\n        if (_inputOnlyPlayback) return null;"
+}

@@ -4,18 +4,13 @@
       "type": "TemplateMatch",
       "param": {
         "template": [
-          "navigation/scroll/town5-00.png",
-          "navigation/scroll/town5-01.png",
-          "navigation/scroll/town5-02.png",
-          "navigation/scroll/town5-03.png",
-          "navigation/scroll/town5-04.png",
-          "navigation/scroll/town5-05.png"
+          "navigation/scroll/town5-02.png"
         ],
         "roi": [
-          500,
-          140,
-          500,
-          425
+          20,
+          410,
+          1020,
+          120
         ],
         "threshold": 0.9
       }
@@ -44,7 +39,7 @@
         "begin": true,
         "end": true,
         "end_offset": [
-          -440,
+          0,
           0,
           0,
           0
@@ -54,7 +49,8 @@
     },
     "next": [],
     "post_delay": 350,
-    "timeout": 3000
+    "timeout": 3000,
+    "pre_delay": 0
   },
   "GameManagement_town6_Terrain": {
     "recognition": {
@@ -91,7 +87,7 @@
         "roi": [
           160,
           350,
-          820,
+          880,
           225
         ],
         "threshold": 0.9
@@ -133,32 +129,6 @@
     "post_delay": 350,
     "timeout": 3000
   },
-  "GameManagement_town5_TerrainBack": {
-    "recognition": {
-      "type": "TemplateMatch",
-      "param": {
-        "template": [
-          "navigation/scroll/town5-00.png",
-          "navigation/scroll/town5-01.png",
-          "navigation/scroll/town5-02.png",
-          "navigation/scroll/town5-03.png",
-          "navigation/scroll/town5-04.png",
-          "navigation/scroll/town5-05.png"
-        ],
-        "roi": [
-          60,
-          140,
-          480,
-          425
-        ],
-        "threshold": 0.9
-      }
-    },
-    "action": {
-      "type": "DoNothing"
-    },
-    "next": []
-  },
   "GameManagement_town5_DragBack": {
     "recognition": {
       "type": "And",
@@ -166,7 +136,7 @@
         "all_of": [
           "Nav_TaskMap",
           "GameManagement_NormalMap",
-          "GameManagement_town5_TerrainBack",
+          "GameManagement_town5_Terrain",
           "Result_NoRevivePrompt"
         ],
         "box_index": 2
@@ -178,7 +148,7 @@
         "begin": true,
         "end": true,
         "end_offset": [
-          440,
+          0,
           0,
           0,
           0
@@ -188,7 +158,8 @@
     },
     "next": [],
     "post_delay": 350,
-    "timeout": 3000
+    "timeout": 3000,
+    "pre_delay": 0
   },
   "GameManagement_NormalMap": {
     "recognition": {

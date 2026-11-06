@@ -6,7 +6,6 @@ pins the saved library file and its hash in memory; the next round resolves the
 current binding again. The front end owns bounded process recovery.
 """
 import hashlib
-import sys
 from copy import deepcopy
 import json
 import os
@@ -14,6 +13,7 @@ from pathlib import Path
 import tempfile
 import threading
 import time
+from types import SimpleNamespace
 from uuid import UUID, uuid4
 
 from maa.agent.agent_server import AgentServer
@@ -22,10 +22,11 @@ from maa.custom_action import CustomAction
 from script_library import resolve_recording_reference
 from script_studio.model import MAX_FILE_BYTES, RecordingDocument
 from task_catalog import custom_parameters
-from navigation.catalog import task_graph
+from window_geometry import prepare_controller
+from navigation.catalog import task_routine
 from navigation import NavigationError
-from navigation.runtime import GraphNavigator
-from navigation.stage_view import restore_stage_view, wait_stage_ready
+from navigation.runtime import Navigator
+from navigation.stage_view import restore_stage_view, wait_stage_ready, has_standard_view
 
 ROOT = Path(__file__).resolve().parents[1]
 RECORDINGS = ROOT / 'recordings'
@@ -128,19 +129,11 @@ def inspect_recording(reference):
     document = RecordingDocument.from_dict(data)
     document.to_dict(strict=True)
     if document.diagnostics:
-        # 诊断是录制里键鼠配对不完整这类提示，Maa 回放本身能容忍。
-        # 以前这里直接抛错，等于“脚本有点小毛病整个任务就不跑”，
-        # 现在只记一条诊断，让任务照常执行。
-        print('[script_task] 绑定脚本存在 %d 条诊断，仍然继续：%s'
-              % (len(document.diagnostics), '; '.join(document.diagnostics[:3])),
-              file=sys.stderr, flush=True)
+        raise ValueError('绑定脚本存在操作诊断，请先在脚本工具中修复。')
     if not data['actions']:
         raise ValueError('绑定脚本没有可回放的操作。')
-    # 基准尺寸不在这里卡死：真正的比对在回放前做（截图短边与 base 不符才拒绝），
-    # 这里只提示，不阻止用户使用自己录制的其他尺寸脚本。
     if min(document.base) != 720:
-        print('[script_task] 脚本基准为 %dx%d，非 720，将按录制尺寸回放' % tuple(document.base),
-              file=sys.stderr, flush=True)
+        raise ValueError('任务脚本必须使用新工程的720基准坐标。')
     if any(action.get('op') == 'scroll' and ('x' in action or 'y' in action) for action in data['actions']):
         raise ValueError('带坐标滚轮尚不支持当前控制器回放。')
     return dict(path=str(path), sha256=hashlib.sha256(raw).hexdigest(), base=list(document.base),
@@ -148,23 +141,28 @@ def inspect_recording(reference):
 
 
 def capture(context):
-    _check(context)
-    controller = context.tasker.controller
-    try:
-        result = controller.post_screencap().wait()
-    except Exception as error:
+    """Retry brief missing frames without issuing any input or changing targets."""
+    failure = None
+    for attempt in range(3):
         _check(context)
-        raise CaptureUnavailable('截图作业不可用。') from error
-    _check(context)
-    if not getattr(result, 'succeeded', False):
-        raise CaptureUnavailable('截图作业失败。')
-    try:
-        frame = result.get() if hasattr(result, 'get') else controller.cached_image
-    except Exception as error:
-        raise CaptureUnavailable('控制器截图读取失败。') from error
-    if frame is None or getattr(frame, 'ndim', 0) != 3 or frame.shape[2] < 3:
-        raise CaptureUnavailable('控制器没有返回有效截图。')
-    return frame
+        try:
+            controller = context.tasker.controller
+            result = controller.post_screencap().wait()
+            _check(context)
+            if not getattr(result, 'succeeded', False):
+                raise CaptureUnavailable('截图作业失败。')
+            frame = result.get() if hasattr(result, 'get') else controller.cached_image
+            if frame is None or getattr(frame, 'ndim', 0) != 3 or frame.shape[2] < 3:
+                raise CaptureUnavailable('控制器没有返回有效截图。')
+            return frame
+        except Cancelled:
+            raise
+        except Exception as error:
+            failure = error
+            _check(context)
+            if attempt < 2:
+                time.sleep(.2)
+    raise CaptureUnavailable('连续三次截图失败。') from failure
 
 
 def white_frame(frame):
@@ -193,7 +191,7 @@ def _override(context, patch):
         raise ValueError('Maa拒绝本轮任务参数。')
 
 
-def begin_round(context, parameters, state):
+def begin_round(context, parameters, state, *, frame=None):
     _check(context)
     parameters = deepcopy(parameters)
     if parameters.get('navigation') is not None:
@@ -209,7 +207,7 @@ def begin_round(context, parameters, state):
     playback_node = parameters.get('playback_node')
     if parameters.get('navigation') is not None and isinstance(playback_node, str):
         prepared = custom_parameters(context.get_node_data(playback_node) or {})
-        if prepared.get('file'):
+        if prepared.get('file') and not parameters.get('expected_recording_file'):
             reference = prepared['file']
     else:
         prepared = {}
@@ -241,24 +239,40 @@ def begin_round(context, parameters, state):
     state['failure_retry'] = dict(enabled=afk or policy.get('enabled', False) and retries > 0, max_retries=retries)
     routes = parameters.get('routes', {})
     mode = parameters.get('exit_mode', next(iter(routes), None))
+    if parameters.get('round_flow') and mode not in ('recorded_return', 'battle_only'):
+        raise ValueError('请选择该任务支持的脚本完成方式。')
     if routes and mode not in routes:
         raise ValueError('请选择该任务支持的脚本完成方式。')
-    frame = capture(context)
+    if prepare_controller(context.tasker.controller, recording['base']):
+        frame = None  # The native entry frame predates the geometry adjustment.
+    frame = capture(context) if frame is None else frame
     height, width = frame.shape[:2]
-    if min(height, width) != 720 or any(abs(a-b) > 2 for a,b in zip(recording['base'], (width,height))):
+    if min(height, width) != 720 or any(abs(a-b) > 8 for a,b in zip(recording['base'], (width,height))):
         raise ValueError('脚本与当前720截图尺寸不一致，请使用相同游戏布局重新录制。')
     playback = dict(file=recording['path'], expected_sha256=recording['sha256'],
-                    strict_task=True, expected_short_side=720, expected_base=recording['base'], speed=1)
+                    strict_task=True, expected_short_side=720, expected_base=recording['base'], speed=1,
+                    result_guard=None)
     if not isinstance(playback_node, str) or not playback_node:
         raise ValueError('任务缺少脚本回放节点配置。')
     patch = {playback_node: {'action': {'param': {'custom_action_param': playback}}}}
+    completion = parameters.get('completion_node')
+    if completion is not None:
+        dispatch = parameters.get('completion_dispatch_node')
+        if not isinstance(completion, str) or not isinstance(dispatch, str) or not context.get_node_data(completion):
+            raise ValueError('共享任务缺少本轮完成入口。')
+        patch[dispatch] = {'next': [completion]}
     guard = parameters.get('result_guard')
     if guard is not None:
-        playback['result_guard'] = deepcopy(guard)
-        default_next = ([parameters['route_node']] if parameters.get('route_node') else
+        default_next = (['Round_PlayDone'] if parameters.get('round_flow') else
+                        [parameters['route_node']] if parameters.get('route_node') else
                         context.get_node_data(playback_node).get('next', []))
-        playback['result_guard']['default_next'] = deepcopy(default_next)
+        # Always reset the branch and explicitly clear a previous monitor.
+        # With retries disabled, playback sends only recorded input; native
+        # result/return recognition resumes after playback finishes.
         patch[playback_node]['next'] = deepcopy(default_next)
+        if state['failure_retry']['enabled']:
+            playback['result_guard'] = deepcopy(guard)
+            playback['result_guard']['default_next'] = deepcopy(default_next)
     if routes:
         route_node = parameters.get('route_node')
         targets = routes[mode]
@@ -269,18 +283,26 @@ def begin_round(context, parameters, state):
     write_status(state, 'running', 'round_started', file=Path(recording['path']).name, exit_mode=mode)
 
 
-def _navigator(context, state, *, targets=None):
-    graph = task_graph(context, state['parameters'], targets=targets)
-    return GraphNavigator(context, graph, capture=lambda: capture(context),
-        check=lambda: _check(context), log=lambda message: print('[navigation] ' + message, flush=True))
+def _navigator(context, state, *, targets=None, frame=None):
+    routine = task_routine(context, state['parameters'], targets=targets)
+    return Navigator(context, routine, capture=lambda: capture(context),
+        check=lambda: _check(context), frame=frame,
+        log=lambda message: print('[navigation] ' + message, flush=True))
 
 
-def navigate_round(context, state):
-    _check(context)
-    current = inspect_recording(state['reference'])
+def check_recording(state):
+    try:
+        current = inspect_recording(state['reference'])
+    except (OSError, ValueError) as error:
+        raise RecordingChanged('本轮录制已改变或不可用，已停止。') from error
     if current['path'] != state['recording']['path'] or current['sha256'] != state['recording']['sha256']:
         raise RecordingChanged('本轮重试期间录制已改变，未开始下一次回放。')
-    navigator = _navigator(context, state)
+
+
+def navigate_round(context, state, navigator=None):
+    _check(context)
+    check_recording(state)
+    navigator = navigator or _navigator(context, state)
     try:
         return navigator.run()
     except NavigationError as error:
@@ -290,32 +312,45 @@ def navigate_round(context, state):
         # Viewport restoration is navigation, independent of process restart.
         if error.reason == 'unreachable' and navigation.get('kind') == 'stage':
             target = navigation.get('target_node')
-            if wait_stage_ready(context,navigator,target):
-                return navigator.run()
+            if not has_standard_view(target) and wait_stage_ready(context,navigator,target):
+                try:
+                    return navigator.run()
+                except NavigationError as settled:
+                    # The wait may have ended on a temporary icon or modal.
+                    # Reuse the same budget and still allow guarded scrolling
+                    # when re-localization finds the icon off-screen again.
+                    if settled.reason != 'unreachable':
+                        raise
             if restore_stage_view(context,navigator,target):
                 return navigator.run()
         raise
 
 
 def return_targets(state):
-    allowed = ['task_map', 'map_a', 'map_b']
+    allowed = ['map']
     if state['parameters'].get('navigation', {}).get('kind') == 'stage':
         allowed.append('task_destination')
     return allowed
 
 
-def confirm_return(context, state):
+def confirm_return(context, state, navigator=None):
     allowed = return_targets(state)
-    actual = _navigator(context, state, targets=allowed).locate()
+    actual = (navigator._identify(allowed) if navigator is not None else
+              _navigator(context, state, targets=allowed).locate())
     if actual not in allowed:
-        raise ValueError('尚未确认返回地图，本轮不计次也不重试。')
+        # A revival prompt may arrive after the native map candidate matched.
+        # Preserve the failed round and finish its bounded decline/return flow.
+        if (state.get('battle_failed') and actual in ('revive_prompt', 'challenge_failed')
+                and recover_failed_return(context, state)):
+            return
+        raise NavigationError('尚未确认返回地图，本轮未计次。', reason='transition_failed')
 
 
-def retry_failed_round(context, state, node_name):
+def retry_failed_round(context, state, node_name=None, navigator=None):
     _check(context)
     if not state.get('battle_failed'):
         raise ValueError('没有已确认的挑战失败，不执行失败重试。')
-    confirm_return(context, state)
+    confirm_return(context, state, navigator)
     policy = state['failure_retry']
     if not policy['enabled']:
         write_status(state, 'fatal', 'battle_failed', message='挑战失败，已返回地图；失败自动重试已关闭，本轮未计次。')
@@ -324,7 +359,8 @@ def retry_failed_round(context, state, node_name):
         write_status(state, 'fatal', 'battle_retry_exhausted', message='挑战失败重试次数已用尽，本轮未计次。')
         return False
     next_node = state['parameters'].get('navigation_entry')
-    if not isinstance(next_node, str) or not next_node or not context.override_next(node_name, [next_node]):
+    if node_name is not None and (not isinstance(next_node, str) or not next_node
+                                 or not context.override_next(node_name, [next_node])):
         raise ValueError('缺少本轮导航重试入口。')
     state['failure_retries'] += 1
     state['battle_failed'] = False
@@ -341,19 +377,16 @@ def recover_failed_return(context, state):
     if remaining <= 0:
         return False
     navigator = _navigator(context, state, targets=return_targets(state))
-    # Retain all scene/overlay probes but expose only the guarded Return Map
-    # action. A world map, modal, revival prompt or unknown frame has no route.
-    navigator.graph['edges'] = [edge for edge in navigator.graph['edges']
-        if edge['source'] == 'challenge_failed' and edge['entry'] == 'Result_FailedReturn'
-        and edge['target'] in navigator.graph['targets']]
-    for edge in navigator.graph['edges']:
-        edge.update(max_attempts=remaining, timeout_ms=1500)
-    navigator.graph.update(max_steps=remaining, max_seconds=15, settle_ms=1000)
+    navigator.only_actions = ['Result_DeclineRevive', 'Result_FailedReturn']
+    navigator.routine['actions']['Result_DeclineRevive']['attempts'] = 1
+    navigator.routine['actions']['Result_FailedReturn']['attempts'] = remaining
+    navigator.routine['actions']['Result_FailedReturn']['timeout_ms'] = 1500
+    navigator.routine.update(max_steps=remaining+1, max_seconds=25, settle_ms=1000)
     checked_step = -1
     def check():
         nonlocal checked_step
         _check(context)
-        # GraphNavigator increments steps before dispatch, so verify the pinned
+        # Navigator increments steps before dispatch, so verify the pinned
         # recording initially and before every additional input attempt.
         if checked_step != navigator.steps:
             current = inspect_recording(state['reference'])
@@ -367,15 +400,47 @@ def recover_failed_return(context, state):
         navigator.run()
         return True
     except (NavigationError, TimeoutError) as error:
+        if isinstance(error, NavigationError) and error.reason in ('blocked', 'ambiguous', 'unrecognized_dialog'):
+            raise
         print('[script_task] 返回地图恢复未完成：' + str(error), flush=True)
         return False
     finally:
-        state['return_recovery_attempts'] = state.get('return_recovery_attempts', 0) + navigator.steps
+        state['return_recovery_attempts'] = state.get('return_recovery_attempts', 0) + navigator.attempts.get('Result_FailedReturn', 0)
 
 
 def managed_failure_restart(state):
     management = state.get('parameters', {}).get('game_management')
     return isinstance(management, dict) and management.get('restart_on_failure') is True
+
+
+def stop_unrecognized_dialog(context, state, phase):
+    """Hand off a terminal unknown dialog without treating the round as complete."""
+    _check(context)
+    if state.get('recording') is not None:
+        check_recording(state)
+    _check(context)
+    if (state.get('phase') == 'begin' and state.get('recording') is not None
+            and managed_failure_restart(state)):
+        write_status(state, 'recoverable', 'task_failed', navigation_failure='unrecognized_dialog',
+                     failure_phase=phase, message='弹窗识别失败，本轮未计次；交由游戏管理重启后继续。')
+    else:
+        write_status(state, 'fatal', 'unrecognized_dialog', message='弹窗识别失败，本轮未计次。')
+    return False
+
+
+def stop_capture_failure(context, state, phase, error):
+    """Report persistent capture failure without claiming the HWND disappeared."""
+    _check(context)
+    if state.get('recording') is not None:
+        check_recording(state)
+    _check(context)
+    if (state.get('phase') == 'begin' and state.get('recording') is not None
+            and managed_failure_restart(state)):
+        write_status(state, 'recoverable', 'task_failed', failure_cause='capture_unavailable',
+                     failure_phase=phase, message='持续截图失败，本轮未计次；交由游戏管理重启后继续。')
+    else:
+        write_status(state, 'fatal', 'capture_unavailable', message=str(error))
+    return False
 
 
 def exhausted_battle_reason(state):
@@ -388,19 +453,170 @@ def exhausted_battle_reason(state):
     return None
 
 
-def begin_recovery(context, parameters, state):
-    _check(context)
-    slot = parameters.get('save_slot', 1)
-    slots = parameters.get('resume_slots', {})
-    if type(slot) is not int or str(slot) not in slots:
-        raise ValueError('请选择该任务支持的已有存档。')
-    state['save_slot'] = slot
-    node = parameters.get('resume_choice_node')
-    guards = parameters.get('resume_guards', [])
-    if not isinstance(node, str) or not node or not isinstance(guards, list):
-        raise ValueError('任务恢复选项配置无效。')
-    _override(context, {node: {'next': [*guards, slots[str(slot)]]}})
-    write_status(state, 'running', 'recovery_login', save_slot=slot)
+def mark_battle_failure(state):
+    if not state.get('battle_failed'):
+        state['return_recovery_attempts'] = 0
+    state['battle_failed'] = True
+    reason = exhausted_battle_reason(state)
+    if reason and managed_failure_restart(state):
+        write_status(state, 'recoverable', reason,
+                     message='挑战失败且游戏内重试已关闭或次数已用尽；重启后继续本轮，本轮未计次。')
+        return False
+    write_status(state, 'running', 'battle_failed_returning',
+                 message='识别到挑战失败，已停止录制；本次失败不计入次数。')
+    return True
+
+
+def enter_stage(context, state, navigator):
+    """One verified entry, bounded loading observations, then the same scene frame."""
+    flow = state['parameters']['round_flow']
+    target = state['parameters']['navigation']['target_node']
+    scene = flow['scene_node']
+    for attempt in range(3):
+        navigate_round(context, state, navigator)
+        if not navigator.perform(target):
+            raise NavigationError('进关操作未确认。', reason='transition_failed')
+        end = navigator.clock() + flow.get('load_timeout_ms', 15000) / 1000
+        resumed = False
+        while True:
+            navigator._check()
+            # The normal scene owns its one modal guard. Failure/return probes
+            # are fallbacks, not work repeated ahead of every ready scene.
+            ready = navigator.recognize(scene).hit
+            if not ready:
+                # A fresh, guarded map entry proves the click did not leave
+                # the map. Retry now instead of waiting out a loading timeout.
+                if attempt < 2 and navigator.recognize(target).hit:
+                    navigator.log('点击后仍在原入口，使用当前截图重试进关。')
+                    break
+                if navigator._modal_state() or navigator.recognize('Result_FailedClear').hit:
+                    return False
+            if navigator.recognize('Bounty_StageSettings').hit:
+                write_status(state, 'fatal', 'stage_settings_open')
+                return False
+            if navigator.recognize('Bounty_StagePause').hit:
+                resume = flow.get('resume_node')
+                if not resume or resumed or not navigator.recognize(resume).hit:
+                    write_status(state, 'fatal', 'stage_paused')
+                    return False
+                if not navigator.perform(resume):
+                    raise NavigationError('恢复关卡暂停失败。', reason='transition_failed')
+                resumed = True
+                continue
+            if ready:
+                return True
+            if navigator.recognize('Nav_BlockedDialog').hit:
+                raise NavigationError('进关被登录或其他提示阻断。', reason='blocked')
+            if navigator.clock() >= end:
+                raise NavigationError('进关后未确认副本场景。', reason='transition_failed')
+            navigator.refresh_after_wait(200)
+
+
+def finish_round(context, state, navigator):
+    """Explicit result/return candidates, sharing frames with the final checkpoint."""
+    navigator.routine['targets'] = return_targets(state)
+    navigator.deadline = navigator.clock() + 60
+    navigator.attempts.clear()
+    navigator.routine['actions']['Result_FailedReturn'].update(attempts=3, verify_ms=1500)
+    while True:
+        navigator._check()
+        current = navigator._identify(['challenge_failed', 'challenge_succeeded', 'map',
+                                       'task_destination', 'settings_menu'])
+        if current == 'revive_prompt':
+            # Exactly one safe cancel decision; missing cancel waits for expiry.
+            navigator._execute('Result_DeclineRevive')
+            continue
+        if current == 'challenge_failed':
+            state['revival_observed'] = False
+            if not state.get('battle_failed') and not mark_battle_failure(state):
+                return False
+            navigator._execute('Result_FailedReturn')
+            continue
+        if current == 'challenge_succeeded':
+            navigator._execute('Result_SucceededReturn')
+            continue
+        if current in return_targets(state):
+            if state.get('revival_observed'):
+                raise NavigationError('曾观察到复活提示但尚未确认战败，未计次。', reason='transition_failed')
+            confirm_return(context, state, navigator)
+            return True
+        if current == 'settings_menu':
+            if state['parameters'].get('exit_mode') == 'battle_only':
+                navigator._execute('Nav_SettingsReturn')
+                continue
+        elif navigator.recognize('Nav_BlockedDialog').hit:
+            raise NavigationError('返回地图被其他提示阻断。', reason='blocked')
+        elif (state['parameters'].get('exit_mode') == 'battle_only'
+                and navigator.recognize('Bounty_OpenSettings').hit):
+            if navigator.attempts.get('Bounty_OpenSettings', 0) >= 2:
+                raise NavigationError('打开设置菜单未确认。', reason='transition_failed')
+            navigator.attempts['Bounty_OpenSettings'] = navigator.attempts.get('Bounty_OpenSettings', 0) + 1
+            if not navigator.perform('Bounty_OpenSettings'):
+                raise NavigationError('打开设置菜单失败。', reason='transition_failed')
+            continue
+        navigator.refresh_after_wait(200)
+
+
+def run_compact_round(context, parameters, state, node_name):
+    # Pipeline's entry recognition already captured this frame. No input has
+    # occurred since; use it for recording layout and navigation preflight.
+    frame = context.tasker.controller.cached_image
+    begin_round(context, parameters, state, frame=frame)
+    navigator = _navigator(context, state, frame=frame)
+    del frame  # Navigator is the sole owner of the reusable observation.
+    navigator.before_input = lambda: check_recording(state)
+    parameters = state['parameters']
+    flow = parameters['round_flow']
+    repeat = flow.get('repeat_node')
+    if repeat:
+        limit = context.get_node_data(repeat).get('max_hit', 1)
+        if state['parameters'].get('afk_mode') or limit == -1:
+            limit = 4294967295
+        if type(limit) is not int or not 1 <= limit <= 4294967295:
+            raise ValueError('刷取次数无效。')
+        _override(context, {node_name: {'max_hit': limit}})
+    while True:
+        navigator.routine['targets'] = ['task_destination']
+        navigator.deadline = None
+        navigator.attempts.clear()
+        navigator.steps = 0
+        if enter_stage(context, state, navigator):
+            # Reuse the existing action implementation in this Agent. Native
+            # run_action fabricates recognition id 0, which cannot construct a
+            # CustomAction callback in MaaFramework 5.12.3. All its controller
+            # jobs still use Maa; no second player or input owner is created.
+            play = parameters['playback_node']
+            navigator.deadline = None  # recording length is not navigation time
+            navigator.invalidate()
+            from battle_player import BattlePlay
+            played = BattlePlay().run(context, SimpleNamespace(node_name=play,
+                custom_action_param=custom_parameters(context.get_node_data(play))))
+            if not played:
+                _check(context)
+                return fail_round(context, state, 'playback_failed')
+            # get_node_data returns normalized NodeAttr objects on the native
+            # SDK, while source overrides use strings. Preserve an observed
+            # result even if releasing a held mouse button already returned.
+            branch = [link.get('name') if isinstance(link, dict) else link
+                      for link in context.get_node_data(play).get('next', [])]
+            if 'Result_MonitorStopped' in branch:
+                write_status(state, 'fatal', 'blocked_dialog')
+                return False
+            if 'Result_MonitorUnrecognizedDialog' in branch:
+                return stop_unrecognized_dialog(context, state, 'battle_monitor')
+            if 'Result_Failed' in branch and not mark_battle_failure(state):
+                return False
+            state['revival_observed'] = 'Result_RevivePrompt' in branch
+        elif state['status'] != 'running':
+            return False
+        if not finish_round(context, state, navigator):
+            return False
+        if state.get('battle_failed'):
+            if not retry_failed_round(context, state, navigator=navigator):
+                return False
+            continue
+        write_status(state, 'success')
+        return True
 
 
 def fail_round(context, state, reason, node_name=None):
@@ -423,7 +639,8 @@ def fail_round(context, state, reason, node_name=None):
                      message='已确认战败，但返回流程已失败；交由游戏管理重启后继续本轮，本轮未计次。')
     elif managed_failure_restart(state):
         # A normal task may exhaust its own navigation/return fallbacks without
-        # a battle defeat. Confirm a known, unblocked scene before restarting.
+        # a battle defeat. Locate first so positively identified blockers stop;
+        # exhausted unknown frames are handed off by the common failure handler.
         _navigator(context, state).locate()
         write_status(state, 'recoverable', 'task_failed',
                      message='任务流程已宣告失败，当前场景已核验；重启后继续本轮，本轮未计次。')
@@ -441,14 +658,14 @@ class ScriptTaskState(CustomAction):
             parameters = _parameters(argv)
             key = _key(argv)
             phase = parameters.get('phase')
-            if phase in ('begin', 'recovery_begin'):
+            if phase == 'begin':
                 state = _new_state(parameters)
                 with _lock:
                     _rounds[key] = state
-                if phase == 'begin':
-                    begin_round(context, parameters, state)
-                else:
-                    begin_recovery(context, parameters, state)
+                if parameters.get('round_flow'):
+                    terminal = True
+                    return run_compact_round(context, parameters, state, argv.node_name)
+                begin_round(context, parameters, state)
                 return True
             with _lock:
                 state = _rounds.get(key)
@@ -459,17 +676,9 @@ class ScriptTaskState(CustomAction):
                 navigate_round(context, state)
                 return True
             if phase == 'battle_failure':
-                if not state.get('battle_failed'):
-                    state['return_recovery_attempts'] = 0
-                state['battle_failed'] = True
-                reason = exhausted_battle_reason(state)
-                if reason and managed_failure_restart(state):
-                    write_status(state, 'recoverable', reason,
-                                 message='挑战失败且游戏内重试已关闭或次数已用尽；重启后继续本轮，本轮未计次。')
-                    terminal = True
-                    return False
-                write_status(state, 'running', 'battle_failed_returning', message='识别到挑战失败，已停止录制；本次失败不计入次数。')
-                return True
+                result = mark_battle_failure(state)
+                terminal = not result
+                return result
             if phase == 'retry_after_failure':
                 retry = retry_failed_round(context, state, argv.node_name)
                 terminal = not retry
@@ -485,6 +694,8 @@ class ScriptTaskState(CustomAction):
             if phase == 'fatal':
                 write_status(state, 'fatal', str(parameters.get('reason') or 'blocked_dialog'))
                 return False
+            if phase == 'unrecognized_dialog':
+                return stop_unrecognized_dialog(context, state, 'battle_monitor')
             if phase == 'failure':
                 result = fail_round(context, state, str(parameters.get('reason') or 'unrecognized_screen'), argv.node_name)
                 terminal = not result
@@ -498,15 +709,43 @@ class ScriptTaskState(CustomAction):
         except (CaptureUnavailable, RecordingChanged) as error:
             terminal = True
             reason = 'capture_unavailable' if isinstance(error, CaptureUnavailable) else 'recording_changed'
-            if state is not None:
+            if state is not None and isinstance(error, CaptureUnavailable):
+                try:
+                    return stop_capture_failure(context, state, phase, error)
+                except Cancelled:
+                    _stop_status(state, 'cancelled', 'user_cancelled')
+                except RecordingChanged as changed:
+                    _stop_status(state, 'fatal', 'recording_changed', message=str(changed))
+                except Exception as failure:
+                    _stop_status(state, 'fatal', 'configuration_or_recording_error', message=str(failure))
+            elif state is not None:
                 _stop_status(state, 'fatal', reason, message=str(error))
             return False
         except (NavigationError, TimeoutError) as error:
             terminal = True
             if state is not None:
                 reason = getattr(error, 'reason', 'timeout')
-                if phase == 'navigate' and managed_failure_restart(state) and reason in ('transition_failed', 'budget', 'unreachable', 'timeout'):
-                    _stop_status(state, 'recoverable', 'task_failed', navigation_failure=reason, message=str(error))
+                if reason == 'unrecognized_dialog':
+                    try:
+                        return stop_unrecognized_dialog(context, state, phase)
+                    except Cancelled:
+                        _stop_status(state, 'cancelled', 'user_cancelled')
+                    except RecordingChanged as changed:
+                        _stop_status(state, 'fatal', 'recording_changed', message=str(changed))
+                    except Exception as failure:
+                        _stop_status(state, 'fatal', 'configuration_or_recording_error', message=str(failure))
+                    return False
+                if (state.get('phase') == 'begin'
+                        and (phase in ('navigate', 'failure', 'retry_after_failure', 'success')
+                             or phase == 'begin' and parameters.get('round_flow'))
+                        and managed_failure_restart(state)
+                        and reason in ('transition_failed', 'budget', 'unreachable', 'timeout', 'unknown')):
+                    # Unknown frames never receive guessed input. After bounded
+                    # locating fails, the host may restart its verified process
+                    # and retry this round, with a separate three-restart budget.
+                    # Login/ready, blocked and ambiguous outcomes remain fatal.
+                    _stop_status(state, 'recoverable', 'task_failed', navigation_failure=reason,
+                                 failure_phase=phase, message=str(error) + ' 本轮流程已失败，交由游戏管理重启后继续；本轮未计次。')
                 else:
                     _stop_status(state, 'fatal', 'navigation_' + reason, message=str(error))
             return False

@@ -75,37 +75,43 @@
     "task": "无冥（孤魂岭）",
     "file": "s47-f1.png",
     "stage": 47,
-    "frame": 1
+    "frame": 1,
+    "viewport_translation": [-92, -89]
   },
   {
     "task": "无冥（孤魂岭）",
     "file": "s47-f2.png",
     "stage": 47,
-    "frame": 2
+    "frame": 2,
+    "viewport_translation": [-92, -89]
   },
   {
     "task": "无冥（孤魂岭）",
     "file": "s47-f3.png",
     "stage": 47,
-    "frame": 3
+    "frame": 3,
+    "viewport_translation": [-92, -89]
   },
   {
     "task": "伽岚（万世冥阁）",
     "file": "s61-f1.png",
     "stage": 61,
-    "frame": 1
+    "frame": 1,
+    "viewport_translation": [299, 229]
   },
   {
     "task": "伽岚（万世冥阁）",
     "file": "s61-f2.png",
     "stage": 61,
-    "frame": 2
+    "frame": 2,
+    "viewport_translation": [299, 229]
   },
   {
     "task": "伽岚（万世冥阁）",
     "file": "s61-f3.png",
     "stage": 61,
-    "frame": 3
+    "frame": 3,
+    "viewport_translation": [299, 229]
   },
   {
     "task": "贪妄（金蟾宝宫）",

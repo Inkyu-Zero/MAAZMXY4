@@ -21,6 +21,7 @@ from maa.custom_action import CustomAction
 
 from jzld import board as B
 from jzld import bot as bot
+from mouse_input import finish_mouse_operation
 
 TARGET_SCORE = 45000      # 拿满奖励
 _SCORE_DBG = [0]          # 读分调试只打前 3 次
@@ -71,6 +72,7 @@ def _clear_slag(context, img: np.ndarray, xs, ys, pos) -> bool:
     try:
         controller = context.tasker.controller
         controller.post_swipe(x1, y1, x2, y2, SLAG_SWIPE_MS).wait()
+        finish_mouse_operation(context.tasker.controller)
         _log("        丹渣：把净丹露从 (%d,%d) 拖到 (%d,%d)" % (x1, y1, x2, y2))
         return True
     except Exception as e:  # noqa: BLE001
@@ -650,6 +652,7 @@ def _click(ctx: Context, x: int, y: int) -> None:
     _s = _SCALE[0]
     ctx.tasker.controller.post_click(
         int(round(x * _s)) + CLICK_DX, int(round(y * _s)) + CLICK_DY).wait()
+    finish_mouse_operation(ctx.tasker.controller)
 
 
 @AgentServer.custom_action("jzld_run")

@@ -1,134 +1,286 @@
-"""Bounded graph navigation using the active Maa task's Context.
+"""Target first, related candidates next, shared recovery only on a miss.
 
-The host retains the task queue and controller. This module neither opens a
-second Maa session nor sends device input outside native Pipeline actions.
+Resources declare routes and native guarded actions. The runner owns bounded
+attempts and verification; it never searches a graph or caches coordinates.
 """
 import time
+from types import SimpleNamespace
 
-from .graph import NavigationError, select_state, shortest_path
+from . import NavigationError
+from .recognition import modal_present
 
 
-class GraphNavigator:
-    def __init__(self, context, graph, *, capture, check, log=print, wait=time.sleep, clock=time.monotonic):
-        self.context, self.graph = context, graph
+def _move_cursor_off_target(controller):
+    # Reuse the existing background-only message, without a native CustomAction
+    # node (run_action has no recognition record for such callbacks in Maa 5.12).
+    # Lazy import keeps the successful navigation path free of extra work.
+    from mouse_input import move_off_target
+    return move_off_target(controller)
+
+
+class Navigator:
+    def __init__(self, context, routine, *, capture, check, log=print, wait=time.sleep, clock=time.monotonic, frame=None):
+        self.context, self.routine = context, routine
         self.capture, self.check, self.log = capture, check, log
         self.wait, self.clock = wait, clock
         self.deadline = None
         self.steps, self.attempts = 0, {}
-        self.nodes = {node['id']: node for node in graph['nodes']}
-        self.obscures = {}
-        for ident, node in self.nodes.items():
-            hidden, pending = set(), list(node.get('obscures', []))
-            while pending:
-                child = pending.pop()
-                if child not in hidden:
-                    hidden.add(child)
-                    pending.extend(self.nodes.get(child, {}).get('obscures', []))
-            self.obscures[ident] = hidden
-        # This changes evaluation order, not state-selection priority. Only a
-        # positively identified overlay may suppress its declared backgrounds;
-        # unrelated candidates still run and remain subject to ambiguity checks.
-        self.probes = sorted(self.nodes.values(), key=lambda n:len(self.obscures[n['id']]), reverse=True)
+        self.expected = []
+        self.only_actions = None
+        self.before_input = None
+        self._frame = frame
+        self._frame_id = 1 if frame is not None else 0
+        self._recognized = {}
+        self._entry_hover_cleared = False
+
+    @property
+    def image(self):
+        """One current observation, shared until input or an explicit wait."""
+        self._check()
+        if self._frame is None:
+            self._frame = self.capture()
+            self._frame_id += 1
+            self._check()
+            if self._frame is None:
+                raise ValueError('导航截图为空。')
+        return self._frame
+
+    def invalidate(self):
+        self._frame = None
+        self._recognized.clear()
+
+    def recognize(self, name):
+        self._check()
+        if name not in self._recognized:
+            detail = self.context.run_recognition(name, self.image)
+            self._check()
+            if detail is None:
+                raise ValueError('导航识别节点不可用：' + name)
+            # Native details may retain raw/drawn images. Keep only a decision
+            # and its same-frame box; never accumulate screenshot history.
+            self._recognized[name] = SimpleNamespace(hit=bool(detail.hit),
+                box=getattr(detail, 'box', None), frame_id=self._frame_id, name=name)
+        return self._recognized[name]
+
+    def perform(self, name, hit=None, *, pipeline_override=None):
+        """Dispatch native input using the box already verified on this frame."""
+        hit = hit or self.recognize(name)
+        self._check()
+        if (not hit.hit or hit.box is None or self._frame is None
+                or hit.frame_id != self._frame_id or hit.name != name):
+            raise NavigationError('操作缺少当前帧的有效识别，未发送输入。', reason='transition_failed')
+        box = hit.box
+        if self.before_input is not None:
+            self.before_input()
+        self._check()
+        # A failed action can still have sent input. Invalidate before dispatch
+        # so neither success nor error paths can reuse a pre-action observation.
+        self.invalidate()
+        try:
+            options = {'pipeline_override': pipeline_override} if pipeline_override else {}
+            result = self.context.run_action(name, box=box, **options)
+        except Exception as error:
+            self._check()
+            raise NavigationError('原生导航操作未确认：' + name, reason='transition_failed') from error
+        self._check()
+        kind = getattr(result, 'action', None)
+        kind = getattr(kind, 'name', kind)
+        if result is not None and result.success and kind in ('Click', 'Swipe', 'MultiSwipe', 'Scroll', 'TouchUp'):
+            moved, detail = _move_cursor_off_target(self.context.tasker.controller)
+            self._check()
+            if not moved:
+                raise NavigationError('鼠标操作后的悬停未移开：' + str(detail), reason='transition_failed')
+        return result is not None and bool(result.success)
 
     def _check(self):
         self.check()
         if self.deadline is not None and self.clock() >= self.deadline:
             raise TimeoutError('界面导航超过运行时限，已停止。')
 
-    def _settle(self):
-        end = self.clock() + self.graph.get('settle_ms', 300) / 1000
+    def _settle(self, milliseconds=None):
+        delay = self.routine.get('settle_ms', 200) if milliseconds is None else milliseconds
+        end = self.clock() + delay / 1000
         while self.clock() < end:
             self._check()
             self.wait(min(.03, max(0, end - self.clock())))
 
-    def locate(self):
-        for attempt in range(self.graph['locate_attempts']):
-            self._check()
-            frame, hits, checked = self.capture(), set(), {}
+    def refresh_after_wait(self, milliseconds=None):
+        self._settle(milliseconds)
+        self.invalidate()
 
-            def hit(name):
-                if name not in checked:
-                    self._check()
-                    detail = self.context.run_recognition(name, frame)
-                    if detail is None:
-                        raise ValueError('导航识别节点不可用：' + name)
-                    checked[name] = bool(detail.hit)
-                    self._check()
-                    if checked[name]:
-                        hits.add(name)
-                return checked[name]
+    def _modal_state(self):
+        if not modal_present(self.context, self.image):
+            return None
+        if self.recognize('Result_RevivePrompt').hit:
+            return 'revive_prompt'
+        if self.recognize('Nav_See_profile_sell').hit:
+            return 'profile_sell'
+        # This is an exceptional path. Check the same frame for known blockers
+        # before handing an otherwise unrecognized dialog to task recovery.
+        if self.recognize('Nav_BlockedDialog').hit:
+            raise NavigationError('验证码、登录或阻断提示未处理，导航已停止。', reason='blocked')
+        raise NavigationError('确认浮窗无法识别，未发送导航操作。', reason='unrecognized_dialog')
 
-            for name, reason in self.graph.get('abort', {}).items():
-                if hit(name):
-                    raise NavigationError(reason, reason='blocked')
-            hidden = set()
-            for node in self.probes:
-                if node['id'] in hidden:
-                    continue
-                if not all(hit(name) for name in node['recognition']):
-                    continue
-                if node.get('any') and not any(hit(name) for name in node['any']):
-                    continue
-                if any(hit(name) for name in node.get('exclude', [])):
-                    continue
-                hidden.update(self.obscures[node['id']])
-            try:
-                state = select_state(self.graph, hits)
-            except NavigationError as error:
-                if error.reason != 'unknown' or attempt + 1 == self.graph['locate_attempts']:
-                    raise
-                self.log('暂未识别当前界面，等待画面稳定后重新定位。')
-                self._settle()
+    def _identify(self, candidates):
+        modal = self._modal_state()
+        if modal:
+            return modal
+        screens = self.routine['screens']
+        for ident in candidates:
+            if ident not in screens or not self.recognize(screens[ident]['detector']).hit:
                 continue
-            self.log('当前界面：' + self.nodes[state]['label'])
-            return state
-        raise NavigationError('当前界面无法定位。', reason='unknown')
+            if ident in ('challenge_failed', 'challenge_succeeded'):
+                other = 'Result_Succeeded' if ident == 'challenge_failed' else 'Result_Failed'
+                if self.recognize(other).hit:
+                    raise NavigationError('战斗结果识别存在歧义，未发送返回操作。', reason='ambiguous')
+            if ident in ('login', 'saves'):
+                raise NavigationError('登录或存档界面需要游戏管理核验，导航不直接进入。', reason='blocked')
+            return ident
+        return None
 
-    def _execute(self, edge):
+    def wait_for(self, names, timeout_ms):
+        """Bounded observation-only polling; the successful frame stays current."""
+        end = self.clock() + timeout_ms / 1000
+        while True:
+            self._check()
+            for name in names:
+                if self.recognize(name).hit:
+                    return name
+            if self.clock() >= end:
+                return None
+            self.refresh_after_wait(min(200, max(0, (end-self.clock())*1000)))
+
+    def locate(self):
+        """Reuse one image and stop at the first complete relevant match."""
+        screens = self.routine['screens']
+        # Stage entries already combine clear-map and icon recognition. Use
+        # their same-frame box directly; do not wrap/re-recognize that entry.
+        target = self.routine.get('target_node')
+        if (self.routine.get('kind') == 'stage' and 'task_destination' in self.routine['targets']
+                and target and self.recognize(target).hit):
+            return 'task_destination'
+        quick = [*self.routine['targets'], *self.expected, 'map']
+        quick += self.routine.get('nearby', {}).get(self.routine.get('kind'), [])
+        quick += ['world', 'paused_task_map', 'settings_subpanel', 'settings_menu']
+        candidates = list(dict.fromkeys([*quick, *self.routine['fallback']]))
+        for attempt in range(self.routine.get('locate_attempts', 3)):
+            self._check()
+            ident = self._identify(candidates)
+            if ident:
+                self.log('当前界面：' + screens[ident]['label'])
+                return ident
+            # OCR is a failure fallback, not a tax on every successful probe.
+            if self.recognize('Nav_BlockedDialog').hit:
+                raise NavigationError('验证码、登录或阻断提示未处理，导航已停止。', reason='blocked')
+            if attempt + 1 < self.routine.get('locate_attempts', 3):
+                self.refresh_after_wait()
+        raise NavigationError('当前界面无法定位，未发送导航操作。', reason='unknown')
+
+    def _action(self, current):
+        kind = self.routine.get('kind')
+        if self.only_actions is not None:
+            return next((name for name in self.only_actions
+                         if current in self.routine['actions'][name]['from']), None)
+        if kind == 'bounty':
+            shortcut = {'map':'Nav_OpenQuest', 'quest_panel':'Nav_SelectBountyTab',
+                        'accepted_bounties':'Nav_ChooseBounty', 'world':'Nav_WorldNanzhan'}
+            if current in shortcut: return shortcut[current]
+        elif kind == 'stage':
+            if current == 'map':
+                province = self.routine.get('province')
+                if not province: return None
+                self._check()
+                detail = self.recognize('Nav_Province_' + province)
+                # An icon on this province can be off-screen: the bounded
+                # viewport routine must recheck terrain before every swipe.
+                return None if detail.hit else 'Nav_OpenWorld'
+            if current == 'world':
+                province = self.routine.get('province')
+                return 'Nav_World_' + province if province else None
+        for name in self.routine['routes'].get(self.routine.get('destination', 'map'), []):
+            if current in self.routine['actions'][name]['from']:
+                return name
+        return self.routine['screens'][current].get('exit')
+
+    def _execute(self, name):
+        action = self.routine['actions'][name]
+        if self.attempts.get(name, 0) >= action.get('attempts', 2):
+            raise NavigationError('该导航操作重试次数已用尽：' + action['label'], reason='unreachable')
+        self.log('正在导航：' + action['label'])
+        remaining = max(1, int((self.deadline - self.clock()) * 1000))
+        candidates = [name, 'Result_FailedClear'] if action.get('wait_for_clear') else ['Nav_CachedModal',name]
+        ready = self.wait_for(candidates, min(action.get('timeout_ms', 10000), remaining))
+        if ready == 'Nav_CachedModal':
+            return self._modal_state()
+        if ready == 'Result_FailedClear':
+            return 'challenge_failed'
+        if ready is None:
+            raise NavigationError('预期操作条件未就绪：' + action['label'], reason='transition_failed')
+        self.steps += 1
+        self.attempts[name] = self.attempts.get(name, 0) + 1
+        succeeded = self.perform(name)
+        self.expected = list(action.get('verify', []))
+        verification = list(dict.fromkeys([*self.routine['targets'], *action.get('verify', [])]))
+        if action.get('wait_for_clear'):
+            # A just-cancelled revival can linger; wait without clicking again.
+            found = self.wait_for(['Result_FailedClear'], min(action.get('verify_ms', 15000), remaining))
+            return 'challenge_failed' if found else None
+        end = self.clock() + min(action.get('verify_ms', 10000), remaining) / 1000
+        while True:
+            self._check()
+            actual = self._identify(verification)
+            if actual:
+                return actual
+            if not succeeded or self.clock() >= end:
+                self.log('操作未确认，将重新识别实际画面。')
+                return None
+            self.refresh_after_wait(min(200, max(0, (end-self.clock())*1000)))
+
+    def _clear_entry_hover_once(self, current):
+        """One fallback on a confirmed stage map or accepted-bounty list."""
+        expected = {'stage': 'map', 'bounty': 'accepted_bounties'}.get(self.routine.get('kind'))
+        if (self._entry_hover_cleared or current != expected or self.routine.get('standard_view')
+                or 'task_destination' not in self.routine['targets']
+                or self.only_actions is not None):
+            return False
+        if self.before_input is not None:
+            self.before_input()
         self._check()
-        self.log('正在导航：' + edge['label'])
-        # Maa executes an entry without recognizing it. The wrapper makes the
-        # first real edge node a recognized next, including a one-click edge.
-        wrapper = 'Nav_InvokeEdge'
-        # rate_limit 默认 1000ms：识别没命中就等满一秒再试，一个 8 秒的界面
-        # 切换其实只是重试了 8 次（实测悬赏一轮 4 步 × 7~9 秒 = 30 秒）。压到
-        # 200ms 后同样情况 1.6 秒就过，一轮省 20 秒以上。
-        override = {wrapper: dict(recognition=dict(type='DirectHit'),
-            action=dict(type='DoNothing'), next=[edge['entry']], post_delay=0,
-            rate_limit=200,
-            timeout=min(edge['timeout_ms'], max(1, int((self.deadline-self.clock())*1000))))}
-        result = self.context.run_task(wrapper, override)
+        self._entry_hover_cleared = True
+        self.steps += 1
+        # A posted message may have moved the game's hover even if reporting
+        # fails. Never retain a box or image from before this operation.
+        self.invalidate()
+        try:
+            moved, detail = _move_cursor_off_target(self.context.tasker.controller)
+        except Exception as error:
+            self._check()
+            raise NavigationError('后台移开悬停失败，未继续操作地图。', reason='transition_failed') from error
         self._check()
-        if result is None or not result.status.succeeded:
-            raise NavigationError('导航操作未确认：' + edge['label'], reason='transition_failed')
+        if not moved:
+            raise NavigationError('后台移开悬停失败：' + str(detail), reason='transition_failed')
+        self.log('关卡入口未识别：已后台移开悬停，用新截图重识别一次。')
+        return True
 
     def run(self):
         if self.deadline is None:
-            self.deadline = self.clock() + self.graph['max_seconds']
-        current = self.locate()
-        while current not in self.graph['targets']:
+            self.deadline = self.clock() + self.routine.get('max_seconds', 120)
+        current = None
+        while True:
             self._check()
-            if self.steps >= self.graph['max_steps']:
+            current = current or self.locate()
+            if current in self.routine['targets']: return current
+            if self.steps >= self.routine.get('max_steps', 20):
                 raise NavigationError('界面导航达到最大操作步数。', reason='budget')
-            blocked = {edge['id'] for edge in self.graph['edges']
-                       if self.attempts.get(edge['id'], 0) >= edge['max_attempts']}
-            remaining = dict(self.graph, max_steps=self.graph['max_steps'] - self.steps)
-            route = shortest_path(remaining, current, blocked)
-            if not route:
-                raise NavigationError('没有可执行的导航路径。', reason='unreachable')
-            edge = route[0]
-            self.attempts[edge['id']] = self.attempts.get(edge['id'], 0) + 1
-            self.steps += 1
-            try:
-                self._execute(edge)
-            except NavigationError as error:
-                if error.reason != 'transition_failed':
-                    raise
-                self.log(str(error))
-            self._settle()
-            actual = self.locate()
-            if actual != edge['target']:
-                self.log('跳转后按实际界面重新规划：' + self.nodes[actual]['label'])
-            current = actual
-        self.log('已到达任务界面：' + self.nodes[current]['label'])
-        return current
+            action = self._action(current)
+            if action is None:
+                if self._clear_entry_hover_once(current):
+                    current = None
+                    continue
+                raise NavigationError('已确认界面中没有本任务可执行的入口。', reason='unreachable')
+            if (action == 'Nav_ChooseBounty' and not self.recognize(action).hit
+                    and self._clear_entry_hover_once(current)):
+                current = None
+                continue
+            current = self._execute(action)
+            # Verify a NEW frame; never reuse an old click box after transition.

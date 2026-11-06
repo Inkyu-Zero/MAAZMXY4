@@ -30,6 +30,7 @@ def native_case(mode):
     revive_fixture = ('revival-live/vip-p1-countdown10.png' if mode=='revive_live'
                       else 'revival/normal-p1-up.png')
     revive_frame = read_png_bgr(ROOT / 'tests/fixtures/navigation' / revive_fixture) if is_revive else None
+    blocked_frame = read_png_bgr(ROOT / 'tests/fixtures/navigation/profile-sell.png') if mode=='blocked' else None
 
     class MemoryController(CustomController):
         def __init__(self):
@@ -45,6 +46,7 @@ def native_case(mode):
             self.frames += 1
             # Approximate a real FramePool capture to expose overlapping RPCs.
             time.sleep(.08)
+            if mode=='blocked' and self.inputs==[('down',68)]:return blocked_frame.copy()
             if mode=='return':return failed_frame.copy()
             if is_revive and any(op=='down' for op,_ in self.inputs):
                 return failed_frame.copy() if self.declined else revive_frame.copy()
@@ -56,6 +58,9 @@ def native_case(mode):
         def key_up(self, key):
             self.inputs.append(('up', key)); self.input_times.append(time.monotonic()); return True
         def touch_down(self,contact,x,y,pressure):
+            if mode=='retry_off':
+                assert (x,y)==(500,300),(x,y)
+                self.inputs.append(('recorded_down',[x,y]));self.input_times.append(time.monotonic());return True
             if mode=='return':
                 assert 500<=x<=1050 and 450<=y<=650 and not self.inputs,(x,y,self.inputs)
                 self.inputs.append(('return_down',[x,y]));self.input_times.append(time.monotonic());return True
@@ -63,6 +68,9 @@ def native_case(mode):
             assert self.inputs==[('down',68),('up',68)],self.inputs
             self.inputs.append(('cancel_down',[x,y]));self.input_times.append(time.monotonic());return True
         def touch_up(self,contact):
+            if mode=='retry_off':
+                assert self.inputs[-1][0]=='recorded_down'
+                self.inputs.append(('recorded_up',contact));self.input_times.append(time.monotonic());return True
             if mode=='return':
                 assert self.inputs[-1][0]=='return_down'
                 self.inputs.append(('return_up',contact));self.input_times.append(time.monotonic());return True
@@ -73,7 +81,7 @@ def native_case(mode):
 
     with tempfile.TemporaryDirectory(prefix='battle-playback-transport-') as temporary:
         directory = Path(temporary).resolve()
-        log_dir = ROOT / '.runtime-cache/native-playback-transport'
+        log_dir = Path(os.environ.get('MAAZMXY4_TEST_LOG_DIR', ROOT / '.runtime-cache/native-playback-transport'))
         log_dir.mkdir(parents=True, exist_ok=True)
         Tasker.set_log_dir(log_dir)
         (directory / 'pipeline').mkdir()
@@ -81,7 +89,7 @@ def native_case(mode):
         definitions = json.loads((ROOT / 'assets/resource/base/pipeline/battle_outcomes.json').read_text(encoding='utf8'))
         pipeline = {name: definitions[name] for name in ('Result_Failed', 'Result_Succeeded',
             'Result_RevivePrompt','Result_ReviveWindow','Result_ReviveLayoutP1','Result_ReviveLayoutP2',
-            'Result_DeclineRevive','Result_NoRevivePrompt','Result_FailedReturn')}
+            'Result_DeclineRevive','Result_NoRevivePrompt','Result_FailedReturn','Nav_ModalPresent','Result_ReviveEvidence','Nav_CachedModal')}
         pipeline.update(json.loads((ROOT / 'assets/resource/base/pipeline/navigation_common_ui.json').read_text(encoding='utf8')))
         def templates(value):
             if isinstance(value,dict):
@@ -102,22 +110,36 @@ def native_case(mode):
                 dict(t=62, op='keyup', key=68),
                 dict(t=200, op='keydown', key=75),
                 dict(t=62, op='keyup', key=75)]
-        if mode=='defeat' or is_revive:
+        if mode in ('defeat','blocked') or is_revive:
             actions = [dict(t=453, op='keydown', key=68),
                        dict(t=1500, op='keyup', key=68),
                        dict(t=100, op='click', x=500, y=300)]
+        if mode=='retry_off':
+            actions=[dict(t=453,op='keydown',key=68),dict(t=2500,op='keyup',key=68),
+                     dict(t=100,op='click',x=500,y=300)]
         recording.write_text(json.dumps(dict(version=1, name='synthetic', base=[1148, 720],
-            duration_ms=2200 if mode=='defeat' or is_revive else 1400, actions=actions)), encoding='utf8')
+            duration_ms=3600 if mode=='retry_off' else 2200 if mode in ('defeat','blocked') or is_revive else 1400,
+            actions=actions)), encoding='utf8')
         policy = dict(failed_next=['Failure'], succeeded_next=['Success'],
                       default_next=['Exit'], interval_ms=400)
         policy['revive_next']=['Decline','ConfirmDefeat'] if is_revive else ['Exit']
+        if mode=='blocked':policy['error_next']=['Fatal']
         pipeline['Probe'] = {'action': {'type': 'Custom', 'param': {
-            'custom_action': 'battle_play',
+            'custom_action': 'observed_playback',
             'custom_action_param': {'file': str(recording), 'result_guard': policy}}}, 'post_delay': 0}
-        for name in ('Failure', 'Success', 'Exit'):
+        for name in ('Failure', 'Success', 'Exit', 'Fatal'):
             pipeline[name] = {'action': {'type': 'Custom', 'param': {
                 'custom_action': 'capture_branch', 'custom_action_param': name}}, 'post_delay': 0}
         if mode=='return':pipeline['Failure']['next']=['Result_FailedReturn']
+        if mode=='retry_off':
+            # Exercise the production initializer and native merge: the old
+            # monitor and result branch must both be replaced before playback.
+            pipeline['Prepare']=dict(action=dict(type='Custom',param=dict(custom_action='script_task_state',
+                custom_action_param=dict(phase='begin',file=recording.name,playback_node='Probe',
+                    route_node='Route',result_guard=policy,failure_retry=dict(enabled=False,max_retries=3)))),
+                next=['Probe'],post_delay=0)
+            pipeline['Probe']['next']=['Failure']
+            pipeline['Route']=dict(action=dict(type='DoNothing'),next=['Exit'],post_delay=0)
         if is_revive:
             from copy import deepcopy
             pipeline['Decline']=deepcopy(definitions['Result_DeclineRevive'])
@@ -132,8 +154,25 @@ sys.path.insert(0, sys.argv[2])
 from maa.agent.agent_server import AgentServer
 from maa.custom_action import CustomAction
 import battle_player
+import script_task
+from pathlib import Path
+from unittest.mock import patch
+script_task.ROOT=Path.cwd()
+script_task.RECORDINGS=Path.cwd()
+script_task.STATUS_DIRECTORY=Path.cwd()/'debug/task-runs'
+battle_player.RECORDING_DIR=str(Path.cwd())
 from battle_ui import NoRevivePrompt
 AgentServer.custom_recognition('battle_no_revive')(NoRevivePrompt)
+@AgentServer.custom_action('observed_playback')
+class ObservedPlayback(CustomAction):
+    def run(self, context, argv):
+        controller_type=type(context.tasker.controller)
+        original=controller_type.post_screencap
+        def capture(controller,*args,**kwargs):
+            print('PLAYBACK_CAPTURE',flush=True)
+            return original(controller,*args,**kwargs)
+        with patch.object(controller_type,'post_screencap',capture):
+            return battle_player.BattlePlay().run(context,argv)
 @AgentServer.custom_action('capture_branch')
 class Branch(CustomAction):
     def run(self, context, argv):
@@ -158,7 +197,7 @@ AgentServer.shut_down()
             result = {}
             try:
                 assert client.connect()
-                job = tasker.post_task('Probe')
+                job = tasker.post_task('Prepare' if mode=='retry_off' else 'Probe')
                 def wait():
                     result['succeeded'] = job.wait().succeeded
                 waiter = threading.Thread(target=wait, daemon=True)
@@ -168,6 +207,7 @@ AgentServer.shut_down()
                 server_output = (directory / 'server.log').read_text(encoding='utf8', errors='replace')
                 branches = [json.loads(line[7:]) for line in server_output.splitlines() if line.startswith('BRANCH ')]
                 report = dict(stalled=waiter.is_alive(), succeeded=result.get('succeeded', False),
+                              playback_captures=server_output.count('PLAYBACK_CAPTURE'),
                               frames=controller.frames, inputs=controller.inputs, branches=branches,
                               input_times_ms=[round((t - controller.input_times[0]) * 1000, 1)
                                               for t in controller.input_times])
@@ -203,6 +243,7 @@ class PlaybackTransportTests(unittest.TestCase):
         report = self.run_case('normal')
         self.assertEqual(report['inputs'], [['down', 68], ['up', 68], ['down', 75], ['up', 75]])
         self.assertGreaterEqual(report['frames'], 2)
+        self.assertGreaterEqual(report['playback_captures'],2)
         self.assertEqual(report['branches'], ['Exit'])
         self.assertLess(report['input_times_ms'][1], 500, report)
 
@@ -210,6 +251,17 @@ class PlaybackTransportTests(unittest.TestCase):
         report = self.run_case('defeat')
         self.assertEqual(report['inputs'], [['down', 68], ['up', 68]])
         self.assertEqual(report['branches'], ['Failure'])
+
+    def test_retry_off_removes_stale_monitor_and_plays_keys_and_mouse_without_captures(self):
+        report=self.run_case('retry_off')
+        self.assertEqual(report['playback_captures'],0)
+        self.assertEqual([op for op,_ in report['inputs']],['down','up','recorded_down','recorded_up'])
+        self.assertEqual(report['branches'],['Exit'])
+
+    def test_disappearing_confirmation_keeps_terminal_branch_over_agent_ipc(self):
+        report=self.run_case('blocked')
+        self.assertEqual(report['inputs'],[['down',68],['up',68]])
+        self.assertEqual(report['branches'],['Fatal'])
 
     def test_revive_during_held_key_releases_before_declining_and_confirms_defeat(self):
         report=self.run_case('revive')

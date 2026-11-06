@@ -51,6 +51,8 @@ def native_case(mode):
         canonical=json.loads((ROOT/'assets/resource/base/pipeline/悬赏（守卫太宗）.json').read_bytes())
         params=next(custom_parameters(node) for node in canonical.values()
                     if custom_parameters(node).get('phase')=='begin' and custom_parameters(node).get('navigation'))
+        params.pop('round_flow',None)
+        params['result_guard']=None
         params.update(file=str(recording),run_id=run,instance_id='memory',status_path=str(status),navigation_entry='ReturnProbe_Continue')
         def action(phase):return dict(type='Custom',param=dict(custom_action='script_task_state',custom_action_param=dict(phase=phase)))
         overrides={
@@ -60,8 +62,16 @@ def native_case(mode):
             'ReturnProbe_Continue':dict(action=dict(type='Custom',param=dict(custom_action='return_probe_done')),post_delay=0),
             '脚本任务设置':dict(action=dict(param=dict(custom_action_param=dict(afk_mode=True)))),
             params['playback_node']:dict(action=dict(param=dict(custom_action_param=dict(file=str(recording))))),
-            PREFIX+'失败返回地图':dict(timeout=200,post_delay=0),
         }
+        returned=PREFIX+'失败返回确认'
+        failure=PREFIX+'失败'
+        import copy
+        result_nodes=json.loads((ROOT/'assets/resource/base/pipeline/battle_outcomes.json').read_bytes())
+        overrides[PREFIX+'失败返回地图']=copy.deepcopy(result_nodes['Result_FailedReturn'])
+        overrides[PREFIX+'失败返回地图'].update(timeout=200,post_delay=0,next=[returned],on_error=[failure])
+        overrides[returned]=dict(recognition=dict(type='And',param=dict(all_of=['Nav_ClearMap'])),
+            action=action('retry_after_failure'),next=[],timeout=200,post_delay=0,on_error=[failure])
+        overrides[failure]=dict(action=action('failure'),next=[],post_delay=0)
         server=folder/'server.py'
         server.write_text('''import sys
 from pathlib import Path

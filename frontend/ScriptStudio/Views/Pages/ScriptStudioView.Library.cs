@@ -44,26 +44,47 @@ public sealed partial class ScriptStudioView
         _captureState.FontSize = 19; _captureState.FontWeight = FontWeight.SemiBold;
         _captureState.TextWrapping = TextWrapping.Wrap; _captureState.Text = "准备就绪";
         recording.Children.Add(_captureState);
-        recording.Children.Add(Wrap(_record, _pause, _stop));
+        var actions = new Grid { ColumnDefinitions = new ColumnDefinitions("*,*"), RowDefinitions = new RowDefinitions("Auto,Auto"),
+            ColumnSpacing = 8, RowSpacing = 8 };
+        foreach (var button in new[] { _record, _stop, _pause, _discardRecording })
+        {
+            button.Height = button.MinHeight = 40; button.MinWidth = 0; button.Padding = new Thickness(4, 4);
+            button.FontSize = 12; button.HorizontalAlignment = HorizontalAlignment.Stretch;
+            button.HorizontalContentAlignment = HorizontalAlignment.Center; button.VerticalContentAlignment = VerticalAlignment.Center;
+        }
+        _discardRecording.Background = new SolidColorBrush(Color.Parse("#B83232"));
+        _discardRecording.Foreground = Brushes.White;
+        _discardRecording.BorderBrush = new SolidColorBrush(Color.Parse("#B83232"));
+        actions.Children.Add(_record);
+        Grid.SetColumn(_stop, 1); actions.Children.Add(_stop);
+        Grid.SetRow(_pause, 1); actions.Children.Add(_pause);
+        Grid.SetRow(_discardRecording, 1); Grid.SetColumn(_discardRecording, 1); actions.Children.Add(_discardRecording);
+        recording.Children.Add(actions);
+        ToolTip.SetTip(_doubleClickDiscard, "勾选后，录制区的放弃按钮需要双击；时间轴上的放弃按钮和快捷键不受影响。本选项在当前页面有效。");
+        recording.Children.Add(_doubleClickDiscard);
         _mark = Button("添加标记", async () => await _vm.Client.CallAsync("capture_mark", new JsonObject { ["label"] = "阶段标记" }));
         recording.Children.Add(_mark); recording.Children.Add(_captureHint);
         recording.Children.Add(new Separator());
-        recording.Children.Add(new TextBlock { Text = "F8  暂停 / 继续\nF9  停止录制\nF10  停止并保存\n\n单击继续后有3秒切回游戏。停止后可在时间轴编辑，首次保存时再命名。", TextWrapping = TextWrapping.Wrap, FontSize = 12, Opacity = .65 });
+        recording.Children.Add(new TextBlock { Text = "F8  暂停 / 继续\nF9  停止录制\nF10  停止并保存\n\n单击继续后有3秒切回游戏。停止后可在时间轴编辑，首次保存时再命名。放弃本次录制会直接丢弃，不保存草稿。", TextWrapping = TextWrapping.Wrap, FontSize = 12, Opacity = .65 });
         _recordingExpander = new Expander { Header = "录制脚本", Content = recording, IsExpanded = true,
             HorizontalAlignment = HorizontalAlignment.Stretch, HorizontalContentAlignment = HorizontalAlignment.Stretch };
         var captureCard = Card(_recordingExpander); captureCard.Padding = new Thickness(12); captureCard.VerticalAlignment = VerticalAlignment.Top;
-        Grid.SetColumn(captureCard, 2); layout.Children.Add(captureCard);
+        var captureScroll = new ScrollViewer { Content = captureCard, HorizontalContentAlignment = HorizontalAlignment.Stretch,
+            HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled,
+            VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto, VerticalAlignment = VerticalAlignment.Top };
+        Grid.SetColumn(captureScroll, 2); layout.Children.Add(captureScroll);
         var narrow = false;
         layout.SizeChanged += (_, _) =>
         {
             var next = layout.Bounds.Width < 900;
+            captureScroll.MaxHeight = next ? Math.Max(120, layout.Bounds.Height - 54) : double.PositiveInfinity;
             if (next == narrow) return;
             narrow = next;
             _libraryNarrow = narrow;
             layout.ColumnDefinitions = new ColumnDefinitions(narrow ? "*" : "*,12,300");
             layout.RowDefinitions = new RowDefinitions(narrow ? "Auto,*" : "*");
             layout.RowSpacing = narrow ? 8 : 0;
-            Grid.SetRow(library, narrow ? 1 : 0); Grid.SetColumn(captureCard, narrow ? 0 : 2);
+            Grid.SetRow(library, narrow ? 1 : 0); Grid.SetColumn(captureScroll, narrow ? 0 : 2);
             _recordingExpander.IsExpanded = !narrow || _vm.Capturing;
         };
         return layout;

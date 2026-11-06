@@ -1,0 +1,1112 @@
+{
+  "version": 2,
+  "max_seconds": 120,
+  "max_steps": 20,
+  "locate_attempts": 3,
+  "settle_ms": 300,
+  "screens": {
+    "daily_menu": {
+      "detector": "Nav_See_daily_menu",
+      "label": "须弥山日常活动菜单",
+      "exit": "Nav_Close_daily_menu"
+    },
+    "daily_expanded": {
+      "detector": "Nav_See_daily_expanded",
+      "label": "日常活动菜单（暂停）",
+      "exit": "Nav_ResumeDaily"
+    },
+    "login": {
+      "detector": "Nav_See_login",
+      "label": "开始游戏"
+    },
+    "saves": {
+      "detector": "Nav_See_saves",
+      "label": "存档记录"
+    },
+    "world": {
+      "detector": "Nav_See_world",
+      "label": "世界地图",
+      "exit": "Nav_WorldNanzhan"
+    },
+    "activity": {
+      "detector": "Nav_See_activity",
+      "label": "活跃奖励",
+      "exit": "Nav_Close_activity"
+    },
+    "profile": {
+      "detector": "Nav_See_profile",
+      "label": "个人资料／背包",
+      "exit": "Nav_Close_profile"
+    },
+    "treasure": {
+      "detector": "Nav_See_treasure",
+      "label": "法宝",
+      "exit": "Nav_Close_treasure"
+    },
+    "time_boat": {
+      "detector": "Nav_See_time_boat",
+      "label": "时光之舟",
+      "exit": "Nav_Close_time_boat"
+    },
+    "theme": {
+      "detector": "Nav_See_theme",
+      "label": "主题挑战",
+      "exit": "Nav_Close_theme"
+    },
+    "hell": {
+      "detector": "Nav_See_hell",
+      "label": "螺旋地狱",
+      "exit": "Nav_Close_hell"
+    },
+    "arhat": {
+      "detector": "Nav_See_arhat",
+      "label": "罗汉堂",
+      "exit": "Nav_Close_arhat"
+    },
+    "fortune": {
+      "detector": "Nav_See_fortune",
+      "label": "挑战福禄寿",
+      "exit": "Nav_Close_fortune"
+    },
+    "mount_gather": {
+      "detector": "Nav_See_mount_gather",
+      "label": "骑装加速养成",
+      "exit": "Nav_Close_mount_gather"
+    },
+    "arena": {
+      "detector": "Nav_See_arena",
+      "label": "竞技场对手列表",
+      "exit": "Nav_Close_arena"
+    },
+    "shop_mystery": {
+      "detector": "Nav_See_shop_mystery",
+      "label": "神秘商店",
+      "exit": "Nav_Close_shop_mystery"
+    },
+    "time_replay_1": {
+      "detector": "Nav_See_time_replay_1",
+      "label": "时光重现 · 第 1 页",
+      "exit": "Nav_Go_time_replay_1_time_boat"
+    },
+    "time_replay_2": {
+      "detector": "Nav_See_time_replay_2",
+      "label": "时光重现 · 第 2 页",
+      "exit": "Nav_Go_time_replay_2_time_boat"
+    },
+    "defend_south": {
+      "detector": "Nav_See_defend_south",
+      "label": "守卫须弥山 · 城南",
+      "exit": "Nav_Close_defend_south"
+    },
+    "defend_east": {
+      "detector": "Nav_See_defend_east",
+      "label": "守卫须弥山 · 城东",
+      "exit": "Nav_Close_defend_east"
+    },
+    "defend_north": {
+      "detector": "Nav_See_defend_north",
+      "label": "守卫须弥山 · 城北",
+      "exit": "Nav_Close_defend_north"
+    },
+    "bounty_board": {
+      "detector": "Nav_See_bounty_board",
+      "label": "未接取悬赏榜",
+      "exit": "Nav_Close_bounty_board"
+    },
+    "alliance": {
+      "detector": "Nav_See_alliance",
+      "label": "我的联盟",
+      "exit": "Nav_Close_alliance"
+    },
+    "alliance_contribution": {
+      "detector": "Nav_See_alliance_contribution",
+      "label": "联盟贡献",
+      "exit": "Nav_Go_alliance_contribution_alliance"
+    },
+    "alliance_blessing": {
+      "detector": "Nav_See_alliance_blessing",
+      "label": "联盟祝福",
+      "exit": "Nav_Go_alliance_blessing_alliance"
+    },
+    "survival_week": {
+      "detector": "Nav_See_survival_week",
+      "label": "生存大冒险 · 每周列表",
+      "exit": "Nav_Close_survival_week"
+    },
+    "survival_question": {
+      "detector": "Nav_See_survival_question",
+      "label": "生存大冒险 · 答题"
+    },
+    "survival_rewards": {
+      "detector": "Nav_See_survival_rewards",
+      "label": "生存大冒险 · 积分奖励",
+      "exit": "Nav_Go_survival_rewards_survival_week"
+    },
+    "profile_sell": {
+      "detector": "Nav_See_profile_sell",
+      "label": "一键出售确认",
+      "exit": "Nav_Go_profile_sell_profile"
+    },
+    "warehouse": {
+      "detector": "Nav_See_warehouse",
+      "label": "仓库",
+      "exit": "Nav_Go_warehouse_profile"
+    },
+    "settings_menu": {
+      "detector": "Nav_SettingsMenu",
+      "label": "设置菜单",
+      "exit": "Nav_SettingsReturn"
+    },
+    "sumeru": {
+      "detector": "Nav_See_sumeru",
+      "label": "须弥山",
+      "exit": "Nav_Go_task_map_world"
+    },
+    "map": {
+      "detector": "Nav_ClearMap",
+      "label": "人物大地图"
+    },
+    "quest_panel": {
+      "detector": "Nav_QuestPanel",
+      "label": "任务面板",
+      "exit": "Nav_CloseQuest"
+    },
+    "accepted_bounties": {
+      "detector": "Nav_AcceptedBounties",
+      "label": "已接悬赏任务",
+      "exit": "Nav_CloseQuest"
+    },
+    "settings_subpanel": {
+      "detector": "Nav_SettingsSubpanel",
+      "label": "设置子窗口",
+      "exit": "Nav_CloseSettingsSubpanel"
+    },
+    "paused_task_map": {
+      "detector": "Nav_PausedTaskMap",
+      "label": "大地图暂停",
+      "exit": "Nav_ResumeTaskMap"
+    },
+    "challenge_failed": {
+      "detector": "Result_Failed",
+      "label": "挑战失败",
+      "exit": "Result_FailedReturn"
+    },
+    "challenge_succeeded": {
+      "detector": "Result_Succeeded",
+      "label": "挑战成功",
+      "exit": "Result_SucceededReturn"
+    },
+    "revive_prompt": {
+      "detector": "Result_RevivePrompt",
+      "label": "复活确认",
+      "exit": "Result_DeclineRevive"
+    },
+    "nanzhan": {
+      "detector": "Nav_Nanzhan",
+      "label": "南瞻部洲",
+      "exit": "Nav_OpenWorld"
+    },
+    "paused_sumeru": {
+      "detector": "Nav_See_paused_sumeru",
+      "label": "须弥山暂停",
+      "exit": "Nav_ResumeSumeru"
+    }
+  },
+  "actions": {
+    "Nav_Go_task_map_world": {
+      "from": [
+        "sumeru"
+      ],
+      "verify": [
+        "world"
+      ],
+      "label": "打开世界地图"
+    },
+    "Nav_Go_task_map_profile": {
+      "from": [
+        "sumeru"
+      ],
+      "verify": [
+        "profile"
+      ],
+      "label": "打开个人资料／背包"
+    },
+    "Nav_Go_task_map_treasure": {
+      "from": [
+        "sumeru"
+      ],
+      "verify": [
+        "treasure"
+      ],
+      "label": "打开法宝"
+    },
+    "Nav_Go_task_map_alliance": {
+      "from": [
+        "sumeru"
+      ],
+      "verify": [
+        "alliance"
+      ],
+      "label": "打开我的联盟"
+    },
+    "Nav_Go_task_map_time_boat": {
+      "from": [
+        "sumeru"
+      ],
+      "verify": [
+        "time_boat"
+      ],
+      "label": "打开时光之舟"
+    },
+    "Nav_Go_task_map_daily_menu": {
+      "from": [
+        "sumeru"
+      ],
+      "verify": [
+        "daily_menu"
+      ],
+      "label": "展开日常活动"
+    },
+    "Nav_Close_daily_menu": {
+      "from": [
+        "daily_menu"
+      ],
+      "verify": [
+        "sumeru",
+        "paused_sumeru"
+      ],
+      "label": "收起日常活动"
+    },
+    "Nav_Go_daily_menu_arena": {
+      "from": [
+        "daily_menu"
+      ],
+      "verify": [
+        "arena"
+      ],
+      "label": "打开竞技场对手列表"
+    },
+    "Nav_Go_daily_menu_theme": {
+      "from": [
+        "daily_menu"
+      ],
+      "verify": [
+        "theme"
+      ],
+      "label": "打开主题挑战"
+    },
+    "Nav_Go_daily_menu_hell": {
+      "from": [
+        "daily_menu"
+      ],
+      "verify": [
+        "hell"
+      ],
+      "label": "打开螺旋地狱"
+    },
+    "Nav_Go_daily_menu_arhat": {
+      "from": [
+        "daily_menu"
+      ],
+      "verify": [
+        "arhat"
+      ],
+      "label": "打开罗汉堂"
+    },
+    "Nav_Go_daily_menu_fortune": {
+      "from": [
+        "daily_menu"
+      ],
+      "verify": [
+        "fortune"
+      ],
+      "label": "打开挑战福禄寿"
+    },
+    "Nav_Go_daily_menu_survival_week": {
+      "from": [
+        "daily_menu"
+      ],
+      "verify": [
+        "survival_week"
+      ],
+      "label": "打开生存大冒险 · 每周列表"
+    },
+    "Nav_Go_daily_menu_defend_south": {
+      "from": [
+        "daily_menu"
+      ],
+      "verify": [
+        "defend_south"
+      ],
+      "label": "打开守卫须弥山并确认当前页签"
+    },
+    "Nav_Go_defend_south_defend_east": {
+      "from": [
+        "defend_south"
+      ],
+      "verify": [
+        "defend_east"
+      ],
+      "label": "切换守卫城市页签"
+    },
+    "Nav_Go_defend_south_defend_north": {
+      "from": [
+        "defend_south"
+      ],
+      "verify": [
+        "defend_north"
+      ],
+      "label": "切换守卫城市页签"
+    },
+    "Nav_Go_defend_east_defend_south": {
+      "from": [
+        "defend_east"
+      ],
+      "verify": [
+        "defend_south"
+      ],
+      "label": "切换守卫城市页签"
+    },
+    "Nav_Go_defend_east_defend_north": {
+      "from": [
+        "defend_east"
+      ],
+      "verify": [
+        "defend_north"
+      ],
+      "label": "切换守卫城市页签"
+    },
+    "Nav_Go_defend_north_defend_south": {
+      "from": [
+        "defend_north"
+      ],
+      "verify": [
+        "defend_south"
+      ],
+      "label": "切换守卫城市页签"
+    },
+    "Nav_Go_defend_north_defend_east": {
+      "from": [
+        "defend_north"
+      ],
+      "verify": [
+        "defend_east"
+      ],
+      "label": "切换守卫城市页签"
+    },
+    "Nav_Go_time_boat_time_replay_1": {
+      "from": [
+        "time_boat"
+      ],
+      "verify": [
+        "time_replay_1"
+      ],
+      "label": "打开时光重现并确认页码"
+    },
+    "Nav_Go_time_replay_1_time_replay_2": {
+      "from": [
+        "time_replay_1"
+      ],
+      "verify": [
+        "time_replay_2"
+      ],
+      "label": "切换时光重现页码"
+    },
+    "Nav_Go_time_replay_1_time_boat": {
+      "from": [
+        "time_replay_1"
+      ],
+      "verify": [
+        "time_boat"
+      ],
+      "label": "关闭当前面板并重新定位"
+    },
+    "Nav_Go_time_replay_2_time_boat": {
+      "from": [
+        "time_replay_2"
+      ],
+      "verify": [
+        "time_boat"
+      ],
+      "label": "关闭当前面板并重新定位"
+    },
+    "Nav_Go_alliance_alliance_contribution": {
+      "from": [
+        "alliance"
+      ],
+      "verify": [
+        "alliance_contribution"
+      ],
+      "label": "打开联盟贡献面板"
+    },
+    "Nav_Go_profile_warehouse": {
+      "from": [
+        "profile"
+      ],
+      "verify": [
+        "warehouse"
+      ],
+      "label": "打开仓库"
+    },
+    "Nav_Go_survival_week_survival_rewards": {
+      "from": [
+        "survival_week"
+      ],
+      "verify": [
+        "survival_rewards"
+      ],
+      "label": "查看积分奖励"
+    },
+    "Nav_Close_activity": {
+      "from": [
+        "activity"
+      ],
+      "verify": [
+        "map",
+        "sumeru",
+        "paused_task_map",
+        "paused_sumeru"
+      ],
+      "label": "关闭当前面板并重新定位"
+    },
+    "Nav_Close_profile": {
+      "from": [
+        "profile"
+      ],
+      "verify": [
+        "map",
+        "sumeru",
+        "paused_task_map",
+        "paused_sumeru"
+      ],
+      "label": "关闭当前面板并重新定位"
+    },
+    "Nav_Close_treasure": {
+      "from": [
+        "treasure"
+      ],
+      "verify": [
+        "map",
+        "sumeru",
+        "paused_task_map",
+        "paused_sumeru"
+      ],
+      "label": "关闭当前面板并重新定位"
+    },
+    "Nav_Close_arena": {
+      "from": [
+        "arena"
+      ],
+      "verify": [
+        "map",
+        "sumeru",
+        "paused_task_map",
+        "paused_sumeru"
+      ],
+      "label": "关闭当前面板并重新定位"
+    },
+    "Nav_Close_shop_mystery": {
+      "from": [
+        "shop_mystery"
+      ],
+      "verify": [
+        "map",
+        "sumeru",
+        "paused_task_map",
+        "paused_sumeru"
+      ],
+      "label": "关闭当前面板并重新定位"
+    },
+    "Nav_Close_time_boat": {
+      "from": [
+        "time_boat"
+      ],
+      "verify": [
+        "map",
+        "sumeru",
+        "paused_task_map",
+        "paused_sumeru"
+      ],
+      "label": "关闭当前面板并重新定位"
+    },
+    "Nav_Close_theme": {
+      "from": [
+        "theme"
+      ],
+      "verify": [
+        "map",
+        "sumeru",
+        "paused_task_map",
+        "paused_sumeru"
+      ],
+      "label": "关闭当前面板并重新定位"
+    },
+    "Nav_Close_hell": {
+      "from": [
+        "hell"
+      ],
+      "verify": [
+        "map",
+        "sumeru",
+        "paused_task_map",
+        "paused_sumeru"
+      ],
+      "label": "关闭当前面板并重新定位"
+    },
+    "Nav_Close_arhat": {
+      "from": [
+        "arhat"
+      ],
+      "verify": [
+        "map",
+        "sumeru",
+        "paused_task_map",
+        "paused_sumeru"
+      ],
+      "label": "关闭当前面板并重新定位"
+    },
+    "Nav_Close_fortune": {
+      "from": [
+        "fortune"
+      ],
+      "verify": [
+        "map",
+        "sumeru",
+        "paused_task_map",
+        "paused_sumeru"
+      ],
+      "label": "关闭当前面板并重新定位"
+    },
+    "Nav_Close_bounty_board": {
+      "from": [
+        "bounty_board"
+      ],
+      "verify": [
+        "map",
+        "sumeru",
+        "paused_task_map",
+        "paused_sumeru"
+      ],
+      "label": "关闭当前面板并重新定位"
+    },
+    "Nav_Close_alliance": {
+      "from": [
+        "alliance"
+      ],
+      "verify": [
+        "map",
+        "sumeru",
+        "paused_task_map",
+        "paused_sumeru"
+      ],
+      "label": "关闭当前面板并重新定位"
+    },
+    "Nav_Close_mount_gather": {
+      "from": [
+        "mount_gather"
+      ],
+      "verify": [
+        "map",
+        "sumeru",
+        "paused_task_map",
+        "paused_sumeru"
+      ],
+      "label": "关闭当前面板并重新定位"
+    },
+    "Nav_Close_survival_week": {
+      "from": [
+        "survival_week"
+      ],
+      "verify": [
+        "map",
+        "sumeru",
+        "paused_task_map",
+        "paused_sumeru"
+      ],
+      "label": "关闭当前面板并重新定位"
+    },
+    "Nav_Close_defend_south": {
+      "from": [
+        "defend_south"
+      ],
+      "verify": [
+        "map",
+        "sumeru",
+        "paused_task_map",
+        "paused_sumeru"
+      ],
+      "label": "关闭当前面板并重新定位"
+    },
+    "Nav_Close_defend_east": {
+      "from": [
+        "defend_east"
+      ],
+      "verify": [
+        "map",
+        "sumeru",
+        "paused_task_map",
+        "paused_sumeru"
+      ],
+      "label": "关闭当前面板并重新定位"
+    },
+    "Nav_Close_defend_north": {
+      "from": [
+        "defend_north"
+      ],
+      "verify": [
+        "map",
+        "sumeru",
+        "paused_task_map",
+        "paused_sumeru"
+      ],
+      "label": "关闭当前面板并重新定位"
+    },
+    "Nav_Go_alliance_contribution_alliance": {
+      "from": [
+        "alliance_contribution"
+      ],
+      "verify": [
+        "alliance"
+      ],
+      "label": "关闭当前面板并重新定位"
+    },
+    "Nav_Go_alliance_blessing_alliance": {
+      "from": [
+        "alliance_blessing"
+      ],
+      "verify": [
+        "alliance"
+      ],
+      "label": "关闭当前面板并重新定位"
+    },
+    "Nav_Go_survival_rewards_survival_week": {
+      "from": [
+        "survival_rewards"
+      ],
+      "verify": [
+        "survival_week"
+      ],
+      "label": "关闭当前面板并重新定位"
+    },
+    "Nav_Go_warehouse_profile": {
+      "from": [
+        "warehouse"
+      ],
+      "verify": [
+        "profile"
+      ],
+      "label": "关闭当前面板并重新定位"
+    },
+    "Nav_Go_profile_sell_profile": {
+      "from": [
+        "profile_sell"
+      ],
+      "verify": [
+        "profile"
+      ],
+      "label": "取消出售并返回背包"
+    },
+    "Nav_WorldSumeru": {
+      "from": [
+        "world"
+      ],
+      "verify": [
+        "sumeru"
+      ],
+      "label": "从世界地图进入须弥山"
+    },
+    "Nav_OpenWorld": {
+      "from": [
+        "map"
+      ],
+      "verify": [
+        "world"
+      ],
+      "label": "打开世界地图"
+    },
+    "Nav_OpenProfile": {
+      "from": [
+        "map"
+      ],
+      "verify": [
+        "profile"
+      ],
+      "label": "打开背包"
+    },
+    "Nav_OpenTreasure": {
+      "from": [
+        "map"
+      ],
+      "verify": [
+        "treasure"
+      ],
+      "label": "打开法宝"
+    },
+    "Nav_OpenActivity": {
+      "from": [
+        "map"
+      ],
+      "verify": [
+        "activity"
+      ],
+      "label": "打开活跃奖励"
+    },
+    "Nav_OpenQuest": {
+      "from": [
+        "map"
+      ],
+      "verify": [
+        "quest_panel"
+      ],
+      "label": "打开任务面板"
+    },
+    "Nav_SelectBountyTab": {
+      "from": [
+        "quest_panel"
+      ],
+      "verify": [
+        "accepted_bounties"
+      ],
+      "label": "切换已接悬赏"
+    },
+    "Nav_ChooseBounty": {
+      "from": [
+        "accepted_bounties"
+      ],
+      "verify": [
+        "task_destination"
+      ],
+      "label": "选择本任务悬赏"
+    },
+    "Nav_CloseQuest": {
+      "from": [
+        "quest_panel",
+        "accepted_bounties"
+      ],
+      "verify": [
+        "map"
+      ],
+      "label": "关闭任务面板"
+    },
+    "Nav_CloseSettingsSubpanel": {
+      "from": [
+        "settings_subpanel"
+      ],
+      "verify": [
+        "settings_menu"
+      ],
+      "label": "关闭设置子窗口"
+    },
+    "Nav_ResumeTaskMap": {
+      "from": [
+        "paused_task_map"
+      ],
+      "verify": [
+        "map"
+      ],
+      "label": "恢复暂停地图"
+    },
+    "Nav_ResumeDaily": {
+      "from": [
+        "daily_expanded"
+      ],
+      "verify": [
+        "daily_menu"
+      ],
+      "label": "恢复暂停须弥山"
+    },
+    "Result_FailedReturn": {
+      "from": [
+        "challenge_failed"
+      ],
+      "verify": [
+        "map"
+      ],
+      "label": "战败返回地图"
+    },
+    "Result_SucceededReturn": {
+      "from": [
+        "challenge_succeeded"
+      ],
+      "verify": [
+        "map"
+      ],
+      "label": "通关返回地图"
+    },
+    "Result_DeclineRevive": {
+      "from": [
+        "revive_prompt"
+      ],
+      "verify": [
+        "challenge_failed"
+      ],
+      "label": "拒绝复活",
+      "timeout_ms": 15000,
+      "verify_ms": 15000,
+      "wait_for_clear": true
+    },
+    "Nav_WorldNanzhan": {
+      "from": [
+        "world"
+      ],
+      "verify": [
+        "map"
+      ],
+      "label": "世界地图 → 南瞻部洲"
+    },
+    "Nav_World_town2": {
+      "from": [
+        "world"
+      ],
+      "verify": [
+        "map"
+      ],
+      "label": "世界地图 → 东胜神洲"
+    },
+    "Nav_World_town3": {
+      "from": [
+        "world"
+      ],
+      "verify": [
+        "map"
+      ],
+      "label": "世界地图 → 北俱芦洲"
+    },
+    "Nav_World_town4": {
+      "from": [
+        "world"
+      ],
+      "verify": [
+        "map"
+      ],
+      "label": "世界地图 → 西牛贺洲"
+    },
+    "Nav_World_town5": {
+      "from": [
+        "world"
+      ],
+      "verify": [
+        "map"
+      ],
+      "label": "世界地图 → 幽冥血海"
+    },
+    "Nav_World_town6": {
+      "from": [
+        "world"
+      ],
+      "verify": [
+        "map"
+      ],
+      "label": "世界地图 → 六欲魔天"
+    },
+    "Nav_ResumeSumeru": {
+      "from": [
+        "paused_sumeru"
+      ],
+      "verify": [
+        "sumeru"
+      ],
+      "label": "恢复暂停须弥山"
+    },
+    "Nav_SettingsReturn": {
+      "from": [
+        "settings_menu"
+      ],
+      "verify": [
+        "map",
+        "sumeru",
+        "paused_task_map",
+        "paused_sumeru"
+      ],
+      "label": "从设置菜单返回地图"
+    }
+  },
+  "routes": {
+    "map": [],
+    "world": [
+      "Nav_OpenWorld",
+      "Nav_Go_task_map_world"
+    ],
+    "profile": [
+      "Nav_OpenProfile",
+      "Nav_Go_task_map_profile"
+    ],
+    "treasure": [
+      "Nav_OpenTreasure",
+      "Nav_Go_task_map_treasure"
+    ],
+    "activity": [
+      "Nav_OpenActivity"
+    ],
+    "sumeru": [
+      "Nav_WorldSumeru",
+      "Nav_OpenWorld"
+    ],
+    "daily_menu": [
+      "Nav_Go_task_map_daily_menu",
+      "Nav_WorldSumeru",
+      "Nav_OpenWorld"
+    ],
+    "alliance": [
+      "Nav_Go_task_map_alliance",
+      "Nav_WorldSumeru",
+      "Nav_OpenWorld"
+    ],
+    "time_boat": [
+      "Nav_Go_task_map_time_boat",
+      "Nav_WorldSumeru",
+      "Nav_OpenWorld"
+    ],
+    "arena": [
+      "Nav_Go_daily_menu_arena",
+      "Nav_Go_task_map_daily_menu",
+      "Nav_WorldSumeru",
+      "Nav_OpenWorld"
+    ],
+    "theme": [
+      "Nav_Go_daily_menu_theme",
+      "Nav_Go_task_map_daily_menu",
+      "Nav_WorldSumeru",
+      "Nav_OpenWorld"
+    ],
+    "hell": [
+      "Nav_Go_daily_menu_hell",
+      "Nav_Go_task_map_daily_menu",
+      "Nav_WorldSumeru",
+      "Nav_OpenWorld"
+    ],
+    "arhat": [
+      "Nav_Go_daily_menu_arhat",
+      "Nav_Go_task_map_daily_menu",
+      "Nav_WorldSumeru",
+      "Nav_OpenWorld"
+    ],
+    "fortune": [
+      "Nav_Go_daily_menu_fortune",
+      "Nav_Go_task_map_daily_menu",
+      "Nav_WorldSumeru",
+      "Nav_OpenWorld"
+    ],
+    "survival_week": [
+      "Nav_Go_daily_menu_survival_week",
+      "Nav_Go_task_map_daily_menu",
+      "Nav_WorldSumeru",
+      "Nav_OpenWorld"
+    ],
+    "defend_south": [
+      "Nav_Go_defend_east_defend_south",
+      "Nav_Go_defend_north_defend_south",
+      "Nav_Go_daily_menu_defend_south",
+      "Nav_Go_task_map_daily_menu",
+      "Nav_WorldSumeru",
+      "Nav_OpenWorld"
+    ],
+    "defend_east": [
+      "Nav_Go_defend_south_defend_east",
+      "Nav_Go_defend_north_defend_east",
+      "Nav_Go_daily_menu_defend_south",
+      "Nav_Go_task_map_daily_menu",
+      "Nav_WorldSumeru",
+      "Nav_OpenWorld"
+    ],
+    "defend_north": [
+      "Nav_Go_defend_south_defend_north",
+      "Nav_Go_defend_east_defend_north",
+      "Nav_Go_daily_menu_defend_south",
+      "Nav_Go_task_map_daily_menu",
+      "Nav_WorldSumeru",
+      "Nav_OpenWorld"
+    ],
+    "warehouse": [
+      "Nav_Go_profile_warehouse",
+      "Nav_OpenProfile",
+      "Nav_Go_task_map_profile"
+    ],
+    "alliance_contribution": [
+      "Nav_Go_alliance_alliance_contribution",
+      "Nav_Go_task_map_alliance",
+      "Nav_WorldSumeru",
+      "Nav_OpenWorld"
+    ],
+    "time_replay_1": [
+      "Nav_Go_time_boat_time_replay_1",
+      "Nav_Go_task_map_time_boat",
+      "Nav_WorldSumeru",
+      "Nav_OpenWorld"
+    ],
+    "time_replay_2": [
+      "Nav_Go_time_replay_1_time_replay_2",
+      "Nav_Go_time_boat_time_replay_1",
+      "Nav_Go_task_map_time_boat",
+      "Nav_WorldSumeru",
+      "Nav_OpenWorld"
+    ],
+    "survival_rewards": [
+      "Nav_Go_survival_week_survival_rewards",
+      "Nav_Go_daily_menu_survival_week",
+      "Nav_Go_task_map_daily_menu",
+      "Nav_WorldSumeru",
+      "Nav_OpenWorld"
+    ],
+    "nanzhan": [
+      "Nav_WorldNanzhan",
+      "Nav_OpenWorld",
+      "Nav_Go_task_map_world"
+    ]
+  },
+  "nearby": {
+    "bounty": [
+      "accepted_bounties",
+      "quest_panel"
+    ],
+    "stage": [
+      "quest_panel"
+    ]
+  },
+  "fallback": [
+    "challenge_failed",
+    "challenge_succeeded",
+    "profile_sell",
+    "daily_expanded",
+    "daily_menu",
+    "warehouse",
+    "time_replay_1",
+    "time_replay_2",
+    "alliance_contribution",
+    "alliance_blessing",
+    "survival_rewards",
+    "login",
+    "saves",
+    "activity",
+    "profile",
+    "treasure",
+    "time_boat",
+    "theme",
+    "hell",
+    "arhat",
+    "fortune",
+    "mount_gather",
+    "arena",
+    "shop_mystery",
+    "defend_south",
+    "defend_east",
+    "defend_north",
+    "bounty_board",
+    "alliance",
+    "survival_week",
+    "survival_question",
+    "paused_sumeru",
+    "sumeru",
+    "quest_panel",
+    "accepted_bounties"
+  ],
+  "stages": {
+    "朱电（琉璃宫）-关卡入口": "town2",
+    "烛时（钟晷极地）-关卡入口": "town3",
+    "摩多（七叶树窟）-关卡入口": "town4",
+    "摩多（幕山）-关卡入口": "town4",
+    "无冥（孤魂岭）-关卡入口": "town5",
+    "伽岚（万世冥阁）-关卡入口": "town5",
+    "贪妄（金蟾宝宫）-关卡入口": "town6"
+  }
+}

@@ -10,7 +10,7 @@ import sys
 import tempfile
 from types import ModuleType, SimpleNamespace
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 from uuid import uuid4
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -58,6 +58,8 @@ class Context:
         self.nodes = {}
         for path in (ROOT/'assets/resource/base/pipeline').glob('*.json'):
             self.nodes.update(json.loads(path.read_text(encoding='utf8')))
+        for name in ('Bounty_Finish', 'Bounty_AfterPlay', 'Bounty_Navigate', 'Bounty_FailedMap', PREFIX+'本轮成功'):
+            self.nodes[name] = dict(next=[], action=dict(type='DoNothing'))
     def override_pipeline(self, value):
         self.patches.append(deepcopy(value))
         if not self.reject:
@@ -77,7 +79,7 @@ class Context:
         if name not in self.nodes:
             return None
         # No desktop controller: the fixture remains on a positively known map.
-        return SimpleNamespace(hit=name in ('Nav_TaskMap', 'Nav_Probe_hub_scene'))
+        return SimpleNamespace(hit=name in ('Nav_ClearMap', 'Nav_TaskMap', 'Nav_Probe_hub_scene'))
 
 
 PREFIX = '悬赏（守卫宝烛）-'
@@ -94,6 +96,9 @@ class BountyCandleTests(unittest.TestCase):
         self.patch.start()
         runtime._rounds.clear()
         self.context = Context()
+        self.modal_patch = patch.dict(runtime.Navigator.locate.__globals__, {'modal_present': lambda c,f: bool(c.run_recognition('Nav_ModalPresent', f).hit)})
+        self.modal_patch.start()
+        self.addCleanup(self.modal_patch.stop)
         self.ident = str(uuid4())
         self.argv = SimpleNamespace(task_detail=SimpleNamespace(task_id=100))
         self.save_recording('one.json', 65)
@@ -114,9 +119,9 @@ class BountyCandleTests(unittest.TestCase):
         return data
 
     def run_phase(self, phase, **parameters):
-        defaults = PIPELINE[PREFIX + ('恢复登录' if phase == 'recovery_begin' else '初始化')]['action']['param']['custom_action_param']
+        defaults = json.loads((ROOT/'tests/fixtures/legacy_script_task_parameters.json').read_text(encoding='utf8'))
         self.argv.custom_action_param = dict(defaults, **dict(phase=phase, run_id=self.ident, instance_id='default', **parameters))
-        self.argv.node_name = PREFIX + '失败返回确认'
+        self.argv.node_name = 'Bounty_FailedMap'
         with redirect_stdout(io.StringIO()):
             return runtime.ScriptTaskState().run(self.context, self.argv)
 
@@ -126,26 +131,21 @@ class BountyCandleTests(unittest.TestCase):
     def test_state_action_accepts_an_unrelated_task_route_and_playback_node(self):
         self.assertTrue(self.run_phase('begin',file='one.json',playback_node='OtherPlayback',
                         route_node='OtherRoute',exit_mode='finish',routes={'finish':['OtherExit']},
-                        navigation=None,result_guard=None))
+                        navigation=None,result_guard=None,completion_node=None))
         patch = self.context.patches[0]
         self.assertEqual(set(patch),{'OtherPlayback','OtherRoute'})
         self.assertEqual(patch['OtherRoute']['next'],['OtherExit'])
         self.assertEqual(Path(patch['OtherPlayback']['action']['param']['custom_action_param']['file']).name,'one.json')
 
-    def test_resume_slots_are_declared_by_the_task_instead_of_fixed_to_four(self):
-        self.assertTrue(self.run_phase('recovery_begin',save_slot=7,resume_choice_node='ChooseSlot',
-                        resume_guards=['Guard'],resume_slots={'7':'CustomSlot'}))
-        self.assertEqual(self.context.patches[0],{'ChooseSlot':{'next':['Guard','CustomSlot']}})
-
     def test_begin_pins_current_saved_file_and_hash_in_the_native_pipeline(self):
         self.assertTrue(self.run_phase('begin'))
-        playback = self.context.patches[0][PREFIX+'回放战斗']['action']['param']['custom_action_param']
+        playback = self.context.patches[0]['Bounty_Play']['action']['param']['custom_action_param']
         self.assertEqual(Path(playback['file']), self.recordings/'one.json')
         self.assertEqual(playback['expected_sha256'], hashlib.sha256((self.recordings/'one.json').read_bytes()).hexdigest())
         self.assertTrue(playback['strict_task'])
         self.assertEqual(playback['expected_base'], [1148,720])
-        self.assertEqual(self.context.patches[0][PREFIX+'回放后分流']['next'],
-                         [PREFIX+'阻断提示', PREFIX+'拒绝还魂丹', PREFIX+'等待拒绝复活', PREFIX+'战斗失败', PREFIX+'成功返回地图', PREFIX+'等待返回'])
+        self.assertEqual(self.context.patches[0]['Bounty_AfterPlay']['next'],
+                         ['Bounty_Blocked', 'Bounty_DeclineRevive', 'Bounty_WaitRevive', 'Bounty_Failed', 'Bounty_ReturnSucceeded', 'Bounty_MapReady'])
         self.assertEqual(self.outcome()['status'], 'running')
         self.assertEqual(self.outcome()['recording_sha256'],playback['expected_sha256'])
 
@@ -162,8 +162,23 @@ class BountyCandleTests(unittest.TestCase):
 
     def test_battle_only_mode_uses_native_exit_and_full_mode_does_not(self):
         self.assertTrue(self.run_phase('begin',exit_mode='battle_only'))
-        self.assertEqual(self.context.patches[0][PREFIX+'回放后分流']['next'],
-                         [PREFIX+'阻断提示', PREFIX+'拒绝还魂丹', PREFIX+'等待拒绝复活', PREFIX+'战斗失败', PREFIX+'成功返回地图', PREFIX+'点击设置'])
+        self.assertEqual(self.context.patches[0]['Bounty_AfterPlay']['next'],
+                         ['Bounty_Blocked', 'Bounty_DeclineRevive', 'Bounty_WaitRevive', 'Bounty_Failed', 'Bounty_ReturnSucceeded', 'Bounty_MapReady', 'Bounty_ReturnSettings', 'Bounty_OpenSettings'])
+
+    def test_playback_monitor_follows_effective_retry_setting_and_clears_old_overrides(self):
+        settings=self.context.nodes['脚本任务设置']['action']['param']['custom_action_param']
+        for enabled,limit,afk,monitoring in ((True,3,False,True),(False,3,False,False),
+                                            (True,0,False,False),(False,0,True,True),
+                                            (False,3,False,False)):
+            with self.subTest(enabled=enabled,limit=limit,afk=afk):
+                settings.update(failure_retry=dict(enabled=enabled,max_retries=limit),afk_mode=afk)
+                self.context.nodes['Bounty_Play']['next']=['Bounty_ConfirmedFailed']
+                self.assertTrue(self.run_phase('begin',game_management={'restart_on_failure':True}))
+                playback=self.context.nodes['Bounty_Play']
+                guard=playback['action']['param']['custom_action_param'].get('result_guard')
+                self.assertEqual(guard is not None,monitoring)
+                self.assertEqual(playback['next'],['Bounty_AfterPlay'])
+                self.assertEqual(self.outcome()['failure_retry']['enabled'],monitoring)
 
     def test_missing_binding_is_fatal_without_latest_fallback_or_capture(self):
         (self.recordings/'.bindings.json').unlink()
@@ -213,7 +228,7 @@ class BountyCandleTests(unittest.TestCase):
         self.assertTrue(self.run_phase('begin',game_management={'restart_on_failure':True}))
         self.assertTrue(self.run_phase('battle_failure'))
         self.context.run_recognition = lambda *_args: SimpleNamespace(hit=False)
-        with patch.object(runtime, 'confirm_white_screen', return_value=False), patch.object(runtime.GraphNavigator, '_settle'):
+        with patch.object(runtime, 'confirm_white_screen', return_value=False), patch.object(runtime.Navigator, '_settle'):
             self.assertFalse(self.run_phase('failure'))
         self.assertEqual((self.outcome()['status'], self.outcome()['reason']),
                          ('recoverable', 'battle_return_failed'))
@@ -225,34 +240,34 @@ class BountyCandleTests(unittest.TestCase):
         self.assertTrue(self.run_phase('battle_failure'))
         self.context.scene='failed';self.context.return_actions=[]
         def recognition(name, frame):
-            hits={'failed':{'Result_Failed'},'map':{'Nav_TaskMap','Nav_Probe_hub_scene'},
-                  'modal':{'Result_Failed','Nav_CommonConfirm'},'unknown':set()}
-            return SimpleNamespace(hit=name in hits[self.context.scene])
-        def dispatch(entry, overrides):
-            target=overrides[entry]['next']
+            hits={'failed':{'Result_Failed','Result_FailedReturn','Result_FailedClear'},'map':{'Nav_ClearMap','Nav_TaskMap','Nav_Probe_hub_scene'},
+                  'modal':{'Result_Failed','Nav_CommonConfirm','Nav_ModalPresent'},'unknown':set()}
+            return SimpleNamespace(hit=name in hits[self.context.scene],box=[600,500,200,80])
+        def dispatch(entry, *, box):
+            target=[entry]
             self.assertEqual(target,['Result_FailedReturn'])
-            self.assertEqual(overrides[entry]['action']['type'],'DoNothing')
+            self.assertEqual(box,[600,500,200,80])
             self.context.return_actions.append(target)
             if after_click:after_click()
             elif len(self.context.return_actions)>=succeeds_after:self.context.scene='map'
-            return SimpleNamespace(status=SimpleNamespace(succeeded=True))
+            return SimpleNamespace(success=True)
         self.context.run_recognition=recognition
-        self.context.run_task=dispatch
+        self.context.run_action=dispatch
 
     def test_return_timeout_retries_missed_click_then_continues_same_round(self):
         self.return_timeout_context()
         runtime._rounds[100]['failure_retries']=5
-        with patch.object(runtime.GraphNavigator,'_settle'), patch.object(runtime,'confirm_white_screen',return_value=False):
+        with patch.object(runtime.Navigator,'_settle'), patch.object(runtime,'confirm_white_screen',return_value=False):
             self.assertTrue(self.run_phase('failure'))
         self.assertEqual(len(self.context.return_actions),2)
         self.assertEqual(self.outcome()['reason'],'battle_retry')
         self.assertEqual(self.outcome()['failure_retries'],6)
-        self.assertEqual(self.context.patches[-1],{PREFIX+'失败返回确认':{'next':[PREFIX+'通用导航']}})
+        self.assertEqual(self.context.patches[-1],{'Bounty_FailedMap':{'next':['Bounty_Navigate']}})
         self.assertTrue(runtime._rounds)
 
     def test_return_timeout_is_bounded_and_never_changes_completed_count(self):
         self.return_timeout_context(succeeds_after=999)
-        with patch.object(runtime.GraphNavigator,'_settle'), patch.object(runtime,'confirm_white_screen',return_value=False):
+        with patch.object(runtime.Navigator,'_settle'), patch.object(runtime,'confirm_white_screen',return_value=False):
             self.assertFalse(self.run_phase('failure'))
         self.assertEqual(len(self.context.return_actions),2)
         self.assertEqual(self.outcome()['failure_retries'],0)
@@ -263,13 +278,28 @@ class BountyCandleTests(unittest.TestCase):
             with self.subTest(scene=scene):
                 self.return_timeout_context()
                 self.context.scene=scene
-                with patch.object(runtime.GraphNavigator,'_settle'), patch.object(runtime,'confirm_white_screen',return_value=False):
+                with patch.object(runtime.Navigator,'_settle'), patch.object(runtime,'confirm_white_screen',return_value=False):
                     self.assertFalse(self.run_phase('failure'))
                 self.assertEqual(self.context.return_actions,[])
 
+    def test_unrecognized_dialog_during_return_preserves_failure_reason(self):
+        for restart in (False,True):
+            self.context=Context();self.ident=str(uuid4())
+            self.return_timeout_context()
+            runtime._rounds[100]['parameters']['game_management']={'restart_on_failure':restart}
+            self.context.scene='modal'
+            with patch.object(runtime.Navigator,'_settle'), patch.object(runtime,'confirm_white_screen',return_value=False):
+                self.assertFalse(self.run_phase('failure'))
+            result=self.outcome()
+            self.assertEqual(result['status'],'recoverable' if restart else 'fatal')
+            self.assertEqual(result['reason'],'task_failed' if restart else 'unrecognized_dialog')
+            if restart:self.assertEqual(result['navigation_failure'],'unrecognized_dialog')
+            self.assertEqual(result['failure_retries'],0)
+            self.assertEqual(self.context.return_actions,[])
+
     def test_return_timeout_checks_stop_and_recording_revision_before_more_input(self):
         self.return_timeout_context(after_click=lambda:setattr(self.context.tasker,'stopping',True))
-        with patch.object(runtime.GraphNavigator,'_settle'):
+        with patch.object(runtime.Navigator,'_settle'):
             self.assertFalse(self.run_phase('failure'))
         self.assertEqual(len(self.context.return_actions),1)
         self.assertEqual(self.outcome()['status'],'cancelled')
@@ -287,9 +317,29 @@ class BountyCandleTests(unittest.TestCase):
         self.assertEqual(self.context.return_actions,[])
         self.assertEqual(self.outcome()['reason'],'battle_retry')
 
+    def test_late_revival_during_return_confirmation_resumes_same_round(self):
+        self.context.nodes['脚本任务设置']['action']['param']['custom_action_param']['afk_mode']=True
+        self.assertTrue(self.run_phase('begin',game_management={'restart_on_failure':True}))
+        self.assertTrue(self.run_phase('battle_failure'))
+        with patch.object(runtime.Navigator,'locate',return_value='revive_prompt'), \
+             patch.object(runtime,'recover_failed_return',return_value=True) as recovery:
+            self.assertTrue(self.run_phase('retry_after_failure'))
+        recovery.assert_called_once()
+        self.assertEqual(self.outcome()['reason'],'battle_retry')
+        self.assertEqual(self.outcome()['failure_retries'],1)
+
+    def test_known_nonmap_return_is_operational_failure_not_bad_recording(self):
+        self.context.nodes['脚本任务设置']['action']['param']['custom_action_param']['afk_mode']=True
+        self.assertTrue(self.run_phase('begin',game_management={'restart_on_failure':True}))
+        self.assertTrue(self.run_phase('battle_failure'))
+        with patch.object(runtime.Navigator,'locate',return_value='quest_panel'):
+            self.assertFalse(self.run_phase('retry_after_failure'))
+        self.assertEqual(self.outcome()['status'],'recoverable')
+        self.assertEqual(self.outcome()['reason'],'task_failed')
+
     def test_return_timeout_stops_if_recording_changes_after_first_retry_click(self):
         self.return_timeout_context(after_click=lambda:self.save_recording('one.json',67))
-        with patch.object(runtime.GraphNavigator,'_settle'):
+        with patch.object(runtime.Navigator,'_settle'):
             self.assertFalse(self.run_phase('failure'))
         self.assertEqual(len(self.context.return_actions),1)
         self.assertEqual(self.outcome()['reason'],'recording_changed')
@@ -297,21 +347,106 @@ class BountyCandleTests(unittest.TestCase):
     def test_return_timeout_preserves_disabled_battle_retry_policy(self):
         self.return_timeout_context(succeeds_after=1)
         runtime._rounds[100]['failure_retry']={'enabled':False,'max_retries':0}
-        with patch.object(runtime.GraphNavigator,'_settle'):
+        with patch.object(runtime.Navigator,'_settle'):
             self.assertFalse(self.run_phase('failure'))
         self.assertEqual(self.context.scene,'map')
         self.assertEqual(self.outcome()['reason'],'battle_failed')
         self.assertEqual(self.outcome()['failure_retries'],0)
 
-    def test_unknown_or_blocked_failure_never_becomes_managed_defeat(self):
+    def test_unrecognized_dialog_failure_follows_restart_toggle_and_pinned_recording(self):
+        for restart in (False, True):
+            self.context=Context();self.ident=str(uuid4())
+            self.assertTrue(self.run_phase('begin',game_management={'restart_on_failure':restart}))
+            self.assertFalse(self.run_phase('unrecognized_dialog'))
+            result=self.outcome()
+            self.assertEqual(result['status'],'recoverable' if restart else 'fatal')
+            self.assertEqual(result['reason'],'task_failed' if restart else 'unrecognized_dialog')
+            self.assertEqual(result['failure_retries'],0)
+        self.context=Context();self.ident=str(uuid4())
+        self.assertTrue(self.run_phase('begin',game_management={'restart_on_failure':True}))
+        self.save_recording('one.json', 66)
+        self.assertFalse(self.run_phase('unrecognized_dialog'))
+        self.assertEqual((self.outcome()['status'],self.outcome()['reason']),('fatal','recording_changed'))
+
+    def test_unrecognized_dialog_from_navigation_respects_restart_cancel_and_recording(self):
+        for restart in (False,True):
+            self.context=Context();self.ident=str(uuid4())
+            self.assertTrue(self.run_phase('begin',game_management={'restart_on_failure':restart}))
+            with patch.object(runtime,'navigate_round',side_effect=runtime.NavigationError('unknown',reason='unrecognized_dialog')):
+                self.assertFalse(self.run_phase('navigate'))
+            result=self.outcome()
+            self.assertEqual(result['status'],'recoverable' if restart else 'fatal')
+            self.assertEqual(result['reason'],'task_failed' if restart else 'unrecognized_dialog')
+            self.assertEqual(result['failure_retries'],0)
+        for cancelled in (False,True):
+            self.context=Context();self.ident=str(uuid4())
+            self.save_recording('one.json',65)
+            self.assertTrue(self.run_phase('begin',game_management={'restart_on_failure':True}))
+            def fail(*_args):
+                if cancelled:self.context.tasker.stopping=True
+                else:self.save_recording('one.json',66)
+                raise runtime.NavigationError('unknown',reason='unrecognized_dialog')
+            with patch.object(runtime,'navigate_round',side_effect=fail):
+                self.assertFalse(self.run_phase('navigate'))
+            result=self.outcome()
+            self.assertEqual(result['status'],'cancelled' if cancelled else 'fatal')
+            self.assertEqual(result['reason'],'user_cancelled' if cancelled else 'recording_changed')
+
+    def test_unknown_terminal_failure_hands_off_but_blocked_dialog_still_stops(self):
         self.assertTrue(self.run_phase('begin',game_management={'restart_on_failure':True}))
         self.context.run_recognition = lambda *_args: SimpleNamespace(hit=False)
         with patch.object(runtime, 'confirm_white_screen', return_value=False):
             self.assertFalse(self.run_phase('failure'))
-        self.assertEqual(self.outcome()['status'], 'fatal')
+        self.assertEqual((self.outcome()['status'], self.outcome()['reason']), ('recoverable', 'task_failed'))
+        self.assertEqual(self.outcome()['navigation_failure'], 'unknown')
         self.assertTrue(self.run_phase('begin',game_management={'restart_on_failure':True}))
         self.assertFalse(self.run_phase('fatal', reason='blocked_dialog'))
         self.assertEqual(self.outcome()['status'], 'fatal')
+
+    def test_unknown_navigation_exhausts_locating_then_hands_off_only_when_restart_enabled(self):
+        for afk in (False, True):
+            for restart in (False, True):
+                for phase in ('navigate', 'failure', 'retry_after_failure', 'success'):
+                    with self.subTest(afk=afk, restart=restart, phase=phase):
+                        self.context = Context()
+                        settings = self.context.nodes['脚本任务设置']['action']['param']['custom_action_param']
+                        settings.update(afk_mode=afk, failure_retry={'enabled': True, 'max_retries': 3})
+                        self.assertTrue(self.run_phase('begin', game_management={'restart_on_failure': restart}))
+                        if phase == 'retry_after_failure':
+                            self.assertTrue(self.run_phase('battle_failure'))
+                        expected_attempts = runtime._navigator(self.context, runtime._rounds[100]).routine['locate_attempts']
+                        captured_before = self.context.tasker.controller.calls
+                        self.context.run_recognition = lambda *_args: SimpleNamespace(hit=False)
+                        with patch.object(runtime, 'confirm_white_screen', return_value=False), patch.object(runtime.Navigator, '_settle'), patch.object(self.context, 'run_task', create=True) as inputs:
+                            self.assertFalse(self.run_phase(phase))
+                        inputs.assert_not_called()
+                        result = self.outcome()
+                        print('TRACE navigation handoff:', dict(afk=afk, restart=restart, phase=phase,
+                              status=result['status'], reason=result['reason'], failure_retries=result['failure_retries']))
+                        self.assertEqual(self.context.tasker.controller.calls - captured_before,
+                                         0 if phase == 'failure' and not restart else expected_attempts)
+                        self.assertEqual(result['failure_retries'], 0, 'An unconfirmed return must not consume a battle retry')
+                        self.assertFalse(runtime._rounds)
+                        if restart:
+                            self.assertEqual((result['status'], result['reason']), ('recoverable', 'task_failed'))
+                            self.assertEqual(result['navigation_failure'], 'unknown')
+                            self.assertEqual(result['failure_phase'], phase)
+                        else:
+                            self.assertEqual((result['status'], result['reason']),
+                                             ('fatal', 'unrecognized_screen' if phase == 'failure' else 'navigation_unknown'))
+
+    def test_navigation_restart_preserves_blocked_and_ambiguous_guards(self):
+        for phase in ('navigate', 'failure', 'retry_after_failure', 'success'):
+            for reason in ('blocked', 'ambiguous'):
+                with self.subTest(phase=phase, reason=reason):
+                    self.context = Context()
+                    self.context.nodes['脚本任务设置']['action']['param']['custom_action_param']['afk_mode'] = True
+                    self.assertTrue(self.run_phase('begin', game_management={'restart_on_failure': True}))
+                    if phase == 'retry_after_failure':
+                        self.assertTrue(self.run_phase('battle_failure'))
+                    with patch.object(runtime, 'confirm_white_screen', return_value=False), patch.object(runtime.Navigator, 'locate', side_effect=runtime.NavigationError('guard', reason=reason)):
+                        self.assertFalse(self.run_phase(phase))
+                    self.assertEqual((self.outcome()['status'], self.outcome()['reason']), ('fatal', 'navigation_' + reason))
 
     def test_terminal_task_failure_on_a_known_scene_can_restart(self):
         self.assertTrue(self.run_phase('begin',game_management={'restart_on_failure':True}))
@@ -319,19 +454,42 @@ class BountyCandleTests(unittest.TestCase):
             self.assertFalse(self.run_phase('failure'))
         self.assertEqual((self.outcome()['status'], self.outcome()['reason']), ('recoverable', 'task_failed'))
 
-    def test_login_failure_without_battle_parameters_preserves_its_reason(self):
-        self.assertTrue(self.run_phase('recovery_begin'))
-        with patch.object(runtime, 'confirm_white_screen', return_value=False):
-            self.assertFalse(self.run_phase('failure', reason='请返回人物与主线地图'))
-        self.assertEqual((self.outcome()['status'], self.outcome()['reason']), ('fatal', '请返回人物与主线地图'))
+    def test_stage_that_disappears_after_wait_still_restores_its_viewport(self):
+        self.assertTrue(self.run_phase('begin'))
+        state = runtime._rounds[100]
+        state['parameters']['navigation'] = dict(kind='stage', target_node='stage-target')
+        nav = Mock()
+        nav.run.side_effect = [runtime.NavigationError('offscreen', reason='unreachable'),
+                               runtime.NavigationError('moved again', reason='unreachable'), 'task_destination']
+        with patch.object(runtime, '_navigator', return_value=nav), \
+             patch.object(runtime, 'wait_stage_ready', return_value=True), \
+             patch.object(runtime, 'restore_stage_view', return_value=True) as restore:
+            self.assertEqual(runtime.navigate_round(self.context, state), 'task_destination')
+        restore.assert_called_once_with(self.context, nav, 'stage-target')
+        self.assertEqual(nav.run.call_count, 3)
 
-    def test_exhausted_navigation_can_restart_but_unknown_and_blocked_scenes_stop(self):
-        for reason in ('transition_failed', 'budget', 'unreachable', 'unknown', 'blocked'):
+    def test_blocked_scene_after_wait_never_attempts_a_map_drag(self):
+        self.assertTrue(self.run_phase('begin'))
+        state = runtime._rounds[100]
+        state['parameters']['navigation'] = dict(kind='stage', target_node='stage-target')
+        nav = Mock()
+        nav.run.side_effect = [runtime.NavigationError('offscreen', reason='unreachable'),
+                               runtime.NavigationError('blocked', reason='blocked')]
+        with patch.object(runtime, '_navigator', return_value=nav), \
+             patch.object(runtime, 'wait_stage_ready', return_value=True), \
+             patch.object(runtime, 'restore_stage_view') as restore:
+            with self.assertRaises(runtime.NavigationError) as error:
+                runtime.navigate_round(self.context, state)
+        self.assertEqual(error.exception.reason, 'blocked')
+        restore.assert_not_called()
+
+    def test_exhausted_navigation_can_restart_but_blocked_and_ambiguous_scenes_stop(self):
+        for reason in ('transition_failed', 'budget', 'unreachable', 'unknown', 'blocked', 'ambiguous'):
             with self.subTest(reason=reason):
                 self.assertTrue(self.run_phase('begin',game_management={'restart_on_failure':True}))
                 with patch.object(runtime, 'navigate_round', side_effect=runtime.NavigationError('failed',reason=reason)):
                     self.assertFalse(self.run_phase('navigate'))
-                expected = 'fatal' if reason in ('unknown', 'blocked') else 'recoverable'
+                expected = 'fatal' if reason in ('blocked', 'ambiguous') else 'recoverable'
                 self.assertEqual(self.outcome()['status'], expected)
                 if expected == 'recoverable': self.assertEqual(self.outcome()['reason'], 'task_failed')
 
@@ -342,6 +500,29 @@ class BountyCandleTests(unittest.TestCase):
             self.assertFalse(self.run_phase('failure'))
         white.assert_not_called()
         self.assertEqual(self.outcome()['reason'],'recording_changed')
+
+    def test_recording_frame_tolerance_accepts_eight_pixels_but_not_nine(self):
+        # A restart can round the restored window one pixel beyond the previous
+        # tolerance. Exercise the same saved-recording preflight as a task.
+        params = dict(file='@task:bounty-candle', playback_node='Bounty_Play')
+        cases = [((720, 1140, 3), True), ((720, 1145, 3), True),
+                 ((720, 1156, 3), True), ((720, 1139, 3), False),
+                 ((720, 1157, 3), False), ((719, 1148, 3), False),
+                 ((721, 1148, 3), False)]
+        for shape, accepted in cases:
+            with self.subTest(shape=shape):
+                context = Context()
+                with patch.object(runtime, 'write_status'):
+                    if accepted:
+                        state = {}
+                        runtime.begin_round(context, params, state, frame=SimpleNamespace(shape=shape))
+                        self.assertEqual(state['recording']['base'], [1148, 720])
+                        self.assertEqual(context.patches[0]['Bounty_Play']['action']['param']
+                                         ['custom_action_param']['expected_base'], [1148, 720])
+                    else:
+                        with self.assertRaisesRegex(ValueError, '尺寸不一致'):
+                            runtime.begin_round(context, params, {}, frame=SimpleNamespace(shape=shape))
+                        self.assertEqual(context.patches, [])
 
     def test_different_frame_geometry_and_unbalanced_recording_are_fatal(self):
         self.context.tasker.controller.frame=SimpleNamespace(ndim=3,shape=(737,1175,3))
@@ -382,21 +563,6 @@ class BountyCandleTests(unittest.TestCase):
         with self.assertRaises(runtime.Cancelled):
             runtime.confirm_white_screen(self.context,wait=wait)
 
-    def test_recovery_selects_only_requested_existing_slot_and_reports_ready(self):
-        self.assertTrue(self.run_phase('recovery_begin',save_slot=4))
-        self.assertEqual(self.context.patches[0][PREFIX+'恢复选择存档']['next'],[PREFIX+'阻断提示',PREFIX+'恢复存档4'])
-        self.assertTrue(self.run_phase('ready'))
-        self.assertEqual(self.outcome()['status'],'ready')
-        self.assertFalse(runtime._rounds)
-
-    def test_recovery_refuses_invalid_slots(self):
-        for slot in (0,5,True,'1'):
-            with self.subTest(slot=slot):
-                self.ident=str(uuid4())
-                self.assertFalse(self.run_phase('recovery_begin',save_slot=slot))
-                self.assertEqual(self.outcome()['status'],'fatal')
-        self.assertFalse(self.context.patches)
-
     def test_status_path_must_match_uuid_in_native_debug_directory(self):
         for parameters in ({'run_id':'not-a-uuid'}, {'run_id':self.ident,'status_path':str(self.root/'escape.json')}):
             with self.subTest(parameters=parameters), self.assertRaises(ValueError):
@@ -413,6 +579,55 @@ class BountyCandleTests(unittest.TestCase):
         with patch.object(runtime, 'write_status', side_effect=OSError('disk unavailable')):
             self.assertFalse(self.run_phase('begin'))
         self.assertFalse(runtime._rounds)
+
+    def test_transient_capture_failure_retries_without_restarting(self):
+        controller=self.context.tasker.controller
+        def capture():
+            controller.calls+=1
+            succeeded=controller.calls>=2
+            return SimpleNamespace(wait=lambda:SimpleNamespace(succeeded=succeeded,get=lambda:controller.frame))
+        controller.post_screencap=capture
+        with patch.object(runtime.time,'sleep',return_value=None):
+            self.assertIs(runtime.capture(self.context),controller.frame)
+        self.assertEqual(controller.calls,2)
+
+    def test_transient_controller_lookup_failure_is_retried(self):
+        controller=self.context.tasker.controller
+        class Tasker:
+            stopping=False
+            attempts=0
+            @property
+            def controller(self):
+                self.attempts+=1
+                if self.attempts==1:raise RuntimeError('controller briefly unavailable')
+                return controller
+        self.context.tasker=Tasker()
+        with patch.object(runtime.time,'sleep',return_value=None):
+            self.assertIs(runtime.capture(self.context),controller.frame)
+        self.assertEqual(self.context.tasker.attempts,2)
+        self.assertEqual(controller.calls,1)
+
+    def test_stopping_during_capture_retry_prevents_another_sample(self):
+        controller=self.context.tasker.controller
+        def capture():
+            controller.calls+=1
+            self.context.tasker.stopping=True
+            return SimpleNamespace(wait=lambda:SimpleNamespace(succeeded=False))
+        controller.post_screencap=capture
+        with self.assertRaises(runtime.Cancelled):runtime.capture(self.context)
+        self.assertEqual(controller.calls,1)
+
+    def test_persistent_capture_failure_uses_restart_only_when_enabled(self):
+        for restart in (False,True):
+            self.context=Context();self.ident=str(uuid4())
+            self.context.tasker.controller.succeeded=False
+            with patch.object(runtime.time,'sleep',return_value=None):
+                self.assertFalse(self.run_phase('begin',game_management={'restart_on_failure':restart}))
+            self.assertEqual(self.context.tasker.controller.calls,3)
+            outcome=self.outcome()
+            self.assertEqual(outcome['status'],'recoverable' if restart else 'fatal')
+            self.assertEqual(outcome['reason'],'task_failed' if restart else 'capture_unavailable')
+            if restart:self.assertEqual(outcome['failure_cause'],'capture_unavailable')
 
     def test_capture_failure_has_specific_reason_without_claiming_window_loss(self):
         self.context.tasker.controller.succeeded=False
@@ -454,7 +669,7 @@ class BountyCandleTests(unittest.TestCase):
         saved_hash = self.outcome()['recording_sha256']
         self.assertTrue(self.run_phase('battle_failure'))
         self.assertTrue(self.run_phase('retry_after_failure'))
-        self.assertEqual(self.context.patches[-1], {PREFIX+'失败返回确认': {'next': [PREFIX+'通用导航']}})
+        self.assertEqual(self.context.patches[-1], {'Bounty_FailedMap': {'next': ['Bounty_Navigate']}})
         self.assertEqual(self.outcome()['recording_sha256'], saved_hash)
         self.assertEqual(self.outcome()['failure_retries'], 1)
         self.assertTrue(self.run_phase('battle_failure'))
@@ -471,7 +686,7 @@ class BountyCandleTests(unittest.TestCase):
         self.assertFalse(self.run_phase('retry_after_failure'))
         self.assertEqual(self.outcome()['reason'], 'battle_failed')
         self.assertEqual(self.outcome()['failure_retries'], 0)
-        self.assertNotIn({PREFIX+'失败返回确认': {'next': [PREFIX+'通用导航']}}, self.context.patches[patches:])
+        self.assertNotIn({'Bounty_FailedMap': {'next': ['Bounty_Navigate']}}, self.context.patches[patches:])
         self.assertFalse(self.outcome()['failure_retry']['enabled'])
 
     def test_afk_overrides_retry_limit_but_keeps_revision_and_obeys_stop(self):
@@ -484,7 +699,7 @@ class BountyCandleTests(unittest.TestCase):
             self.assertTrue(self.run_phase('retry_after_failure'))
             self.assertEqual(self.outcome()['failure_retries'],attempt)
             self.assertEqual(self.outcome()['recording_sha256'],saved)
-            self.assertEqual(self.context.patches[-1],{PREFIX+'失败返回确认':{'next':[PREFIX+'通用导航']}})
+            self.assertEqual(self.context.patches[-1],{'Bounty_FailedMap':{'next':['Bounty_Navigate']}})
         self.context.tasker.stopping=True
         self.assertFalse(self.run_phase('retry_after_failure'))
         self.assertEqual(self.outcome()['status'],'cancelled')
@@ -506,7 +721,7 @@ class BountyCandleTests(unittest.TestCase):
         self.assertTrue(self.run_phase('begin'))
         self.assertTrue(self.run_phase('battle_failure'))
         self.context.run_recognition = lambda *_args: SimpleNamespace(hit=False)
-        with patch.object(runtime.GraphNavigator, '_settle'):
+        with patch.object(runtime.Navigator, '_settle'):
             self.assertFalse(self.run_phase('retry_after_failure'))
         self.assertEqual(self.outcome()['status'], 'fatal')
 
@@ -515,66 +730,6 @@ class BountyCandleTests(unittest.TestCase):
         self.save_recording('one.json', 67)
         self.assertFalse(self.run_phase('navigate'))
         self.assertEqual(self.outcome()['reason'], 'recording_changed')
-
-
-class NativePipelineStructureTests(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.pipeline=json.loads((ROOT/'assets/resource/base/pipeline/悬赏（守卫宝烛）.json').read_text(encoding='utf8'))
-
-    def test_references_and_assets_are_self_contained(self):
-        def visit(value):
-            if isinstance(value,dict):
-                for key,item in value.items():
-                    if key=='template':
-                        for name in ([item] if isinstance(item,str) else item):
-                            self.assertTrue((ROOT/'assets/resource/base/image'/name).is_file(),name)
-                    else:visit(item)
-            elif isinstance(value,list):
-                for item in value:visit(item)
-        for name,node in self.pipeline.items():
-            for field in ('next','on_error'):
-                for target in node.get(field,[]):self.assertIn(target,self.pipeline,name)
-            visit(node)
-        text=json.dumps(self.pipeline,ensure_ascii=False)
-        for forbidden in ('Zaomeng','migrated_task','bundle.json','raw_recordings','F:/','backup/'):
-            self.assertNotIn(forbidden,text)
-
-    def test_native_entry_cannot_bypass_the_round_initializer_with_a_legacy_alias(self):
-        self.assertNotIn(PREFIX+'刷取次数',self.pipeline)
-        entry=self.pipeline[PREFIX+'初始化']
-        self.assertEqual(entry['action']['param']['custom_action'],'script_task_state')
-        self.assertEqual(entry['action']['param']['custom_action_param']['phase'],'begin')
-
-    def test_two_scene_checks_and_two_return_checks_precede_success(self):
-        p=PREFIX
-        self.assertEqual(self.pipeline[p+'场内初检']['post_delay'],350)
-        self.assertIn(p+'回放战斗',self.pipeline[p+'场内初检']['next'])
-        self.assertEqual(self.pipeline[p+'回放战斗']['recognition'],self.pipeline[p+'场内初检']['recognition'])
-        self.assertEqual(self.pipeline[p+'返回初检']['post_delay'],350)
-        self.assertIn(p+'返回复检',self.pipeline[p+'返回初检']['next'])
-        self.assertEqual(self.pipeline[p+'返回复检']['next'],[p+'成功'])
-
-    def test_task_detail_and_entry_button_are_checked_in_the_same_frame(self):
-        recognition=self.pipeline[PREFIX+'点击前往副本']['recognition']
-        self.assertEqual(recognition['type'],'And')
-        self.assertEqual(recognition['param']['box_index'],0)
-        parts=recognition['param']['all_of']
-        self.assertEqual([item for item in parts if isinstance(item,str)],['Result_NoRevivePrompt'])
-        checks=[item['recognition'] for item in parts if isinstance(item,dict)]
-        self.assertEqual([item['param']['expected'] for item in checks[:2]],
-                         [['^前往副本$'],['^守卫宝烛$']])
-        self.assertEqual(checks[2]['type'],'Or')
-        self.assertEqual(checks[2]['param']['any_of'][0]['recognition']['param']['expected'],['^已接受$'])
-        self.assertNotEqual(checks[0]['param']['roi'],checks[1]['param']['roi'])
-
-    def test_empty_slots_have_no_click_fallback(self):
-        for slot in range(1,5):
-            node=self.pipeline[PREFIX+'恢复存档'+str(slot)]
-            text=json.dumps(node['recognition'],ensure_ascii=False)
-            self.assertIn('[Ll][Vv]',text)
-            self.assertIn('save-'+str(slot)+'.png',text)
-            self.assertEqual(node['on_error'],[PREFIX+'失败'])
 
 
 if __name__=='__main__':

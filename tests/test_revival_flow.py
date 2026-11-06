@@ -11,8 +11,8 @@ import unittest
 
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'agent'));sys.path.insert(0,str(ROOT/'tools'))
-from navigation.catalog import task_graph
-from navigation import select_state,shortest_path
+from navigation.catalog import task_routine
+from navigation.runtime import Navigator
 from task_catalog import custom_parameters
 from configure_task_navigation import configure
 
@@ -23,41 +23,27 @@ class RevivalFlowTests(unittest.TestCase):
         cls.nodes={name:node for f in (ROOT/'assets/resource/base/pipeline').glob('*.json')
             for name,node in json.loads(f.read_text(encoding='utf8')).items()}
 
-    def test_all_battle_tasks_reject_before_marking_failure_or_returning(self):
+    def test_all_battle_tasks_share_guarded_revival_and_result_resources(self):
         count=0
-        for name,node in self.nodes.items():
+        for node in self.nodes.values():
             params=custom_parameters(node)
-            if not params.get('navigation'):continue
+            if not params.get('round_flow'):continue
             count+=1
-            prefix=name.rsplit('-',1)[0]+'-'
-            # Entry may be named differently; derive the explicit policy branch.
-            decline=params['result_guard']['revive_next'][0]
-            prefix=decline.removesuffix('拒绝还魂丹')
-            self.assertEqual(self.nodes[decline]['action']['type'],'Click')
-            self.assertEqual(self.nodes[decline]['recognition']['type'],'And')
-            self.assertEqual(self.nodes[decline]['next'],[prefix+'战斗失败'])
-            self.assertFalse(custom_parameters(self.nodes[decline]))
-            pending=prefix+'等待拒绝复活'
-            self.assertEqual(self.nodes[pending]['action']['type'],'DoNothing')
-            self.assertEqual(self.nodes[pending]['next'],[decline,prefix+'战斗失败'])
-            self.assertEqual(self.nodes[pending]['on_error'],[prefix+'失败'])
-            for route in params['routes'].values():
-                self.assertLess(route.index(decline),route.index(pending))
-                self.assertLess(route.index(pending),route.index(prefix+'战斗失败'))
-            for suffix in ('战斗失败','失败返回地图','成功返回地图'):
-                self.assertIn('Result_NoRevivePrompt',self.nodes[prefix+suffix]['recognition']['param']['all_of'])
+            self.assertEqual(params['result_guard']['revive_next'],['Result_RevivePrompt'])
         self.assertEqual(count,11)
+        self.assertEqual(self.nodes['Result_DeclineRevive']['action']['type'],'Click')
+        for name in ('Result_FailedClear','Result_FailedReturn','Result_SucceededReturn'):
+            self.assertIn('Result_NoRevivePrompt',self.nodes[name]['recognition']['param']['all_of'])
 
     def test_overlay_wins_over_background_and_has_only_the_decline_route(self):
         class Context:
             def get_node_data(self,name):return RevivalFlowTests.nodes[name]
             def override_pipeline(self,_):return True
         params=next(custom_parameters(n) for n in self.nodes.values() if custom_parameters(n).get('navigation'))
-        graph=task_graph(Context(),params)
-        self.assertEqual(select_state(graph,{'Result_RevivePrompt','Result_Failed','Result_Succeeded','Nav_Probe_hub_scene'}),'revive_prompt')
-        route=shortest_path(graph,'revive_prompt')
-        self.assertEqual(route[0]['entry'],'Result_DeclineRevive')
-        self.assertEqual(route[0]['target'],'challenge_failed')
+        routine=task_routine(Context(),params)
+        nav=Navigator(Context(),routine,capture=lambda:None,check=lambda:None)
+        self.assertEqual(nav._action('revive_prompt'),'Result_DeclineRevive')
+        self.assertEqual(routine['actions']['Result_DeclineRevive']['verify'],['challenge_failed'])
 
     def test_generator_is_idempotent_and_retry_count_has_no_second_off_switch(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -65,6 +51,9 @@ class RevivalFlowTests(unittest.TestCase):
             target=root/'assets/resource/base/pipeline'
             shutil.copytree(ROOT/'assets/resource/base/pipeline',target)
             shutil.copyfile(ROOT/'assets/interface.json',root/'assets/interface.json')
+            (root/'tools').mkdir()
+            shutil.copyfile(ROOT/'tools/bounty_task_template.json',root/'tools/bounty_task_template.json')
+            shutil.copyfile(ROOT/'tools/script_task_profiles.json',root/'tools/script_task_profiles.json')
             before={f.relative_to(root):f.read_bytes() for f in root.rglob('*.json')}
             configure(root)
             after={f.relative_to(root):f.read_bytes() for f in root.rglob('*.json')}

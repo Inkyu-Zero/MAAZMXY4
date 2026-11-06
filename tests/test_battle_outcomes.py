@@ -16,6 +16,7 @@ class Pixels:
     ndim, shape = 3, (720, 1147, 3)
     def __init__(self, hits=()): self.hits = frozenset(hits)
     def copy(self): return Pixels(self.hits)
+    def tobytes(self): return repr(sorted(self.hits)).encode()
 
 
 class MemoryContext:
@@ -33,6 +34,8 @@ class MemoryContext:
     def run_recognition(self, name, frame):
         if self.missing: return None
         if frame.hits: self.observed.set()
+        if name=='Nav_ModalPresent':
+            return SimpleNamespace(hit=bool(frame.hits & {'Nav_CommonConfirm','Result_RevivePrompt'}))
         return SimpleNamespace(hit=name in frame.hits)
 
 
@@ -47,6 +50,43 @@ class BattleOutcomeTests(unittest.TestCase):
         self.assertIsNone(monitor._thread)
         monitor.close()
 
+    def test_unrecognized_modal_is_distinct_from_known_blocker(self):
+        for is_blocked in (False, True):
+            context=MemoryContext()
+            context.frame=Pixels(['Nav_CommonConfirm']+(['Nav_BlockedDialog'] if is_blocked else []))
+            monitor=BattleOutcomeMonitor(context,{**POLICY,'revive_next':['Decline','Failed']})
+            monitor.start()
+            self.assertIsNotNone(monitor.error)
+            self.assertEqual(getattr(monitor.error,'reason',None),None if is_blocked else 'unrecognized_dialog')
+            self.assertIsNone(monitor.branch)
+            monitor.close()
+
+    def test_known_sell_confirmation_remains_terminal(self):
+        context=MemoryContext();context.frame=Pixels(['Nav_CommonConfirm','Nav_See_profile_sell'])
+        monitor=BattleOutcomeMonitor(context,{**POLICY,'revive_next':['Decline','Failed']})
+        monitor.start()
+        self.assertIsNotNone(monitor.error)
+        self.assertNotEqual(getattr(monitor.error,'reason',None),'unrecognized_dialog')
+        monitor.close()
+
+    def test_missing_blocker_recognition_cannot_be_classified_as_unknown(self):
+        context=MemoryContext();context.frame=Pixels(['Nav_CommonConfirm'])
+        original=context.run_recognition
+        context.run_recognition=lambda name,frame: None if name=='Nav_BlockedDialog' else original(name,frame)
+        monitor=BattleOutcomeMonitor(context,{**POLICY,'revive_next':['Decline','Failed']})
+        monitor.start()
+        self.assertIsNotNone(monitor.error)
+        self.assertNotEqual(getattr(monitor.error,'reason',None),'unrecognized_dialog')
+        monitor.close()
+        context=MemoryContext();context.frame=Pixels(['Nav_CommonConfirm'])
+        original=context.run_recognition
+        context.run_recognition=lambda name,frame: None if name=='Nav_See_profile_sell' else original(name,frame)
+        monitor=BattleOutcomeMonitor(context,{**POLICY,'revive_next':['Decline','Failed']})
+        monitor.start()
+        self.assertIsNotNone(monitor.error)
+        self.assertNotEqual(getattr(monitor.error,'reason',None),'unrecognized_dialog')
+        monitor.close()
+
     def test_revive_prompt_interrupts_before_underlying_result_and_never_sends_input(self):
         context=MemoryContext()
         context.frame=Pixels(['Result_RevivePrompt','Result_Failed','Result_Succeeded'])
@@ -56,7 +96,7 @@ class BattleOutcomeTests(unittest.TestCase):
         monitor=BattleOutcomeMonitor(context,{**POLICY,'revive_next':['Decline','Failed']})
         monitor.start()
         self.assertEqual(monitor.branch,['Decline','Failed'])
-        self.assertEqual(observed,['Result_RevivePrompt'])
+        self.assertEqual(observed,['Nav_ModalPresent','Result_RevivePrompt'])
         self.assertIsNone(monitor.error)
         self.assertIsNone(monitor._thread)
         monitor.close()
@@ -92,6 +132,33 @@ class BattleOutcomeTests(unittest.TestCase):
             monitor.close()
         self.assertEqual(monitor.branch, ['Failed'])
         self.assertFalse(monitor._thread.is_alive())
+    def test_single_missing_frame_is_retried_before_stopping_playback(self):
+        context=MemoryContext();context.frame=Pixels(['Result_Failed'])
+        def capture():
+            context.samples+=1
+            return SimpleNamespace(wait=lambda:SimpleNamespace(succeeded=context.samples>=2))
+        context.post_screencap=capture
+        monitor=BattleOutcomeMonitor(context,POLICY)
+        monitor.start()
+        self.assertEqual(context.samples,2)
+        self.assertIsNone(monitor.error)
+        self.assertEqual(monitor.branch,['Failed'])
+        monitor.close()
+
+    def test_stop_during_missing_frame_prevents_further_captures(self):
+        context=MemoryContext()
+        def capture():
+            context.samples+=1
+            context.tasker.stopping=True
+            return SimpleNamespace(wait=lambda:SimpleNamespace(succeeded=False))
+        context.post_screencap=capture
+        monitor=BattleOutcomeMonitor(context,POLICY)
+        monitor.start()
+        self.assertEqual(context.samples,1)
+        self.assertIsNone(monitor.error)
+        self.assertIsNone(monitor.branch)
+        monitor.close()
+
     def test_capture_invalid_resource_and_ambiguous_result_stop_without_retry(self):
         for mode in ('failed_capture', 'bad_frame', 'missing', 'ambiguous'):
             with self.subTest(mode=mode):
@@ -126,7 +193,8 @@ class BattleOutcomeTests(unittest.TestCase):
         self.assertIsNone(monitor._thread)
         monitor.close()
     def test_policy_requires_explicit_bounded_branches(self):
-        for patch in ({'failed_next':[]}, {'default_next':None}, {'interval_ms':1}, {'unknown':True}):
+        for patch in ({'failed_next':[]}, {'default_next':None}, {'interval_ms':1}, {'unknown':True},
+                      {'error_next':[]}, {'error_next':'Fatal'}):
             with self.subTest(patch=patch), self.assertRaises(ValueError):
                 BattleOutcomeMonitor(MemoryContext(), {**POLICY, **patch})
 

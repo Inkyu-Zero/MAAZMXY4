@@ -23,64 +23,21 @@ class CandleTaskEntryTests(unittest.TestCase):
         cls.nodes = json.loads((folder / '悬赏（守卫宝烛）.json').read_text(encoding='utf8'))
         cls.taizong = json.loads((folder / '悬赏（守卫太宗）.json').read_text(encoding='utf8'))
 
-    def test_uses_the_existing_quest_panel_route(self):
-        p = PREFIX
-        self.assertEqual(self.nodes[p + '初始化']['next'], [p + '通用导航'])
-        navigation = custom_parameters(self.nodes[p + '初始化'])['navigation']
-        self.assertEqual(navigation['kind'], 'bounty')
-        self.assertEqual(navigation['target_node'], p+'点击前往副本')
-        self.assertEqual(custom_parameters(self.nodes[p+'通用导航'])['phase'], 'navigate')
-        self.assertIn(p + '点击任务', self.nodes[p + '定位']['next'])
-        for suffix, target in (('点击任务', '点击悬赏任务'),
-                               ('点击悬赏任务', '点击前往副本'),
-                               ('点击前往副本', '等待场内')):
-            node = self.nodes[p + suffix]
-            self.assertIn(p + target, node['next'])
-            self.assertEqual(node['action']['type'], 'Click')
-            self.assertEqual(node['on_error'], [p + ('通用导航' if suffix == '点击任务' else '失败')])
-        for suffix in ('点击任务', '点击悬赏任务'):
-            self.assertEqual(self.nodes[p + suffix]['recognition'],
-                             self.taizong['悬赏（守卫太宗）-' + suffix]['recognition'])
+    def test_uses_the_shared_quest_panel_route(self):
+        params=custom_parameters(self.nodes[PREFIX+'初始化'])
+        self.assertEqual(self.nodes[PREFIX+'初始化']['next'],[])
+        self.assertEqual(params['round_flow']['scene_node'],'Bounty_Play')
+        self.assertEqual(params['navigation']['target_node'],'Bounty_Target')
+        self.assertEqual(params['task_binding_id'],'bounty-candle')
+        self.assertEqual(params['execution']['resume_entry'],'GameManagement_Resume')
+        self.assertEqual(set(self.nodes),{PREFIX+'初始化'})
 
-    def test_no_retired_route_can_be_reached_or_used_as_a_resume_target(self):
-        for name, node in self.nodes.items():
-            self.assertFalse(any(term in name for term in RETIRED), name)
-            for target in node_links(self.nodes, node):
-                self.assertIn(target, self.nodes)
-                self.assertFalse(any(term in target for term in RETIRED), target)
-        parameters = custom_parameters(self.nodes[PREFIX + '初始化'])
-        self.assertEqual(parameters['execution']['binding_id'], 'bounty-candle')
-        self.assertEqual(parameters['task_binding_id'], 'bounty-candle')
-        self.assertEqual(parameters['execution']['resume_entry'], PREFIX + '恢复登录')
-        self.assertIn(PREFIX + '恢复地图就绪', self.nodes[PREFIX + '恢复等待进图']['next'])
-
-    def test_return_and_recovery_use_the_normal_task_map(self):
-        task_map = self.taizong['悬赏（守卫太宗）-点击任务']['recognition']
-        for suffix in ('返回初检', '返回复检', '恢复地图就绪'):
-            self.assertEqual(self.nodes[PREFIX + suffix]['recognition'], task_map)
-        for suffix in ('恢复界面分流', '恢复等待进图'):
-            self.assertEqual(self.nodes[PREFIX + suffix]['on_error'], [PREFIX + '恢复失败'])
-
-    def test_playback_and_exit_keep_the_existing_round_contract(self):
-        p = PREFIX
-        parameters = custom_parameters(self.nodes[p + '初始化'])
-        self.assertEqual(custom_parameters(self.nodes[p + '回放战斗'])['file'], '@task:bounty-candle')
-        self.assertEqual(parameters['routes']['battle_only'], [p+'阻断提示',p+'拒绝还魂丹',p+'等待拒绝复活',p+'战斗失败',p+'成功返回地图',p+'点击设置'])
-        self.assertEqual(parameters['routes']['recorded_return'], [p+'阻断提示',p+'拒绝还魂丹',p+'等待拒绝复活',p+'战斗失败',p+'成功返回地图',p+'等待返回'])
-        self.assertEqual(self.nodes[p + '返回复检']['next'], [p + '成功'])
-        self.assertEqual(custom_parameters(self.nodes[p + '成功'])['phase'], 'success')
-        self.assertFalse(any(node.get('action', {}).get('param', {}).get('custom_action') == 'loop_count'
-                             for node in self.nodes.values()))
-
-    def test_open_settings_menu_stops_before_scene_confirmation_or_playback(self):
-        p = PREFIX
-        blocker = p + '场内设置中止'
-        for branch in ('场内恢复', '场内初检'):
-            self.assertLess(self.nodes[p + '等待场内']['next'].index(blocker),
-                            self.nodes[p + '等待场内']['next'].index(p + branch))
-        self.assertLess(self.nodes[p + '场内初检']['next'].index(blocker),
-                        self.nodes[p + '场内初检']['next'].index(p + '回放战斗'))
-        self.assertEqual(custom_parameters(self.nodes[blocker])['phase'], 'fatal')
+    def test_shared_scene_keeps_pause_and_settings_resources(self):
+        nodes=json.loads((ROOT/'assets/resource/base/pipeline/bounty_common.json').read_text(encoding='utf8'))
+        self.assertEqual(nodes['Bounty_StageSettings']['recognition']['type'],'And')
+        self.assertEqual(nodes['Bounty_StagePause']['recognition']['type'],'Or')
+        self.assertEqual(nodes['Bounty_ResumeStage']['action']['type'],'Click')
+        self.assertIn('Result_NoRevivePrompt',nodes['Bounty_Play']['recognition']['param']['all_of'])
 
     def test_existing_install_keeps_binding_and_options_when_the_route_is_replaced(self):
         interface = json.loads((ROOT / 'assets/interface.json').read_text(encoding='utf8'))

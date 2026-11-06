@@ -84,7 +84,7 @@ class BattlePlayerStudioTests(unittest.TestCase):
     def tearDown(self):
         for mocked in reversed(self.patches): mocked.stop()
         self.temp.cleanup()
-    def wait_until(self, target, stopping=None):
+    def wait_until(self, target, stopping=None, clock=None):
         self.waits.append(target)
         if stopping and stopping(): return False
         self.clock = target
@@ -143,6 +143,63 @@ class BattlePlayerStudioTests(unittest.TestCase):
         with patch.object(player, 'BattleOutcomeMonitor', return_value=monitor):
             self.assertFalse(self.run_recording(result_guard={'default_next':['Exit']}))
         self.assertNotIn(('next',['Won']), events)
+
+    def test_monitor_error_is_terminal_even_if_the_dialog_disappears_after_release(self):
+        self.write([dict(t=0,op='keydown',key=65),dict(t=10000,op='keyup',key=65)])
+        for cancelled in (False, True):
+            with self.subTest(cancelled=cancelled):
+                monitor, events = self.guarded_monitor('Unused')
+                def after(name, *_args):
+                    events.append(name)
+                    if name == 'post_key_down':
+                        monitor.error = ValueError('检测到确认浮窗')
+                        monitor.interrupted = True
+                    elif name == 'post_key_up':
+                        self.tasker.stopping = cancelled
+                self.controller.after_call = after
+                self.tasker.stopping = False
+                with patch.object(player, 'BattleOutcomeMonitor', return_value=monitor):
+                    self.assertEqual(self.run_recording(result_guard={
+                        'default_next':['Exit'], 'error_next':['Fatal']}), not cancelled)
+                if cancelled:
+                    self.assertNotIn(('next',['Fatal']),events)
+                else:
+                    self.assertLess(events.index('post_key_up'),events.index(('next',['Fatal'])))
+                    self.assertLess(events.index('closed'),events.index(('next',['Fatal'])))
+
+    def test_unknown_dialog_releases_inputs_before_specific_failure_branch(self):
+        self.write([dict(t=0,op='keydown',key=65),dict(t=10000,op='keyup',key=65)])
+        for cancelled in (False, True):
+            with self.subTest(cancelled=cancelled):
+                monitor, events = self.guarded_monitor('Unused')
+                def after(name, *_args):
+                    events.append(name)
+                    if name == 'post_key_down':
+                        monitor.error = player.UnrecognizedDialog('unknown dialog')
+                        monitor.interrupted = True
+                    elif name == 'post_key_up':
+                        self.tasker.stopping = cancelled
+                self.controller.after_call = after
+                self.tasker.stopping = False
+                with patch.object(player, 'BattleOutcomeMonitor', return_value=monitor):
+                    self.assertEqual(self.run_recording(result_guard={
+                        'default_next':['Exit'], 'error_next':['Fatal']}), not cancelled)
+                target=('next',['Result_MonitorUnrecognizedDialog'])
+                if cancelled:
+                    self.assertNotIn(target,events)
+                else:
+                    self.assertLess(events.index('post_key_up'),events.index(target))
+                    self.assertLess(events.index('closed'),events.index(target))
+                    self.assertNotIn(('next',['Fatal']),events)
+
+    def test_capture_loss_keeps_the_normal_failure_path_for_verified_window_recovery(self):
+        self.write([dict(t=0,op='keydown',key=65),dict(t=10000,op='keyup',key=65)])
+        monitor, events = self.guarded_monitor('Unused')
+        monitor.error = RuntimeError('战斗结果截图失败')
+        monitor.interrupted = True
+        with patch.object(player, 'BattleOutcomeMonitor', return_value=monitor):
+            self.assertFalse(self.run_recording(result_guard={'default_next':['Exit'], 'error_next':['Fatal']}))
+        self.assertNotIn(('next',['Fatal']),events)
 
     def test_legacy_actions_keep_order_leading_wait_and_absolute_schedule(self):
         self.write([dict(t=100,op="key",key=74),dict(t=20,op="click",x=10,y=20),
@@ -370,8 +427,8 @@ class BattlePlayerStudioTests(unittest.TestCase):
         for path in (ROOT/'assets/resource/base/pipeline').glob('*.json'):
             for node in json.loads(path.read_text(encoding='utf8')).values():
                 action=node.get('action',{})
-                if isinstance(action,dict) and action.get('param',{}).get('custom_action')=='battle_play':
-                    self.assertTrue(action['param']['custom_action_param']['file'].startswith('@task:'))
+                if isinstance(action,dict) and action.get('param',{}).get('custom_action')=='script_task_state' and action['param']['custom_action_param'].get('phase')=='begin':
+                    self.assertTrue(action['param']['custom_action_param']['file'].startswith('@task'))
                     count+=1
         self.assertEqual(count,11)
 
@@ -384,7 +441,7 @@ class BattlePlayerStudioTests(unittest.TestCase):
             elapsed[0]+=.0001
             return elapsed[0]
         original_wait = next(p for p in self.patches if p.attribute=="_sleep_until").temp_original
-        with patch.object(player,"_boost_timer",lambda:None), \
+        with patch.object(player.playback,"_boost_timer",lambda:None), \
              patch.object(player.time,"monotonic",monotonic),patch.object(player.time,"sleep",fake_sleep):
             self.assertFalse(original_wait(999,lambda:elapsed[0]>=.05))
         self.assertTrue(sleeps)

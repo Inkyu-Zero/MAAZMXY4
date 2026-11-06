@@ -42,7 +42,8 @@ public sealed partial class ScriptStudioView
         pickerRow.Children.Add(_editorPicker);
         var help = new TextBlock { Text = "空白处框选 · Ctrl+单击多选 · 拖动整体移动 · Delete 删除", FontSize = 12, Opacity = .75, VerticalAlignment = VerticalAlignment.Center, TextWrapping = TextWrapping.Wrap };
         Grid.SetColumn(help, 1); pickerRow.Children.Add(help);
-        var export = Button("导出…", ExportAsync); _documentActions.Add(export); Grid.SetColumn(export, 2); pickerRow.Children.Add(export);
+        var export = Button("导出…", ExportAsync); _documentActions.Add(export);
+        var fileActions = Wrap(_discardRecordingDraft, export); Grid.SetColumn(fileActions, 2); pickerRow.Children.Add(fileActions);
         layout.Children.Add(pickerRow);
         _focusTimelineButton = IconButton(15, "最大化时间轴", async () => { ToggleTimelineFocus(); await Task.CompletedTask; }, false);
         _cursor.Width = 105; _cursor.MinWidth = 95; _cursor.Height = 32; _cursor.MinHeight = 32;

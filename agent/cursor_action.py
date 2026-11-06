@@ -25,36 +25,7 @@ import json
 from maa.agent.agent_server import AgentServer
 from maa.custom_action import CustomAction
 
-WM_MOUSEMOVE = 0x0200
-
-
-def _bound_hwnd(controller):
-    """Use only the controller's explicit target; never enumerate another instance."""
-    info = controller.info
-    value = info.get('hwnd') if isinstance(info, dict) else getattr(info, 'hwnd', None)
-    if isinstance(value, bool):
-        raise ValueError('控制器窗口句柄无效')
-    if isinstance(value, str):
-        value = int(value, 16 if value.lower().startswith('0x') else 10)
-    if not isinstance(value, int) or not 0 < value < 2 ** (ctypes.sizeof(ctypes.c_void_p) * 8):
-        raise ValueError('控制器未提供已绑定的窗口句柄，未选择其它窗口')
-    return value
-
-
-def _post_move(hwnd, x, y):
-    """给窗口发一条 WM_MOUSEMOVE（客户区坐标），返回 (ok, 说明)。"""
-    user32 = ctypes.windll.user32
-    user32.IsWindow.argtypes = [ctypes.wintypes.HWND]
-    user32.IsWindow.restype = ctypes.wintypes.BOOL
-    user32.PostMessageW.argtypes = [ctypes.wintypes.HWND, ctypes.wintypes.UINT, ctypes.wintypes.WPARAM, ctypes.wintypes.LPARAM]
-    user32.PostMessageW.restype = ctypes.wintypes.BOOL
-    if not user32.IsWindow(hwnd):
-        return False, '绑定窗口已关闭'
-    lparam = ((int(y) & 0xFFFF) << 16) | (int(x) & 0xFFFF)
-    ok = user32.PostMessageW(int(hwnd), WM_MOUSEMOVE, 0, lparam)
-    if not ok:
-        return False, 'PostMessageW 返回 0（窗口可能已关闭）'
-    return True, '客户区 (%d,%d)' % (x, y)
+from mouse_input import bound_hwnd as _bound_hwnd, post_move as _post_move
 
 
 @AgentServer.custom_action('move_cursor')
@@ -79,3 +50,25 @@ class MoveCursor(CustomAction):
         except Exception as error:  # noqa: BLE001
             print('move_cursor 已停止：%s: %s' % (type(error).__name__, error), flush=True)
             return CustomAction.RunResult(success=False)
+
+
+@AgentServer.custom_action('click_and_clear_hover')
+class ClickAndClearHover(CustomAction):
+    """Pipeline Click equivalent with one background move after button release."""
+    def run(self, context, argv):
+        try:
+            if context.tasker.stopping:
+                return False
+            x, y, width, height = list(argv.box)
+            if width <= 0 or height <= 0:
+                raise ValueError('点击缺少有效的当前识别框。')
+            result = context.tasker.controller.post_click(int(x + width // 2), int(y + height // 2)).wait()
+            if not result.succeeded or context.tasker.stopping:
+                return False
+            ok, detail = _post_move(_bound_hwnd(context.tasker.controller), 20, 20)
+            if not ok:
+                print('点击后的悬停未移开：' + detail, flush=True)
+            return ok
+        except Exception as error:
+            print('点击并移开悬停失败：' + str(error), flush=True)
+            return False

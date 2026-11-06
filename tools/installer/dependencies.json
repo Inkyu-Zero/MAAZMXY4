@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "compiler": {
+    "version": "7.1.1",
+    "url": "https://github.com/jrsoftware/issrc/releases/download/is-7_1_1/innosetup-7.1.1-x64.exe",
+    "iscc_sha256": "e0f9f1dc32032650c6629f6dee41eb6d20ba140e4e3c07c25d8a24f9ba781644",
+    "publisher": "Pyrsys B.V."
+  },
+  "dependencies": [
+    {
+      "id": "dotnet",
+      "file": "dotnet-runtime-x64.exe",
+      "version": "10.0.14",
+      "minimum": "10.0.0",
+      "url": "https://builds.dotnet.microsoft.com/dotnet/Runtime/10.0.14/dotnet-runtime-10.0.14-win-x64.exe",
+      "sha256": "53a67d2d68a74a892010191d70080a5b359f41ed7d0bb2f92f120c9f0e4e199d",
+      "sha512": "6277b0feac2ec312276ec62ccaaec7fb49a22baa0c4157d0418eb4bfc7c443fa90aa06318725c113da1ea19343b5a315749825299a71e34010f4554496cf36e8",
+      "publisher": "Microsoft Corporation",
+      "license": "https://github.com/dotnet/runtime/blob/v10.0.14/LICENSE.TXT"
+    },
+    {
+      "id": "vcredist",
+      "file": "vc_redist.x64.exe",
+      "version": "14.51.36247.0",
+      "minimum": "14.51.36247.0",
+      "url": "https://aka.ms/vc14/vc_redist.x64.exe",
+      "sha256": "843068991daaa1f73ad9f6239bce4d0f6a07a51f18c37ea2a867e9beca71295c",
+      "publisher": "Microsoft Corporation",
+      "license": "https://visualstudio.microsoft.com/license-terms/vs2022-cruntime/"
+    }
+  ]
+}

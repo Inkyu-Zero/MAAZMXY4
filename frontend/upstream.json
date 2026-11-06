@@ -73,6 +73,20 @@
     "frontend/patches/57-single-input-label.json",
     "frontend/patches/58-single-input-help.json",
     "frontend/patches/59-option-row-spacing.json",
-    "frontend/patches/58-personal-transfer-startup.json"
+    "frontend/patches/58-personal-transfer-startup.json",
+    "frontend/patches/60-input-only-session.json",
+    "frontend/patches/61-input-only-queue-entry.json",
+    "frontend/patches/62-input-only-task-dispatch.json",
+    "frontend/patches/63-input-only-preview.json",
+    "frontend/patches/64-input-only-connect.json",
+    "frontend/patches/65-input-only-benchmark.json",
+    "frontend/patches/66-input-only-manual-connect.json",
+    "frontend/patches/67-input-only-preview-fence.json",
+    "frontend/patches/68-input-only-end.json",
+    "frontend/patches/69-input-only-repeat.json",
+    "frontend/patches/70-input-only-postscript.json",
+    "frontend/patches/71-input-only-direct-image.json",
+    "frontend/patches/72-host-continuous-repeat.json",
+    "frontend/patches/73-host-continuous-loop.json"
   ]
 }

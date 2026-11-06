@@ -28,7 +28,7 @@ class TaskAssetSyncTests(unittest.TestCase):
             custom_action_param=dict(phase='begin', navigation=dict(kind='stage'))))
         self.write(path, pipeline)
         self.write(self.source/'agent/data/navigation/resources.json', dict(version=1, pipelines=['navigation.json','outcomes.json']))
-        self.write(self.source/'agent/data/navigation/graph.json', dict(version=1, targets=['map']))
+        self.write(self.source/'agent/data/navigation/routines.json', dict(version=1, targets=['map']))
         self.write(self.source/'assets/resource/base/pipeline/navigation.json', {'Nav':dict(next=['Shared'])})
         self.write(self.source/'assets/resource/base/pipeline/outcomes.json', {'Shared':dict(action=dict(type='DoNothing'))})
         raw = b'library-only crop'
@@ -39,7 +39,7 @@ class TaskAssetSyncTests(unittest.TestCase):
         self.assertTrue((self.target/'resource/base/pipeline/navigation.json').is_file())
         self.assertTrue((self.target/'resource/base/pipeline/outcomes.json').is_file())
         self.assertEqual((self.target/'resource/base/image/navigation/unused-in-current-graph.png').read_bytes(),raw)
-        self.assertTrue((self.target/'agent/data/navigation/graph.json').is_file())
+        self.assertTrue((self.target/'agent/data/navigation/routines.json').is_file())
         self.assertEqual(sync.sync_task_assets(self.source,self.target)['changes'], [])
 
     def test_duplicate_pipeline_node_is_rejected_before_writing(self):

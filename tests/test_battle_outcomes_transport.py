@@ -37,7 +37,7 @@ def native_case():
         (directory/'image').mkdir()
         import shutil
         definitions=json.loads((ROOT/'assets/resource/base/pipeline/battle_outcomes.json').read_text(encoding='utf8'))
-        pipeline={name:definitions[name] for name in ('Result_Failed','Result_Succeeded')}
+        pipeline={name:definitions[name] for name in ('Result_Failed','Result_Succeeded','Nav_ModalPresent')}
         pipeline.update(json.loads((ROOT/'assets/resource/base/pipeline/navigation_common_ui.json').read_text(encoding='utf8')))
         def templates(value):
             if isinstance(value,dict):

@@ -10,8 +10,8 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT/'agent'))
 sys.path.insert(0, str(ROOT/'tools'))
-from navigation import select_state, validate_navigation
-from navigation.catalog import task_graph
+from build_navigation import compile_library
+from navigation.catalog import task_routine
 from task_catalog import custom_parameters, task_key
 
 
@@ -27,7 +27,7 @@ class NavigationAssetsTests(unittest.TestCase):
                 if name in cls.nodes: raise AssertionError('Duplicate native node: '+name)
                 cls.nodes[name], cls.owners[name] = node,path
         cls.interface = read(ROOT/'assets/interface.json')
-        cls.graph = read(ROOT/'agent/data/navigation/graph.json')
+        cls.routines = read(ROOT/'agent/data/navigation/routines.json')
 
     def test_complete_source_library_is_self_contained_with_original_provenance(self):
         library = read(ROOT/'agent/data/navigation/library.json')
@@ -49,82 +49,41 @@ class NavigationAssetsTests(unittest.TestCase):
             self.assertEqual(hashlib.sha256(path.read_bytes()).hexdigest(),item['sha256'])
             self.assertIn(item['action_policy'],['recognize_only','candidate'])
 
-    def test_compiled_graph_uses_only_readonly_probes_and_no_board_entry(self):
-        validate_navigation(self.graph,self.nodes)
-        self.assertFalse(any(e['target']=='bounty_board' for e in self.graph['edges']))
-        self.assertNotIn('daily_menu_scene',self.nodes)
-        for edge in self.graph['edges']:
-            self.assertLessEqual(edge['max_attempts'],2)
+    def test_routines_use_readonly_screens_and_do_not_enter_bounty_board(self):
+        for screen in self.routines['screens'].values():
+            self.assertEqual(self.nodes[screen['detector']]['action']['type'],'DoNothing')
+        self.assertFalse(any('bounty_board' in a['verify'] for a in self.routines['actions'].values()))
 
-    def test_task_destination_reuses_native_recognition_without_roundtrip_serialization(self):
+    def test_each_public_task_binds_its_existing_native_target(self):
         class Context:
-            patches=[]
-            def get_node_data(_self,name):
-                # Maa's normalized composite format is not source JSON.
-                return {'recognition':{'type':'And','param':{'all_of':[{'type':'OCR','sub_name':'OCR','param':{}}]}}}
-            def override_pipeline(_self,patch):
-                _self.patches.append(patch)
-                return True
-        context=Context()
-        graph=task_graph(context,dict(navigation=dict(kind='bounty',title='守卫太宗',target_node='ActualTarget')))
-        node=next(n for n in graph['nodes'] if n['id']=='task_destination')
-        self.assertEqual(node['recognition'],['ActualTarget'])
-        self.assertFalse(any('Nav_TaskDestination' in patch for patch in context.patches))
-        for state in ('task_map','map_a','map_b'):
-            self.assertTrue(any(e['source']==state and e['target']=='quest_panel' for e in graph['edges']))
-
-    def test_every_injected_task_graph_can_locate_its_map_and_target(self):
-        class Context:
-            def get_node_data(_self, name): return self.nodes[name]
-            def override_pipeline(_self, patch): return True
-        tasks = 0
-        for task in self.interface['task']:
-            parameters = next((custom_parameters(node) for name, node in self.nodes.items()
-                               if name.startswith(task['name'] + '-')
-                               and custom_parameters(node).get('navigation')), None)
-            if parameters is None: continue
-            tasks += 1
-            with self.subTest(task=task['name']):
-                graph = task_graph(Context(), parameters)
-                by_id = {node['id']: node for node in graph['nodes']}
-                map_hits = set(by_id['task_map']['recognition'])
-                self.assertEqual(select_state(graph, map_hits), 'task_map')
-                target_hits = map_hits | set(by_id['task_destination']['recognition'])
-                self.assertEqual(select_state(graph, target_hits), 'task_destination')
-                if parameters['navigation']['kind'] == 'stage':
-                    panel_hits = target_hits | set(by_id['profile']['recognition'])
-                    self.assertEqual(select_state(graph, panel_hits), 'profile')
-        self.assertEqual(tasks, 11)
-
-    def test_every_script_task_preserves_binding_and_keeps_failure_out_of_quota(self):
+            def get_node_data(_self,name):return self.nodes[name]
+            def override_pipeline(_self,patch):_self.patch=patch;return True
         count=0
         for task in self.interface['task']:
-            prefix=task['name']+'-'
-            prepare=next((n for n in self.nodes if n.startswith(prefix)
-                          and custom_parameters(self.nodes[n]).get('navigation')),None)
-            if prepare is None: continue
-            count+=1
-            self.assertIn('失败自动重试',task['option'])
-            parameters=custom_parameters(self.nodes[prepare])
-            self.assertFalse(parameters['failure_retry']['enabled'])
-            self.assertEqual(self.nodes[parameters['navigation_entry']]['next'],[parameters['navigation']['target_node']])
-            self.assertEqual(self.nodes[prefix+'失败返回确认']['next'],[])
-            confirmed_failure=parameters['result_guard']['failed_next'][0]
-            self.assertEqual(self.nodes[confirmed_failure]['recognition']['type'],'DirectHit')
-            self.assertIn(prefix+'失败返回确认',self.nodes[confirmed_failure]['next'])
-            self.assertEqual(custom_parameters(self.nodes[confirmed_failure])['phase'],'battle_failure')
-            for suffix in ('战斗失败','失败返回地图','失败返回确认','通用导航'):
-                self.assertNotIn(prefix+'刷取次数', self.nodes[prefix+suffix].get('next',[]))
-            if parameters.get('execution'):
-                self.assertEqual(parameters['task_binding_id'],'bounty-candle')
-                self.assertNotIn(prefix+'刷取次数',self.nodes)
-            else:
-                playback=custom_parameters(self.nodes[parameters['playback_node']])
-                self.assertEqual(playback['file'],'@task:'+task_key(task['name'],task['entry']))
-                self.assertEqual(self.nodes[prefix+'本轮成功']['next'],[prefix+'刷取次数','停止运行'])
-                self.assertNotIn(self.nodes[task['entry']]['action']['type'],('Click','KeyDown','Key'))
-                self.assertEqual(self.nodes[prefix+'刷取次数']['next'],[prepare])
-        self.assertGreaterEqual(count,11)
+            parameters=next((custom_parameters(n) for name,n in self.nodes.items()
+                if name.startswith(task['name']+'-') and custom_parameters(n).get('navigation')),None)
+            if parameters is None:continue
+            count+=1;context=Context();routine=task_routine(context,parameters)
+            self.assertEqual(routine['targets'],['task_destination'])
+            self.assertEqual(routine['screens']['map']['detector'],'Nav_ClearMap')
+            parts=context.patch['Nav_TaskTarget']['recognition']['param']['all_of']
+            self.assertIn(parameters['navigation']['target_node'],parts)
+        self.assertEqual(count,11)
+
+    def test_every_script_task_preserves_binding_and_declares_one_round_boundary(self):
+        from task_catalog import task_catalog
+        tasks=[t for t in task_catalog(ROOT,bindings={}) if t['management_profile']]
+        self.assertEqual(len(tasks),11)
+        for task in tasks:
+            profile=task['management_profile'];params=profile['parameters']
+            self.assertEqual(profile['entry'],profile['success_node'])
+            self.assertEqual(params['file'],'@task:'+task['id'])
+            self.assertFalse(params['failure_retry']['enabled'])
+            self.assertIn(params['round_flow']['scene_node'],self.nodes)
+            self.assertEqual(params['result_guard']['failed_next'],['Result_Failed'])
+            self.assertEqual(params['result_guard']['revive_next'],['Result_RevivePrompt'])
+            self.assertEqual(self.nodes[task['entry']]['action']['type'],'Custom')
+            self.assertEqual(self.nodes[task['entry']]['next'],[task['entry'],'停止运行'] if profile['native_repeat'] else [])
 
     def test_standard_package_collection_includes_runtime_graph_and_images(self):
         spec=importlib.util.spec_from_file_location('navigation_update_collect',ROOT/'tools/build_release.py')
@@ -133,7 +92,7 @@ class NavigationAssetsTests(unittest.TestCase):
         files={relative:Path(source) for source,relative in builder.collect(str(ROOT))}
         self.assertIn('agent/navigation/runtime.py',files)
         self.assertIn('agent/battle_outcomes.py',files)
-        self.assertIn('agent/data/navigation/graph.json',files)
+        self.assertIn('agent/data/navigation/routines.json',files)
         self.assertIn('resource/base/pipeline/navigation.json',files)
         self.assertIn('resource/base/pipeline/battle_outcomes.json',files)
         for name in ('common_ui','settings'):

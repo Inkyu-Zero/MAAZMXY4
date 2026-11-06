@@ -54,6 +54,80 @@ Test("recovery retries same round without extra completion", async () =>
         (slot, attempt, _) => { Require(slot == 1 && attempt == 1); restarts++; return Task.FromResult(Ready()); }, default);
     Require(result.Status == TaskAttemptStatus.Success && runs == 2 && restarts == 1);
 });
+Test("terminal unknown navigation checkpoint follows failure toggle and bounded same-round recovery", async () =>
+{
+    var checkpoint = new JsonObject { ["version"] = 1, ["run_id"] = "round", ["instance_id"] = "default",
+        ["status"] = "recoverable", ["reason"] = "task_failed", ["navigation_failure"] = "unknown", ["failure_phase"] = "navigate" };
+    var failure = TaskRecoveryPolicy.ReadCheckpoint(checkpoint, "round", "default", false);
+    Require(failure.Status == TaskAttemptStatus.Recoverable);
+    foreach (var restartEnabled in new[] { false, true })
+    {
+        var runs = 0; var restarts = 0;
+        var result = await TaskRecoveryPolicy.RunRoundAsync(enabled with { Enabled = restartEnabled },
+            _ => Task.FromResult(++runs == 1 ? failure : Good()),
+            (slot, attempt, _) => { Require(restartEnabled && slot == 1 && attempt == 1); restarts++; return Task.FromResult(Ready()); }, default);
+        Console.WriteLine($"TRACE unknown navigation restart enabled={restartEnabled} runs={runs} restarts={restarts} result={result.Status}");
+        Require(restartEnabled ? result.Status == TaskAttemptStatus.Success && runs == 2 && restarts == 1
+                               : result.Status == TaskAttemptStatus.Recoverable && runs == 1 && restarts == 0);
+    }
+    var failedRuns = 0; var cappedRestarts = 0;
+    var exhausted = await TaskRecoveryPolicy.RunRoundAsync(enabled,
+        _ => { failedRuns++; return Task.FromResult(failure); },
+        (_, attempt, _) => { Require(attempt == ++cappedRestarts); return Task.FromResult(Ready()); }, default);
+    Require(exhausted.Status == TaskAttemptStatus.Fatal && failedRuns == 4 && cappedRestarts == 3);
+});
+Test("unrecognized dialog failure uses the existing same-round restart budget", async () =>
+{
+    var checkpoint = new JsonObject { ["version"] = 1, ["run_id"] = "round", ["instance_id"] = "default",
+        ["status"] = "recoverable", ["reason"] = "task_failed", ["navigation_failure"] = "unrecognized_dialog",
+        ["failure_phase"] = "battle_monitor" };
+    var failure = TaskRecoveryPolicy.ReadCheckpoint(checkpoint, "round", "default", false);
+    Require(failure.Status == TaskAttemptStatus.Recoverable);
+    foreach (var restartEnabled in new[] { false, true })
+    {
+        var runs = 0; var restarts = 0;
+        var result = await TaskRecoveryPolicy.RunRoundAsync(enabled with { Enabled = restartEnabled },
+            _ => Task.FromResult(++runs == 1 ? failure : Good()),
+            (slot, attempt, _) => { Require(slot == 1 && attempt == 1); restarts++; return Task.FromResult(Ready()); }, default);
+        Require(restartEnabled ? result.Status == TaskAttemptStatus.Success && runs == 2 && restarts == 1
+                               : result.Status == TaskAttemptStatus.Recoverable && runs == 1 && restarts == 0);
+    }
+    var retries = 0;
+    var exhausted = await TaskRecoveryPolicy.RunRoundAsync(enabled,
+        _ => Task.FromResult(failure),
+        (_, _, _) => { retries++; return Task.FromResult(Ready()); }, default);
+    Require(exhausted.Status == TaskAttemptStatus.Fatal && retries == 3);
+});
+Test("confirmed controller loss needs repeated samples and the same verified target", async () =>
+{
+    var samples = 0;
+    var persistent = await TaskRecoveryPolicy.ConfirmControllerLossAsync(() => true, () => { samples++; return false; },
+        default, _ => Task.CompletedTask);
+    Require(persistent && samples == 3);
+    samples = 0;
+    var transient = await TaskRecoveryPolicy.ConfirmControllerLossAsync(() => true, () => ++samples >= 2,
+        default, _ => Task.CompletedTask);
+    Require(!transient && samples == 2);
+    var identityChecks = 0;
+    var changed = await TaskRecoveryPolicy.ConfirmControllerLossAsync(() => ++identityChecks < 2, () => false,
+        default, _ => Task.CompletedTask);
+    Require(!changed);
+    using var cancel = new CancellationTokenSource(); cancel.Cancel();
+    await Throws<OperationCanceledException>(() => TaskRecoveryPolicy.ConfirmControllerLossAsync(
+        () => true, () => false, cancel.Token, _ => Task.CompletedTask));
+});
+Test("controller loss restarts only through the verified host outcome", async () =>
+{
+    var failure = new TaskAttempt(TaskAttemptStatus.Recoverable, "window_connection_lost");
+    var runs = 0; var restarts = 0;
+    var result = await TaskRecoveryPolicy.RunRoundAsync(enabled,
+        _ => Task.FromResult(++runs == 1 ? failure : Good()),
+        (_, _, _) => { restarts++; return Task.FromResult(Ready()); }, default);
+    Require(result.Status == TaskAttemptStatus.Success && runs == 2 && restarts == 1);
+    var forged = new JsonObject { ["version"] = 1, ["run_id"] = "r", ["instance_id"] = "i",
+        ["status"] = "recoverable", ["reason"] = "window_connection_lost" };
+    Require(TaskRecoveryPolicy.ReadCheckpoint(forged, "r", "i", false).Status == TaskAttemptStatus.Fatal);
+});
 Test("three restart budget is enforced", async () =>
 {
     var runs = 0; var restarts = 0;
@@ -111,13 +185,13 @@ Test("login fatal stops without replaying round", async () =>
         (_, _, _) => Task.FromResult(TaskAttempt.Fatal("captcha")), default);
     Require(result.Status == TaskAttemptStatus.Fatal && calls == 1);
 });
-Test("white screen during login consumes remaining restart budget", async () =>
+Test("a failure during restart login stops without a second restart", async () =>
 {
     var calls = 0; var retries = 0;
     var result = await TaskRecoveryPolicy.RunRoundAsync(enabled,
         _ => { calls++; return Task.FromResult(White()); },
         (_, _, _) => { retries++; return Task.FromResult(White()); }, default);
-    Require(result.Status == TaskAttemptStatus.Fatal && retries == 3 && calls == 1);
+    Require(result.Status == TaskAttemptStatus.Fatal && retries == 1 && calls == 1);
 });
 Sync("stale and cross-instance checkpoints are rejected", () =>
 {
@@ -127,6 +201,8 @@ Sync("stale and cross-instance checkpoints are rejected", () =>
     Require(TaskRecoveryPolicy.ReadCheckpoint(State("new", "a", "running"), "new", "a", false).Status == TaskAttemptStatus.Fatal);
     Require(TaskRecoveryPolicy.ReadCheckpoint(State("new", "a", "ready"), "new", "a", false).Status == TaskAttemptStatus.Fatal);
     Require(TaskRecoveryPolicy.ReadCheckpoint(State("new", "a", "success"), "new", "a", true).Status == TaskAttemptStatus.Fatal);
+    var resumeFailure=State("new", "a", "recoverable"); resumeFailure["reason"]="task_failed";
+    Require(TaskRecoveryPolicy.ReadCheckpoint(resumeFailure, "new", "a", true).Status == TaskAttemptStatus.Fatal);
     Require(TaskRecoveryPolicy.ReadCheckpoint(State("new", "a", "ready"), "new", "a", true).Status == TaskAttemptStatus.Ready);
 });
 Sync("only the selected PID and start identity can be ended", () =>
@@ -144,6 +220,16 @@ Sync("configured executable cannot silently target a launcher", () =>
     var expected = new TaskProcessIdentity(12, 100, Path.GetFullPath("game.exe"));
     try { expected.RequireConfiguredPath(Path.GetFullPath("launcher.exe")); throw new Exception("Path should fail"); }
     catch (InvalidOperationException) { }
+});
+Sync("a changed selection cannot restart a previously verified target", () =>
+{
+    Require(TaskRecoveryPolicy.SelectionAllowsRecovery(true, false, 17, 17, 17));
+    Require(TaskRecoveryPolicy.SelectionAllowsRecovery(true, false, null, 0, 17)); // Cleared after disconnect.
+    Require(!TaskRecoveryPolicy.SelectionAllowsRecovery(false, false, 17, 17, 17));
+    Require(!TaskRecoveryPolicy.SelectionAllowsRecovery(true, true, null, 0, 17));
+    Require(!TaskRecoveryPolicy.SelectionAllowsRecovery(true, false, 18, 17, 17));
+    Require(!TaskRecoveryPolicy.SelectionAllowsRecovery(true, false, 17, 18, 17));
+    Require(!TaskRecoveryPolicy.SelectionAllowsRecovery(true, false, null, 0, 0));
 });
 Sync("other running instance sharing the PID blocks restart", () =>
 {
@@ -258,6 +344,7 @@ Sync("only matching capture failures may be checked for positive window loss", (
     Require(TaskRecoveryPolicy.IsCaptureLossCandidate(State("running", ""), "new", "default"));
     Require(TaskRecoveryPolicy.IsCaptureLossCandidate(State("fatal", "capture_unavailable"), "new", "default"));
     foreach (var state in new[] { State("fatal", "unknown_screen"), State("fatal", "recording_changed"),
+        State("fatal", "blocked_dialog"), State("fatal", "navigation_blocked"),
         State("fatal", "not_accepted"), State("cancelled", "capture_unavailable"), State("running", "", "old") })
         Require(!TaskRecoveryPolicy.IsCaptureLossCandidate(state, "new", "default"));
 });
@@ -276,12 +363,92 @@ Sync("client restoration accounts for borders without changing recording scale",
     catch (InvalidOperationException) { }
 });
 
+Test("new process may have no main module before it exposes the verified path", async () =>
+{
+    var reads = 0; var milliseconds = 0; var logs = new List<string>();
+    var expected = new TaskProcessIdentity(9192, 100, enabled.ExePath);
+    var actual = await TaskRecoveryPolicy.WaitForStartedProcessAsync(9192, enabled.ExePath,
+        () => ++reads < 3 ? null : expected, () => false, default, logs.Add,
+        () => TimeSpan.FromMilliseconds(milliseconds), _ => { milliseconds += 100; return Task.CompletedTask; });
+    Require(actual == expected && reads == 3 && milliseconds == 200 && logs.Count == 1);
+});
+Test("new process can alternate unavailable modules and Windows loader errors", async () =>
+{
+    var reads = 0;
+    var expected = new TaskProcessIdentity(9192, 100, enabled.ExePath);
+    var actual = await TaskRecoveryPolicy.WaitForStartedProcessAsync(9192, enabled.ExePath,
+        () => ++reads switch { 1 => throw new System.ComponentModel.Win32Exception(299), 2 => null, _ => expected },
+        () => false, default, delay: _ => Task.CompletedTask);
+    Require(actual == expected && reads == 3);
+});
+Test("a live process without a module times out and never becomes a verified target", async () =>
+{
+    var seconds = 0; var reads = 0;
+    await Throws<TimeoutException>(() => TaskRecoveryPolicy.WaitForStartedProcessAsync(9192, enabled.ExePath,
+        () => { reads++; return null; }, () => false, default, elapsed: () => TimeSpan.FromSeconds(seconds),
+        delay: _ => { seconds++; return Task.CompletedTask; }));
+    Require(reads == 5 && seconds == 5);
+});
+Test("wrong startup path and PID fail immediately instead of being retried", async () =>
+{
+    foreach (var identity in new[] { new TaskProcessIdentity(42, 100, enabled.ExePath),
+        new TaskProcessIdentity(9192, 100, Path.GetFullPath("unrelated.exe")) })
+    {
+        var reads = 0; var waits = 0;
+        await Throws<InvalidOperationException>(() => TaskRecoveryPolicy.WaitForStartedProcessAsync(9192, enabled.ExePath,
+            () => { reads++; return identity; }, () => false, default,
+            delay: _ => { waits++; return Task.CompletedTask; }));
+        Require(reads == 1 && waits == 0);
+    }
+});
+Test("cancellation while awaiting the main module prevents subsequent identity reads", async () =>
+{
+    using var cancel = new CancellationTokenSource(); var reads = 0;
+    await Throws<OperationCanceledException>(() => TaskRecoveryPolicy.WaitForStartedProcessAsync(9192, enabled.ExePath,
+        () => { reads++; return null; }, () => false, cancel.Token,
+        delay: _ => { cancel.Cancel(); return Task.CompletedTask; }));
+    Require(reads == 1);
+});
+Test("a process that exits during startup is never replaced or connected", async () =>
+{
+    var exited = false; var reads = 0;
+    await Throws<InvalidOperationException>(() => TaskRecoveryPolicy.WaitForStartedProcessAsync(9192, enabled.ExePath,
+        () => { reads++; return null; }, () => exited, default,
+        delay: _ => { exited = true; return Task.CompletedTask; }));
+    Require(reads == 1 && exited);
+});
+
 Test("old native input and Agent finish before process termination", async () =>
 {
     var lifecycle = new FakeLifecycle();
     var result = await TaskRecoveryPolicy.RestartAsync(lifecycle, 3, default);
     Require(result.Status == TaskAttemptStatus.Ready && lifecycle.Slot == 3);
     Require(string.Join(",", lifecycle.Calls) == "release,kill,start,bind,resize,connect,login");
+});
+Test("scheduled restart waits for startup identity then resumes the next round once", async () =>
+{
+    var reads = 0; var rounds = 0;
+    var lifecycle = new FakeLifecycle { OnStart = async token =>
+        await TaskRecoveryPolicy.WaitForStartedProcessAsync(9192, enabled.ExePath,
+            () => ++reads < 3 ? null : new(9192, 100, enabled.ExePath), () => false, token,
+            delay: _ => Task.CompletedTask) };
+    var resumed = await TaskRecoveryPolicy.RestartAsync(lifecycle, 1, default);
+    Require(resumed.Status == TaskAttemptStatus.Ready);
+    var outcome = await TaskRecoveryPolicy.RunRoundAsync(enabled, _ => { rounds++; return Task.FromResult(Good()); }, NoRecovery, default);
+    Require(outcome.Status == TaskAttemptStatus.Success && rounds == 1 && reads == 3);
+    Require(string.Join(",", lifecycle.Calls) == "release,kill,start,bind,resize,connect,login");
+});
+Test("failure restart uses the same startup wait without consuming another recovery attempt", async () =>
+{
+    var reads = 0; var rounds = 0; var recoveries = 0;
+    var lifecycle = new FakeLifecycle { OnStart = async token =>
+        await TaskRecoveryPolicy.WaitForStartedProcessAsync(9192, enabled.ExePath,
+            () => ++reads < 3 ? null : new(9192, 100, enabled.ExePath), () => false, token,
+            delay: _ => Task.CompletedTask) };
+    var outcome = await TaskRecoveryPolicy.RunRoundAsync(enabled,
+        _ => Task.FromResult(++rounds == 1 ? White() : Good()),
+        async (slot, attempt, token) => { recoveries++; return await TaskRecoveryPolicy.RestartAsync(lifecycle, slot, token); }, default);
+    Require(outcome.Status == TaskAttemptStatus.Success && rounds == 2 && recoveries == 1 && reads == 3);
 });
 Test("failed native input cleanup never kills the game", async () =>
 {
@@ -490,6 +657,23 @@ Sync("AFK overrides finite native quota and retry limit without changing saved i
     Require(TaskScriptPlan.Parameters(result.AsObject(), "脚本任务设置")["failure_retry"]!["max_retries"]!.GetValue<int>() == -1);
     Require(JsonNode.Parse(raw)!["Counter"]!["max_hit"]!.GetValue<int>() == 7);
 });
+Sync("compact round can share initializer and success boundary without losing pinned parameters", () =>
+{
+    var plan = new JsonObject { ["binding"] = new JsonObject { ["mode"] = "pipeline" },
+        ["recording"] = Recording(), ["playback_nodes"] = new JsonArray("Fight"),
+        ["management_profile"] = new JsonObject { ["entry"] = "Round", ["success_node"] = "Round",
+            ["native_repeat"] = true, ["repeat_limit"] = 3,
+            ["parameters"] = new JsonObject { ["phase"] = "begin",
+                ["round_flow"] = new JsonObject { ["scene_node"] = "Scene", ["repeat_node"] = "Counter" } } } };
+    var result = TaskScriptPlan.PrepareManaged(plan, "Round", "{\"Round\":{\"next\":[\"Round\",\"Stop\"]}}",
+        new GameManagementOptions { RestartOnFailure = true });
+    Require(result.Entry == "Round" && result.Limit == 3);
+    Require(result.Pipeline["Round"]!["next"]!.AsArray().Count == 0);
+    var values = TaskScriptPlan.Parameters(result.Pipeline, "Round");
+    Require(values["round_flow"]!["scene_node"]!.ToString() == "Scene");
+    Require(values["expected_recording_sha256"]!.ToString() == Recording()["sha256"]!.ToString());
+    Require(values["game_management"]!["restart_on_failure"]!.GetValue<bool>());
+});
 Sync("legacy unlimited count implies in-game retries even with restart enabled", () =>
 {
     var raw = """{"Counter":{"max_hit":-1},"脚本任务设置":{"action":{"param":{"custom_action_param":{"failure_retry":{"enabled":false,"max_retries":0}}}}}}""";
@@ -556,6 +740,24 @@ Sync("AIR and DPI scaling preserve normalized geometry but aspect changes do not
 var gameIdentity = new TaskWindowIdentity("造梦盒子v1.9 - By Duskeye", "ApolloRuntimeContentWindow");
 TaskWindowCandidate GameWindow(nint handle = 0xE1652, int pid = 20764) =>
     new(handle, pid, gameIdentity, new(1175, 737), new(1191, 776), true);
+Sync("early Windows box titles and scaled clients reconnect without relaxing process identity", () =>
+{
+    foreach (var title in new[] { "造梦盒子 - By Duskeye", "造梦盒子v1.4 - By Duskeye",
+        "造梦盒子v1.5 - By Duskeye", "造梦盒子v1.6 - By Duskeye", "造梦盒子v1.7 - By Duskeye",
+        "造梦盒子v1.8 - By Duskeye", "造梦盒子v1.8.1 - By Duskeye", gameIdentity.Title })
+    {
+        var window = GameWindow() with { Identity = gameIdentity with { Title = title },
+            ClientSize = new(940,590), OuterSize = new(956,629) };
+        foreach (var saved in new TaskWindowIdentity?[] { null, window.Identity })
+        {
+            var ready = new TaskWindowReadiness(20764, saved);
+            Require(ready.Observe(new[] { window with { Pid = 42 } }, TimeSpan.Zero) == null);
+            Require(ready.Observe(new[] { window }, TimeSpan.FromSeconds(1)) == null);
+            Require(ready.Observe(new[] { window }, TimeSpan.FromSeconds(2)) == window);
+        }
+        Require(window.ClientSize.SameNormalizedFrame(new(1880,1180)));
+    }
+});
 Sync("restart ignores the logged AIR placeholder and waits for the real game HWND", () =>
 {
     var ready = new TaskWindowReadiness(20764, gameIdentity);
@@ -650,6 +852,18 @@ Test("terminal battle return failures may recover but remain bounded even in AFK
             ["instance_id"] = "default", ["status"] = "recoverable", ["reason"] = reason }, "round", "default", false)
             .Status == TaskAttemptStatus.Recoverable);
 });
+Test("recovered process is published before the interrupted round resumes", async () =>
+{
+    var actualPid = 100; var monitoredPid = 100; var runs = 0; var refreshes = 0;
+    var lifecycle = new FakeLifecycle { OnStart = _ => { actualPid = 200; return Task.CompletedTask; } };
+    var result = await TaskRecoveryPolicy.RunRoundAsync(enabled,
+        _ => { if (++runs == 1) return Task.FromResult(White()); Require(monitoredPid == actualPid); return Task.FromResult(Good()); },
+        (slot, _, token) => TaskRecoveryPolicy.RestartAsync(lifecycle, slot, token,
+            () => { Require(lifecycle.Calls.Last() == "login"); monitoredPid = actualPid; refreshes++; }), default);
+    Require(result.Status == TaskAttemptStatus.Success && refreshes == 1);
+    lifecycle = new FakeLifecycle { ResumeResult = TaskAttempt.Fatal("wrong_role") };
+    await TaskRecoveryPolicy.RestartAsync(lifecycle, 1, default, () => throw new Exception("Failed login published"));
+});
 var passed = 0;
 foreach (var test in tests)
 {
@@ -665,6 +879,8 @@ sealed class FakeLifecycle : ITaskRestartLifecycle
     public string CancelAfter { get; init; } = "";
     public CancellationTokenSource? Cancellation { get; init; }
     public int Slot { get; private set; }
+    public Func<CancellationToken, Task>? OnStart { get; init; }
+    public TaskAttempt ResumeResult { get; init; } = new(TaskAttemptStatus.Ready);
     private Task Phase(string name)
     {
         Calls.Add(name);
@@ -674,7 +890,11 @@ sealed class FakeLifecycle : ITaskRestartLifecycle
     }
     public Task StopInputsAndAgentAsync(CancellationToken token) => Phase("release");
     public Task StopSelectedProcessAsync(CancellationToken token) => Phase("kill");
-    public Task StartSelectedProcessAsync(CancellationToken token) => Phase("start");
+    public async Task StartSelectedProcessAsync(CancellationToken token)
+    {
+        await Phase("start");
+        if (OnStart != null) await OnStart(token);
+    }
     public async Task BindUniqueWindowAsync(CancellationToken token)
     {
         await Phase("bind");
@@ -686,6 +906,6 @@ sealed class FakeLifecycle : ITaskRestartLifecycle
     {
         Slot = slot;
         await Phase("login");
-        return new(TaskAttemptStatus.Ready);
+        return ResumeResult;
     }
 }

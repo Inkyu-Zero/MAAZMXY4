@@ -6,7 +6,7 @@
       "target": "伽岚（万世冥阁）-关卡入口",
       "town": "town5",
       "axis": "x",
-      "max_steps": 3,
+      "max_steps": 1,
       "drag_node": "GameManagement_town5_Drag",
       "source": {
         "name": "town5",
@@ -158,7 +158,9 @@
           855,
           435
         ]
-      ]
+      ],
+      "end_x": 20,
+      "view": "right"
     },
     {
       "task": "贪妄（金蟾宝宫）",
@@ -366,7 +368,7 @@
       "target": "无冥（孤魂岭）-关卡入口",
       "town": "town5",
       "axis": "x",
-      "max_steps": 3,
+      "max_steps": 1,
       "drag_node": "GameManagement_town5_DragBack",
       "source": {
         "name": "town5",
@@ -518,7 +520,9 @@
           855,
           435
         ]
-      ]
+      ],
+      "end_x": 1000,
+      "view": "left"
     }
   ],
   "assets": [

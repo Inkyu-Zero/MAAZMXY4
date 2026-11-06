@@ -1,0 +1,6 @@
+{
+  "description": "input-only-postscript",
+  "path": "MFAAvalonia/Extensions/MaaFW/MaaProcessor.cs",
+  "find": "            await TaskManager.RunTaskAsync(async () => await RunScript(\"Post-script\"), token: token, name: \"启动附加结束脚本\");",
+  "replace": "            if (!_inputOnlyPlayback)\n                await TaskManager.RunTaskAsync(async () => await RunScript(\"Post-script\"), token: token, name: \"启动附加结束脚本\");"
+}

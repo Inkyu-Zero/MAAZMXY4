@@ -201,7 +201,13 @@
     "recognition": {
       "type": "TemplateMatch",
       "param": {
-        "template": "任务.png"
+        "template": "任务.png",
+        "roi": [
+          0,
+          580,
+          1147,
+          140
+        ]
       }
     },
     "action": {
@@ -282,14 +288,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "任务.png"
-              }
-            }
-          },
+          "Nav_ClearMap",
           "Result_NoRevivePrompt"
         ],
         "box_index": 0
@@ -523,67 +522,10 @@
   },
   "Result_RevivePrompt": {
     "recognition": {
-      "type": "Or",
+      "type": "Custom",
       "param": {
-        "any_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": [
-                  "navigation/outcomes/revive-normal-caption.png",
-                  "navigation/outcomes/revive-vip-caption.png"
-                ],
-                "roi": [
-                  200,
-                  170,
-                  800,
-                  390
-                ],
-                "threshold": 0.88
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "And",
-              "param": {
-                "all_of": [
-                  {
-                    "sub_name": "confirm_frame",
-                    "recognition": {
-                      "type": "And",
-                      "param": {
-                        "all_of": [
-                          "Nav_CommonConfirm"
-                        ]
-                      }
-                    }
-                  },
-                  {
-                    "recognition": {
-                      "type": "OCR",
-                      "param": {
-                        "roi": "confirm_frame",
-                        "roi_offset": [
-                          120,
-                          63,
-                          390,
-                          -5
-                        ],
-                        "only_rec": true,
-                        "expected": [
-                          "^你确定免费复活[，,]?\\s*继续进行挑战[？?]?$"
-                        ]
-                      }
-                    }
-                  }
-                ],
-                "box_index": 1
-              }
-            }
-          }
-        ]
+        "custom_recognition": "battle_no_revive",
+        "custom_recognition_param": "revive"
       }
     },
     "action": {
@@ -647,8 +589,10 @@
               "type": "And",
               "param": {
                 "all_of": [
+                  "Nav_CachedModal",
                   "Nav_CommonConfirm"
-                ]
+                ],
+                "box_index": 1
               }
             }
           },
@@ -807,6 +751,173 @@
           }
         ],
         "box_index": 2
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0
+  },
+  "Result_ReviveEvidence": {
+    "recognition": {
+      "type": "Or",
+      "param": {
+        "any_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": [
+                  "navigation/outcomes/revive-normal-caption.png",
+                  "navigation/outcomes/revive-vip-caption.png"
+                ],
+                "roi": [
+                  200,
+                  170,
+                  800,
+                  390
+                ],
+                "threshold": 0.84
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "And",
+              "param": {
+                "all_of": [
+                  {
+                    "sub_name": "confirm_frame",
+                    "recognition": {
+                      "type": "And",
+                      "param": {
+                        "all_of": [
+                          "Nav_CommonConfirm"
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "OCR",
+                      "param": {
+                        "roi": "confirm_frame",
+                        "roi_offset": [
+                          120,
+                          63,
+                          390,
+                          -5
+                        ],
+                        "only_rec": true,
+                        "expected": [
+                          "^你确定免费复活[，,]?\\s*继续进行挑战[？?]?$"
+                        ]
+                      }
+                    }
+                  }
+                ],
+                "box_index": 1
+              }
+            }
+          }
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0
+  },
+  "Nav_ModalPresent": {
+    "recognition": {
+      "type": "Or",
+      "param": {
+        "any_of": [
+          "Nav_CommonConfirm",
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": [
+                  "navigation/outcomes/revive-normal-caption.png",
+                  "navigation/outcomes/revive-vip-caption.png"
+                ],
+                "roi": [
+                  200,
+                  170,
+                  800,
+                  390
+                ],
+                "threshold": 0.84
+              }
+            }
+          }
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0
+  },
+  "Nav_CachedModal": {
+    "recognition": {
+      "type": "Custom",
+      "param": {
+        "custom_recognition": "battle_no_revive",
+        "custom_recognition_param": "present"
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0
+  },
+  "Result_MonitorUnrecognizedDialog": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "unrecognized_dialog"
+        }
+      }
+    },
+    "next": [],
+    "post_delay": 0
+  },
+  "Result_MonitorStopped": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "fatal",
+          "reason": "battle_monitor_stopped"
+        }
+      }
+    },
+    "next": [],
+    "post_delay": 0
+  },
+  "Result_FailedClear": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          "Result_Failed",
+          "Result_NoRevivePrompt"
+        ]
       }
     },
     "action": {

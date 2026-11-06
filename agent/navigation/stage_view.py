@@ -3,7 +3,7 @@ from functools import lru_cache
 import json
 from pathlib import Path
 
-from .graph import NavigationError
+from . import NavigationError
 
 DATA = Path(__file__).resolve().parents[1] / 'data/navigation/stage-scroll.json'
 
@@ -13,33 +13,27 @@ def _recipes():
     return {item['target']: item for item in json.loads(DATA.read_text(encoding='utf8'))['maps']}
 
 
+def has_standard_view(target):
+    return 'end_x' in _recipes().get(target, {})
+
+
 def wait_stage_ready(context, navigator, target):
-    """Let Maa poll a temporarily missing icon, without authorizing any input."""
+    """Observe a temporarily missing icon using the navigator's current frame."""
     navigator._check()
     remaining = max(1, int((navigator.deadline-navigator.clock())*1000))
-    entry, ready, modal = 'Nav_StageWait', 'Nav_StageWaitReady', 'Nav_StageWaitModal'
-    definitions = {
-        entry: dict(action=dict(type='DoNothing'), next=[modal,ready],
-                    timeout=min(1200,remaining),rate_limit=200,post_delay=0),
-        ready: dict(recognition=dict(type='And',param=dict(all_of=[target])),
-                    action=dict(type='DoNothing'),next=[],post_delay=0),
-        modal: dict(recognition=dict(type='Or',param=dict(any_of=['Result_RevivePrompt','Nav_CommonConfirm'])),
-                    action=dict(type='DoNothing'),next=[],post_delay=0),
-    }
     navigator.log('等待关卡图标稳定：仅重新识别，不发送点击。')
-    result=context.run_task(entry,definitions)
+    result=navigator.wait_for(['Nav_CachedModal',target],min(1200,remaining))
     navigator._check()
     # A modal can also end the wait. The caller must re-localize the full scene
     # before it can return success or attempt a guarded viewport restoration.
-    return result is not None and result.status.succeeded
+    return result is not None
 
 
 def restore_stage_view(context, navigator, target):
     recipe = _recipes().get(target)
     if recipe is None:
         return False
-    # Each step re-localizes the whole scene before the native action performs
-    # its own fresh same-frame map/mode/terrain/prompt guard. Never drag a boss.
+    # Locate, terrain and the actual drag share a single current observation.
     if getattr(navigator,'deadline',None) is None:
         navigator.deadline = navigator.clock() + 120
     for step in range(recipe['max_steps'] + 1):
@@ -47,27 +41,34 @@ def restore_stage_view(context, navigator, target):
         state = navigator.locate()
         if state == 'task_destination':
             return True
-        if state not in ('task_map', 'map_a', 'map_b'):
+        if state not in ('map',):
             return False
-        frame = navigator.capture()
-        target_hit = context.run_recognition(target, frame)
-        navigator._check()
-        if target_hit is None:
-            raise ValueError('缺少关卡识别资源。')
-        if target_hit.hit:
-            return True
         if step == recipe['max_steps']:
             return False
-        guard = context.run_recognition(recipe['drag_node'], frame)
+        guard = navigator.recognize(recipe['drag_node'])
         navigator._check()
-        if guard is None or not guard.hit:
+        if not guard.hit:
             navigator.log('大地图视野未恢复：未确认地图、普通模式或可拖动地形，已停止。')
             return False
         navigator.log(f"恢复大地图视野：{recipe['task']}（{step+1}/{recipe['max_steps']}）")
-        result = context.run_task('GameManagement_ScrollInvoke', {'GameManagement_ScrollInvoke': dict(
-            action=dict(type='DoNothing'), next=[recipe['drag_node']], timeout=3000, post_delay=0)})
+        if 'end_x' in recipe:
+            # Only this freshly recognized non-interactive terrain supplies the
+            # press point. A deterministic horizontal gesture reaches one edge;
+            # no scroll-offset estimate or old click coordinate is retained.
+            x, y, width, height = guard.box
+            cx, cy = int(x + width // 2), int(y + height // 2)
+            override = {recipe['drag_node']: {'action': {'type': 'Swipe', 'param': {
+                'begin': [cx, cy, 1, 1], 'end': [recipe['end_x'], cy, 1, 1],
+                'begin_offset': [0, 0, 0, 0], 'end_offset': [0, 0, 0, 0]}}}}
+            result = navigator.perform(recipe['drag_node'],guard,pipeline_override=override)
+        else:
+            result = navigator.perform(recipe['drag_node'],guard)
         navigator._check()
-        if result is None or not result.status.succeeded:
+        if not result:
             raise NavigationError('大地图拖动未确认，已停止。', reason='transition_failed')
+        if 'end_x' in recipe:
+            # Native swipe already includes its transition delay. The target
+            # includes the map guard, so one new frame also rejects mis-entry.
+            return navigator.recognize(target).hit
         navigator._settle()
     return False

@@ -80,7 +80,43 @@ internal static class Program
         root.Idle=false;Dispatcher.UIThread.RunJobs();
         Check(panel.GetVisualDescendants().OfType<CheckBox>().All(check=>!check.IsEffectivelyEnabled),
             "Idle bindings keep AFK controls locked while tasks run");
+        root.Idle=true;
+        task = new MaaInterface.MaaInterfaceTask { Entry="GenericScriptPlayback", Name="通用脚本播放",
+            Repeatable=true, RepeatCount=7, Option=[new() { Name="持续播放", Index=0 }] };
+        Set(item,"_interfaceItem",task);
+        panel.Children.Clear();generator.GenerateCommonPanelContent(panel,item);
+        window.Width=360;Draw(window,"generic-playback-finite.png");
+        Check(panel.GetVisualDescendants().OfType<TextBlock>().Count(label=>label.Text=="播放次数")==1,
+            "Pure playback uses a single playback-count label");
+        var continuous=panel.GetVisualDescendants().OfType<CheckBox>().Single();
+        var repeat=panel.GetVisualDescendants().OfType<NumericUpDown>().Single();
+        Check(repeat.Minimum==1 && repeat.Value==7,"Pure playback has a positive finite count");
+        continuous.IsChecked=true;Draw(window,"generic-playback-continuous.png");
+        Check(!repeat.IsEffectivelyEnabled && task.RepeatCount==7,"Continuous keeps the saved count disabled");
+        continuous.IsChecked=false;Dispatcher.UIThread.RunJobs();
+        Check(repeat.IsEffectivelyEnabled && repeat.Value==7,"Turning continuous off restores count");
+        Check(!panel.GetVisualDescendants().OfType<TextBlock>().Any(label=>label.Text=="战败处理"),
+            "Pure playback never offers combat retry settings");
+        root.Idle=false;Dispatcher.UIThread.RunJobs();
+        Check(!continuous.IsEffectivelyEnabled && !repeat.IsEffectivelyEnabled,"Running locks task options");
         Check(saves>0,"Changes flow through the host save callback");
+        var pureProcessor=Empty<MaaProcessor>();Set(pureProcessor,"_inputOnlyPlayback",true);
+        Check(pureProcessor.GetTaskerAsync().GetAwaiter().GetResult()==null,"Pure playback cannot initialize a capture controller");
+        pureProcessor.MeasureScreencapPerformanceAsync(CancellationToken.None).GetAwaiter().GetResult();
+        Check(pureProcessor.PostScreencapPipelined()==null,"Live preview cannot queue screenshots in pure mode");
+        Check(pureProcessor.GetBitmapImage()==null && pureProcessor.GetLiveViewCached()==null,"Direct preview also stays empty");
+        var iterations=0;
+        var finite=new MFATask {Count=3,MaaAction=()=> {iterations++;return Task.FromResult(MaaFramework.Binding.MaaJobStatus.Succeeded);} };
+        Check(finite.Run(CancellationToken.None).GetAwaiter().GetResult().Status==MFATask.MFATaskStatus.SUCCEEDED && iterations==3,
+            "The existing host scheduler plays the exact finite count without a Maa tasker");
+        using var stop=new CancellationTokenSource();iterations=0;
+        var unlimited=new MFATask {Count=-1,MaaAction=()=> {if(++iterations==5)stop.Cancel();return Task.FromResult(MaaFramework.Binding.MaaJobStatus.Succeeded);} };
+        Check(unlimited.Run(stop.Token).GetAwaiter().GetResult().Status==MFATask.MFATaskStatus.STOPPED && iterations==5 && unlimited.Count==-1,
+            "Continuous playback remains unlimited and stops through the host token");
+        iterations=0;
+        var failed=new MFATask {Count=3,ContinueOnError=false,MaaAction=()=> {iterations++;return Task.FromResult(MaaFramework.Binding.MaaJobStatus.Failed);} };
+        Check(failed.Run(CancellationToken.None).GetAwaiter().GetResult().Status==MFATask.MFATaskStatus.FAILED && iterations==1,
+            "A failed playback is not counted or retried as success");
         window.Close();
         Console.WriteLine("PASS actual built task options: one count label, AFK dependencies, saved values, legacy migration; no app/controllers/processes created.");
     }

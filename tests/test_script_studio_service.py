@@ -356,6 +356,101 @@ class ServiceTests(unittest.TestCase):
         self.assertEqual(self.service.dispatch("capture_stop")["name"], "修改录制名")
         self.assertEqual(self.file.read_bytes(), self.original)
 
+    def test_discard_take_in_every_capture_state_preserves_saved_files_and_allows_restart(self):
+        before = self.load()
+        self.write(self.recordings / '.bindings.json', {'version': 1, 'bindings': {}})
+        files = {p.name: p.read_bytes() for p in self.recordings.iterdir()}
+        for state in ('countdown', 'recording', 'paused', 'resume_countdown', 'stopped', 'failed', 'closed'):
+            with self.subTest(state=state):
+                capture = FakeCapture()
+                self.service.capture_factory = lambda: capture
+                self.service.dispatch('capture_start', dict(hwnd=42))
+                capture.state = state
+                capture.save_requested = True  # F10 racing with explicit discard must not save.
+                self.assertEqual(self.service.dispatch('capture_discard'), before)
+                self.assertEqual(capture.close_calls, 1)
+                self.assertIsNone(self.service.capture)
+                self.assertTrue(self.service.capture_finished)
+                self.assertEqual(self.service.dispatch('capture_status')['state'], 'idle')
+                with self.assertRaisesRegex(ValueError, '没有正在'):
+                    self.service.dispatch('capture_stop')
+        self.service.close()
+        self.assertEqual({p.name: p.read_bytes() for p in self.recordings.iterdir()}, files)
+
+    def test_discard_unsaved_capture_draft_clears_edits_history_and_shutdown_recovery(self):
+        self.service.capture_factory = FakeCapture
+        self.load()
+        self.service.dispatch('capture_start', dict(hwnd=42))
+        draft = self.service.dispatch('capture_stop')
+        self.assertTrue(draft['capture_draft'])
+        renamed = self.service.dispatch('rename', dict(name='不保留这一段'))
+        self.assertTrue(renamed['capture_draft'])
+        self.assertTrue(renamed['can_undo'])
+        self.assertTrue(self.service.dispatch('capture_discard')['empty'])
+        self.assertFalse(self.service.dirty)
+        self.assertFalse(self.service.undo)
+        self.assertFalse(self.service.redo)
+        self.assertFalse(self.service.capture_draft)
+        self.service.dispatch('capture_start', dict(hwnd=42))
+        self.service.dispatch('capture_discard')
+        self.service.close()
+        self.assertEqual(list(self.recordings.iterdir()), [self.file])
+        self.assertEqual(self.file.read_bytes(), self.original)
+
+    def test_saved_captures_and_unrelated_drafts_cannot_be_discarded_as_a_take(self):
+        self.service.capture_factory = FakeCapture
+        self.service.dispatch('capture_start', dict(hwnd=42))
+        self.service.dispatch('capture_stop')
+        saved = self.service.dispatch('save', dict(file='保存的录制.json'))
+        self.assertFalse(saved['capture_draft'])
+        for operation in ('saved', 'edited_saved', 'new', 'import'):
+            with self.subTest(operation=operation):
+                if operation == 'edited_saved':
+                    self.service.dispatch('rename', dict(name='待保存的编辑'))
+                elif operation in ('new', 'import'):
+                    self.service.dispatch('discard')
+                    self.service.dispatch(operation, dict(path=str(self.file)))
+                before = self.service.snapshot()
+                with self.assertRaisesRegex(ValueError, '没有可放弃'):
+                    self.service.dispatch('capture_discard')
+                self.assertEqual(self.service.snapshot(), before)
+        self.service.dispatch('discard')
+        self.assertTrue((self.recordings / '保存的录制.json').is_file())
+
+    def test_failed_discard_keeps_capture_for_retry_without_claiming_success(self):
+        self.service.capture_factory = FakeCapture
+        before = self.load()
+        self.service.dispatch('capture_start', dict(hwnd=42))
+        capture = self.service.capture
+        for failure in ('fail_stop', 'fail_close'):
+            with self.subTest(failure=failure):
+                setattr(capture, failure, True)
+                with self.assertRaisesRegex(RuntimeError, 'fake capture'):
+                    self.service.dispatch('capture_discard')
+                self.assertIs(self.service.capture, capture)
+                self.assertFalse(self.service.capture_finished)
+                self.assertEqual(self.service.snapshot(), before)
+                setattr(capture, failure, False)
+        self.assertEqual(self.service.dispatch('capture_discard'), before)
+
+    def test_discard_releases_real_capture_worker_with_fake_hooks_and_no_input(self):
+        from script_studio.capture import CaptureSession
+        from test_script_studio_capture import FakeClock, FakeWindows, FakeHooks
+        hooks = FakeHooks()
+        session = CaptureSession(window_api=FakeWindows(), listener_factory=hooks, clock=FakeClock())
+        self.service.capture_factory = lambda: session
+        self.service.dispatch('capture_start', dict(hwnd=42, countdown_seconds=0))
+        hooks.key(65)
+        hooks.mouse(700, 425)
+        session._command('barrier')
+        self.assertTrue(self.service.dispatch('capture_discard')['empty'])
+        self.assertEqual(session.snapshot()['state'], 'closed')
+        self.assertFalse(session._worker.is_alive())
+        self.assertTrue(all(item.stopped and item.joined and not item.is_alive() for item in hooks.listeners))
+        self.assertFalse(self.service.capture_draft)
+        self.service.close()
+        self.assertEqual(list(self.recordings.iterdir()), [self.file])
+
     def test_cancel_initial_countdown_keeps_loaded_script(self):
         capture = FakeCapture()
         self.service.capture_factory = lambda: capture

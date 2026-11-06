@@ -1,0 +1,6 @@
+{
+  "description": "Keep the existing host repeat loop genuinely unlimited without changing saved counts",
+  "path": "MFAAvalonia/Helper/ValueType/MFATask.cs",
+  "find": "            if (Count < 0)\n                Count = int.MaxValue;\n",
+  "replace": ""
+}

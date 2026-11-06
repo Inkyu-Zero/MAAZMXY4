@@ -1,0 +1,6 @@
+{
+  "description": "input-only-session",
+  "path": "MFAAvalonia/Extensions/MaaFW/MaaProcessor.cs",
+  "find": "    private void InitializeConnectionTasksAsync(CancellationToken token)\n    {",
+  "replace": "    private volatile bool _inputOnlyPlayback;\n    public bool IsInputOnlyPlayback => _inputOnlyPlayback;\n\n    private async Task SetInputOnlyPlaybackAsync(bool enabled, CancellationToken token)\n    {\n        if (_inputOnlyPlayback == enabled) return;\n        await _connectionGate.WaitAsync(token);\n        try\n        {\n            lock (_liveViewScreencapJobLock) _inputOnlyPlayback = enabled;\n            await Task.Run(() => SetTasker(requireAllStopped: true), token);\n            await DispatcherHelper.RunOnMainThreadAsync(() => ViewModel?.SetConnected(false));\n            if (enabled) AddLog(\"纯脚本播放：预览已暂停；本任务不截图、不识别，也不自动重启盒子。\");\n        }\n        finally { _connectionGate.Release(); }\n    }\n\n    private void InitializeConnectionTasksAsync(CancellationToken token)\n    {\n        if (_inputOnlyPlayback) return;"
+}
