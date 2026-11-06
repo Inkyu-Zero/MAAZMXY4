@@ -26,7 +26,7 @@ class RoundTests(unittest.TestCase):
             data=dict(version=1,name='fixture',base=[1148,720],duration_ms=2,
                       actions=[dict(t=0,op='keydown',key=65),dict(t=1,op='keyup',key=65)])
             recording.write_text(json.dumps(data),encoding='utf8')
-            context=Context();context.scene='map';context.inputs=[];context.captures=[]
+            context=Context();context.scene='map';context.inputs=[];context.captures=[];context.recognitions=[]
             context.tasker.controller.cached_image=Frame()
             context.play_count=0;context.return_count=0;clock=[0.0]
             profile=task['management_profile'];params=deepcopy(profile['parameters'])
@@ -39,6 +39,7 @@ class RoundTests(unittest.TestCase):
                 context.captures.append((context.scene,len(context.inputs)))
                 return Frame()
             def recognition(name,frame):
+                context.recognitions.append((context.scene,name))
                 possible={'map':{'Nav_ClearMap','Nav_TaskMap'},'quest':{'Nav_QuestPanel','Nav_SelectBountyTab'},
                     'accepted':{'Nav_AcceptedBounties','Nav_ChooseBounty'},'detail':{target,'Nav_TaskTarget'},
                     'stage':{scene,play,'Bounty_OpenSettings'},'settings':{'Nav_SettingsMenu','Nav_SettingsReturn','Bounty_StageSettings'},
@@ -109,6 +110,23 @@ class RoundTests(unittest.TestCase):
                 ok,status,ctx=self.run_round(task,results=[result],mode='battle_only')
                 self.assertTrue(ok)
                 self.assertEqual([n for n in ctx.inputs if n in ('Nav_SettingsReturn','Bounty_OpenSettings')],expected)
+
+    def test_recorded_return_miss_recovers_through_shared_settings_for_every_task(self):
+        for task in self.tasks():
+            for result,expected in [('map',[]),('settings',['Nav_SettingsReturn']),
+                                    ('stage',['Bounty_OpenSettings','Nav_SettingsReturn'])]:
+                with self.subTest(task=task['name'],result=result):
+                    ok,status,ctx=self.run_round(task,results=[result],mode='recorded_return')
+                    self.assertTrue(ok,status)
+                    self.assertEqual(status['status'],'success')
+                    self.assertEqual(ctx.play_count,1)
+                    self.assertEqual([n for n in ctx.inputs if n in ('Nav_SettingsReturn','Bounty_OpenSettings')],expected)
+
+    def test_successful_return_does_not_probe_error_or_settings_screens(self):
+        ok,_,ctx=self.run_round(self.tasks()[0])
+        self.assertTrue(ok)
+        self.assertFalse(any(scene=='map' and name in ('Result_Failed','Result_Succeeded','Nav_SettingsMenu','Bounty_OpenSettings')
+                             for scene,name in ctx.recognitions))
 
     def test_failed_round_retries_without_reinitializing_or_counting_success_early(self):
         for afk in (False,True):

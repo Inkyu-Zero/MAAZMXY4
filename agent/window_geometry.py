@@ -1,4 +1,4 @@
-"""One geometry policy for opening, recording and playback. No pixel access.
+"""Adapt once before playback; opening and recording only observe geometry.
 
 The lease owns only sizing style bits and a process-held file lock. Window
 movement stays available; focus, user settings and recording files are untouched.
@@ -12,6 +12,8 @@ import time
 
 STANDARD_BASE = (1148, 720)
 SIZING_STYLE = 0x00040000 | 0x00010000  # WS_THICKFRAME | WS_MAXIMIZEBOX
+SIZE_TOLERANCE = 2  # Physical pixels: AIR/DPI integer rounding.
+LAYOUT_TOLERANCE = 8  # Existing short-side-720 recording compatibility.
 
 
 def validate_base(base):
@@ -20,6 +22,20 @@ def validate_base(base):
             or min(base) != 720):
         raise ValueError('脚本窗口基准必须为短边 720 的有效尺寸。')
     return tuple(base)
+
+
+def matches_layout(size, base):
+    scale = 720 / min(size)
+    return all(abs(round(value * scale) - expected) <= LAYOUT_TOLERANCE
+               for value, expected in zip(size, base))
+
+
+def _size(current):
+    return current['width'], current['height']
+
+
+def _near_size(size, target):
+    return all(abs(a-b) <= SIZE_TOLERANCE for a,b in zip(size,target))
 
 
 class Win32Geometry:
@@ -97,6 +113,12 @@ class Win32Geometry:
         if not self.api.SetWindowPos(hwnd, None, 0, 0, 0, 0, 0x0001 | 0x0002 | 0x0004 | 0x0010 | 0x0020):
             raise ctypes.WinError(ctypes.get_last_error())
 
+    def restore(self, hwnd):
+        if not self.api.IsZoomed(hwnd):
+            return False
+        self.api.ShowWindow(hwnd, 4)  # SW_SHOWNOACTIVATE
+        return True
+
     def resize(self, hwnd, base):
         with self.windows._physical_pixels():
             # SW_SHOWNOACTIVATE restores a maximized window without taking focus.
@@ -113,13 +135,12 @@ class Win32Geometry:
 
 
 class WindowLease:
-    """Scoped size lock; verify identity and geometry before every input.
+    """Playback-only size lock; adapt once, then verify before every input.
 
-    Ordinary dragging/maximize is disabled. External geometry changes receive a
-    bounded correction; a persistent mismatch fails closed. Callers subtract
-    correction time from their playback clock so recovery cannot burst inputs.
+    Ordinary dragging/maximize is disabled during playback. External geometry
+    changes stop input; they never trigger another resize in the timeline.
     """
-    def __init__(self, hwnd, base=STANDARD_BASE, *, api=None):
+    def __init__(self, hwnd, base=STANDARD_BASE, *, api=None, adapt=True, lock_size=True):
         if type(hwnd) is not int or hwnd <= 0:
             raise ValueError('请明确选择目标游戏窗口。')
         self.hwnd, self.base = hwnd, validate_base(base)
@@ -128,11 +149,16 @@ class WindowLease:
         self._closed, self._claim, self._style = False, None, None
         self.paused_seconds = 0.0
         self.identity = self.api.inspect(hwnd)
+        self.client_size = _size(self.identity)
+        self.changed = False
+        self._adapt = adapt
+        self._lock_size = lock_size
         try:
             self._claim = self.api.claim(hwnd, self.identity['pid'])
-            self._style = self.api.style(hwnd) & SIZING_STYLE
-            self.api.set_style(hwnd, self.api.style(hwnd) & ~SIZING_STYLE)
-            self.ensure()
+            if adapt:
+                if lock_size:
+                    self._style = self.api.style(hwnd) & SIZING_STYLE
+                self._prepare()
         except BaseException:
             self.close()
             raise
@@ -149,25 +175,60 @@ class WindowLease:
         current = self.api.inspect(self.hwnd)
         return current
 
+    def _prepare(self):
+        # Script coordinates are normalized to 720, not physical pixels.
+        # Keep a compatible client (including uniformly DPI-scaled windows).
+        # Otherwise fit the script aspect inside the current client footprint.
+        self.require_identity()
+        if hasattr(self.api,'restore') and self.api.restore(self.hwnd):
+            self.client_size = _size(self._same_target())
+            self.changed = True
+        target = self.client_size
+        if not matches_layout(target, self.base):
+            scale = min(a/b for a,b in zip(target,self.base))
+            target = tuple(max(1,round(value*scale)) for value in self.base)
+        if self._style:
+            self.api.set_style(self.hwnd,self.api.style(self.hwnd) & ~SIZING_STYLE)
+            self.changed = True
+        current = self._same_target()
+        if not _near_size(_size(current),target):
+            self.api.resize(self.hwnd,target)
+            self.changed = True
+        if self.changed:
+            # Only preparation waits. AIR relayout and the native frame pool
+            # can lag behind SetWindowPos; 40 ms was shorter than one relayout.
+            end, stable_since = time.monotonic()+1.5, None
+            while True:
+                current = self._same_target()
+                now = time.monotonic()
+                if (_near_size(_size(current),target)
+                        and matches_layout(_size(current),self.base)):
+                    stable_since = now if stable_since is None else stable_since
+                    if now-stable_since >= .25:
+                        break
+                else:
+                    stable_since = None
+                if now >= end:
+                    raise RuntimeError(f'无法将游戏客户区稳定调整为脚本比例（目标 {target[0]}×{target[1]}），已停止输入。')
+                time.sleep(.05)
+        self.client_size = _size(current)
+        self.ensure()
+
     def ensure(self):
         with self._mutex:
             current = self._same_target()
-            if ((current['width'], current['height']) == self.base
-                    and not self.api.style(self.hwnd) & SIZING_STYLE):
-                return current
-            started = time.monotonic()
-            try:
-                for _ in range(3):
-                    self._same_target()
-                    self.api.set_style(self.hwnd, self.api.style(self.hwnd) & ~SIZING_STYLE)
-                    self.api.resize(self.hwnd, self.base)
-                    time.sleep(.04)
-                    current = self._same_target()
-                    if (current['width'], current['height']) == self.base:
-                        return current
-                raise RuntimeError(f'无法将游戏客户区稳定调整为 {self.base[0]}×{self.base[1]}，已停止输入。')
-            finally:
-                self.paused_seconds += time.monotonic() - started
+            if not self._adapt:
+                return current  # Recording owns the session, never the size.
+            if (not _near_size(_size(current),self.client_size)
+                    or not matches_layout(_size(current),self.base)
+                    or self._lock_size and self.api.style(self.hwnd) & SIZING_STYLE):
+                raise RuntimeError('播放期间窗口尺寸或尺寸锁已改变，已停止输入；请重新开始播放以适配窗口。')
+            return current
+
+    def map_point(self,x,y):
+        """Map normalized script coordinates for screenshot-free playback."""
+        return tuple(max(0,min(size-1,round(value*size/base)))
+                     for value,size,base in zip((x,y),self.client_size,self.base))
 
     def clock(self):
         return time.monotonic() - self.paused_seconds
@@ -188,14 +249,24 @@ class WindowLease:
                     except RuntimeError:
                         pass  # Never restore style on a recycled HWND/PID.
                     else:
-                        self.api.set_style(self.hwnd, (self.api.style(self.hwnd) & ~SIZING_STYLE) | self._style)
-                        # Re-adding borders must not change the game coordinate space.
                         try:
-                            self.api.inspect(self.hwnd)
+                            before = _size(self.api.inspect(self.hwnd))
                         except RuntimeError:
-                            pass  # A minimized original window still gets its style back.
-                        else:
-                            self.api.resize(self.hwnd, self.base)
+                            before = None
+                        style = self.api.style(self.hwnd)
+                        restored = (style & ~SIZING_STYLE) | self._style
+                        if style != restored:
+                            self.api.set_style(self.hwnd,restored)
+                            # Only compensate for restored borders. Do not undo
+                            # an external resize that stopped this playback.
+                            if before is not None:
+                                try:
+                                    current_size = _size(self.api.inspect(self.hwnd))
+                                except RuntimeError:
+                                    pass
+                                else:
+                                    if not _near_size(current_size,before):
+                                        self.api.resize(self.hwnd,before)
             finally:
                 self._closed = True
                 if self._claim:
@@ -210,8 +281,10 @@ class WindowLease:
 
 
 def prepare_window(hwnd, base=STANDARD_BASE):
-    with WindowLease(hwnd, base) as lease:
-        return lease.ensure()
+    """Legacy frontend handshake: observe only; adaptation belongs to playback."""
+    if type(hwnd) is not int or hwnd <= 0:
+        raise ValueError('请明确选择目标游戏窗口。')
+    return Win32Geometry().inspect(hwnd)
 
 
 def controller_hwnd(controller):
@@ -226,12 +299,10 @@ def controller_hwnd(controller):
     return value
 
 
-def prepare_controller(controller, base):
-    """Return whether a native frame cache must be invalidated after resizing."""
+def prepare_playback_controller(controller, base):
+    """Adapt the bound script before entry recognition; never size-lock navigation."""
     hwnd = controller_hwnd(controller)
     if hwnd is None:
         return False
-    api = Win32Geometry()
-    before = api.inspect(hwnd)
-    prepare_window(hwnd, base)
-    return (before['width'], before['height']) != tuple(base)
+    with WindowLease(hwnd, base, lock_size=False) as lease:
+        return lease.changed

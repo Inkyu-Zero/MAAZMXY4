@@ -20,13 +20,13 @@ class StageScrollTests(unittest.TestCase):
         nav._settle=lambda:None
         return nav
 
-    def test_horizontal_targets_share_one_safe_landmark_and_one_endpoint_gesture(self):
+    def test_horizontal_targets_share_safe_landmark_and_bounded_held_endpoint_gesture(self):
         data = json.loads(DATA.read_text(encoding='utf8'))
         nodes = json.loads((ROOT / 'assets/resource/base/pipeline/game_management_scroll.json').read_text(encoding='utf8'))
         recipes = {item['task']: item for item in data['maps']}
         self.assertNotIn('GameManagement_town5_TerrainBack',nodes)
         for task, end_x in [('伽岚（万世冥阁）', 20), ('无冥（孤魂岭）', 1000)]:
-            self.assertEqual(recipes[task]['max_steps'],1)
+            self.assertEqual(recipes[task]['max_steps'],2)
             self.assertEqual(recipes[task]['end_x'],end_x)
             node = nodes[recipes[task]['drag_node']]
             guard = node['recognition']['param']
@@ -37,6 +37,8 @@ class StageScrollTests(unittest.TestCase):
             self.assertIs(action['begin'], True)
             self.assertIs(action['end'], True)
             self.assertEqual(action['end_offset'], [0, 0, 0, 0])
+            self.assertEqual(action['duration'],900)
+            self.assertEqual(action['end_hold'],200)
             self.assertEqual(guard['all_of'][2],'GameManagement_town5_Terrain')
             terrain=nodes[guard['all_of'][2]]['recognition']['param']
             self.assertEqual(terrain['template'],['navigation/scroll/town5-02.png'])
@@ -88,6 +90,32 @@ class StageScrollTests(unittest.TestCase):
             for crop in recipe['crops']:
                 self.assertFalse(any(crop[0] < b[2] and crop[2] > b[0] and crop[1] < b[3] and crop[3] > b[1]
                                      for b in recipe['excluded_stage_bounds']))
+
+    def test_partial_horizontal_gesture_relocalizes_before_one_correction(self):
+        for recipe in json.loads(DATA.read_text(encoding='utf8'))['maps']:
+            if recipe['town']!='town5':continue
+            frames=iter(['start','partial','endpoint']);actions=[]
+            def recognize(name,frame):
+                return SimpleNamespace(hit=name==recipe['drag_node'] or frame=='endpoint',
+                    box=(100 if frame=='start' else 300,420,40,40))
+            context=SimpleNamespace(run_recognition=recognize,tasker=SimpleNamespace(controller=SimpleNamespace(info={})),
+                run_action=lambda name,box,**kwargs:actions.append(kwargs) or SimpleNamespace(success=True))
+            nav=self.navigator(context,capture=lambda:next(frames))
+            nav.locate=lambda:'task_destination' if nav.recognize(recipe['target']).hit else 'map'
+            self.assertTrue(restore_stage_view(context,nav,recipe['target']))
+            self.assertEqual(len(actions),2)
+            starts=[a['pipeline_override'][recipe['drag_node']]['action']['param']['begin'][0] for a in actions]
+            self.assertEqual(starts,[120,320])
+
+    def test_partial_drag_that_enters_a_stage_never_sends_a_second_gesture(self):
+        recipe=next(r for r in json.loads(DATA.read_text(encoding='utf8'))['maps'] if r['town']=='town5')
+        actions=[]
+        context=SimpleNamespace(run_recognition=lambda name,frame:SimpleNamespace(hit=name==recipe['drag_node'],box=(100,420,40,40)),
+            run_action=lambda name,box,**kwargs:actions.append(name) or SimpleNamespace(success=True))
+        nav=self.navigator(context)
+        nav.locate=lambda:'map' if not actions else 'settings_menu'
+        self.assertFalse(restore_stage_view(context,nav,recipe['target']))
+        self.assertEqual(len(actions),1)
 
     def test_no_drag_on_unknown_map_missing_guard_or_cancellation_and_bounded_failure(self):
         recipe = json.loads(DATA.read_text(encoding='utf8'))['maps'][0]

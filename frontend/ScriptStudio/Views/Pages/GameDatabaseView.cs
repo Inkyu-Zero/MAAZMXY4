@@ -1,10 +1,13 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia;
+using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
+using Avalonia.Controls.Documents;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
@@ -24,7 +27,10 @@ public sealed class GameDatabaseView : UserControl
     private readonly ComboBox _category = new() { ItemsSource = new[] { "全部", "装备", "道具", "Boss" }, SelectedIndex = 0, MinWidth = 100 };
     private readonly ComboBox _subtype = new() { ItemsSource = new[] { "全部" }, SelectedIndex = 0, MinWidth = 130 };
     private readonly ListBox _results = new();
-    private readonly StackPanel _details = new() { Spacing = 12, Margin = new Thickness(18, 8) };
+    private readonly StackPanel _details = new() { Spacing = 16, Margin = new Thickness(20, 12), MaxWidth=860, HorizontalAlignment=HorizontalAlignment.Stretch };
+    private readonly Stack<GameDatabaseEntry> _history = new();
+    private readonly Button _back = new() { Content="← 返回上一条目", HorizontalAlignment=HorizontalAlignment.Left };
+    private GameDatabaseEntry? _currentEntry;
     private readonly TextBlock _status = new() { TextWrapping = TextWrapping.Wrap };
     private readonly TextBlock _page = new();
     private readonly Button _previous = new() { Content = "上一页" }, _next = new() { Content = "下一页" }, _retry = new() { Content = "重新加载", IsVisible = false };
@@ -42,7 +48,7 @@ public sealed class GameDatabaseView : UserControl
 
     public GameDatabaseView(GameDatabaseViewModel viewModel)
     {
-        _vm = viewModel; DataContext = viewModel; PlayerUi.Apply(this);
+        _vm = viewModel; DataContext = viewModel; PlayerUi.Apply(this); FontSize=15;
         _detailScroll = new ScrollViewer { Content = _details, HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled };
         _results.ItemTemplate = new FuncDataTemplate<GameDatabaseEntry>((entry, _) => new StackPanel { Spacing = 3, Margin = new Thickness(6), Children =
         {
@@ -67,7 +73,8 @@ public sealed class GameDatabaseView : UserControl
         _search.TextChanged += (_, _) => { _filterPending = true; _debounce.Stop(); _debounce.Start(); };
         _category.SelectionChanged += (_, _) => { if (!_filtering) { UpdateSubtypes(); Filter(); } };
         _subtype.SelectionChanged += (_, _) => { if (!_filtering) Filter(); };
-        _results.SelectionChanged += (_, _) => ShowDetails(_results.SelectedItem as GameDatabaseEntry);
+        _results.SelectionChanged += (_, _) => { _history.Clear(); ShowDetails(_results.SelectedItem as GameDatabaseEntry); };
+        _back.Click += (_, _) => { if (_history.TryPop(out var previous)) ShowDetails(previous); };
         _previous.Click += (_, _) => { _pageIndex--; RenderPage(); };
         _next.Click += (_, _) => { _pageIndex++; RenderPage(); };
         _retry.Click += async (_, _) => await LoadAsync();
@@ -75,7 +82,7 @@ public sealed class GameDatabaseView : UserControl
         {
             if (_catalog == null) await LoadAsync();
             else if (_filterPending) Filter();
-            else ShowDetails(_results.SelectedItem as GameDatabaseEntry);
+            else ShowDetails(_currentEntry ?? _results.SelectedItem as GameDatabaseEntry);
         };
         DetachedFromVisualTree += (_, _) => { _debounce.Stop(); ReleaseBitmap(); };
         SizeChanged += (_, _) => ResizePage();
@@ -118,6 +125,8 @@ public sealed class GameDatabaseView : UserControl
     private void ShowDetails(GameDatabaseEntry? entry)
     {
         ReleaseBitmap(); _details.Children.Clear(); _detailScroll.Offset = default;
+        _currentEntry=entry;
+        _back.IsVisible=_history.Count>0; _details.Children.Add(_back);
         if (entry == null) { AddText(_catalog == null ? "载入后选择条目查看详细资料。" : "没有匹配条目，请减少关键词或调整分类。"); return; }
         var header = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 14 };
         if (_catalog != null && entry.Icon != null)
@@ -137,8 +146,16 @@ public sealed class GameDatabaseView : UserControl
         foreach (var fact in GameDatabasePresentation.Facts(entry))
         {
             var content = new StackPanel { Spacing = 8 };
-            content.Children.Add(new TextBlock { Text = fact.Label, FontWeight = FontWeight.SemiBold, FontSize = 15 });
-            content.Children.Add(new SelectableTextBlock { Text = fact.Value, TextWrapping = TextWrapping.Wrap });
+            content.Children.Add(new TextBlock { Text = fact.Label, FontWeight = FontWeight.SemiBold, FontSize = 13, Opacity=.75 });
+            content.Children.Add(FactText(fact));
+            if ((fact.Label=="获取方式" || fact.Label.StartsWith("用途",StringComparison.Ordinal))
+                && !_catalog!.LinkSpans(fact).Any(span=>span.Target!=null)
+                && entry.References.FirstOrDefault(reference=>reference.Kind!="client") is { } source)
+            {
+                var sourceLink=FactLink(new("查看来源 ↗",source.Url),13);
+                sourceLink.HorizontalAlignment=HorizontalAlignment.Left;
+                content.Children.Add(sourceLink);
+            }
             _details.Children.Add(PlayerUi.Card(content));
         }
         if (entry.Skills.Length > 0)
@@ -149,7 +166,7 @@ public sealed class GameDatabaseView : UserControl
             {
                 var content = new StackPanel { Spacing = 6 };
                 content.Children.Add(new TextBlock { Text = skill.Name, FontWeight = FontWeight.SemiBold, FontSize = 15 });
-                content.Children.Add(new SelectableTextBlock { Text = skill.Description, TextWrapping = TextWrapping.Wrap });
+                content.Children.Add(new SelectableTextBlock { Text = GameDatabasePresentation.FormatText(skill.Description), TextWrapping = TextWrapping.Wrap, FontSize=15, LineHeight=25 });
                 _details.Children.Add(PlayerUi.Card(content));
             }
         }
@@ -164,8 +181,8 @@ public sealed class GameDatabaseView : UserControl
                 foreach (var stat in variant.Stats)
                 {
                     var row = stats.RowDefinitions.Count; stats.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
-                    var label = PlayerUi.Text(stat.Label, 13, true); Grid.SetRow(label, row); stats.Children.Add(label);
-                    var value = new SelectableTextBlock { Text = GameDatabasePresentation.Stat(stat), FontWeight = FontWeight.SemiBold };
+                    var label = PlayerUi.Text(stat.Label.Replace("（比例）",""), 14, true); Grid.SetRow(label, row); stats.Children.Add(label);
+                    var value = new SelectableTextBlock { Text = GameDatabasePresentation.Stat(stat), FontWeight = FontWeight.SemiBold, FontSize=15, TextWrapping=TextWrapping.Wrap };
                     Grid.SetRow(value, row); Grid.SetColumn(value, 1); stats.Children.Add(value);
                 }
                 variants.Children.Add(new Expander { Header = GameDatabasePresentation.VariantTitle(variant), Content = stats,
@@ -188,8 +205,46 @@ public sealed class GameDatabaseView : UserControl
         }
         foreach (var fact in entry.WikiFacts.Where(fact => !string.IsNullOrWhiteSpace(fact.Value)))
             references.Children.Add(new Expander { Header = "社区补充资料", IsExpanded = false,
-                Content = new SelectableTextBlock { Text = fact.Value, TextWrapping = TextWrapping.Wrap }, HorizontalAlignment = HorizontalAlignment.Stretch });
+                Content = new SelectableTextBlock { Text = GameDatabasePresentation.FormatText(fact.Value), TextWrapping = TextWrapping.Wrap, LineHeight=24 }, HorizontalAlignment = HorizontalAlignment.Stretch });
         _details.Children.Add(new Expander { Header = "资料来源与补充", Content = references, IsExpanded = false, HorizontalAlignment = HorizontalAlignment.Stretch });
+    }
+    private SelectableTextBlock FactText(GameFact fact)
+    {
+        var text = new SelectableTextBlock { TextWrapping=TextWrapping.Wrap, FontFamily=PlayerUi.Font, FontSize=15, LineHeight=25, Inlines=new InlineCollection() };
+        foreach (var span in _catalog?.LinkSpans(fact) ?? [new GameTextSpan(fact.Value)])
+        {
+            if (span.Target==null) { text.Inlines.Add(new Run(span.Text)); continue; }
+            text.Inlines.Add(new InlineUIContainer(FactLink(span)));
+        }
+        return text;
+    }
+    private HyperlinkButton FactLink(GameTextSpan span, double fontSize=15)
+    {
+        var label=new TextBlock { Text=span.Text, FontFamily=PlayerUi.Font, FontSize=fontSize, LineHeight=25 };
+        var link = new HyperlinkButton { Content=label, Padding=new Thickness(0), Margin=new Thickness(0), BorderThickness=new Thickness(0),
+            MinWidth=0, MinHeight=0, FontFamily=PlayerUi.Font, FontSize=fontSize, VerticalAlignment=VerticalAlignment.Center };
+        AutomationProperties.SetName(link,span.Text);
+        // Embedded controls otherwise use their entire height as the baseline.
+        // Use the actual text metrics so links and adjacent prose share a line.
+        label.Measure(new Size(double.PositiveInfinity,double.PositiveInfinity));
+        TextBlock.SetBaselineOffset(link,label.TextLayout.TextLines[0].Baseline);
+        var destination=_catalog?.FindLinkEntry(span.Target!);
+        ToolTip.SetTip(link,destination==null ? "打开资料网页："+span.Target : "查看百科："+destination.Name);
+        link.Click += async (_,_) =>
+        {
+            if (destination!=null)
+            {
+                if (_currentEntry?.Id==destination.Id) return;
+                if (_currentEntry!=null) _history.Push(_currentEntry);
+                ShowDetails(destination);
+            }
+            else if (GameDatabaseCatalog.IsReferenceUrl(span.Target!))
+            {
+                try { if (TopLevel.GetTopLevel(this) is { } top) await top.Launcher.LaunchUriAsync(new Uri(span.Target!)); }
+                catch (Exception error) { _status.Text="无法打开资料链接："+error.Message; }
+            }
+        };
+        return link;
     }
     private void AddTitle(string text, double size = 16) => _details.Children.Add(new TextBlock { Text = text, FontWeight = FontWeight.SemiBold, FontSize = size, Margin = new Thickness(0, 8, 0, 0), TextWrapping = TextWrapping.Wrap });
     private void AddText(string text, bool secondary = false) => _details.Children.Add(new SelectableTextBlock { Text = text, TextWrapping = TextWrapping.Wrap, Opacity = secondary ? .7 : 1 });

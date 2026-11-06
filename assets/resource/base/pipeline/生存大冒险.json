@@ -32,7 +32,6 @@
         "template": [
           "继续冒险.png"
         ],
-        "threshold": 0.7,
         "roi": [
           780,
           280,

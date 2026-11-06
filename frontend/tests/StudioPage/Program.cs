@@ -5,6 +5,7 @@ using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Interactivity;
 using Avalonia.Input;
+using Avalonia.Input.Platform;
 using Avalonia.Media.Imaging;
 using Avalonia.Media;
 using Avalonia.Themes.Fluent;
@@ -24,6 +25,7 @@ internal static class Program
         AppBuilder.Configure<TestApplication>().UseSkia().UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
         var failed = 0;
         var tests = new Action[] { FirstOpenDuringTask, RefreshAndMutationGuard, RetryFailedInitialization, RecordingUsesCurrentTaskController, NoImplicitRecordingTarget, RenameCancelCollisionAndSave, RenameOtherFileKeepsEditorState, DurationTextApplies, DurationTextSavesWithoutExtraApply, TimelineBoxSelectMoveAndCancel, TimelineDocumentChangeCancelsGesture, EditorBatchRequestsAndTaskGuard, DiscardRecordingStatesAndRestart, DiscardStoppedDraftAndProtectSavedScript, DiscardFailureCanRetry, DiscardIgnoresLateStatusAndSaveRequest, TerminalPollLocksUntilDraftIsReady, RecordingActionLayout, RecordingDiscardClickModes, RecordingDoubleClickCancellationAndRetry };
+        tests=tests.Append(TimelineClipboardShortcuts).ToArray();
         foreach (var test in tests)
         {
             try { test(); Console.WriteLine("PASS " + test.Method.Name); }
@@ -155,6 +157,56 @@ internal static class Program
         }
         finally { Close(window,model); }
     }
+    private static void TimelineClipboardShortcuts()
+    {
+        var (window,view,model)=Open(false);
+        try
+        {
+            var source=new JsonObject { ["file"]="clipboard.json",["name"]="Clipboard",["duration_ms"]=10000.0,["dirty"]=false,
+                ["operations"]=new JsonArray(Operation("a",65,1000,1000).Data,Operation("b",66,1600,600).Data) };
+            model.Apply(source);
+            Field<TabControl>(view,"_tabs").SelectedIndex=1;
+            var timeline=Field<ScriptTimeline>(view,"_timeline");Draw(window);timeline.Focus();
+            window.KeyPressQwerty(PhysicalKey.A,RawInputModifiers.Control);Dispatcher.UIThread.RunJobs();
+            JsonObject? request=null;
+            model.Client.Handler=(method,args)=>
+            {
+                if (method=="copy_many")
+                {
+                    Check(args?["ids"]?.AsArray().Count==2,"Ctrl+C includes both selected tracks");
+                    return Task.FromResult<JsonNode>(new JsonObject { ["format"]="maazmxy4.timeline",["version"]=1,["recording"]=new JsonObject() });
+                }
+                if (method!="paste_many") return null;
+                request=args!.DeepClone().AsObject();
+                var result=source.DeepClone().AsObject();
+                result["operations"]!.AsArray().Add(Operation("pasted-a",65,4000,1000).Data);
+                result["operations"]!.AsArray().Add(Operation("pasted-b",66,4600,600).Data);
+                result["selected_ids"]=new JsonArray("pasted-a","pasted-b");result["dirty"]=true;
+                return Task.FromResult<JsonNode>(result);
+            };
+            window.KeyPressQwerty(PhysicalKey.C,RawInputModifiers.Control);Dispatcher.UIThread.RunJobs();
+            Check(window.Clipboard!.TryGetTextAsync().GetAwaiter().GetResult()?.Contains("maazmxy4.timeline")==true,"Copy uses the headless window clipboard");
+            Field<NumericUpDown>(view,"_cursor").Value=4;timeline.Focus();
+            window.KeyPressQwerty(PhysicalKey.V,RawInputModifiers.Control);Dispatcher.UIThread.RunJobs();
+            Check(request?["at_ms"]?.GetValue<long>()==4000,"Paste uses the playhead, not the selected block or mouse location");
+            Check(timeline.SelectedIds.Order().SequenceEqual(new[]{"pasted-a","pasted-b"}),"Paste selects all newly created operations");
+            var calls=model.Client.Calls.Count;
+            window.Clipboard.SetTextAsync("ordinary text").GetAwaiter().GetResult();
+            window.KeyPressQwerty(PhysicalKey.V,RawInputModifiers.Control);Dispatcher.UIThread.RunJobs();
+            Check(model.Client.Calls.Count==calls && model.Operations.Count==4,"Invalid clipboard preserves the document");
+            Draw(window);
+            var input=Field<NumericUpDown>(view,"_cursor").GetVisualDescendants().OfType<TextBox>().First();
+            input.Focus();window.KeyPressQwerty(PhysicalKey.C,RawInputModifiers.Control);Dispatcher.UIThread.RunJobs();
+            Check(model.Client.Calls.Count==calls,"Editing text keeps native Ctrl+C instead of copying timeline blocks");
+            timeline.Focus();MaaProcessor.Processors[0].IsTaskRunActive=true;
+            window.KeyPressQwerty(PhysicalKey.V,RawInputModifiers.Control);Dispatcher.UIThread.RunJobs();
+            Check(model.Client.Calls.Count==calls,"Running task blocks paste");
+            MaaProcessor.Processors[0].IsTaskRunActive=false;
+            Draw(window,"editor-clipboard.png");
+        }
+        finally { Close(window,model); }
+    }
+
     private static void DurationTextApplies()
     {
         var (window, view, model) = Open(false);

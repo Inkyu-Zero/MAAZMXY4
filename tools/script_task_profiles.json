@@ -48,7 +48,6 @@
                             "navigation/stages/s61-frame1.png",
                             "navigation/stages/s61-frame3.png"
                           ],
-                          "threshold": 0.82,
                           "method": 5
                         }
                       }
@@ -135,7 +134,6 @@
                             "navigation/stages/s65-frame2.png",
                             "navigation/stages/s65-frame3.png"
                           ],
-                          "threshold": 0.82,
                           "roi": [
                             0,
                             115,
@@ -221,7 +219,6 @@
                             "navigation/stages/s47-frame1.png",
                             "navigation/stages/s47-frame3.png"
                           ],
-                          "threshold": 0.82,
                           "method": 5
                         }
                       }
@@ -307,7 +304,6 @@
                             "navigation/stages/s43-frame1.png",
                             "navigation/stages/s43-frame3.png"
                           ],
-                          "threshold": 0.82,
                           "roi": [
                             0,
                             115,
@@ -394,7 +390,6 @@
                             "navigation/stages/s45-frame2.png",
                             "navigation/stages/s45-frame3.png"
                           ],
-                          "threshold": 0.82,
                           "roi": [
                             0,
                             115,
@@ -480,7 +475,6 @@
                             "navigation/stages/s38-frame1.png",
                             "navigation/stages/s38-frame3.png"
                           ],
-                          "threshold": 0.82,
                           "roi": [
                             0,
                             115,
@@ -567,7 +561,6 @@
                             "navigation/stages/s26-frame2.png",
                             "navigation/stages/s26-frame3.png"
                           ],
-                          "threshold": 0.82,
                           "roi": [
                             0,
                             115,

@@ -21,6 +21,13 @@ def module(name):
 
 @unittest.skipUnless(bs4 is not None,'development-only BeautifulSoup/requests')
 class CatalogueImportTests(unittest.TestCase):
+    def test_fact_links_keep_original_text_and_only_public_https_destinations(self):
+        html=b'<table><tr><td>\xe8\x8e\xb7\xe5\xbe\x97\xe6\x96\xb9\xe6\xb3\x95</td><td><a href="/gonglue/zmxy4/daoju/example.htm">material</a>+60 <a href="javascript:alert(1)">unsafe</a></td></tr></table>'
+        result=module('import_game_catalog').article_facts(html,dict(name='test',source_url='https://news.4399.com/gonglue/zmxy4/item.htm'))
+        fact=result['facts'][0]
+        self.assertIn('material',fact['value']);self.assertIn('unsafe',fact['value'])
+        self.assertEqual(fact['links'],[dict(text='material',target='https://news.4399.com/gonglue/zmxy4/daoju/example.htm')])
+
     def test_skills_with_inline_markup_and_parentheses(self):
         html='''<table><tr><td>技能</td></tr>
         <tr><td><p><strong>追击：</strong>朝前方冲刺</p></td></tr>

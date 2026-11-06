@@ -6,7 +6,7 @@
       "target": "伽岚（万世冥阁）-关卡入口",
       "town": "town5",
       "axis": "x",
-      "max_steps": 1,
+      "max_steps": 2,
       "drag_node": "GameManagement_town5_Drag",
       "source": {
         "name": "town5",
@@ -368,7 +368,7 @@
       "target": "无冥（孤魂岭）-关卡入口",
       "town": "town5",
       "axis": "x",
-      "max_steps": 1,
+      "max_steps": 2,
       "drag_node": "GameManagement_town5_DragBack",
       "source": {
         "name": "town5",

@@ -1,0 +1,10 @@
+{
+  "TemplateMatch": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "threshold": 0.83
+      }
+    }
+  }
+}

@@ -100,7 +100,6 @@
                           "navigation/stages/s43-frame1.png",
                           "navigation/stages/s43-frame3.png"
                         ],
-                        "threshold": 0.82,
                         "roi": [
                           0,
                           115,
@@ -121,9 +120,12 @@
     },
     "pre_delay": 0,
     "action": {
-      "type": "Click"
+      "type": "LongPress",
+      "param": {
+        "duration": 300
+      }
     },
-    "post_delay": 500,
+    "post_delay": 1000,
     "timeout": 10000,
     "next": []
   },

@@ -9,8 +9,7 @@
           120,
           780,
           380
-        ],
-        "threshold": 0.9
+        ]
       }
     },
     "action": {
@@ -39,8 +38,7 @@
                           450,
                           550,
                           200
-                        ],
-                        "threshold": 0.85
+                        ]
                       }
                     }
                   },
@@ -59,7 +57,6 @@
                           700,
                           260
                         ],
-                        "threshold": 0.88,
                         "green_mask": true
                       }
                     }
@@ -78,8 +75,7 @@
                   120,
                   780,
                   380
-                ],
-                "threshold": 0.9
+                ]
               }
             }
           },
@@ -108,8 +104,7 @@
           120,
           780,
           380
-        ],
-        "threshold": 0.9
+        ]
       }
     },
     "action": {
@@ -138,8 +133,7 @@
                           450,
                           550,
                           200
-                        ],
-                        "threshold": 0.85
+                        ]
                       }
                     }
                   },
@@ -158,7 +152,6 @@
                           700,
                           260
                         ],
-                        "threshold": 0.88,
                         "green_mask": true
                       }
                     }
@@ -177,8 +170,7 @@
                   120,
                   780,
                   380
-                ],
-                "threshold": 0.9
+                ]
               }
             }
           },
@@ -318,7 +310,6 @@
                   "bounty-candle/pause-cloudy.png",
                   "navigation/panels/daily-pause-caption.png"
                 ],
-                "threshold": 0.9,
                 "roi": [
                   300,
                   300,
@@ -360,7 +351,6 @@
                   "bounty-candle/pause-cloudy.png",
                   "navigation/panels/daily-pause-caption.png"
                 ],
-                "threshold": 0.9,
                 "roi": [
                   300,
                   300,
@@ -459,8 +449,7 @@
                   20,
                   180,
                   150
-                ],
-                "threshold": 0.9
+                ]
               }
             }
           },
@@ -608,8 +597,7 @@
                   -6,
                   20,
                   12
-                ],
-                "threshold": 0.9
+                ]
               }
             }
           },
@@ -624,8 +612,7 @@
                   197,
                   12,
                   -9
-                ],
-                "threshold": 0.9
+                ]
               }
             }
           }
@@ -670,8 +657,7 @@
                   155,
                   472,
                   -8
-                ],
-                "threshold": 0.9
+                ]
               }
             }
           },
@@ -730,8 +716,7 @@
                   155,
                   472,
                   -8
-                ],
-                "threshold": 0.9
+                ]
               }
             }
           },
@@ -777,8 +762,7 @@
                   170,
                   800,
                   390
-                ],
-                "threshold": 0.84
+                ]
               }
             }
           },
@@ -849,8 +833,7 @@
                   170,
                   800,
                   390
-                ],
-                "threshold": 0.84
+                ]
               }
             }
           }

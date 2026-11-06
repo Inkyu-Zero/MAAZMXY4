@@ -95,7 +95,7 @@ def generate(source,root=ROOT):
                 (30,150,430,161),scale_first=True))
     path=root/'assets/resource/base/pipeline/battle_outcomes.json'
     nodes=json.loads(path.read_text(encoding='utf8'))
-    caption=dict(type='TemplateMatch',param=dict(template=captions,roi=[200,170,800,390],threshold=.84))
+    caption=dict(type='TemplateMatch',param=dict(template=captions,roi=[200,170,800,390]))
     def reference(name):
         return dict(type='And',param=dict(all_of=[name]))
     # Flash text rasterization can miss the SWF caption template even at the
@@ -121,9 +121,9 @@ def generate(source,root=ROOT):
         # The offset is valid only for this fixed-size resurrection panel,
         # not for a resized generic confirmation with the same border skin.
         dict(recognition=dict(type='TemplateMatch',param=dict(template='navigation/dialogs/confirm-right.png',
-            roi='frame_corner',roi_offset=[491,-6,20,12],threshold=.9))),
+            roi='frame_corner',roi_offset=[491,-6,20,12]))),
         dict(recognition=dict(type='TemplateMatch',param=dict(template='navigation/dialogs/confirm-bottom.png',
-            roi='frame_corner',roi_offset=[-6,197,12,-9],threshold=.9))),
+            roi='frame_corner',roi_offset=[-6,197,12,-9]))),
     ],box_index=0)),**readonly)
     geometry=[]
     # FFDec's complete mc_fh rendering places the shared 38x43 corner patch
@@ -138,7 +138,7 @@ def generate(source,root=ROOT):
         nodes[name]=dict(recognition=dict(type='And',param=dict(all_of=[
             dict(sub_name='revive_window',recognition=reference('Result_ReviveWindow')),
             dict(recognition=dict(type='TemplateMatch',param=dict(template=layouts[players],
-                roi='revive_window',roi_offset=[10,155,472,-8],threshold=.9))),
+                roi='revive_window',roi_offset=[10,155,472,-8]))),
             dict(recognition=dict(type='DirectHit',param=dict(roi='revive_window',
                 roi_offset=[dx,dy,-37,-42]))),
         ],box_index=2)),**readonly)
@@ -159,7 +159,7 @@ def generate(source,root=ROOT):
         if original['type']=='Or':original=original['param']['any_of'][0]['recognition']
         all_of[0]=dict(recognition=dict(type='Or',param=dict(any_of=[dict(recognition=original),
             dict(recognition=dict(type='TemplateMatch',param=dict(template=variants,
-                roi=[400,400,700,260],threshold=.88,green_mask=True))),
+                roi=[400,400,700,260],green_mask=True))),
         ])))
         if 'Result_NoRevivePrompt' not in all_of:all_of.append('Result_NoRevivePrompt')
     path.write_text(json.dumps(nodes,ensure_ascii=False,indent=2)+'\n',encoding='utf8',newline='\n')

@@ -101,7 +101,6 @@
                           "navigation/stages/s26-frame2.png",
                           "navigation/stages/s26-frame3.png"
                         ],
-                        "threshold": 0.82,
                         "roi": [
                           0,
                           115,
@@ -122,9 +121,12 @@
     },
     "pre_delay": 0,
     "action": {
-      "type": "Click"
+      "type": "LongPress",
+      "param": {
+        "duration": 300
+      }
     },
-    "post_delay": 500,
+    "post_delay": 1000,
     "timeout": 10000,
     "next": []
   },

@@ -50,7 +50,7 @@ def bounds_reader(xml):
 
 
 def standard_views(nodes, metadata):
-    """One shared safe landmark, one gesture to either blood-sea edge."""
+    """A held endpoint drag, with one bounded correction after a partial move."""
     terrain='GameManagement_town5_Terrain'
     nodes[terrain]['recognition']['param'].update(
         template=['navigation/scroll/town5-02.png'],roi=[20,410,1020,120])
@@ -58,13 +58,14 @@ def standard_views(nodes, metadata):
     for recipe in metadata['maps']:
         if recipe['town'] != 'town5': continue
         left=recipe['task']=='无冥（孤魂岭）'
-        recipe.update(max_steps=1,end_x=1000 if left else 20,view='left' if left else 'right')
+        recipe.update(max_steps=2,end_x=1000 if left else 20,view='left' if left else 'right')
         node=nodes[recipe['drag_node']]
         node['recognition']['param']['all_of'][2]=terrain
         node['pre_delay']=0
         # Runtime supplies the center of THIS frame's terrain match. The
         # inactive default stays on the same safe terrain, not an old offset.
         node['action']['param']['end_offset']=[0,0,0,0]
+        node['action']['param'].update(duration=900,end_hold=200)
     return nodes,metadata
 
 
@@ -111,7 +112,7 @@ def generate(source,root=ROOT):
         # The previous right/bottom bounds clipped these visible landmarks.
         roi=[500,140,500,460] if axis=='x' else [160,350,880,225]
         anchor_node='GameManagement_'+town+'_Terrain'
-        nodes[anchor_node]=dict(recognition=dict(type='TemplateMatch',param=dict(template=anchors,roi=roi,threshold=.9)),action=dict(type='DoNothing'),next=[])
+        nodes[anchor_node]=dict(recognition=dict(type='TemplateMatch',param=dict(template=anchors,roi=roi)),action=dict(type='DoNothing'),next=[])
         drag_node='GameManagement_'+town+'_Drag'
         nodes[drag_node]=dict(recognition=dict(type='And',param=dict(all_of=['Nav_TaskMap','GameManagement_NormalMap',anchor_node,'Result_NoRevivePrompt'],box_index=2)),
             action=dict(type='Swipe',param=dict(begin=True,end=True,end_offset=[-440,0,0,0] if axis=='x' else [0,-280,0,0],duration=450)),
@@ -150,7 +151,7 @@ def generate(source,root=ROOT):
     # recognition only. Preserve the sprite threshold and add a strict text
     # alternative for clients whose button rasterization differs from SWF.
     nodes['GameManagement_NormalMap']=dict(recognition=dict(type='Or',param=dict(any_of=[
-        dict(recognition=dict(type='TemplateMatch',param=dict(template=relative,roi=[980,580,167,140],threshold=.88,green_mask=True))),
+        dict(recognition=dict(type='TemplateMatch',param=dict(template=relative,roi=[980,580,167,140],green_mask=True))),
         dict(recognition=dict(type='OCR',param=dict(expected=['^切至噩梦$'],roi=[900,560,247,160],threshold=.85))),
     ])),action=dict(type='DoNothing'),next=[])
     standard_views(nodes,metadata)

@@ -123,10 +123,11 @@ class PlaybackTransportTests(unittest.TestCase):
                     dict(t=20,op='keydown',key=68),dict(t=10000,op='keyup',key=68)],10045)
         self.wait(lambda:any(msg==0x100 for msg,_,_ in self.window.events))
         info=self.geometry.inspect(self.window.hwnd)
-        self.assertEqual((info['width'],info['height']),(1140,720))
+        self.assertLessEqual(abs(round(info['width']*720/info['height'])-1140),8)
         self.assertFalse(self.geometry.style(self.window.hwnd)&SIZING_STYLE)
         down=next(e for e in self.window.events if e[0]==0x201)
-        self.assertEqual((down[2]&0xffff,(down[2]>>16)&0xffff),(123,321))
+        self.assertEqual((down[2]&0xffff,(down[2]>>16)&0xffff),
+                         (round(123*info['width']/1140),round(321*info['height']/720)))
         parked=lambda:[e for e in self.window.events if e==(0x200,0,(20<<16)|20)]
         self.assertEqual(parked(),[])
         result=self.call('playback_stop')
@@ -152,9 +153,11 @@ class PlaybackTransportTests(unittest.TestCase):
         self.wait(lambda:any(msg==0x101 and wp==68 for msg,wp,_ in self.window.events))
         self.assertEqual(self.geometry.style(self.window.hwnd),self.original)
 
-    def test_completed_playback_and_standard_prepare(self):
+    def test_completed_playback_and_observation_only_prepare(self):
+        before=self.geometry.inspect(self.window.hwnd)
         result=self.call('window_prepare',dict(hwnd=self.window.hwnd))
-        self.assertEqual((result['width'],result['height']),(1148,720))
+        self.assertEqual((result['width'],result['height']),(before['width'],before['height']))
+        self.assertEqual(self.geometry.style(self.window.hwnd),self.original)
         self.start([dict(t=20,op='click',x=333,y=222)],80)
         states=[]
         def finished():
