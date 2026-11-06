@@ -17,6 +17,19 @@ _TASK_ID = re.compile(r'[a-z0-9][a-z0-9_-]{0,63}\Z')
 _RESERVED = {'CON', 'PRN', 'AUX', 'NUL', *(f'COM{i}' for i in range(1, 10)), *(f'LPT{i}' for i in range(1, 10))}
 
 
+def publish_new_file(temporary, destination):
+    """Publish a closed, flushed same-directory file without replacing a name.
+
+    Windows rename refuses existing destinations and works without hard links
+    (including FAT32/exFAT). POSIX rename replaces files, so retain the exclusive
+    link operation there. Callers own temporary-file cleanup in either case.
+    """
+    if os.name == 'nt':
+        os.rename(temporary, destination)
+    else:
+        os.link(temporary, destination)
+
+
 def library_recording_path(directory, name, *, must_exist=False):
     directory = Path(directory)
     if (not isinstance(name, str) or not name or Path(name).name != name
@@ -178,7 +191,7 @@ def bind_task_recording(directory, task_id, filename, *, expected_revision, mode
             if hashlib.sha256(recording.read_bytes()).hexdigest() != expected_revision:
                 raise ValueError('文件已被其他程序修改，请重新加载后绑定。')
             if original is None:
-                os.link(temporary, path)
+                publish_new_file(temporary, path)
             else:
                 os.replace(temporary, path)
         finally:

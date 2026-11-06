@@ -20,7 +20,7 @@ from weakref import WeakKeyDictionary
 
 from script_studio.model import RecordingDocument
 from script_library import (bind_task_recording, unbind_task_recording, library_recording_path,
-                            read_task_bindings, resolve_task_recording)
+                            read_task_bindings, resolve_task_recording, publish_new_file)
 from task_catalog import task_catalog, execution_plan
 from recording_store import (ensure_default_recordings, default_recordings,
                              duplicate_recording, rename_recording, delete_recording, binding_snapshot, set_file_bindings)
@@ -55,9 +55,7 @@ def atomic_json(path, data, *, overwrite=True):
         if overwrite:
             os.replace(temporary, path)
         else:
-            # Same-directory hard linking publishes a complete new file and
-            # atomically refuses a name created by another editor meanwhile.
-            os.link(temporary, path)
+            publish_new_file(temporary, path)
         return hashlib.sha256(raw).hexdigest()
     finally:
         if temporary is not None and temporary.exists():
