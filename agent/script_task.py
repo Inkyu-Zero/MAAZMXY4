@@ -26,7 +26,7 @@ from window_geometry import prepare_controller
 from navigation.catalog import task_routine
 from navigation import NavigationError
 from navigation.runtime import Navigator
-from navigation.stage_view import restore_stage_view, wait_stage_ready
+from navigation.stage_view import restore_stage_view, wait_stage_ready, has_standard_view
 
 ROOT = Path(__file__).resolve().parents[1]
 RECORDINGS = ROOT / 'recordings'
@@ -312,7 +312,7 @@ def navigate_round(context, state, navigator=None):
         # Viewport restoration is navigation, independent of process restart.
         if error.reason == 'unreachable' and navigation.get('kind') == 'stage':
             target = navigation.get('target_node')
-            if wait_stage_ready(context,navigator,target):
+            if not has_standard_view(target) and wait_stage_ready(context,navigator,target):
                 try:
                     return navigator.run()
                 except NavigationError as settled:
@@ -480,11 +480,17 @@ def enter_stage(context, state, navigator):
         resumed = False
         while True:
             navigator._check()
-            modal = navigator._modal_state()
-            if modal:
-                return False
-            if navigator.recognize('Result_FailedClear').hit:
-                return False
+            # The normal scene owns its one modal guard. Failure/return probes
+            # are fallbacks, not work repeated ahead of every ready scene.
+            ready = navigator.recognize(scene).hit
+            if not ready:
+                # A fresh, guarded map entry proves the click did not leave
+                # the map. Retry now instead of waiting out a loading timeout.
+                if attempt < 2 and navigator.recognize(target).hit:
+                    navigator.log('点击后仍在原入口，使用当前截图重试进关。')
+                    break
+                if navigator._modal_state() or navigator.recognize('Result_FailedClear').hit:
+                    return False
             if navigator.recognize('Bounty_StageSettings').hit:
                 write_status(state, 'fatal', 'stage_settings_open')
                 return False
@@ -497,15 +503,11 @@ def enter_stage(context, state, navigator):
                     raise NavigationError('恢复关卡暂停失败。', reason='transition_failed')
                 resumed = True
                 continue
-            if navigator.recognize(scene).hit:
+            if ready:
                 return True
             if navigator.recognize('Nav_BlockedDialog').hit:
                 raise NavigationError('进关被登录或其他提示阻断。', reason='blocked')
             if navigator.clock() >= end:
-                # Only a freshly recognized original map entry may be clicked
-                # again. Unknown/loading scenes never receive guessed input.
-                if attempt < 2 and navigator.recognize(target).hit:
-                    break
                 raise NavigationError('进关后未确认副本场景。', reason='transition_failed')
             navigator.refresh_after_wait(200)
 

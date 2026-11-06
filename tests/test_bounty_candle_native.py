@@ -290,7 +290,8 @@ class NativeCandleRecognitionTests(unittest.TestCase):
                 profile=task['management_profile'];params=dict(profile['parameters'])
                 case=next(c for c in cases if c['task']==task['name'])
                 map_name='map:'+str(index);stage_name='stage:'+str(index)
-                frames[map_name]=read_png_bgr(ROOT/'tests/fixtures/navigation/stage-states'/case['file'])
+                from fixture_pixels import read_stage_state
+                frames[map_name]=read_stage_state(ROOT/'tests/fixtures/navigation/stage-states',case)
                 scene=source_profiles[task['name']]['scene']['recognition']['param']['template']
                 scene=scene[0] if isinstance(scene,list) else scene
                 template=read_png_bgr(ROOT/'assets/resource/base/image'/scene)

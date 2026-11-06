@@ -50,7 +50,8 @@
       "停止运行"
     ],
     "post_delay": 0,
-    "max_hit": 1
+    "max_hit": 1,
+    "pre_delay": 0
   },
   "贪妄（金蟾宝宫）-刷取次数": {
     "recognition": {
@@ -67,27 +68,15 @@
     },
     "next": [],
     "post_delay": 0,
-    "max_hit": 1
+    "max_hit": 1,
+    "pre_delay": 0
   },
   "贪妄（金蟾宝宫）-关卡入口": {
     "recognition": {
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "任务.png",
-                "roi": [
-                  0,
-                  540,
-                  1147,
-                  180
-                ]
-              }
-            }
-          },
+          "Nav_ClearMap",
           {
             "recognition": {
               "type": "Or",
@@ -126,8 +115,7 @@
                 ]
               }
             }
-          },
-          "Result_NoRevivePrompt"
+          }
         ],
         "box_index": 1
       }
@@ -163,7 +151,8 @@
       "type": "DoNothing"
     },
     "next": [],
-    "post_delay": 0
+    "post_delay": 0,
+    "pre_delay": 0
   },
   "贪妄（金蟾宝宫）-回放战斗": {
     "recognition": {
@@ -201,6 +190,7 @@
     "next": [
       "Round_PlayDone"
     ],
-    "post_delay": 0
+    "post_delay": 0,
+    "pre_delay": 0
   }
 }

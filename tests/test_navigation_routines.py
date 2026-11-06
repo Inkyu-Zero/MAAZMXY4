@@ -44,7 +44,8 @@ class RoutineResourceTests(unittest.TestCase):
             def override_pipeline(self,p):self.patch=p;return True
         context=Context()
         a=task_routine(context,dict(navigation=dict(kind='stage',target_node='target')))
-        self.assertEqual(context.patch['Nav_TaskTarget']['recognition']['param']['all_of'],['Nav_ClearMap','target'])
+        self.assertEqual(context.patch['Nav_TaskTarget']['recognition']['param']['all_of'],['target'])
+        self.assertEqual(a['screens']['task_destination']['detector'],'target')
         a['screens']['map']['label']='changed'
         b=task_routine(context,{})
         self.assertNotEqual(b['screens']['map']['label'],'changed')

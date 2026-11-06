@@ -62,7 +62,7 @@ class Navigator:
                 box=getattr(detail, 'box', None), frame_id=self._frame_id, name=name)
         return self._recognized[name]
 
-    def perform(self, name, hit=None):
+    def perform(self, name, hit=None, *, pipeline_override=None):
         """Dispatch native input using the box already verified on this frame."""
         hit = hit or self.recognize(name)
         self._check()
@@ -77,7 +77,8 @@ class Navigator:
         # so neither success nor error paths can reuse a pre-action observation.
         self.invalidate()
         try:
-            result = self.context.run_action(name, box=box)
+            options = {'pipeline_override': pipeline_override} if pipeline_override else {}
+            result = self.context.run_action(name, box=box, **options)
         except Exception as error:
             self._check()
             raise NavigationError('原生导航操作未确认：' + name, reason='transition_failed') from error
@@ -152,6 +153,12 @@ class Navigator:
     def locate(self):
         """Reuse one image and stop at the first complete relevant match."""
         screens = self.routine['screens']
+        # Stage entries already combine clear-map and icon recognition. Use
+        # their same-frame box directly; do not wrap/re-recognize that entry.
+        target = self.routine.get('target_node')
+        if (self.routine.get('kind') == 'stage' and 'task_destination' in self.routine['targets']
+                and target and self.recognize(target).hit):
+            return 'task_destination'
         quick = [*self.routine['targets'], *self.expected, 'map']
         quick += self.routine.get('nearby', {}).get(self.routine.get('kind'), [])
         quick += ['world', 'paused_task_map', 'settings_subpanel', 'settings_menu']
@@ -232,7 +239,7 @@ class Navigator:
     def _clear_entry_hover_once(self, current):
         """One fallback on a confirmed stage map or accepted-bounty list."""
         expected = {'stage': 'map', 'bounty': 'accepted_bounties'}.get(self.routine.get('kind'))
-        if (self._entry_hover_cleared or current != expected
+        if (self._entry_hover_cleared or current != expected or self.routine.get('standard_view')
                 or 'task_destination' not in self.routine['targets']
                 or self.only_actions is not None):
             return False

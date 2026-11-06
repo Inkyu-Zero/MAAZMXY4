@@ -45,11 +45,14 @@ class NavigationUICoverageTests(unittest.TestCase):
 
     def test_task_entry_settings_and_returns_keep_foreground_guards(self):
         stage_count = settings_count = 0
+        clear_map = read('assets/resource/base/pipeline/navigation.json')['Nav_ClearMap']
+        self.assertIn('Result_NoRevivePrompt', clear_map['recognition']['param']['all_of'])
+        self.assertIn('Nav_NoMapOverlay', clear_map['recognition']['param']['all_of'])
         for path in (ROOT / 'assets/resource/base/pipeline').glob('*.json'):
             for name, node in json.loads(path.read_text(encoding='utf8')).items():
                 if name.endswith('-关卡入口'):
                     stage_count += 1
-                    self.assertIn('Result_NoRevivePrompt', node['recognition']['param']['all_of'])
+                    self.assertEqual(node['recognition']['param']['all_of'][0], 'Nav_ClearMap')
                     self.assertEqual(node['recognition']['param']['box_index'], 1)
                 if name.endswith('-点击设置') or name=='Bounty_OpenSettings':
                     settings_count += 1

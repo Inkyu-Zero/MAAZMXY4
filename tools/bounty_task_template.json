@@ -1,9 +1,20 @@
 {
   "titles": {
-    "守卫宝烛": ["守卫宝烛"],
-    "守卫太宗": ["守卫太宗"],
-    "追捕飞贼": ["追捕飞贼"],
-    "遁地大盗": ["遁地大盗", "遁地大盜", "捉拿大盗", "捉拿大盜"]
+    "守卫宝烛": [
+      "守卫宝烛"
+    ],
+    "守卫太宗": [
+      "守卫太宗"
+    ],
+    "追捕飞贼": [
+      "追捕飞贼"
+    ],
+    "遁地大盗": [
+      "遁地大盗",
+      "遁地大盜",
+      "捉拿大盗",
+      "捉拿大盜"
+    ]
   },
   "recognizers": {
     "target": {
@@ -90,7 +101,13 @@
                       "param": {
                         "template": "bounty-candle/pause.png",
                         "method": 1,
-                        "threshold": 0.045
+                        "threshold": 0.045,
+                        "roi": [
+                          350,
+                          315,
+                          450,
+                          95
+                        ]
                       }
                     }
                   },
@@ -100,7 +117,13 @@
                       "param": {
                         "template": "bounty-candle/pause-cloudy.png",
                         "method": 1,
-                        "threshold": 0.045
+                        "threshold": 0.045,
+                        "roi": [
+                          350,
+                          315,
+                          450,
+                          95
+                        ]
                       }
                     }
                   }
@@ -135,7 +158,13 @@
               "param": {
                 "template": "bounty-candle/pause.png",
                 "method": 1,
-                "threshold": 0.045
+                "threshold": 0.045,
+                "roi": [
+                  350,
+                  315,
+                  450,
+                  95
+                ]
               }
             }
           },
@@ -145,7 +174,13 @@
               "param": {
                 "template": "bounty-candle/pause-cloudy.png",
                 "method": 1,
-                "threshold": 0.045
+                "threshold": 0.045,
+                "roi": [
+                  350,
+                  315,
+                  450,
+                  95
+                ]
               }
             }
           }
@@ -162,6 +197,12 @@
               "param": {
                 "expected": [
                   "^继续游戏$"
+                ],
+                "roi": [
+                  430,
+                  130,
+                  300,
+                  110
                 ]
               }
             }
@@ -172,6 +213,12 @@
               "param": {
                 "expected": [
                   "^返回地图$"
+                ],
+                "roi": [
+                  430,
+                  210,
+                  300,
+                  110
                 ]
               }
             }

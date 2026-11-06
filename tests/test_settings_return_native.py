@@ -78,7 +78,8 @@ class SettingsReturnNativeTests(unittest.TestCase):
                             returned[620:620+task_icon.shape[0], 800:800+task_icon.shape[1]] = task_icon
                         else:
                             case = next(c for c in stage_cases if c['task'] == path.stem)
-                            returned = read_png_bgr(ROOT / 'tests/fixtures/navigation/stage-states' / case['file'])
+                            from fixture_pixels import read_stage_state
+                            returned = read_stage_state(ROOT / 'tests/fixtures/navigation/stage-states', case)
                     else:
                         returned = read_png_bgr(ROOT / 'tests/fixtures/navigation/task-map-real.png')
                     for initial in ('battle', 'menu', 'map'):

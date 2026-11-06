@@ -49,6 +49,25 @@ def bounds_reader(xml):
     return definitions,bounds,transform
 
 
+def standard_views(nodes, metadata):
+    """One shared safe landmark, one gesture to either blood-sea edge."""
+    terrain='GameManagement_town5_Terrain'
+    nodes[terrain]['recognition']['param'].update(
+        template=['navigation/scroll/town5-02.png'],roi=[20,410,1020,120])
+    nodes.pop('GameManagement_town5_TerrainBack',None)
+    for recipe in metadata['maps']:
+        if recipe['town'] != 'town5': continue
+        left=recipe['task']=='无冥（孤魂岭）'
+        recipe.update(max_steps=1,end_x=1000 if left else 20,view='left' if left else 'right')
+        node=nodes[recipe['drag_node']]
+        node['recognition']['param']['all_of'][2]=terrain
+        node['pre_delay']=0
+        # Runtime supplies the center of THIS frame's terrain match. The
+        # inactive default stays on the same safe terrain, not an old offset.
+        node['action']['param']['end_offset']=[0,0,0,0]
+    return nodes,metadata
+
+
 def generate(source,root=ROOT):
     sources={s['name']:s for s in json.loads((source/'manifest.json').read_text(encoding='utf8'))}
     image_root=root/'assets/resource/base/image/navigation/scroll';image_root.mkdir(parents=True,exist_ok=True)
@@ -134,6 +153,7 @@ def generate(source,root=ROOT):
         dict(recognition=dict(type='TemplateMatch',param=dict(template=relative,roi=[980,580,167,140],threshold=.88,green_mask=True))),
         dict(recognition=dict(type='OCR',param=dict(expected=['^切至噩梦$'],roi=[900,560,247,160],threshold=.85))),
     ])),action=dict(type='DoNothing'),next=[])
+    standard_views(nodes,metadata)
     (root/'assets/resource/base/pipeline/game_management_scroll.json').write_text(json.dumps(nodes,ensure_ascii=False,indent=2)+'\n',encoding='utf8',newline='\n')
     (root/'agent/data/navigation/stage-scroll.json').write_text(json.dumps(metadata,ensure_ascii=False,indent=2)+'\n',encoding='utf8',newline='\n')
     resources=root/'agent/data/navigation/resources.json';value=json.loads(resources.read_text(encoding='utf8'))

@@ -4,6 +4,7 @@ from functools import lru_cache
 import json
 from pathlib import Path
 import re
+from .stage_view import has_standard_view
 
 DATA = Path(__file__).resolve().parents[1] / 'data/navigation'
 
@@ -32,12 +33,14 @@ def task_routine(context, parameters, *, targets=None):
             raise ValueError('任务导航目标缺少识别定义。')
         # Named references preserve instance overrides; normalized compounds
         # returned by get_node_data cannot be copied back as source JSON.
-        parts = ['Nav_ClearMap', name] if kind == 'stage' else [name]
+        parts = [name]
         definitions['Nav_TaskTarget'] = dict(recognition=dict(type='And', param=dict(all_of=parts)),
             action=dict(type='DoNothing'), next=[], post_delay=0)
         result['screens']['task_destination'] = dict(detector='Nav_TaskTarget', label=config.get('label', '本任务目标'))
         if kind == 'stage':
             result['province'] = result['stages'].get(name)
+            result['standard_view'] = has_standard_view(name)
+            result['screens']['task_destination']['detector'] = name
     if kind == 'bounty':
         aliases = config.get('title_aliases', [])
         if not isinstance(aliases, list):

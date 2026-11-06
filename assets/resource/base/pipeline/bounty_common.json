@@ -7,7 +7,8 @@
       "type": "DoNothing"
     },
     "next": [],
-    "post_delay": 0
+    "post_delay": 0,
+    "pre_delay": 0
   },
   "Nav_BountyDetailTitle": {
     "recognition": {
@@ -28,7 +29,8 @@
       "type": "DoNothing"
     },
     "next": [],
-    "post_delay": 0
+    "post_delay": 0,
+    "pre_delay": 0
   },
   "Bounty_Target": {
     "recognition": {
@@ -104,7 +106,8 @@
       "type": "Click"
     },
     "next": [],
-    "post_delay": 1000
+    "post_delay": 1000,
+    "pre_delay": 0
   },
   "Bounty_ResumeStage": {
     "recognition": {
@@ -122,7 +125,13 @@
                       "param": {
                         "template": "bounty-candle/pause.png",
                         "method": 1,
-                        "threshold": 0.045
+                        "threshold": 0.045,
+                        "roi": [
+                          350,
+                          315,
+                          450,
+                          95
+                        ]
                       }
                     }
                   },
@@ -132,7 +141,13 @@
                       "param": {
                         "template": "bounty-candle/pause-cloudy.png",
                         "method": 1,
-                        "threshold": 0.045
+                        "threshold": 0.045,
+                        "roi": [
+                          350,
+                          315,
+                          450,
+                          95
+                        ]
                       }
                     }
                   }
@@ -161,7 +176,8 @@
       "type": "Click"
     },
     "next": [],
-    "post_delay": 350
+    "post_delay": 350,
+    "pre_delay": 0
   },
   "Bounty_StageSettings": {
     "recognition": {
@@ -174,6 +190,12 @@
               "param": {
                 "expected": [
                   "^继续游戏$"
+                ],
+                "roi": [
+                  430,
+                  130,
+                  300,
+                  110
                 ]
               }
             }
@@ -184,6 +206,12 @@
               "param": {
                 "expected": [
                   "^返回地图$"
+                ],
+                "roi": [
+                  430,
+                  210,
+                  300,
+                  110
                 ]
               }
             }
@@ -196,7 +224,8 @@
       "type": "DoNothing"
     },
     "next": [],
-    "post_delay": 0
+    "post_delay": 0,
+    "pre_delay": 0
   },
   "Bounty_StagePause": {
     "recognition": {
@@ -209,7 +238,13 @@
               "param": {
                 "template": "bounty-candle/pause.png",
                 "method": 1,
-                "threshold": 0.045
+                "threshold": 0.045,
+                "roi": [
+                  350,
+                  315,
+                  450,
+                  95
+                ]
               }
             }
           },
@@ -219,7 +254,13 @@
               "param": {
                 "template": "bounty-candle/pause-cloudy.png",
                 "method": 1,
-                "threshold": 0.045
+                "threshold": 0.045,
+                "roi": [
+                  350,
+                  315,
+                  450,
+                  95
+                ]
               }
             }
           }
@@ -230,7 +271,8 @@
       "type": "DoNothing"
     },
     "next": [],
-    "post_delay": 0
+    "post_delay": 0,
+    "pre_delay": 0
   },
   "Bounty_Play": {
     "recognition": {
@@ -270,7 +312,8 @@
     "next": [
       "Round_PlayDone"
     ],
-    "post_delay": 0
+    "post_delay": 0,
+    "pre_delay": 0
   },
   "Bounty_OpenSettings": {
     "recognition": {
@@ -296,6 +339,7 @@
       "type": "Click"
     },
     "next": [],
-    "post_delay": 500
+    "post_delay": 500,
+    "pre_delay": 0
   }
 }

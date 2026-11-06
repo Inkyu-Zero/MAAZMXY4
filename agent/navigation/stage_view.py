@@ -13,6 +13,10 @@ def _recipes():
     return {item['target']: item for item in json.loads(DATA.read_text(encoding='utf8'))['maps']}
 
 
+def has_standard_view(target):
+    return 'end_x' in _recipes().get(target, {})
+
+
 def wait_stage_ready(context, navigator, target):
     """Observe a temporarily missing icon using the navigator's current frame."""
     navigator._check()
@@ -47,9 +51,24 @@ def restore_stage_view(context, navigator, target):
             navigator.log('大地图视野未恢复：未确认地图、普通模式或可拖动地形，已停止。')
             return False
         navigator.log(f"恢复大地图视野：{recipe['task']}（{step+1}/{recipe['max_steps']}）")
-        result = navigator.perform(recipe['drag_node'],guard)
+        if 'end_x' in recipe:
+            # Only this freshly recognized non-interactive terrain supplies the
+            # press point. A deterministic horizontal gesture reaches one edge;
+            # no scroll-offset estimate or old click coordinate is retained.
+            x, y, width, height = guard.box
+            cx, cy = int(x + width // 2), int(y + height // 2)
+            override = {recipe['drag_node']: {'action': {'type': 'Swipe', 'param': {
+                'begin': [cx, cy, 1, 1], 'end': [recipe['end_x'], cy, 1, 1],
+                'begin_offset': [0, 0, 0, 0], 'end_offset': [0, 0, 0, 0]}}}}
+            result = navigator.perform(recipe['drag_node'],guard,pipeline_override=override)
+        else:
+            result = navigator.perform(recipe['drag_node'],guard)
         navigator._check()
         if not result:
             raise NavigationError('大地图拖动未确认，已停止。', reason='transition_failed')
+        if 'end_x' in recipe:
+            # Native swipe already includes its transition delay. The target
+            # includes the map guard, so one new frame also rejects mis-entry.
+            return navigator.recognize(target).hit
         navigator._settle()
     return False

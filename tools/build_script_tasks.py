@@ -9,6 +9,7 @@ def write(path, value):
     path.write_text(json.dumps(value, ensure_ascii=False, indent=2)+'\n', encoding='utf8', newline='\n')
 
 def node(recognition=None, action=None, next=(), **options):
+    options.setdefault('pre_delay', 0)
     return dict(recognition=recognition or dict(type='DirectHit'), action=action or dict(type='DoNothing'),
                 next=list(next), post_delay=0, **options)
 
@@ -79,6 +80,18 @@ def build(root=ROOT):
         target_definition=deepcopy(profile['target']);target_definition['next']=[]
         # No delay between recognition and dispatch: a dialog can appear there.
         target_definition['pre_delay']=0
+        icon=target_definition['recognition']['param']['all_of'][1]
+        if profile.get('view_roi'):
+            def set_roi(value):
+                if isinstance(value,dict):
+                    if value.get('type') == 'TemplateMatch':
+                        value['param']['roi'] = list(profile['view_roi'])
+                    for child in value.values(): set_roi(child)
+                elif isinstance(value,list):
+                    for child in value: set_roi(child)
+            set_roi(icon)
+        target_definition['recognition']=dict(type='And',param=dict(
+            all_of=['Nav_ClearMap',icon],box_index=1))
         scene_rec=deepcopy(profile['scene']['recognition'])
         if scene_rec.get('type')!='And':
             scene_rec=dict(type='And',param=dict(all_of=[dict(recognition=scene_rec),'Result_NoRevivePrompt']))
