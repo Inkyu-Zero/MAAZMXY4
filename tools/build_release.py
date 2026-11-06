@@ -241,6 +241,7 @@ def client_files(root, frontend, python_runtime, launcher):
                  'docs/zh_cn/游戏数据库与导航素材.md', 'docs/zh_cn/游戏管理.md',
                  'docs/zh_cn/个人配置备份与迁移.md',
                  'docs/zh_cn/2026-10-31更新日志.md',
+                 'docs/zh_cn/2026-11-06更新日志.md',
                  'docs/zh_cn/通用导航迁移与失败重试说明.md', 'docs/zh_cn/2.3.9更新说明.md',
                  'docs/zh_cn/2.4.1-rc.1更新说明.md'):
         files.append((root / name, name))

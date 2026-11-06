@@ -1,13 +1,20 @@
 param(
-    [string]$Version = '2.4.3',
+    [string]$Version,
     [string]$OutputDirectory = 'dist/launcher'
 )
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path $PSScriptRoot -Parent
+if (-not $Version) {
+    $Version = ((Get-Content -LiteralPath (Join-Path $projectRoot 'assets/interface.json') -Raw -Encoding UTF8 | ConvertFrom-Json).version -split '-')[0]
+}
 if ($Version -notmatch '^\d+\.\d+\.\d+$') { throw '启动器文件版本须为三段数字；候选标识由客户端安装清单保存。' }
 $compilerPath = Join-Path $env:WINDIR 'Microsoft.NET/Framework64/v4.0.30319/csc.exe'
 if (-not (Test-Path -LiteralPath $compilerPath)) { throw '需要 Windows 自带 .NET Framework C# 编译器。' }
-$outputRoot = [IO.Path]::GetFullPath((Join-Path $projectRoot $OutputDirectory))
+$outputRoot = if ([IO.Path]::IsPathRooted($OutputDirectory)) {
+    [IO.Path]::GetFullPath($OutputDirectory)
+} else {
+    [IO.Path]::GetFullPath((Join-Path $projectRoot $OutputDirectory))
+}
 New-Item -ItemType Directory -Path $outputRoot -Force | Out-Null
 $sourcePath = Join-Path $projectRoot 'tools/launcher/Program.cs'
 $iconPath = Join-Path $projectRoot '新图标.ico'
