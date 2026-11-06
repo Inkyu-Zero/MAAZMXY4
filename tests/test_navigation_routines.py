@@ -33,7 +33,7 @@ class RoutineResourceTests(unittest.TestCase):
             for target in a['verify']:self.assertTrue(target in routines['screens'] or target=='task_destination')
         for route in routines['routes'].values():
             for action in route:self.assertIn(action,routines['actions'])
-        self.assertEqual(len(routines['stages']),7)
+        self.assertEqual(len(routines['stages']),7+62)
         self.assertIn('nanzhan',routines['screens'])
         self.assertIn('world',routines['screens'])
         self.assertTrue(routines['actions']['Result_DeclineRevive']['wait_for_clear'])

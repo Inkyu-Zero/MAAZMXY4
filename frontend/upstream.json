@@ -87,6 +87,9 @@
     "frontend/patches/70-input-only-postscript.json",
     "frontend/patches/71-input-only-direct-image.json",
     "frontend/patches/72-host-continuous-repeat.json",
-    "frontend/patches/73-host-continuous-loop.json"
+    "frontend/patches/73-host-continuous-loop.json",
+    "frontend/patches/74-task-default-add.json",
+    "frontend/patches/75-manual-task-loading.json",
+    "frontend/patches/76-manual-task-merge.json"
   ]
 }

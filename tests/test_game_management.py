@@ -36,7 +36,7 @@ class GameManagementTests(unittest.TestCase):
     def test_all_eleven_recording_tasks_declare_a_single_round_and_actual_counter(self):
         tasks=task_catalog(ROOT,bindings={},overrides={'朱电（琉璃宫）-刷取次数':{'max_hit':37}})
         managed=[t for t in tasks if t['management_profile']]
-        self.assertEqual(len(managed),11)
+        self.assertEqual(len(managed),11+62)
         stage=next(t for t in managed if t['name']=='朱电（琉璃宫）')['management_profile']
         self.assertTrue(stage['native_repeat']);self.assertEqual(stage['repeat_limit'],37)
         candle=next(t for t in managed if t['name']=='悬赏（守卫宝烛）')['management_profile']

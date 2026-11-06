@@ -104,6 +104,8 @@ def build(root=ROOT):
                repeat:node(action=custom('loop_count',label=name),max_hit=1),
                target:target_definition,scene:node(scene_rec),play:play_node(scene_rec,binding)}
         write(folder/(name+'.json'),graph)
+    from mainline_tasks import build as build_mainline
+    build_mainline(root)
 
 if __name__=='__main__':
     import sys

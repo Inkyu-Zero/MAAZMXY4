@@ -30,7 +30,7 @@ class RevivalFlowTests(unittest.TestCase):
             if not params.get('round_flow'):continue
             count+=1
             self.assertEqual(params['result_guard']['revive_next'],['Result_RevivePrompt'])
-        self.assertEqual(count,11)
+        self.assertEqual(count,11+62)
         self.assertEqual(self.nodes['Result_DeclineRevive']['action']['type'],'Click')
         for name in ('Result_FailedClear','Result_FailedReturn','Result_SucceededReturn'):
             self.assertIn('Result_NoRevivePrompt',self.nodes[name]['recognition']['param']['all_of'])
@@ -54,6 +54,10 @@ class RevivalFlowTests(unittest.TestCase):
             (root/'tools').mkdir()
             shutil.copyfile(ROOT/'tools/bounty_task_template.json',root/'tools/bounty_task_template.json')
             shutil.copyfile(ROOT/'tools/script_task_profiles.json',root/'tools/script_task_profiles.json')
+            destination=root/'agent/data/navigation'
+            destination.mkdir(parents=True)
+            for name in ('mainline-stages.json','mainline-scenes.json','stage-scroll.json'):
+                shutil.copyfile(ROOT/'agent/data/navigation'/name,destination/name)
             before={f.relative_to(root):f.read_bytes() for f in root.rglob('*.json')}
             configure(root)
             after={f.relative_to(root):f.read_bytes() for f in root.rglob('*.json')}

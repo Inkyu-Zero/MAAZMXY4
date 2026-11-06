@@ -55,4 +55,4 @@ class RecognitionDefaultsTests(unittest.TestCase):
             self.assertEqual(target['pre_delay'], 0)
             self.assertEqual(target['post_delay'], 2000 if params['navigation']['kind']=='bounty' else 1000)
             checked += 1
-        self.assertEqual(checked, 11)
+        self.assertEqual(checked, 11+62)

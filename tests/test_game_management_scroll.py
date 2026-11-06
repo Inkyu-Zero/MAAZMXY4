@@ -87,6 +87,8 @@ class StageScrollTests(unittest.TestCase):
             self.assertEqual(len(asset['source_sha256']), 64)
         for recipe in data['maps']:
             self.assertLessEqual(recipe['max_steps'], 12)
+            if 'crops' not in recipe:
+                recipe=next(base for base in data['maps'] if base['drag_node']==recipe['drag_node'] and 'crops' in base)
             for crop in recipe['crops']:
                 self.assertFalse(any(crop[0] < b[2] and crop[2] > b[0] and crop[1] < b[3] and crop[3] > b[1]
                                      for b in recipe['excluded_stage_bounds']))
@@ -157,7 +159,7 @@ class StageScrollNativeTests(unittest.TestCase):
         from navigation.catalog import task_routine
         from navigation.runtime import Navigator
         fixtures = ROOT / 'tests/fixtures/game-management/scroll'
-        recipes = json.loads(DATA.read_text(encoding='utf8'))['maps']
+        recipes = [r for r in json.loads(DATA.read_text(encoding='utf8'))['maps'] if 'fixture' in r]
         maps = {r['town']: read_png_bgr(fixtures / r['fixture']) for r in recipes}
         mode = read_png_bgr(ROOT / 'assets/resource/base/image/navigation/scroll/normal-mode.png')
         task = read_png_bgr(ROOT / 'assets/resource/base/image/任务.png')
