@@ -71,7 +71,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/build_frontend.ps1 -In
 $version = (Get-Content assets/interface.json -Raw | ConvertFrom-Json).version
 ./tools/build_launcher.ps1 -Version $version
 python tools/runtime_check.py
-python tools/build_release.py --client --launcher "dist/launcher/MAA造梦西游4.exe" --frontend "<编译输出目录>" --python-runtime "<完整内嵌Python目录>" --repository "<发布者>/<仓库>"
+./tools/build_mouse_guard.ps1 -OutputDirectory "<源码树外的原生模块输出目录>"
+python tools/build_release.py --client --launcher "dist/launcher/MAA造梦西游4.exe" --mouse-guard "<原生模块输出目录>" --frontend "<编译输出目录>" --python-runtime "<完整内嵌Python目录>" --repository "<发布者>/<仓库>"
 python tools/build_release.py --verify-client "<完整包解压目录>"
 ```
 

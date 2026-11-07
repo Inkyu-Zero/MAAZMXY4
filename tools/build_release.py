@@ -131,6 +131,23 @@ FRONTEND_REQUIRED = FRONTEND_ROOT_FILES + (
     'libs/MFAAvalonia.Core.dll', 'runtimes/win-x64/native/MaaFramework.dll',
 )
 PYTHON_REQUIRED = tuple(Path(name).as_posix() for name in AGENT_RUNTIME_REQUIRED)
+MOUSE_GUARD_FILES = ('MaaBackgroundMouseGuard.dll', 'mouse-guard-build.json')
+NATIVE_FOLDER = 'runtimes/win-x64/native'
+
+
+def validate_mouse_guard(folder, source_root=None):
+    folder = Path(folder)
+    require_paths(folder, MOUSE_GUARD_FILES, '后台鼠标保护模块')
+    receipt = json.loads((folder / MOUSE_GUARD_FILES[1]).read_text(encoding='utf-8-sig'))
+    if (receipt.get('schema') != 1 or receipt.get('protocol') != 1
+            or receipt.get('architecture') != 'x64'
+            or receipt.get('sha256') != hashlib.sha256((folder / MOUSE_GUARD_FILES[0]).read_bytes()).hexdigest()):
+        raise ValueError('后台鼠标保护模块与构建记录不一致。')
+    if source_root is not None:
+        for key, name in (('source_sha256', 'native/background_mouse_guard/guard.cpp'),
+                          ('builder_sha256', 'tools/build_mouse_guard.ps1')):
+            if receipt.get(key) != hashlib.sha256((Path(source_root)/name).read_bytes()).hexdigest():
+                raise ValueError('后台鼠标保护模块不是当前源码构建：' + name)
 
 
 def require_paths(root, names, label):
@@ -192,6 +209,7 @@ def validate_client(root):
     root = Path(root)
     validate_launcher(root / LAUNCHER_NAME)
     require_paths(root, FRONTEND_REQUIRED + ('agent/main.py',), '完整客户端')
+    validate_mouse_guard(root / NATIVE_FOLDER)
     require_paths(root / 'runtimes/python', PYTHON_REQUIRED, '内嵌 Python')
     return validate_client_resources(root)
 
@@ -217,7 +235,7 @@ def validate_frontend_source(root, frontend):
             raise ValueError('前端二进制与构建记录不一致：' + name)
 
 
-def client_files(root, frontend, python_runtime, launcher):
+def client_files(root, frontend, python_runtime, launcher, mouse_guard=None):
     """Assemble from canonical sources and explicit binaries, never a used client."""
     root, frontend, python_runtime = map(Path, (root, frontend, python_runtime))
     # The update and full packages share the exact same canonical resources.
@@ -228,10 +246,14 @@ def client_files(root, frontend, python_runtime, launcher):
         files.append((Path(launcher).with_name('launcher-build.json'), 'launcher-build.json'))
     require_paths(frontend, FRONTEND_REQUIRED, '前端构建')
     validate_frontend_source(root, frontend)
+    guard = Path(mouse_guard) if mouse_guard is not None else frontend / NATIVE_FOLDER
+    validate_mouse_guard(guard, root)
     for name in FRONTEND_ROOT_FILES: files.append((frontend / name, name))
     for folder in ('libs', 'runtimes/win-x64/native'):
         files.extend((path, path.relative_to(frontend).as_posix())
-                     for path in (frontend / folder).rglob('*') if path.is_file())
+                     for path in (frontend / folder).rglob('*') if path.is_file()
+                     and path.relative_to(frontend).as_posix() not in [NATIVE_FOLDER + '/' + n for n in MOUSE_GUARD_FILES])
+    files.extend((guard / name, NATIVE_FOLDER + '/' + name) for name in MOUSE_GUARD_FILES)
     require_paths(python_runtime, PYTHON_REQUIRED, '内嵌 Python')
     files.extend((path, 'runtimes/python/' + path.relative_to(python_runtime).as_posix())
                  for path in python_runtime.rglob('*')
@@ -240,6 +262,7 @@ def client_files(root, frontend, python_runtime, launcher):
                  'docs/zh_cn/脚本工具-使用说明.md', 'docs/zh_cn/更新协议与发布规范.md',
                  'docs/zh_cn/游戏数据库与导航素材.md', 'docs/zh_cn/游戏管理.md',
                  'docs/zh_cn/个人配置备份与迁移.md',
+                 'docs/zh_cn/后台点击与孤魂岭事件修复.md',
                  'docs/zh_cn/2026-10-31更新日志.md',
                  'docs/zh_cn/2026-11-06更新日志.md',
                  'docs/zh_cn/通用导航迁移与失败重试说明.md', 'docs/zh_cn/2.3.9更新说明.md',
@@ -256,10 +279,10 @@ def client_files(root, frontend, python_runtime, launcher):
 
 
 def build_client(root, frontend, python_runtime, destination, launcher, *, client_version=None,
-                 repository='Inkyu-Zero/MAAZMXY4', channel='stable', manifest_urls=None):
+                 repository='Inkyu-Zero/MAAZMXY4', channel='stable', manifest_urls=None, mouse_guard=None):
     """Create a verified full client ZIP without overwriting any existing output."""
     import tempfile
-    files = client_files(root, frontend, python_runtime, launcher)
+    files = client_files(root, frontend, python_runtime, launcher, mouse_guard)
     resource_version = json.loads((Path(root)/'assets/interface.json').read_text(encoding='utf8'))['version']
     client_version = str(client_version or resource_version)
     destination = Path(destination)
@@ -429,6 +452,7 @@ def main() -> int:
     ap.add_argument("--frontend", default="dist/script-studio", help="已编译的前端目录")
     ap.add_argument("--python-runtime", default="runtimes/python", help="已准备好的内嵌 Python 目录")
     ap.add_argument("--launcher", help="build_launcher.ps1 生成的启动器，旁边须有 launcher-build.json")
+    ap.add_argument("--mouse-guard", help="build_mouse_guard.ps1 的输出目录；默认取前端 native 目录")
     ap.add_argument("--repository", default="Inkyu-Zero/MAAZMXY4", help="完整客户端更新仓库；fork 候选必须显式指定 fork")
     ap.add_argument("--channel", choices=('stable', 'preview'), default='stable')
     ap.add_argument("--manifest-url", action='append', help="此渠道实际版本清单地址，可多次指定")
@@ -450,7 +474,7 @@ def main() -> int:
         destination = root / args.out / f'MAAZMXY4-v{version}-win-x64.zip'
         print(build_client(root, root/args.frontend, root/args.python_runtime, destination, root/args.launcher,
                            client_version=version, repository=args.repository, channel=args.channel,
-                           manifest_urls=args.manifest_url))
+                           manifest_urls=args.manifest_url, mouse_guard=root/args.mouse_guard if args.mouse_guard else None))
         return 0
 
     version = args.version

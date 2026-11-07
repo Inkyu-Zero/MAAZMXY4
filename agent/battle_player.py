@@ -48,6 +48,7 @@ from battle_outcomes import BattleOutcomeMonitor, UnrecognizedDialog
 from window_geometry import controller_hwnd, WindowLease, matches_layout
 import recording_playback as playback
 from mouse_input import finish_mouse_operation
+from background_mouse_guard import hold_background_mouse
 
 try:
     from toast import toast as _toast
@@ -353,12 +354,13 @@ class BattlePlay(CustomAction):
                                 self._log('[battle_play] 监测清理失败：' + str(cleanup_error))
                         self._log('[battle_play] 战斗结果监测未启动：' + str(error))
                         return False
-                completed = playback.play_actions(rec, ctrl, lambda: context.tasker.stopping,
-                    speed=speed, monitor=monitor, log=self._log,
-                    ensure=lease.ensure if lease else None,
-                    clock=lease.clock if lease else time.monotonic, wait_until=_sleep_until,
-                    cleanup_guard=lease.require_identity if lease else None,
-                    after_playback=(lambda: finish_mouse_operation(context.tasker.controller)) if lease else None)
+                with hold_background_mouse(ctrl):
+                    completed = playback.play_actions(rec, ctrl, lambda: context.tasker.stopping,
+                        speed=speed, monitor=monitor, log=self._log,
+                        ensure=lease.ensure if lease else None,
+                        clock=lease.clock if lease else time.monotonic, wait_until=_sleep_until,
+                        cleanup_guard=lease.require_identity if lease else None,
+                        after_playback=(lambda: finish_mouse_operation(context.tasker.controller)) if lease else None)
         except Exception as error:
             if monitor is not None:
                 monitor.close()

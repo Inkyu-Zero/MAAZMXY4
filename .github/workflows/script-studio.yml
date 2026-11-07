@@ -7,6 +7,8 @@ on:
       - 'frontend/**'
       - 'tests/**'
       - 'tools/build_frontend.ps1'
+      - 'tools/build_mouse_guard.ps1'
+      - 'native/background_mouse_guard/**'
       - 'tools/build_navigation.py'
       - 'tools/build_script_tasks.py'
       - 'tools/build_bounty_tasks.py'
@@ -84,6 +86,16 @@ jobs:
       - name: Build native MFAAvalonia page
         shell: pwsh
         run: ./tools/build_frontend.ps1
+      - name: Build and verify scoped background mouse guard
+        shell: pwsh
+        run: |
+          $guard = Join-Path $env:RUNNER_TEMP 'mouse-guard'
+          ./tools/build_mouse_guard.ps1 -OutputDirectory $guard -BuildTests
+          $env:MAA_MOUSE_GUARD_TEST_DLL = Join-Path $guard 'MaaBackgroundMouseGuard.dll'
+          $env:MAA_MOUSE_GUARD_TEST_HOST = Join-Path $guard 'tests/mouse_guard_host.exe'
+          python -B -m unittest discover -s tests -p 'test_background_mouse_guard_native.py' -v
+          if ($LASTEXITCODE -ne 0) { throw 'Background mouse guard IPC tests failed.' }
+          Copy-Item -LiteralPath (Join-Path $guard 'MaaBackgroundMouseGuard.dll'), (Join-Path $guard 'mouse-guard-build.json') -Destination 'dist/script-studio/runtimes/win-x64/native/'
       - name: Install pinned memory-only Maa regression dependencies
         run: python -m pip install maafw==5.12.3 numpy==2.2.6 pillow==12.2.0
       - name: Blood-sea endpoint recovery on stored pixels

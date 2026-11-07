@@ -269,7 +269,11 @@ def begin_round(context, parameters, state, *, frame=None):
         target = parameters['navigation']['target_node']
         # Always derive from the base dwell: retries/tasks may inherit an
         # already-scaled node. Native navigation does not use playback speed.
-        patch[target] = {'action': {'type': 'LongPress', 'param': {'duration': ENTRY_PRESS_MS // speed}}}
+        is_map_entry = parameters['navigation']['kind'] == 'stage'
+        # Native repeats share the verified point and finish before the single
+        # post-delay/hover cleanup. Bounty entries remain single presses.
+        patch[target] = {'action': {'type': 'LongPress', 'param': {'duration': ENTRY_PRESS_MS // speed}},
+                         'repeat': 2 if is_map_entry else 1, 'repeat_delay': 50 if is_map_entry else 0}
     completion = parameters.get('completion_node')
     if completion is not None:
         dispatch = parameters.get('completion_dispatch_node')

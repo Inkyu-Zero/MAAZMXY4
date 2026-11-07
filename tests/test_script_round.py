@@ -107,6 +107,10 @@ class RoundTests(unittest.TestCase):
                 self.assertTrue(ok);self.assertEqual(status['status'],'success')
                 self.assertEqual(ctx.play_count,1)
                 self.assertEqual(ctx.entry_durations,[100])
+                target=task['management_profile']['parameters']['navigation']['target_node']
+                is_map=task['management_profile']['parameters']['navigation']['kind']=='stage'
+                self.assertEqual(ctx.nodes[target].get('repeat',1),2 if is_map else 1)
+                self.assertEqual(ctx.nodes[target].get('repeat_delay',0),50 if is_map else 0)
                 play=task['management_profile']['parameters']['playback_node']
                 self.assertIsNone(ctx.nodes[play]['action']['param']['custom_action_param']['box_speed_proof'])
                 self.assertEqual(len(ctx.captures),len(ctx.inputs))
@@ -141,6 +145,9 @@ class RoundTests(unittest.TestCase):
                                             existing_entry_duration=100)
                 self.assertTrue(ok,status)
                 self.assertEqual(ctx.entry_durations,[50])
+                target=task['management_profile']['parameters']['navigation']['target_node']
+                is_map=task['management_profile']['parameters']['navigation']['kind']=='stage'
+                self.assertEqual(ctx.nodes[target].get('repeat',1),2 if is_map else 1)
 
     def test_double_speed_retry_does_not_halve_an_already_scaled_entry_again(self):
         ok,status,ctx=self.run_round(self.tasks()[0],results=['failed','map'],retry=True,box_speed=2,
