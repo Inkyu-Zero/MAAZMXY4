@@ -2,6 +2,7 @@
 import hashlib
 import json
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import sys
@@ -219,6 +220,11 @@ class ReleasePackageTests(unittest.TestCase):
         self.assertIn('MAA造梦西游4.exe', files)
         self.assertIn('runtimes/python/pythonw.exe', files)
         self.assertEqual(files['docs/zh_cn/2026-11-07更新日志.md'], ROOT/'docs/zh_cn/2026-11-07更新日志.md')
+        for link in re.findall(r'\]\(([^)]+)\)', files['README.md'].read_text(encoding='utf8')):
+            if link.startswith(('https://', 'http://', '#')):
+                continue
+            with self.subTest(readme_link=link):
+                self.assertTrue(link.split('#', 1)[0] in files, 'Missing packaged README link: ' + link)
         self.assertEqual(files['interface.json'],ROOT/'assets/interface.json')
         self.assertEqual(files['resource/base/pipeline/烛时（钟晷极地）.json'],ROOT/'assets/resource/base/pipeline/烛时（钟晷极地）.json')
         self.assertFalse(any(name.startswith(('recordings/','config/','logs/')) or '__pycache__' in name for name in files))

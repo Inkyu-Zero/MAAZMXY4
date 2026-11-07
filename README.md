@@ -62,7 +62,7 @@
 - **后台运行**：支持窗口被遮挡时截图与输入；请保持游戏窗口非最小化，并先核对预览画面。
 - **720p 基准**：常规任务按短边 720 换算坐标；录制和回放仍需保持兼容的游戏布局，不能保证任意缩放与布局都可识别。
 - **录制回放**：把你的操作录成 JSON，副本任务里直接重放，不需要写任何代码。
-- **脚本工作台**：完整客户端内置“脚本库与录制”“时间轴编辑”两个子标签，支持暂停、阶段标记、框选、批量移动/删除、撤销重做和安全拆分，兼容原有录制及 ZaoMengScript 导入。[使用说明](docs/zh_cn/脚本工具-使用说明.md) · [构建说明](frontend/README.md)。
+- **脚本工作台**：完整客户端内置“脚本库与录制”“时间轴编辑”两个子标签，支持暂停、阶段标记、框选、批量移动/删除、撤销重做和安全拆分，兼容原有录制及 ZaoMengScript 导入。[使用说明](docs/zh_cn/脚本工具-使用说明.md) · [构建说明](https://github.com/Inkyu-Zero/MAAZMXY4/blob/main/frontend/README.md)。
 - **游戏数据库与多状态导航**：原生侧栏查询电脑版装备、道具和 Boss，保留官方/社区/客户端配置来源；七关卡入口增加实际 SWF 状态模板以兼容悬停差分。[资料与验证范围](docs/zh_cn/游戏数据库与导航素材.md)。
 - **游戏管理**：可选的失败恢复、按分钟间隔重启及内存维护；维护在任务边界执行，答题异常中断停止并保留日志。[使用说明](docs/zh_cn/游戏管理.md)。
 - **挂机与重试**：挂机时持续刷取并重试，直到手动停止或遇到不能自动继续的异常；刷取次数与重试选项由挂机模式接管。仅勾选挂机不会开启盒子重启；失败重启需单独启用，在任务内重试耗尽或确认失败后才介入。
@@ -137,12 +137,12 @@ MAA造梦西游4/
 
 需要自己准备运行环境：
 
-1. 按[前端构建说明](frontend/README.md)构建本项目固定版本的定制 MFAAvalonia。
-2. 按[运行时准备工具](tools/setup_runtime.py)准备内嵌 Python；完整发布包已包含该运行时。
+1. 按[前端构建说明](https://github.com/Inkyu-Zero/MAAZMXY4/blob/main/frontend/README.md)构建本项目固定版本的定制 MFAAvalonia。
+2. 按[运行时准备工具](https://github.com/Inkyu-Zero/MAAZMXY4/blob/main/tools/setup_runtime.py)准备内嵌 Python；完整发布包已包含该运行时。
 3. 使用 `tools/build_release.py --client` 从 `assets/interface.json`、`assets/resource/`、`agent/` 和明确指定的构建产物组合客户端。
 4. 不要把日常使用目录整体打包，也不要用通用 MFA 前端覆盖本项目的定制页面。
 
-源码准备运行时时，需包含 MaaFramework Python 绑定、NumPy、pynput、Pillow、OpenCV 等依赖；具体清单以 `tools/setup_runtime.py` 和 `tools/runtime_check.py` 为准。`python tools/runtime_check.py` 检查源码树的内嵌运行时；最终包还须使用自己的解释器做功能探针，不能借用开发机环境。炼丹必须实际加载模板并执行图像匹配，仅导入模块不会触发所有依赖。[打包与依赖验收](frontend/README.md#发布前依赖检查)。
+源码准备运行时时，需包含 MaaFramework Python 绑定、NumPy、pynput、Pillow、OpenCV 等依赖；具体清单以 `tools/setup_runtime.py` 和 `tools/runtime_check.py` 为准。`python tools/runtime_check.py` 检查源码树的内嵌运行时；最终包还须使用自己的解释器做功能探针，不能借用开发机环境。炼丹必须实际加载模板并执行图像匹配，仅导入模块不会触发所有依赖。[打包与依赖验收](https://github.com/Inkyu-Zero/MAAZMXY4/blob/main/frontend/README.md#发布前依赖检查)。
 
 改完 Pipeline 后记得校验：
 
@@ -187,7 +187,7 @@ python tools/check_adventure.py     # 生存大冒险题库与事件自检
 
 这是内嵌 Python 缺少 OpenCV。2.4.3 早期安装包曾出现这一问题：4 个炼丹 Python 文件和 11 张模板齐全，但图像匹配时才会延迟加载 `cv2`，因此“模块能导入”或“任务能显示”不代表能正常炼丹。
 
-安装系统 Python 或运行 .NET / VC++ 依赖安装脚本不能补齐包内的 `cv2`。请使用包含完整运行依赖、通过验收的客户端包；同名版本附件也可能被重新上传，以实际资产和检查结果为准。开发者须检查包内 `runtimes/python/Lib/site-packages/cv2/` 及本机扩展，构建和验收步骤见[前端说明](frontend/README.md#发布前依赖检查)。
+安装系统 Python 或运行 .NET / VC++ 依赖安装脚本不能补齐包内的 `cv2`。请使用包含完整运行依赖、通过验收的客户端包；同名版本附件也可能被重新上传，以实际资产和检查结果为准。开发者须检查包内 `runtimes/python/Lib/site-packages/cv2/` 及本机扩展，构建和验收步骤见[前端说明](https://github.com/Inkyu-Zero/MAAZMXY4/blob/main/frontend/README.md#发布前依赖检查)。
 
 ## 文件说明
 
