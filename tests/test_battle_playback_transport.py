@@ -151,6 +151,7 @@ def native_case(mode):
         server.write_text('''\
 import sys
 sys.path.insert(0, sys.argv[2])
+assert sys.flags.utf8_mode, 'Agent fixture requires explicit UTF-8 when using -E'
 from maa.agent.agent_server import AgentServer
 from maa.custom_action import CustomAction
 import battle_player
@@ -199,7 +200,7 @@ AgentServer.shut_down()
         client.set_timeout(6000)
         assert client.bind(resource)
         with (directory / 'server.log').open('wb') as output:
-            process = subprocess.Popen([sys.executable, '-B', '-E', '-s', '-u', str(server),
+            process = subprocess.Popen([sys.executable, '-B', '-E', '-s', '-u', '-X', 'utf8', str(server),
                 client.identifier, str(ROOT / 'agent'), mode], cwd=directory, stdout=output,
                 stderr=output, creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
             result = {}
