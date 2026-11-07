@@ -10,17 +10,13 @@ PREFIX = '悬赏（守卫宝烛）-'
 
 
 def panel_title(frame, title):
-    """Synthetic description text from game config; not live game evidence."""
+    """Synthetic text only, for four profile titles on the same panel layout."""
     import numpy as np
     from PIL import Image, ImageDraw, ImageFont
     image=Image.fromarray(frame[:,:,::-1].copy())
     draw=ImageDraw.Draw(image);font=ImageFont.truetype('C:/Windows/Fonts/msyh.ttc',24)
     draw.rectangle((500,175,930,235),fill=(31,43,52))
     draw.text((665,185),title,fill='white',font=font)
-    descriptions=json.loads((ROOT/'agent/data/navigation/bounty-descriptions.json').read_text(encoding='utf8'))
-    draw.rectangle((510,228,940,322),fill=(230,193,135))
-    for i,phrase in enumerate(descriptions['tasks'][title]):
-        draw.text((520,235+i*29),phrase,fill='black',font=font)
     return np.asarray(image)[:,:,::-1].copy()
 
 
@@ -46,7 +42,6 @@ def quest_frames(frames):
     draw.rectangle((640,182,820,220),fill=(230,193,135))
     draw.text((665,185),'日月星河',fill='black',font=font)
     frames['quest-main']=np.asarray(image)[:,:,::-1].copy()
-    frames['quest-candle']=panel_title(frames['quest-candle'],'守卫宝烛')
     return frames
 
 
@@ -107,11 +102,6 @@ class NativeCandleRecognitionTests(unittest.TestCase):
                         result=context.run_recognition('Bounty_Target',pixels)
                         actual=bool(result and result.hit)
                         results.append(dict(check=title+':'+label,actual=actual,expected=expected,ok=actual==expected))
-                # Real user screenshot: title/body overlap must not reject Taizong.
-                from fixture_pixels import read_png_bgr
-                task_routine(context,dict(navigation=dict(kind='bounty',title='守卫太宗',target_node='Bounty_Target')))
-                result=context.run_recognition('Bounty_Target',read_png_bgr(ROOT/'tests/fixtures/navigation/quest-taizong-real.png'))
-                results.append(dict(check='real taizong description',actual=bool(result and result.hit),expected=True,ok=bool(result and result.hit)))
                 return True
 
         log = ROOT / '.runtime-cache/native-candle-recognition'
@@ -293,9 +283,7 @@ class NativeCandleRecognitionTests(unittest.TestCase):
             import numpy as np
             cases=json.loads((ROOT/'tests/fixtures/navigation/stage-states/cases.json').read_text(encoding='utf8'))
             stages=[t for t in task_catalog(ROOT,bindings={}) if t['management_profile']
-                    and t['management_profile']['parameters']['navigation']['kind']=='stage'
-                    and t['name'] in {case['task'] for case in cases}]
-            self.assertEqual(len(stages),7)  # New 62 mainline stages have their own fixture suite.
+                    and t['management_profile']['parameters']['navigation']['kind']=='stage']
             source_profiles=json.loads((ROOT/'tools/script_task_profiles.json').read_text(encoding='utf8'))
             stage_reports=[]
             for index,task in enumerate(stages):

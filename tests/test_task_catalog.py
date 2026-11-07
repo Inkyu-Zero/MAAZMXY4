@@ -5,8 +5,6 @@ from pathlib import Path
 import sys
 import tempfile
 import unittest
-from copy import deepcopy
-from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'agent'))
 from script_studio_service import StudioService
@@ -51,31 +49,6 @@ class TaskCatalogTests(unittest.TestCase):
         self.assertTrue(first['handled'] and second['handled'])
         self.assertEqual(first['recording']['sha256'],hashlib.sha256((self.root/'recordings/test.json').read_bytes()).hexdigest())
         self.assertEqual(len(read_binding_records(self.root/'recordings')),2)
-
-    def test_noncanonical_root_accepts_own_resources_but_rejects_escape(self):
-        from task_catalog import _configuration, _inside
-        alias=self.root/'..'/self.root.name
-        _,nodes=_configuration(alias)
-        self.assertIn('Fight',nodes)
-        self.assertEqual(_inside(alias,'resource/base'),(self.root/'resource/base').resolve())
-        with self.assertRaisesRegex(ValueError,'工程外部'):
-            _inside(alias,'../outside')
-
-    def test_readonly_discovery_does_not_leak_returned_or_instance_changes(self):
-        from task_catalog import _configuration
-        interface,nodes=_configuration(self.root)
-        interface['task'].append(dict(name='共享入口',entry='A'))
-        before=deepcopy(nodes)
-        with patch('task_catalog._configuration',return_value=(interface,nodes)):
-            tasks=task_catalog(self.root,bindings={},overrides={})
-            tasks[0]['playback_parameters']['Fight']['file']='changed-by-caller.json'
-            self.assertNotEqual(tasks[-1]['playback_parameters']['Fight']['file'],'changed-by-caller.json')
-            overlay={'Fight':{'action':{'param':{'custom_action_param':{'file':'instance.json'}}}}}
-            changed=task_catalog(self.root,bindings={},overrides=overlay)
-            self.assertEqual(changed[0]['playback_parameters']['Fight']['file'],'instance.json')
-            self.assertEqual(nodes,before)
-            fresh=task_catalog(self.root,bindings={})
-            self.assertNotEqual(fresh[0]['playback_parameters']['Fight']['file'],'instance.json')
 
     def test_saved_custom_tasks_and_imported_definitions_are_discovered(self):
         self.write('interface.json',dict(task=[],import_=[]))

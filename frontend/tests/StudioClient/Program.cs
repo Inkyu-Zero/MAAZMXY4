@@ -18,11 +18,10 @@ internal static class Program
             if (request != null && JsonNode.Parse(request)?["id"] is JsonNode next)
                 Console.WriteLine(new JsonObject { ["id"] = next.DeepClone(), ["ok"] = true, ["result"] = new JsonObject() }.ToJsonString());
             Console.ReadLine();
-            if (args[1] == "slow-cleanup") await Task.Delay(2800);
             return 0;
         }
         var failed = 0;
-        foreach (var mode in new[] { "eof", "invalid", "application-error", "slow-cleanup" })
+        foreach (var mode in new[] { "eof", "invalid", "application-error" })
         {
             try
             {
@@ -35,7 +34,7 @@ internal static class Program
                     info.ArgumentList.Add(Assembly.GetExecutingAssembly().Location);
                 info.ArgumentList.Add("--worker"); info.ArgumentList.Add(mode);
                 using var worker = Process.Start(info)!;
-                using var client = new ScriptStudioClient(Path.GetTempPath(), shutdownTimeoutMs: mode == "slow-cleanup" ? 10000 : 2500);
+                using var client = new ScriptStudioClient(Path.GetTempPath());
                 typeof(ScriptStudioClient).GetField("_process", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(client, worker);
                 ScriptStudioGuard.BeginCapture();
                 Exception? caught = null;
@@ -43,18 +42,10 @@ internal static class Program
                 catch (Exception error) { caught = error; }
                 Console.WriteLine($"TRACE mode={mode} error={caught?.GetType().Name} disconnected={client.IsDisconnected} capturing={ScriptStudioGuard.IsCapturing}");
                 if (caught == null) throw new Exception("Expected worker error");
-                if (mode is "application-error" or "slow-cleanup")
+                if (mode == "application-error")
                 {
                     if (client.IsDisconnected) throw new Exception("Validation must not destroy the session");
                     await client.CallAsync("list");
-                    if (mode == "slow-cleanup")
-                    {
-                        using var observer = Process.GetProcessById(worker.Id);
-                        _ = observer.Handle; // Retain the actual process after client disposal.
-                        client.Dispose();
-                        observer.WaitForExit();
-                        if (observer.ExitCode != 0) throw new Exception("Owned cleanup was killed before completion");
-                    }
                 }
                 else
                 {

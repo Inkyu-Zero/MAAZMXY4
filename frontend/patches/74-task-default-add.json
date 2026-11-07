@@ -1,6 +1,0 @@
-{
-  "description": "Keep manual-only task definitions available in + without adding them to fresh queues",
-  "path": "MFAAvalonia/Extensions/MaaFW/MaaInterface.cs",
-  "find": "        [JsonProperty(\"entry\")] public string? Entry;",
-  "replace": "        [JsonProperty(\"entry\")] public string? Entry;\n\n        // Omitted means legacy auto-add behavior; false means add explicitly via +.\n        [JsonProperty(\"default_add\")] public bool? DefaultAdd;"
-}

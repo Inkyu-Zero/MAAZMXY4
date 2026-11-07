@@ -128,7 +128,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 100
+        "duration": 300
       }
     },
     "post_delay": 1000,

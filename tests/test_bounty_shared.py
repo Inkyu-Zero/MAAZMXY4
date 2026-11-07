@@ -61,7 +61,7 @@ class SharedBountyTests(unittest.TestCase):
         from task_catalog import custom_parameters
         profiles=[custom_parameters(n) for n in self.nodes.values()
                   if custom_parameters(n).get('phase')=='begin']
-        self.assertEqual(len(profiles),11+62)
+        self.assertEqual(len(profiles),11)
         for params in profiles:
             self.assertEqual(params['result_guard']['error_next'],['Result_MonitorStopped'])
         self.assertEqual(custom_parameters(self.nodes['Result_MonitorStopped']),

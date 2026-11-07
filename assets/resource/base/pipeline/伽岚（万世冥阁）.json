@@ -131,7 +131,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 100
+        "duration": 300
       }
     },
     "next": []

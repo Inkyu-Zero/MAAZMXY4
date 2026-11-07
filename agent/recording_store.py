@@ -7,7 +7,7 @@ import tempfile
 from uuid import uuid4
 
 from script_library import (_binding_lock, _bindings_state, _index_path, _task_id,
-                            library_recording_path, publish_new_file)
+                            library_recording_path)
 from script_studio.model import MAX_FILE_BYTES, RecordingDocument
 
 DEFAULT_INDEX = '.defaults.json'
@@ -40,7 +40,7 @@ def _publish(path, raw, expected, verify=None):
             os.fsync(stream.fileno())
         if verify is not None: verify()
         if _read(path) != expected: raise ValueError('脚本库已被其他窗口修改，请刷新后重试。')
-        if expected is None: publish_new_file(temporary, path)
+        if expected is None: os.link(temporary, path)
         else: os.replace(temporary, path)
     finally:
         if temporary is not None:

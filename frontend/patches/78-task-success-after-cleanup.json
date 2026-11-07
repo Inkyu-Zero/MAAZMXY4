@@ -1,6 +1,0 @@
-{
-  "description": "Publish success only after native task cleanup is confirmed",
-  "path": "MFAAvalonia/Helper/ValueType/MFATask.cs",
-  "find": "            else\n                OwnerViewModel?.MarkTaskSucceeded(SourceItem, RunId);\n            return Complete(MFATaskStatus.SUCCEEDED);",
-  "replace": "            return Complete(MFATaskStatus.SUCCEEDED);"
-}

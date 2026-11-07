@@ -1,6 +1,0 @@
-{
-  "description": "Describe the bounded speed-switch confirmation separately from input-only playback",
-  "path": "MFAAvalonia/Extensions/MaaFW/MaaProcessor.cs",
-  "find": "if (enabled) AddLog(\"纯脚本播放：预览已暂停；本任务不截图、不识别，也不自动重启盒子。\");",
-  "replace": "if (enabled) AddLog(\"纯脚本播放：预览已暂停；回放期间不截图、不识别，也不自动重启盒子。选择倍速时，仅切换阶段截图核验。\");"
-}

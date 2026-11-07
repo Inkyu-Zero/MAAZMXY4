@@ -6,7 +6,6 @@ import argparse
 from pathlib import Path
 from jsonschema import Draft7Validator, Draft202012Validator
 from jsonschema.exceptions import ValidationError
-from interface_schema_extensions import extend_task_schema
 
 try:
     from referencing import Registry, Resource
@@ -259,8 +258,6 @@ def main():
     for schema_file in schema_dir.glob("*.json"):
         try:
             schema = load_jsonc(schema_file)
-            if schema_file.name in ('interface.schema.json','interface_import.schema.json'):
-                schema=extend_task_schema(schema)
             # 使用多种格式的 URI 作为 key
             file_uri = schema_file.as_uri()
             relative_path = f"./{schema_file.name}"
@@ -320,7 +317,7 @@ def main():
     # 验证 interface 文件
     interface_schema_path = schema_dir / "interface.schema.json"
     if interface_schema_path.exists():
-        interface_schema = extend_task_schema(load_jsonc(interface_schema_path))
+        interface_schema = load_jsonc(interface_schema_path)
         interface_schema_uri = interface_schema_path.as_uri()
         schema_store[interface_schema_uri] = interface_schema
 
@@ -341,7 +338,7 @@ def main():
         print("\nValidating task files...")
         task_schema_path = schema_dir / "interface_import.schema.json"
         if task_schema_path.exists():
-            task_schema = extend_task_schema(load_jsonc(task_schema_path))
+            task_schema = load_jsonc(task_schema_path)
             task_schema_uri = task_schema_path.as_uri()
             schema_store[task_schema_uri] = task_schema
 

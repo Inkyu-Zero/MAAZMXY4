@@ -430,7 +430,7 @@ class BattlePlayerStudioTests(unittest.TestCase):
                 if isinstance(action,dict) and action.get('param',{}).get('custom_action')=='script_task_state' and action['param']['custom_action_param'].get('phase')=='begin':
                     self.assertTrue(action['param']['custom_action_param']['file'].startswith('@task'))
                     count+=1
-        self.assertEqual(count,11+62)
+        self.assertEqual(count,11)
 
     def test_timestamp_wait_checks_stop_instead_of_sleeping_entire_gap(self):
         # Unpatch only the timing helper; all OS timer and clock access stays fake.
