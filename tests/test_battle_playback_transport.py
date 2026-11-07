@@ -222,7 +222,8 @@ AgentServer.shut_down()
                               input_times_ms=[round((t - controller.input_times[0]) * 1000, 1)
                                               for t in controller.input_times])
                 print('RESULT ' + json.dumps(report), flush=True)
-                if report['stalled'] or not report['succeeded']:
+                if (report['stalled'] or not report['succeeded'] or report['callback_exception']
+                        or mode == 'guard_failure' and not report['guard_failure_injected']):
                     print(server_output[-4000:], flush=True)
             finally:
                 process.terminate()
