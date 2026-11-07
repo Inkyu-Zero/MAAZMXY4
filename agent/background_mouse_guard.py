@@ -9,6 +9,10 @@ _library = None
 _library_lock = threading.Lock()
 
 
+class MouseGuardError(RuntimeError):
+    """Cleanup cannot be confirmed; do not retry it by restarting the game."""
+
+
 def _native():
     global _library
     with _library_lock:
@@ -63,5 +67,10 @@ def hold_background_mouse(controller=None, *, hwnd=None):
         yield
     finally:
         filtered = wintypes.DWORD()
-        if not lib.MaaMouseGuardEnd(session, ctypes.byref(filtered)):
-            raise RuntimeError(f'后台鼠标保护清理未确认（Windows {ctypes.get_last_error()}），已停止后续操作。')
+        try:
+            cleaned = lib.MaaMouseGuardEnd(session, ctypes.byref(filtered))
+            code = ctypes.get_last_error() if not cleaned else 0
+        except Exception as error:
+            raise MouseGuardError('后台鼠标保护清理异常，已停止任务，不自动重启：' + str(error)) from error
+        if not cleaned:
+            raise MouseGuardError(f'后台鼠标保护清理未确认（Windows {code}），已停止任务，不自动重启。')

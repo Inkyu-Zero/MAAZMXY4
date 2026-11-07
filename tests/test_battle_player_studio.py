@@ -1,5 +1,5 @@
 """Fake-controller playback checks: never load Maa native libraries or send input."""
-from contextlib import redirect_stdout
+from contextlib import redirect_stdout, contextmanager
 import hashlib
 import importlib.util
 import io
@@ -131,6 +131,27 @@ class BattlePlayerStudioTests(unittest.TestCase):
             self.assertFalse(self.run_recording(result_guard={'default_next':['Exit']}))
         self.assertNotIn(('next',['Failed']), events)
         self.assertIn('post_key_up', events)
+
+    def test_guard_cleanup_failure_is_not_downgraded_to_playback_failure(self):
+        self.write([dict(t=0,op='keydown',key=65),dict(t=1,op='keyup',key=65)])
+        @contextmanager
+        def guard(_):
+            yield
+            raise player.MouseGuardError('guard cleanup timeout')
+        with patch.object(player,'hold_background_mouse',guard), self.assertRaises(player.MouseGuardError):
+            player.BattlePlay().run_managed(self.context, SimpleNamespace(
+                node_name='Playback', custom_action_param={'file':'record.json'}))
+        self.assertEqual([c[0] for c in self.controller.calls],['post_key_down','post_key_up'])
+
+    def test_native_callback_returns_failure_for_guard_cleanup_error(self):
+        self.write([dict(t=0,op='keydown',key=65),dict(t=1,op='keyup',key=65)])
+        @contextmanager
+        def guard(_):
+            yield
+            raise player.MouseGuardError('guard cleanup timeout')
+        with patch.object(player, 'hold_background_mouse', guard):
+            self.assertFalse(self.run_recording())
+        self.assertTrue(any('guard cleanup timeout' in message for message in self.logs))
 
     def test_cancelled_task_never_follows_a_concurrent_result(self):
         self.write([dict(t=0,op='keydown',key=65),dict(t=10,op='keyup',key=65)])

@@ -8,7 +8,7 @@ from types import SimpleNamespace
 
 from . import NavigationError
 from .recognition import modal_present
-from background_mouse_guard import hold_background_mouse
+from background_mouse_guard import hold_background_mouse, MouseGuardError
 
 
 def _move_cursor_off_target(controller):
@@ -85,6 +85,12 @@ class Navigator:
             with hold_background_mouse(getattr(self.context.tasker, 'controller', None)):
                 self._check()
                 result = self.context.run_action(name, box=box, **options)
+        except MouseGuardError as error:
+            # Cancellation still wins, but an expired navigation deadline must
+            # not turn an ownership failure back into a restartable timeout.
+            self.check()
+            self.log(str(error))
+            raise NavigationError(str(error), reason='input_guard_failed') from error
         except Exception as error:
             self._check()
             raise NavigationError('原生导航操作未确认：' + name + '；' + str(error), reason='transition_failed') from error

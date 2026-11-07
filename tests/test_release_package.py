@@ -218,6 +218,7 @@ class ReleasePackageTests(unittest.TestCase):
             files = dict((relative,Path(source)) for source,relative in client_files(ROOT,frontend,runtime,launcher))
         self.assertIn('MAA造梦西游4.exe', files)
         self.assertIn('runtimes/python/pythonw.exe', files)
+        self.assertEqual(files['docs/zh_cn/2026-11-07更新日志.md'], ROOT/'docs/zh_cn/2026-11-07更新日志.md')
         self.assertEqual(files['interface.json'],ROOT/'assets/interface.json')
         self.assertEqual(files['resource/base/pipeline/烛时（钟晷极地）.json'],ROOT/'assets/resource/base/pipeline/烛时（钟晷极地）.json')
         self.assertFalse(any(name.startswith(('recordings/','config/','logs/')) or '__pycache__' in name for name in files))

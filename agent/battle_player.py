@@ -48,7 +48,7 @@ from battle_outcomes import BattleOutcomeMonitor, UnrecognizedDialog
 from window_geometry import controller_hwnd, WindowLease, matches_layout
 import recording_playback as playback
 from mouse_input import finish_mouse_operation
-from background_mouse_guard import hold_background_mouse
+from background_mouse_guard import hold_background_mouse, MouseGuardError
 
 try:
     from toast import toast as _toast
@@ -226,6 +226,16 @@ class BattlePlay(CustomAction):
     """
 
     def run(self, context, argv) -> bool:  # noqa: ANN001 - MAA 的接口签名
+        # Maa's ctypes callback requires a concrete bool; exceptions crossing
+        # that boundary do not reliably become a failed native action.
+        try:
+            return self.run_managed(context, argv)
+        except MouseGuardError:
+            return False
+
+    def run_managed(self, context, argv) -> bool:
+        # The compact round runs in this Agent process and needs the typed
+        # cleanup error in order to forbid an automatic recovery restart.
         raw = getattr(argv, "custom_action_param", None)
         # MAA 传过来的形态有三种：
         #   1) dict        —— pipeline 里直接写对象
@@ -365,6 +375,8 @@ class BattlePlay(CustomAction):
             if monitor is not None:
                 monitor.close()
             self._log('[battle_play] 回放已停止：' + str(error))
+            if isinstance(error, MouseGuardError):
+                raise
             return False
         if monitor is not None:
             if monitor.error is not None:
