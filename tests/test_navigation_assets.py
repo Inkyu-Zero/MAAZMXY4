@@ -60,20 +60,20 @@ class NavigationAssetsTests(unittest.TestCase):
             def override_pipeline(_self,patch):_self.patch=patch;return True
         count=0
         for task in self.interface['task']:
-            parameters=next((custom_parameters(n) for name,n in self.nodes.items()
-                if name.startswith(task['name']+'-') and custom_parameters(n).get('navigation')),None)
+            parameters=custom_parameters(self.nodes.get(task['entry'],{}))
+            if not parameters.get('navigation'):parameters=None
             if parameters is None:continue
             count+=1;context=Context();routine=task_routine(context,parameters)
             self.assertEqual(routine['targets'],['task_destination'])
             self.assertEqual(routine['screens']['map']['detector'],'Nav_ClearMap')
             parts=context.patch['Nav_TaskTarget']['recognition']['param']['all_of']
             self.assertIn(parameters['navigation']['target_node'],parts)
-        self.assertEqual(count,11)
+        self.assertEqual(count,11+62)
 
     def test_every_script_task_preserves_binding_and_declares_one_round_boundary(self):
         from task_catalog import task_catalog
         tasks=[t for t in task_catalog(ROOT,bindings={}) if t['management_profile']]
-        self.assertEqual(len(tasks),11)
+        self.assertEqual(len(tasks),11+62)
         for task in tasks:
             profile=task['management_profile'];params=profile['parameters']
             self.assertEqual(profile['entry'],profile['success_node'])

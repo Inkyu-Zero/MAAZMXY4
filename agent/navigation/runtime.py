@@ -8,6 +8,7 @@ from types import SimpleNamespace
 
 from . import NavigationError
 from .recognition import modal_present
+from background_mouse_guard import hold_background_mouse
 
 
 def _move_cursor_off_target(controller):
@@ -81,10 +82,12 @@ class Navigator:
         self.invalidate()
         try:
             options = {'pipeline_override': pipeline_override} if pipeline_override else {}
-            result = self.context.run_action(name, box=box, **options)
+            with hold_background_mouse(getattr(self.context.tasker, 'controller', None)):
+                self._check()
+                result = self.context.run_action(name, box=box, **options)
         except Exception as error:
             self._check()
-            raise NavigationError('原生导航操作未确认：' + name, reason='transition_failed') from error
+            raise NavigationError('原生导航操作未确认：' + name + '；' + str(error), reason='transition_failed') from error
         self._check()
         kind = getattr(result, 'action', None)
         kind = getattr(kind, 'name', kind)

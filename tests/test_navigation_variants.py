@@ -37,7 +37,7 @@ class StageVariantAssetsTests(unittest.TestCase):
             self.assertEqual(node['recognition']['type'],'And')
             self.assertEqual(node['recognition']['param']['all_of'][0],'Nav_ClearMap')
             self.assertEqual(node['recognition']['param']['box_index'],1)
-            self.assertEqual(node['action'],{'type':'LongPress','param':{'duration':300}})
+            self.assertEqual(node['action'],{'type':'LongPress','param':{'duration':100}})
             # Retries now re-use this same guarded action, rather than three copies.
             self.assertFalse(any('关卡入口_重试' in name for name in pipeline))
             self.assertEqual(node['next'],[])

@@ -12,6 +12,7 @@ import threading
 import time
 
 from window_geometry import WindowLease
+from background_mouse_guard import hold_background_mouse
 
 
 class CompletedInput:
@@ -40,6 +41,10 @@ class InputOnlyController:
         self.api.SendMessageTimeoutW.restype = wintypes.LPARAM
         self.api.PostMessageW.argtypes = [wintypes.HWND, wintypes.UINT, wintypes.WPARAM, wintypes.LPARAM]
         self.api.PostMessageW.restype = wintypes.BOOL
+
+    @property
+    def info(self):
+        return {'hwnd': self.lease.hwnd}
 
     def __getattr__(self, name):
         if name in ('post_click_key', 'post_key_down', 'post_key_up'):
@@ -169,6 +174,12 @@ class PlaybackJob:
             from script_library import resolve_recording_reference
             path = resolve_recording_reference(self.root / 'recordings', self.params['file'])
             rec = read_recording(path, expected_sha256=self.params['sha256'], strict=True)
+            from box_speed import validate_speed, validate_recording
+            speed=validate_speed(self.params.get('speed',1))
+            validate_recording(rec,speed)
+            if speed==2:
+                from box_speed_native import verify_playback_proof
+                verify_playback_proof(self.params.get('box_speed_proof'),self.params['hwnd'],self.params['sha256'])
             if self.cancel.is_set():
                 self.state = 'stopped'
                 return
@@ -180,10 +191,12 @@ class PlaybackJob:
                 try:
                     controller = self.input_adapter_factory(native, lease, self.params.get('mouse', 'SendMessage'), self.cancel.is_set)
                     self.phase = 'playing'
-                    succeeded = play_actions(rec, controller, self.cancel.is_set, ensure=lease.ensure,
-                        clock=lease.clock, cleanup_guard=lease.require_identity,
-                        after_playback=getattr(controller, 'clear_hover', None),
-                        log=lambda message: print(message, file=sys.stderr, flush=True))
+                    with hold_background_mouse(controller):
+                        succeeded = play_actions(rec, controller, self.cancel.is_set, ensure=lease.ensure,
+                            speed=speed,
+                            clock=lease.clock, cleanup_guard=lease.require_identity,
+                            after_playback=getattr(controller, 'clear_hover', None),
+                            log=lambda message: print(message, file=sys.stderr, flush=True))
                     self.state = 'stopped' if self.cancel.is_set() else 'succeeded' if succeeded else 'failed'
                 finally:
                     # Controller owns its native keys; player already releases each

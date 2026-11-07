@@ -17,7 +17,7 @@ from uuid import uuid4
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'agent'))
 from legacy_script_bindings import plan_legacy_bindings
-from script_library import _bindings_state
+from script_library import _bindings_state, publish_new_file
 from task_catalog import _configuration, custom_parameters, node_links
 
 SEPARATOR = '<|||>'
@@ -98,7 +98,7 @@ def _publish(path, raw, expected):
         if (None if current is None else _sha(current)) != expected:
             raise SyncConflict('暂存期间文件发生变化，未覆盖：' + str(path))
         if expected is None:
-            os.link(temporary, path)
+            publish_new_file(temporary, path)
         else:
             os.replace(temporary, path)
     finally:

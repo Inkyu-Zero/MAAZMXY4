@@ -1,0 +1,3617 @@
+{
+  "version": 1,
+  "viewport": [
+    1147,
+    720
+  ],
+  "stages": [
+    {
+      "id": 1,
+      "name": "玄武门",
+      "map_url": "xuanwumenV498",
+      "source": {
+        "camera": [
+          0,
+          60
+        ],
+        "landing_y": 555.1999999999999,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "026c1402274508942fd8955b6a7ae2db969824d315606c97cd02af887a9cb411",
+        "swf_sha256": "494ddb43703d5402bdeae5aab4b5dc00999c9e5c756f54cbc02739c29c7f52f8"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s001-0.png",
+          "box": [
+            854,
+            574,
+            88,
+            63
+          ],
+          "roi": [
+            784,
+            494,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "2689e8d608f3a0d050509caf969a66764619d59efd59a34c797233db6b5b42ab"
+        },
+        {
+          "template": "navigation/mainline/scene-s001-1.png",
+          "box": [
+            708,
+            574,
+            88,
+            63
+          ],
+          "roi": [
+            638,
+            494,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "a4df1755dc8a366a5306d3f2c091d8440c077d19347f81174db2fd589996832c"
+        }
+      ],
+      "equivalent_ids": [
+        1
+      ]
+    },
+    {
+      "id": 2,
+      "name": "朱雀街",
+      "map_url": "zhuquejieV498",
+      "source": {
+        "camera": [
+          0,
+          210
+        ],
+        "landing_y": 707.1,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "ee43e05ce30e1edb0db0a434d3be1b6a6ac8d9ac23bf8b6d2ae677b08f91ea49",
+        "swf_sha256": "7a2defb991ed75c603cb05753d2d0f84eb10386420708445646aaf75eca96b06"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s002-0.png",
+          "box": [
+            586,
+            525,
+            88,
+            63
+          ],
+          "roi": [
+            516,
+            445,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "b6bf8f5e0ece5ddac59562672b34188c41689a032cdde04e4779f988bbfbb4c0"
+        },
+        {
+          "template": "navigation/mainline/scene-s002-1.png",
+          "box": [
+            683,
+            476,
+            88,
+            63
+          ],
+          "roi": [
+            613,
+            396,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "0b31ded579350df44d9f557c106e676a9f6c82a0588f1cd37f728987ed76afe2"
+        }
+      ],
+      "equivalent_ids": [
+        2
+      ]
+    },
+    {
+      "id": 3,
+      "name": "未央宫",
+      "map_url": "weiyanggongV1",
+      "source": {
+        "camera": [
+          0,
+          0
+        ],
+        "landing_y": 483.9,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "ee8d1a0c6b8e9ac895f1d4a970778ba1870419cd10976788d65f34f3188e6f1d",
+        "swf_sha256": "1f375197393e1147c0736e0b76c68d3a98297b58af19044d99df717baad5067d"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s003-0.png",
+          "box": [
+            561,
+            134,
+            88,
+            63
+          ],
+          "roi": [
+            491,
+            54,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "4d4b00e6a6a49f7ae97690b89ef078d52f20e6a89d4eb7aada89ea4d5bb53925"
+        },
+        {
+          "template": "navigation/mainline/scene-s003-1.png",
+          "box": [
+            561,
+            378,
+            88,
+            63
+          ],
+          "roi": [
+            491,
+            298,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "6a444eedd43703b313d024beeaed48e5c5b718efba3c75045645b44512bb3eb7"
+        }
+      ],
+      "equivalent_ids": [
+        3
+      ]
+    },
+    {
+      "id": 4,
+      "name": "九华山麓",
+      "map_url": "jiuhuashanV409",
+      "source": {
+        "camera": [
+          0,
+          130
+        ],
+        "landing_y": 628.9,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "3d544a92b3f43796ee777749551f00065ad649dcf515cf89a1a0a94dadfe06c5",
+        "swf_sha256": "18158c7621b4379243d3e1108479d29a79597b03dc54962c24b4d15654099ced"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s004-0.png",
+          "box": [
+            610,
+            574,
+            88,
+            63
+          ],
+          "roi": [
+            540,
+            494,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "0b460b8dae3705a7ecb1ae37c6a7365e93c8e584ae0dfe0d6c0ef0acc50a92d1"
+        },
+        {
+          "template": "navigation/mainline/scene-s004-1.png",
+          "box": [
+            927,
+            525,
+            88,
+            63
+          ],
+          "roi": [
+            857,
+            445,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "a907ff8e3abf5c9bf466f3917f490812aa1f5ea5918b6da08370055f107407ab"
+        }
+      ],
+      "equivalent_ids": [
+        4
+      ]
+    },
+    {
+      "id": 5,
+      "name": "双溪寺",
+      "map_url": "shuangxisiV1",
+      "source": {
+        "camera": [
+          0,
+          130
+        ],
+        "landing_y": 630.4,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "56d1976d4cafcbf959415e80a46cfc9a9055fb001e8ad14c61c35257dd519a23",
+        "swf_sha256": "068f66a850fe0898f7795d4b030b3d6c4e7602c92701fc877c6cdd6024ea4e5d"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s005-0.png",
+          "box": [
+            708,
+            500,
+            88,
+            63
+          ],
+          "roi": [
+            638,
+            420,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "7d7d38c0afb200a95811139d0b8f994ae62b5e17ceb938db16ff6ab878211545"
+        },
+        {
+          "template": "navigation/mainline/scene-s005-1.png",
+          "box": [
+            537,
+            574,
+            88,
+            63
+          ],
+          "roi": [
+            467,
+            494,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "89e2944bc7f302c78bfb3bf622ff7692fdf58fb1c373a0ec3c21a4167107c676"
+        }
+      ],
+      "equivalent_ids": [
+        5
+      ]
+    },
+    {
+      "id": 6,
+      "name": "神光金岭",
+      "map_url": "shenguangjinlingV1",
+      "source": {
+        "camera": [
+          0,
+          130
+        ],
+        "landing_y": 645.85,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "fe59ecef8c0626bc74c83cc0635607fc60438839570f8ecbed8b067b1ab48de5",
+        "swf_sha256": "fbaababa32fdef451b2469c3ce6e7a3fcfb6189a2449680fb1bfabd36098ba96"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s006-0.png",
+          "box": [
+            1001,
+            574,
+            88,
+            63
+          ],
+          "roi": [
+            931,
+            494,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "ea47bb9cf66c27f059fb6b904250a32d87e078502cfbe6bc355056d16bce0036"
+        },
+        {
+          "template": "navigation/mainline/scene-s006-1.png",
+          "box": [
+            732,
+            574,
+            88,
+            63
+          ],
+          "roi": [
+            662,
+            494,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "dbbfdda184182ada923bb06cb11c71dbb0b087d0044580f00d7deb168b4aab84"
+        }
+      ],
+      "equivalent_ids": [
+        6
+      ]
+    },
+    {
+      "id": 7,
+      "name": "普陀山脚",
+      "map_url": "putuoshanjiaoV1",
+      "source": {
+        "camera": [
+          0,
+          730
+        ],
+        "landing_y": 1227.55,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "b60a1e838ab49ce1d111c581b45ebcbb584de0158eb9d3b8bbb22e36f0665d73",
+        "swf_sha256": "e5c810c4c1af615ffacd190dba47ba5a779cc80c07a6b6318c533578e6ce1a6c"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s007-0.png",
+          "box": [
+            903,
+            476,
+            88,
+            63
+          ],
+          "roi": [
+            833,
+            396,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "9a677048c6f58316ff3aaabc32666b146a8ff11a38680b0234246dda0b9ff7e0"
+        },
+        {
+          "template": "navigation/mainline/scene-s007-1.png",
+          "box": [
+            415,
+            378,
+            88,
+            63
+          ],
+          "roi": [
+            345,
+            298,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "fb4058924c2a4194ea50817c98bfa9aede0b58c3d0ee0a28c2eafd48ca6c4f1c"
+        }
+      ],
+      "equivalent_ids": [
+        7,
+        8
+      ]
+    },
+    {
+      "id": 8,
+      "name": "九龙宝殿",
+      "map_url": "jiulongbaodianV1",
+      "source": {
+        "camera": [
+          0,
+          730
+        ],
+        "landing_y": 1233.25,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "398749f2ba1e34fad486611ddd61ed6dda64aebace9d9ebc3f870ee2ec44902a",
+        "swf_sha256": "5baf32c9196a28910da852bb6e6eb5a3b4238247e71b717685f0774f03c5b47a"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s008-0.png",
+          "box": [
+            903,
+            476,
+            88,
+            63
+          ],
+          "roi": [
+            833,
+            396,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "9a677048c6f58316ff3aaabc32666b146a8ff11a38680b0234246dda0b9ff7e0"
+        },
+        {
+          "template": "navigation/mainline/scene-s008-1.png",
+          "box": [
+            415,
+            378,
+            88,
+            63
+          ],
+          "roi": [
+            345,
+            298,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "fb4058924c2a4194ea50817c98bfa9aede0b58c3d0ee0a28c2eafd48ca6c4f1c"
+        }
+      ],
+      "equivalent_ids": [
+        7,
+        8
+      ]
+    },
+    {
+      "id": 9,
+      "name": "法华灵洞",
+      "map_url": "fahualingdongV1",
+      "source": {
+        "camera": [
+          0,
+          730
+        ],
+        "landing_y": 1234.75,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "0695e97dbfd46c37bae3e9a9a51c137f3305e990e1d78235378b9cb777d8346e",
+        "swf_sha256": "2decbb7445e088d6d975bfbbd24b3d3b1702019678e9cff1734fbebd94452e92"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s009-0.png",
+          "box": [
+            976,
+            305,
+            88,
+            63
+          ],
+          "roi": [
+            906,
+            225,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "1ab9d7e8b00ce37cebea0e69aed9cfb8e86b809b86e7059ca74555eef6ce6859"
+        },
+        {
+          "template": "navigation/mainline/scene-s009-1.png",
+          "box": [
+            342,
+            305,
+            88,
+            63
+          ],
+          "roi": [
+            272,
+            225,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "6ac78f2de289dc18f13e8cdccfeda897781d4fad111e1f0cf7956292e52a21f6"
+        }
+      ],
+      "equivalent_ids": [
+        9
+      ]
+    },
+    {
+      "id": 10,
+      "name": "峨眉山道",
+      "map_url": "emeishandao",
+      "source": {
+        "camera": [
+          0,
+          110
+        ],
+        "landing_y": 609.35,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "2c4f7694099437629a14103c8465e0420af58df6d4a0bf8858e426d003c4351d",
+        "swf_sha256": "b5b6f566b83d07dfced8b6a32eadb4b74a0be951e470549f3774b93fd06436d4"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s010-0.png",
+          "box": [
+            781,
+            329,
+            88,
+            63
+          ],
+          "roi": [
+            711,
+            249,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "cae0bb66db89afb526659df4845a5bd5e0104b4670bd99e138c40768d0fb0890"
+        },
+        {
+          "template": "navigation/mainline/scene-s010-1.png",
+          "box": [
+            781,
+            476,
+            88,
+            63
+          ],
+          "roi": [
+            711,
+            396,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "87997564ea2ea28b362035db361a8eef2a02b1856899ff5314d13880fac779ed"
+        }
+      ],
+      "equivalent_ids": [
+        10
+      ]
+    },
+    {
+      "id": 11,
+      "name": "清音阁",
+      "map_url": "qingyinge",
+      "source": {
+        "camera": [
+          0,
+          110
+        ],
+        "landing_y": 620.35,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "553e2fb4f50cf07e59bc0ed8d1c0d7fc820e14afcab43269aa2197c2e5c956cc",
+        "swf_sha256": "a5304cb19341c705d79125c1e3a11d4c835e7d029b64633aaa28f0334e83673d"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s011-0.png",
+          "box": [
+            391,
+            549,
+            88,
+            63
+          ],
+          "roi": [
+            321,
+            469,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "bdb63f0a98538f8c622dc619060c56a5579333aaa8d9df83fd73e0fde8d27efe"
+        },
+        {
+          "template": "navigation/mainline/scene-s011-1.png",
+          "box": [
+            561,
+            500,
+            88,
+            63
+          ],
+          "roi": [
+            491,
+            420,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "66ac09152371f66991cbc3e579b5f809b7f68998f5ecd3ef1f050872d49bd3c8"
+        }
+      ],
+      "equivalent_ids": [
+        11
+      ]
+    },
+    {
+      "id": 12,
+      "name": "金顶云海",
+      "map_url": "jindingyunhai",
+      "source": {
+        "camera": [
+          0,
+          110
+        ],
+        "landing_y": 590.6872068800001,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "3127c51af52c2b7d6998a5029a70a7635855079d41d203e02a988057244f7784",
+        "swf_sha256": "442350e68b806fe5b024b04fc40c8be118890c428270ea0b9df0739b71c7e372"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s012-0.png",
+          "box": [
+            366,
+            525,
+            88,
+            63
+          ],
+          "roi": [
+            296,
+            445,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "631c7d58851929d209a700da8c9b3849ddee13c8f324eccbcfa7240b691470cd"
+        },
+        {
+          "template": "navigation/mainline/scene-s012-1.png",
+          "box": [
+            635,
+            549,
+            88,
+            63
+          ],
+          "roi": [
+            565,
+            469,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "90dadabafc7881478ae4842b5fa48c95b34bd92eb3cb6ecd0a4fe75cdf364041"
+        }
+      ],
+      "equivalent_ids": [
+        12
+      ]
+    },
+    {
+      "id": 13,
+      "name": "五台山口",
+      "map_url": "wutaishankouV5",
+      "source": {
+        "camera": [
+          0,
+          710
+        ],
+        "landing_y": 1148.3905737704918,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "5c41ed789feb39e6f8ca3d71ef89990ed92a73df98c04e9e13c817ea115f010e",
+        "swf_sha256": "2d9a3be6fadbd6da4cb9e5431ddc4ffd17ee96ddf83dbe6677d9778cc1398733"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s013-0.png",
+          "box": [
+            342,
+            452,
+            88,
+            63
+          ],
+          "roi": [
+            272,
+            372,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "5da9b87d362eb677c27eb91d94f2dcdc8723fad1bac172e7ad1bea8b399044b6"
+        },
+        {
+          "template": "navigation/mainline/scene-s013-1.png",
+          "box": [
+            927,
+            354,
+            88,
+            63
+          ],
+          "roi": [
+            857,
+            274,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "6709b9df7c35664919b035e033c1aeee325ba01845af371210f631e797e4d176"
+        }
+      ],
+      "equivalent_ids": [
+        13
+      ]
+    },
+    {
+      "id": 14,
+      "name": "锦绣峰",
+      "map_url": "jinxiufengV469",
+      "source": {
+        "camera": [
+          0,
+          3010
+        ],
+        "landing_y": 3505.1,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "70e65c01eeeab13b15dc70a9bec5e8af8ddb81ee201bfcfacdcddc5bd7c3ffff",
+        "swf_sha256": "b7ebcd87f9fd977316afc5bfb53164e4b5873eb8b7688a20eadcef14c1a8e0d2"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s014-0.png",
+          "box": [
+            635,
+            549,
+            88,
+            63
+          ],
+          "roi": [
+            565,
+            469,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "c75c437cd859e9dc72850232424cffa00b51bf5dd2d0cb4f139bb99e6e7f50a0"
+        },
+        {
+          "template": "navigation/mainline/scene-s014-1.png",
+          "box": [
+            342,
+            232,
+            88,
+            63
+          ],
+          "roi": [
+            272,
+            152,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "25264c92498579e60ebc67347d065e11d473a01b6d948d599923e4e0f4769393"
+        }
+      ],
+      "equivalent_ids": [
+        14
+      ]
+    },
+    {
+      "id": 15,
+      "name": "万佛朝阁",
+      "map_url": "wanfochaogeV2",
+      "source": {
+        "camera": [
+          0,
+          10
+        ],
+        "landing_y": 470.69995659999995,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "67f76dddf58c8b62b8da0b3dac63ebeb469815d5a7cd00171c376f9e0be2aee1",
+        "swf_sha256": "a7b12b0751d1d53ce5150f673cb06138799ab1486f5b08be0b4065e275859989"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s015-0.png",
+          "box": [
+            342,
+            525,
+            88,
+            63
+          ],
+          "roi": [
+            272,
+            445,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "d50cde856a4d9e21d9a50f38fb2dcfb35c9d4661fd061f4781913d658030ced6"
+        },
+        {
+          "template": "navigation/mainline/scene-s015-1.png",
+          "box": [
+            708,
+            525,
+            88,
+            63
+          ],
+          "roi": [
+            638,
+            445,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "2f4731469e0d36a610a546aa7cbd96de42d7074fd2003d832f60f6f23806b4dd"
+        }
+      ],
+      "equivalent_ids": [
+        15
+      ]
+    },
+    {
+      "id": 16,
+      "name": "冥海",
+      "map_url": "minghai",
+      "source": {
+        "camera": [
+          0,
+          110
+        ],
+        "landing_y": 579.6,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "b65677d3fee41175f3085bf770c7fa8ffe5bfe69c538d70cebf6ea64f28fa5fc",
+        "swf_sha256": "d9f4d0c6cfc67ccd7e2c931919e267d4fbbf45b9728523ebdbd252e3d069e0e0"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s016-0.png",
+          "box": [
+            391,
+            476,
+            88,
+            63
+          ],
+          "roi": [
+            321,
+            396,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "a1e114ed88b5fab8da61c41ecb5d87a6e68be069a28a5ee88517b57f5008df07"
+        },
+        {
+          "template": "navigation/mainline/scene-s016-1.png",
+          "box": [
+            342,
+            232,
+            88,
+            63
+          ],
+          "roi": [
+            272,
+            152,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "93de4bb57e1eb5c3e880fd8992c116b7b9dbf8d27b834af1df35af54656eb6c9"
+        }
+      ],
+      "equivalent_ids": [
+        16
+      ]
+    },
+    {
+      "id": 17,
+      "name": "金沙村",
+      "map_url": "jinshacun",
+      "source": {
+        "camera": [
+          0,
+          10
+        ],
+        "landing_y": 508.85,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "e42ea9acdd91b1bae6db16e101dda96b4531cbd38454190a146d8822ba7cfc02",
+        "swf_sha256": "843fc51cc66dd0e76e21cd6398c364fcdec25664c16daea71397442ba6e9c517"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s017-0.png",
+          "box": [
+            805,
+            427,
+            88,
+            63
+          ],
+          "roi": [
+            735,
+            347,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "ee33d0d4dacb1e1a13e101b33b98353c8de5fb1e9cef03e532e4d6b4847d65cd"
+        },
+        {
+          "template": "navigation/mainline/scene-s017-1.png",
+          "box": [
+            488,
+            329,
+            88,
+            63
+          ],
+          "roi": [
+            418,
+            249,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "cebadf3b29a3907f613033a359c8739d64d65af30ba83b1dabdee19d7b201d6f"
+        }
+      ],
+      "equivalent_ids": [
+        17
+      ]
+    },
+    {
+      "id": 18,
+      "name": "百仙园",
+      "map_url": "baixianyuan",
+      "source": {
+        "camera": [
+          0,
+          10
+        ],
+        "landing_y": 526.0,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "f724996b39ff33a5a1c7b7b4b44d4edac4b51feba702ea34080d734e0c305dfd",
+        "swf_sha256": "1011ccd0bafb0343254e848cc93e695c606ea90bac0a794c631be6bbdc77022e"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s018-0.png",
+          "box": [
+            391,
+            500,
+            88,
+            63
+          ],
+          "roi": [
+            321,
+            420,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "ea81ed7d09017c086d73b90e9c5d6d478bc6f8ac462f31982a5e3dafb99530ca"
+        },
+        {
+          "template": "navigation/mainline/scene-s018-1.png",
+          "box": [
+            757,
+            500,
+            88,
+            63
+          ],
+          "roi": [
+            687,
+            420,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "bcce20a4af0169cc61f934c4af3da33ef76fbade9191064beb91193f194df4dd"
+        }
+      ],
+      "equivalent_ids": [
+        18
+      ]
+    },
+    {
+      "id": 19,
+      "name": "傲来国",
+      "map_url": "aolaiguo",
+      "source": {
+        "camera": [
+          0,
+          10
+        ],
+        "landing_y": 517.0,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "6afad7caa0cc56afb922717183f2c98a7b66cb5210cadb2248536e7e0f335961",
+        "swf_sha256": "949858f4ba4b4fe011ece9d6580af1984940568f45d501f74245095387bacadb"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s019-0.png",
+          "box": [
+            488,
+            525,
+            88,
+            63
+          ],
+          "roi": [
+            418,
+            445,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "4f0b313f3a5d756f144205dc90c974d41ac8b144eaebfe11a5d2729f19e0fc68"
+        },
+        {
+          "template": "navigation/mainline/scene-s019-1.png",
+          "box": [
+            1001,
+            549,
+            88,
+            63
+          ],
+          "roi": [
+            931,
+            469,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "8717cbe5c0da236fc7f6a44e0ea7161fff4cdd35e84eb38f4b3bef218bc37085"
+        }
+      ],
+      "equivalent_ids": [
+        19
+      ]
+    },
+    {
+      "id": 20,
+      "name": "花果山",
+      "map_url": "huaguoshan",
+      "source": {
+        "camera": [
+          0,
+          10
+        ],
+        "landing_y": 528.0,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "fbffcbfcb75ef96af220110bd7353c3bc691b6ff11e09337a075009c20b50288",
+        "swf_sha256": "995f29b6cca29e37acba0cf058d491c15648c3f9dd98e7827b4086145c23ccbf"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s020-0.png",
+          "box": [
+            732,
+            525,
+            88,
+            63
+          ],
+          "roi": [
+            662,
+            445,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "ae7fb6e96f0daf03064ac937d8ebb8f0710c27296f8e42b57aa5bec4c6f70bfd"
+        },
+        {
+          "template": "navigation/mainline/scene-s020-1.png",
+          "box": [
+            903,
+            574,
+            88,
+            63
+          ],
+          "roi": [
+            833,
+            494,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "ccd0125b9428d89c4c7e44efeefeff2893cfdc2c4bc24d3b5b119b9f74e91b25"
+        }
+      ],
+      "equivalent_ids": [
+        20
+      ]
+    },
+    {
+      "id": 21,
+      "name": "水帘洞",
+      "map_url": "shuiliandong",
+      "source": {
+        "camera": [
+          0,
+          10
+        ],
+        "landing_y": 512.0,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "5fa9f28c8fd0b7bd0dcb856c6cc8b790c278f8dad7f16a79c52ee44e007707c2",
+        "swf_sha256": "5e494b615646021510e08805e0874ddb78fa54614b01700e22fa27f55a76a7e7"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s021-0.png",
+          "box": [
+            757,
+            525,
+            88,
+            63
+          ],
+          "roi": [
+            687,
+            445,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "aec683bd3b8c3a194a2793c2affa4f710769cabebe6f6852bff55adbb3556548"
+        },
+        {
+          "template": "navigation/mainline/scene-s021-1.png",
+          "box": [
+            342,
+            525,
+            88,
+            63
+          ],
+          "roi": [
+            272,
+            445,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "e2af804e24180ccccf5de8d6392bd825f6582ab04bc6174844bfb75974b51944"
+        }
+      ],
+      "equivalent_ids": [
+        21
+      ]
+    },
+    {
+      "id": 22,
+      "name": "桃花谷",
+      "map_url": "taohuaguV521",
+      "source": {
+        "camera": [
+          0,
+          0
+        ],
+        "landing_y": 204.4501066,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "e05d8b29261afb0ab8fe138c006682f5459f23b6641ba7fa59c0aeb273583b87",
+        "swf_sha256": "264200c2738cff5c46b071cdf381cfcc35a6854acb95011afa94d7c4ec35314c"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s022-0.png",
+          "box": [
+            976,
+            549,
+            88,
+            63
+          ],
+          "roi": [
+            906,
+            469,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "c1410fbb3a02d44dc259eeed0e64f6ac8bb701c2adfc9b331be0c8c932d0e1f9"
+        },
+        {
+          "template": "navigation/mainline/scene-s022-1.png",
+          "box": [
+            488,
+            329,
+            88,
+            63
+          ],
+          "roi": [
+            418,
+            249,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "472a2c23d398ff14d3795a06cb994d0f80df85dc217d8acdc5f0c43b8de9a8b8"
+        }
+      ],
+      "equivalent_ids": [
+        22
+      ]
+    },
+    {
+      "id": 23,
+      "name": "蝙蝠窟",
+      "map_url": "bianfuku",
+      "source": {
+        "camera": [
+          0,
+          0
+        ],
+        "landing_y": null,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "5307831e012dda7c5e3c4c6fa344d5c6aaee1fbac24d7eb93ca565528254f91c",
+        "swf_sha256": "b6c5a5d962d02ca280438330e8ea4a35010e610de46c73799e322e877d8fe3b9"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s023-0.png",
+          "box": [
+            586,
+            452,
+            88,
+            63
+          ],
+          "roi": [
+            516,
+            372,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "070415488d61aa9a4e0089180a1222f93f64ec6ef19ff20710bca68c5b6679f5"
+        },
+        {
+          "template": "navigation/mainline/scene-s023-1.png",
+          "box": [
+            488,
+            281,
+            88,
+            63
+          ],
+          "roi": [
+            418,
+            201,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "463a4c4afaad08650c82a397ac7bedda56eff482093af9337526244a738c06ce"
+        }
+      ],
+      "equivalent_ids": [
+        23
+      ]
+    },
+    {
+      "id": 24,
+      "name": "七星洞",
+      "map_url": "qixingdongV1",
+      "source": {
+        "camera": [
+          0,
+          10
+        ],
+        "landing_y": 512.85,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "77cca4490988bdffcb6a81f03614ad3ec6741de02dbbab5a8aaae1e59a44934f",
+        "swf_sha256": "63c963f289bc202c6e7f859c8a250028812e5a81e5009d110ad4428e55b9069c"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s024-0.png",
+          "box": [
+            952,
+            329,
+            88,
+            63
+          ],
+          "roi": [
+            882,
+            249,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "66ba72412922731076a41163bc910dcbaf19bb153fbff0c1e1d9ba2b02e60752"
+        },
+        {
+          "template": "navigation/mainline/scene-s024-1.png",
+          "box": [
+            781,
+            281,
+            88,
+            63
+          ],
+          "roi": [
+            711,
+            201,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "76c9e523b1d46c32cb5f955589af873977f01019799fe288b4377538b5a56c19"
+        }
+      ],
+      "equivalent_ids": [
+        24
+      ]
+    },
+    {
+      "id": 25,
+      "name": "万妖穴",
+      "map_url": "wanyaoxueV1",
+      "source": {
+        "camera": [
+          0,
+          10
+        ],
+        "landing_y": 522.0,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "b1cba29ddf726dc7e4e765eb7b568ccccc780b946cac204fb358e15e61142d8e",
+        "swf_sha256": "6c9f0edb522422361bd03694e303cdc6a8adc6f003d08642ae076c9cd53915f8"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s025-0.png",
+          "box": [
+            586,
+            329,
+            88,
+            63
+          ],
+          "roi": [
+            516,
+            249,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "cf72acf5d52ba7ca96cb3a67b8c9456dab3b7e029a2db2a985246ab79a05729b"
+        },
+        {
+          "template": "navigation/mainline/scene-s025-1.png",
+          "box": [
+            488,
+            378,
+            88,
+            63
+          ],
+          "roi": [
+            418,
+            298,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "e830ae69ce286d01b80897d2a92905e5c9340ba5537208e09dbd1e4f3a000a7a"
+        }
+      ],
+      "equivalent_ids": [
+        25
+      ]
+    },
+    {
+      "id": 26,
+      "name": "琉璃宫",
+      "map_url": "liuligongV3",
+      "source": {
+        "camera": [
+          0,
+          10
+        ],
+        "landing_y": 513.0999999999999,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "f8be254e7cfc17a00294c012ae0b9cee48712102c813c24130b78aea7ea96b07",
+        "swf_sha256": "eb6c8c379594bddc5fa7ae8d617c30f2f1a4ca1c584fe4aefd8a405ee3faec97"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s026-0.png",
+          "box": [
+            391,
+            476,
+            88,
+            63
+          ],
+          "roi": [
+            321,
+            396,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "d2b9cb1f6cda39b379ba450c03d5174823cf24163b6b01a570799d67563cd758"
+        },
+        {
+          "template": "navigation/mainline/scene-s026-1.png",
+          "box": [
+            976,
+            476,
+            88,
+            63
+          ],
+          "roi": [
+            906,
+            396,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "f444d59c39d4afba74b2da9b767f9ecd922f85746d69758a60ed31a43258f5ec"
+        }
+      ],
+      "equivalent_ids": [
+        26
+      ]
+    },
+    {
+      "id": 27,
+      "name": "金玉宫",
+      "map_url": "jinyugongV3",
+      "source": {
+        "camera": [
+          0,
+          10
+        ],
+        "landing_y": 510.0,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "dcbb965660cb55e4d9fc4e04f127ad8ad6d2d1d0bf27bde29a713de06fbc897c",
+        "swf_sha256": "12a7f955aeca0b9e4f7402a5bf650de44676ad5e29767929ef8ca6bbc225b2ac"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s027-0.png",
+          "box": [
+            391,
+            452,
+            88,
+            63
+          ],
+          "roi": [
+            321,
+            372,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "b5715306c8ae9de85374bf232b507612e46d62c83c221e42c541747bfcfd47d0"
+        },
+        {
+          "template": "navigation/mainline/scene-s027-1.png",
+          "box": [
+            561,
+            427,
+            88,
+            63
+          ],
+          "roi": [
+            491,
+            347,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "237c34251364e5f5744b67de683d70fc46ceb30089328c732e05d2165442a208"
+        }
+      ],
+      "equivalent_ids": [
+        27
+      ]
+    },
+    {
+      "id": 28,
+      "name": "浮天台",
+      "map_url": "futiantai",
+      "source": {
+        "camera": [
+          0,
+          605.0
+        ],
+        "landing_y": null,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "0bb65b1b72099707a3f296f145a36650e628f319214c5a78354152d91858e964",
+        "swf_sha256": "d5638e23b26a130f4cfa8a959161901c9bed6caa30052d98af14f54dbbdf8323"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s028-0.png",
+          "box": [
+            879,
+            525,
+            88,
+            63
+          ],
+          "roi": [
+            809,
+            445,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "dd8449f12009773cee7e905cf02e91beeb59a129d29df62dbacc5a40602deeb3"
+        },
+        {
+          "template": "navigation/mainline/scene-s028-1.png",
+          "box": [
+            683,
+            525,
+            88,
+            63
+          ],
+          "roi": [
+            613,
+            445,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "60a9eb4833e99e2c6d2256a7043d132ffa2c4ec72237660dd6690521771c9edd"
+        }
+      ],
+      "equivalent_ids": [
+        28
+      ]
+    },
+    {
+      "id": 29,
+      "name": "云川",
+      "map_url": "yunhaiV580",
+      "source": {
+        "camera": [
+          0,
+          0
+        ],
+        "landing_y": null,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "9f7511512d4ab44438361d53fcc5bfde3fb09b98149107d4c28f72ba90076f91",
+        "swf_sha256": "d667702ea4b5d92d5472a31aed416b375bc601e09076ffb310b5b05efbe35c84"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s029-0.png",
+          "box": [
+            1025,
+            403,
+            88,
+            63
+          ],
+          "roi": [
+            955,
+            323,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "8740436c5fab2c57813fc3cd345489eeb128d27532ec3a8743483171d34ecf06"
+        },
+        {
+          "template": "navigation/mainline/scene-s029-1.png",
+          "box": [
+            537,
+            207,
+            88,
+            63
+          ],
+          "roi": [
+            467,
+            127,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "8fef6a96346c4593801b3d889570aecf0e36527e834da7d1f5a8e95670593d7f"
+        }
+      ],
+      "equivalent_ids": [
+        29
+      ]
+    },
+    {
+      "id": 30,
+      "name": "苍梧渊",
+      "map_url": "cangwuyuanV398",
+      "source": {
+        "camera": [
+          0,
+          3010
+        ],
+        "landing_y": 3445.5160507299997,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "f525af02a5bee2b89a8100e51ce60f4c6ae98dedf98bc48fb542269a81e7c96e",
+        "swf_sha256": "7079eee707f16074484e49fad4c96ce7f4ff716299ec71861ca784204551675b"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s030-0.png",
+          "box": [
+            757,
+            403,
+            88,
+            63
+          ],
+          "roi": [
+            687,
+            323,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "a39d11929b6a311e4a61a537cd90c2205092693349ecbd7b782998bcc7944db0"
+        },
+        {
+          "template": "navigation/mainline/scene-s030-1.png",
+          "box": [
+            903,
+            403,
+            88,
+            63
+          ],
+          "roi": [
+            833,
+            323,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "dd82de80e9b38aab4020909f7ffaf9c2f3bb8a15bc74a2cc491c5509c06648a2"
+        }
+      ],
+      "equivalent_ids": [
+        30
+      ]
+    },
+    {
+      "id": 31,
+      "name": "寒山坡",
+      "map_url": "hanshanpoV2",
+      "source": {
+        "camera": [
+          0,
+          610
+        ],
+        "landing_y": 1110.4,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "9462a66a43c7112d92cf042df07fd71abe2933f7d2b04a07d7f75895d6165423",
+        "swf_sha256": "731b92ac9a10ea83fb373cdf3d4c150b7e89ad75b4dd8fee3ae61a42ad369b6c"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s031-0.png",
+          "box": [
+            757,
+            574,
+            88,
+            63
+          ],
+          "roi": [
+            687,
+            494,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "240d51e58f9b4bf71920521a923f23205f38798d66a70ea2bb3b896998a89773"
+        },
+        {
+          "template": "navigation/mainline/scene-s031-1.png",
+          "box": [
+            1001,
+            574,
+            88,
+            63
+          ],
+          "roi": [
+            931,
+            494,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "785773c17ffdbc674d67f8c62e20368b85edc3d75cd87c9bc9839a1ebfad5363"
+        }
+      ],
+      "equivalent_ids": [
+        31
+      ]
+    },
+    {
+      "id": 32,
+      "name": "冻天",
+      "map_url": "dongtian",
+      "source": {
+        "camera": [
+          0,
+          10
+        ],
+        "landing_y": 511.42748714999993,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "3ec32fd877e8b8a6bf3f4095ba13c9e2d9523d04932cd14633677c5e22b00add",
+        "swf_sha256": "dfcae48bdf3770818f3882c293e87a5e44a1212823a3b16428e834accf95072b"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s032-0.png",
+          "box": [
+            1001,
+            525,
+            88,
+            63
+          ],
+          "roi": [
+            931,
+            445,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "12b75f3b5831f178b432ee433e6ec8fdfe3a12ae6a9761c1ccba95ce88daa092"
+        },
+        {
+          "template": "navigation/mainline/scene-s032-1.png",
+          "box": [
+            439,
+            476,
+            88,
+            63
+          ],
+          "roi": [
+            369,
+            396,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "87bd54222ffde06acb0e6c81bd48f512e078ed236113631596f5284528e3ccba"
+        }
+      ],
+      "equivalent_ids": [
+        32
+      ]
+    },
+    {
+      "id": 33,
+      "name": "蜃楼城",
+      "map_url": "shenlouchengV1",
+      "source": {
+        "camera": [
+          0,
+          1410
+        ],
+        "landing_y": 1892.7736076800002,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "9c70d0ceb8f21baa19f5f43090c39060652fe4af5882ed783f1785b68cbce956",
+        "swf_sha256": "5b2c23b1b5d45b05f357a422247a94100d43ebc6a990f046b3af29876cf66b92"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s033-0.png",
+          "box": [
+            1001,
+            574,
+            88,
+            63
+          ],
+          "roi": [
+            931,
+            494,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "1bd8d47b1e836b5b20ae5d941fd8c9df2d009aeb96332e942d201048dc433a4c"
+        },
+        {
+          "template": "navigation/mainline/scene-s033-1.png",
+          "box": [
+            781,
+            574,
+            88,
+            63
+          ],
+          "roi": [
+            711,
+            494,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "e13b5b44877b04050cbeceef6da7ddd69aaf053b4effb49ddc1ca820ae30cd98"
+        }
+      ],
+      "equivalent_ids": [
+        33
+      ]
+    },
+    {
+      "id": 34,
+      "name": "幻境阁",
+      "map_url": "huanjinggeV2",
+      "source": {
+        "camera": [
+          120.0,
+          10
+        ],
+        "landing_y": 505.09999999999997,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "f11bca9a5befb9867fd3131e6bf0d0950bac451ce4cf583d7526a939f6edddbb",
+        "swf_sha256": "8322a648a97bf60469cf5541e0236e4e26050d5824d09e56d201f2681dc31ab4"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s034-0.png",
+          "box": [
+            537,
+            281,
+            88,
+            63
+          ],
+          "roi": [
+            467,
+            201,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "c5caff928cc6405bf72e631fc6afab42bfe2f64e5a27bdc85fe5905a790c0277"
+        },
+        {
+          "template": "navigation/mainline/scene-s034-1.png",
+          "box": [
+            439,
+            232,
+            88,
+            63
+          ],
+          "roi": [
+            369,
+            152,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "c2068504d5c53b32dd18032ad7bda5fa001e35606d119740b0b2ab494c1f185d"
+        }
+      ],
+      "equivalent_ids": [
+        34
+      ]
+    },
+    {
+      "id": 35,
+      "name": "壶中洞天",
+      "map_url": "huzhongdongtian",
+      "source": {
+        "camera": [
+          0,
+          160
+        ],
+        "landing_y": 649.3,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "c146e4fd8c4fc899979dce57ee63e20aee329d0f858450891af070e190da8303",
+        "swf_sha256": "9c8da55f69f7987f5be3fefb5265fcc1dfcd9c277504e094fc74287fd367527c"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s035-0.png",
+          "box": [
+            854,
+            574,
+            88,
+            63
+          ],
+          "roi": [
+            784,
+            494,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "9570d4208345f961b990442685795081d1814f2cc3a18a5c3a1e07f768ed1013"
+        },
+        {
+          "template": "navigation/mainline/scene-s035-1.png",
+          "box": [
+            1001,
+            574,
+            88,
+            63
+          ],
+          "roi": [
+            931,
+            494,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "308dbdaf906f56e1e5b54740d54cc5f48b4b6afaf0af6466b3210373f64534ea"
+        }
+      ],
+      "equivalent_ids": [
+        35
+      ]
+    },
+    {
+      "id": 36,
+      "name": "夙夜径",
+      "map_url": "anyemeng",
+      "source": {
+        "camera": [
+          0,
+          10
+        ],
+        "landing_y": 524.0,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "f8407280e21f47c5ad07eac0a80e2272d2f9fb6c55bc07447cf5731babaf16a9",
+        "swf_sha256": "75e0edaae8f8564d9cf9622a9191c8cbd24bcf7c350e81099124e8579c9da037"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s036-0.png",
+          "box": [
+            879,
+            574,
+            88,
+            63
+          ],
+          "roi": [
+            809,
+            494,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "1edc4b856e42d69b92a9796bca6aed6f18a8e94a239d438bd06f8f81219d24c1"
+        },
+        {
+          "template": "navigation/mainline/scene-s036-1.png",
+          "box": [
+            488,
+            574,
+            88,
+            63
+          ],
+          "roi": [
+            418,
+            494,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "8330e9e27960496d462041d51beb989284bc0a6761e861ff9be87d91ae34a571"
+        }
+      ],
+      "equivalent_ids": [
+        36
+      ]
+    },
+    {
+      "id": 37,
+      "name": "太虚星河",
+      "map_url": "taixuxingheV423",
+      "source": {
+        "camera": [
+          0,
+          10
+        ],
+        "landing_y": 509.94999999999993,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "c1b7b998440d2da4ffd0e78cf67685ed9568fcc3f408f557a9c658dc4cf18c0e",
+        "swf_sha256": "b29b9503d36361a3a90dabd48165e4d1697d629efd718db2a6a45711791a2e06"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s037-0.png",
+          "box": [
+            659,
+            183,
+            88,
+            63
+          ],
+          "roi": [
+            589,
+            103,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "bb8fa8ce7089b7a61483d0134116645881e27701f48313499d990277720275b6"
+        },
+        {
+          "template": "navigation/mainline/scene-s037-1.png",
+          "box": [
+            366,
+            159,
+            88,
+            63
+          ],
+          "roi": [
+            296,
+            79,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "74217f863e012404cfccc26c1abcf2562d5265dcf4cd6fd6efe96f7966767e7b"
+        }
+      ],
+      "equivalent_ids": [
+        37
+      ]
+    },
+    {
+      "id": 38,
+      "name": "钟晷极地",
+      "map_url": "suiyunjianV3",
+      "source": {
+        "camera": [
+          0,
+          10
+        ],
+        "landing_y": 498.29999999999995,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "6b1f80423464fb3123e52adbc1b587a071ba43751fee995a10a1f2c35f32117e",
+        "swf_sha256": "b39be8bb1e4fa8ab5e847203465eee7da0ab8ff8666aa5fedbcbd53971053eb3"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s038-0.png",
+          "box": [
+            1001,
+            232,
+            88,
+            63
+          ],
+          "roi": [
+            931,
+            152,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "7cd9832344fba032bfe5cccc36e3accc5886bd87318799fc3babe50e2dab1f75"
+        },
+        {
+          "template": "navigation/mainline/scene-s038-1.png",
+          "box": [
+            830,
+            207,
+            88,
+            63
+          ],
+          "roi": [
+            760,
+            127,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "ab6ae8c98191b122352bcba9a38fb9dc5e55d525f0a49e3e2436bc174ab76757"
+        }
+      ],
+      "equivalent_ids": [
+        38
+      ]
+    },
+    {
+      "id": 39,
+      "name": "星域",
+      "map_url": "feitianV1",
+      "source": {
+        "camera": [
+          0,
+          0
+        ],
+        "landing_y": null,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "7219fe6cb88d2d0859ceb272c229790331cdce02d35cc99a682ea5df7aba6283",
+        "swf_sha256": "32e109d43af5d4fb0e920d6afab13a31f3fd4adef4848a85cd3cc315bec34492"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s039-0.png",
+          "box": [
+            561,
+            281,
+            88,
+            63
+          ],
+          "roi": [
+            491,
+            201,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "8b5f655af28084aa0f980dab8c2e8a43b4ca38b143666bd4208be5a76cad8a08"
+        },
+        {
+          "template": "navigation/mainline/scene-s039-1.png",
+          "box": [
+            488,
+            159,
+            88,
+            63
+          ],
+          "roi": [
+            418,
+            79,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "867b32c2c95904cbf0b3335358e992ae97a1d12ae1db0420b4af83e319f6a3b4"
+        }
+      ],
+      "equivalent_ids": [
+        39
+      ]
+    },
+    {
+      "id": 40,
+      "name": "凌云渡",
+      "map_url": "lingyundu",
+      "source": {
+        "camera": [
+          0,
+          10
+        ],
+        "landing_y": 529.45,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "0dac62396392341ca4dfa4c992cbfdb9325fea585430b155a731de095e85c073",
+        "swf_sha256": "25fd774549cc3f376c64142c8b128d7250457eac7b347ff28e6f666ffbd255e6"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s040-0.png",
+          "box": [
+            708,
+            378,
+            88,
+            63
+          ],
+          "roi": [
+            638,
+            298,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "5f8b564175c05c87ebe4ffa84f3bcff65119eca2d9528558fd03cdcd9b6d005b"
+        },
+        {
+          "template": "navigation/mainline/scene-s040-1.png",
+          "box": [
+            586,
+            354,
+            88,
+            63
+          ],
+          "roi": [
+            516,
+            274,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "815ee8bbecfe1eb9a5a9a252f35866cc9fcfb383c06726a1b1bcfcbe3cede581"
+        }
+      ],
+      "equivalent_ids": [
+        40
+      ]
+    },
+    {
+      "id": 41,
+      "name": "蓝毗尼园",
+      "map_url": "lanpiniyuanV1",
+      "source": {
+        "camera": [
+          0,
+          10
+        ],
+        "landing_y": 515.9499999999999,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "a6eb47ccfae60ef43b3b153ca17d94e380c6e76115865ca022bc35bc35a92007",
+        "swf_sha256": "610b26bce68f0971916271141de8e80c398f9e3c66e8bd1dfe35eda4561b1529"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s041-0.png",
+          "box": [
+            830,
+            134,
+            88,
+            63
+          ],
+          "roi": [
+            760,
+            54,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "7cca179fe0830e03095aa43aabe7e577e555bec0130caed060841f1a0d96c23d"
+        },
+        {
+          "template": "navigation/mainline/scene-s041-1.png",
+          "box": [
+            342,
+            281,
+            88,
+            63
+          ],
+          "roi": [
+            272,
+            201,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "105ab787425e0fc4122b12f8e669dee6740528f087df3000c01b5cc040cfed94"
+        }
+      ],
+      "equivalent_ids": [
+        41
+      ]
+    },
+    {
+      "id": 42,
+      "name": "菩提道场",
+      "map_url": "putidaochangV2",
+      "source": {
+        "camera": [
+          0,
+          10
+        ],
+        "landing_y": 501.78574304,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "9ef42125c718111671fc54c8add632a91ec54323985472be54a96ac2cef4d01a",
+        "swf_sha256": "0bc24fbad3636e6ad4923fdd7919bbe114de880687cc158ad4d210b314fb11ca"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s042-0.png",
+          "box": [
+            561,
+            403,
+            88,
+            63
+          ],
+          "roi": [
+            491,
+            323,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "1b454d45b24439fc5ba826c60947224770f727c45291b1af657792bfc714a0ef"
+        },
+        {
+          "template": "navigation/mainline/scene-s042-1.png",
+          "box": [
+            976,
+            427,
+            88,
+            63
+          ],
+          "roi": [
+            906,
+            347,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "7e8618568297a6295e6a5825fa92082312ddbb08c0fae7d06711d055628b655d"
+        }
+      ],
+      "equivalent_ids": [
+        42
+      ]
+    },
+    {
+      "id": 43,
+      "name": "七叶树窟",
+      "map_url": "qiyeshukuV1",
+      "source": {
+        "camera": [
+          0,
+          10
+        ],
+        "landing_y": 514.0999999999999,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "0dee0c0f845b79988d43c9670f0fda5f6f3402de453f4b6a2b5662f585c97503",
+        "swf_sha256": "bef02c1d4c2aebe1f4ba7af08bfad0bda3e5765895300622536fffd008533bc3"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s043-0.png",
+          "box": [
+            537,
+            159,
+            88,
+            63
+          ],
+          "roi": [
+            467,
+            79,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "1d2c4f6c4d46171b99205a60e40aed2086b05549a48b2d243f2b4d7dd1026c7f"
+        },
+        {
+          "template": "navigation/mainline/scene-s043-1.png",
+          "box": [
+            1001,
+            574,
+            88,
+            63
+          ],
+          "roi": [
+            931,
+            494,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "dbe2216e38c0187f0d1adbe86aa175b82bdd45b3ceed2c724ac6f2486c6ab01b"
+        }
+      ],
+      "equivalent_ids": [
+        43
+      ]
+    },
+    {
+      "id": 44,
+      "name": "寒暑水",
+      "map_url": "hanshushuiV1",
+      "source": {
+        "camera": [
+          0,
+          10
+        ],
+        "landing_y": 530.74318264,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "0ccf422160bd0744e1d1b72ffa5cbfcf9952ef72353835826ead56eec933fcc2",
+        "swf_sha256": "3e7b7c1680578283c62981f8f44d88250a24079e395f2aa4e2ac00fa4cdf16fa"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s044-0.png",
+          "box": [
+            976,
+            574,
+            88,
+            63
+          ],
+          "roi": [
+            906,
+            494,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "5792a56200e6ab9402540e4f6484b568c62084b6e0f68a53245766310c205595"
+        },
+        {
+          "template": "navigation/mainline/scene-s044-1.png",
+          "box": [
+            805,
+            574,
+            88,
+            63
+          ],
+          "roi": [
+            735,
+            494,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "638f9a69d007cc4b7a286ce183c158fd3766744c4e4b90b8a319da5308a52b61"
+        }
+      ],
+      "equivalent_ids": [
+        44
+      ]
+    },
+    {
+      "id": 45,
+      "name": "幕山",
+      "map_url": "mushanshangV2",
+      "source": {
+        "camera": [
+          0,
+          1810
+        ],
+        "landing_y": 2145.3002442,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "fffe75dde4ad8676454fc0f46db35a478f1727f828797fee228dc5d79a62695a",
+        "swf_sha256": "06f14965c3fe36efe109a71d2610e29bb8761af61842093d423368d3ec4aa139"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s045-0.png",
+          "box": [
+            342,
+            134,
+            88,
+            63
+          ],
+          "roi": [
+            272,
+            54,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "1f7e1b1fe55ea4c51534453177d9a2c5e7aa281769fa1e560227602412629343"
+        },
+        {
+          "template": "navigation/mainline/scene-s045-1.png",
+          "box": [
+            903,
+            134,
+            88,
+            63
+          ],
+          "roi": [
+            833,
+            54,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "f217644bda18a890c77105bafa5b267187f73f5cc47e30beb902cb5c50021208"
+        }
+      ],
+      "equivalent_ids": [
+        45
+      ]
+    },
+    {
+      "id": 46,
+      "name": "不周山",
+      "map_url": "buzhoushanqianV1",
+      "source": {
+        "camera": [
+          0,
+          10
+        ],
+        "landing_y": 503.71274639,
+        "missing_layers": [],
+        "empty_layers": [
+          "bg11",
+          "bg12",
+          "bg13"
+        ],
+        "conditional_comic_layers": [
+          "bg11",
+          "bg12",
+          "bg13"
+        ],
+        "excluded_animations": [],
+        "layout_sha256": "4b869173c740398da68fb24bd8f24e3c23a5594236c6e5d6d9758c9a9931be59",
+        "swf_sha256": "e143f6f9f4842bb9b0a9be4a1d6ceca89f761dc7c10d3ac1a67f16e19c731d9a"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s046-0.png",
+          "box": [
+            561,
+            281,
+            88,
+            63
+          ],
+          "roi": [
+            491,
+            201,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "d5413af63c37e5d8d73788f1bfebd6fc28e5e64a6399a5b45311eab5d9111b53"
+        },
+        {
+          "template": "navigation/mainline/scene-s046-1.png",
+          "box": [
+            488,
+            134,
+            88,
+            63
+          ],
+          "roi": [
+            418,
+            54,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "e8aa5458b9e28347e9adc9328a242922315979331c3f1b2a07acfd955f569512"
+        }
+      ],
+      "equivalent_ids": [
+        46
+      ]
+    },
+    {
+      "id": 47,
+      "name": "孤魂岭",
+      "map_url": "guhunling_V464",
+      "source": {
+        "camera": [
+          0,
+          210
+        ],
+        "landing_y": 673.0,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "223a4d752ab461f3e134951a15e920cc2958717f2768c4f55c8e9e3911dc1d7c",
+        "swf_sha256": "88b145e8b07881b760d544275b878dfb03e6a8279cf3fbb2d850e6388bad38a2"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s047-0.png",
+          "box": [
+            391,
+            281,
+            88,
+            63
+          ],
+          "roi": [
+            321,
+            201,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "da218480067b95631e5c2641aabb7139fe3a668d75a36474cff8f902afcb2ec7"
+        },
+        {
+          "template": "navigation/mainline/scene-s047-1.png",
+          "box": [
+            342,
+            403,
+            88,
+            63
+          ],
+          "roi": [
+            272,
+            323,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "0fbe5efd02cbc67ab57a52f4656e3e51f304ce9a6ce37cb84985217e3b13186f"
+        }
+      ],
+      "equivalent_ids": [
+        47
+      ]
+    },
+    {
+      "id": 48,
+      "name": "通冥铁索",
+      "map_url": "tongmingtiesuo_V531",
+      "source": {
+        "camera": [
+          0,
+          110
+        ],
+        "landing_y": 515.0,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "726749078da7a08b3707dc30b02c774df10fa642a2acbbb7862af0ba97b4fcd6",
+        "swf_sha256": "6b8ec190c7e53f3f197c9b26b40106650b8780de492d456ca45a011483d57ffe"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s048-0.png",
+          "box": [
+            610,
+            159,
+            88,
+            63
+          ],
+          "roi": [
+            540,
+            79,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "f37cbf560773eb6dbfa66b887b34e04ac608628b39997fe5a50400f138d8f17f"
+        },
+        {
+          "template": "navigation/mainline/scene-s048-1.png",
+          "box": [
+            366,
+            134,
+            88,
+            63
+          ],
+          "roi": [
+            296,
+            54,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "52e84f93541a0698d974da786aa3e8dec5cc67cbcace9bb2dd235e9d000e4d63"
+        }
+      ],
+      "equivalent_ids": [
+        48
+      ]
+    },
+    {
+      "id": 49,
+      "name": "播冢山巅",
+      "map_url": "bozhongshandian",
+      "source": {
+        "camera": [
+          0,
+          1810
+        ],
+        "landing_y": 2314.0,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "dc1a390c13733e7563d9ec7e54e5487ded6dacfb573c2be193e832441d342a20",
+        "swf_sha256": "5eda5bfa038e36e338a9f06ed6019d01ff27afc5728dfdacb0a90b452ecb4645"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s049-0.png",
+          "box": [
+            464,
+            159,
+            88,
+            63
+          ],
+          "roi": [
+            394,
+            79,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "56f652b646f8226eef2957f265f24b2d961fd8b5536f8a3d83b5def85cc13338"
+        },
+        {
+          "template": "navigation/mainline/scene-s049-1.png",
+          "box": [
+            659,
+            525,
+            88,
+            63
+          ],
+          "roi": [
+            589,
+            445,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "6976d56091d64842b42324d2739199e3acfaed5564bd7ef2e993150897cb21c0"
+        }
+      ],
+      "equivalent_ids": [
+        49
+      ]
+    },
+    {
+      "id": 50,
+      "name": "罗浮山",
+      "map_url": "luofushan_V464",
+      "source": {
+        "camera": [
+          0,
+          0
+        ],
+        "landing_y": 164.0,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "800fd47c44949912880e3550a588ae38ac9f789e9c2d5db93da860c3fc2a82e5",
+        "swf_sha256": "27ffbc748907ffdfcfeda9a5c37ffc6d65e125f8d54b4faa1b7f9bc7662cdfe6"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s050-0.png",
+          "box": [
+            683,
+            403,
+            88,
+            63
+          ],
+          "roi": [
+            613,
+            323,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "799e9c97dcff85ebb779c90e70ab27483f87ff47100fcf6be3e6b35385c18a27"
+        },
+        {
+          "template": "navigation/mainline/scene-s050-1.png",
+          "box": [
+            488,
+            549,
+            88,
+            63
+          ],
+          "roi": [
+            418,
+            469,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "f5191942ef465ceb6969c2410ae4710db956252c83e9dc59805583ec47a81584"
+        }
+      ],
+      "equivalent_ids": [
+        50
+      ]
+    },
+    {
+      "id": 51,
+      "name": "岁暮荒园",
+      "map_url": "suimuhuangyuan_V468",
+      "source": {
+        "camera": [
+          0,
+          210
+        ],
+        "landing_y": 505.0,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "c7389f7d94956f484158b589c65d8e0d622b44238e44986f6dea2195105594e6",
+        "swf_sha256": "78ea21e0a7d04515ccb3776e4f6d6994cc77644f0d84385db7c4c5aec64f9449"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s051-0.png",
+          "box": [
+            805,
+            183,
+            88,
+            63
+          ],
+          "roi": [
+            735,
+            103,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "5628664ee29ee132ff41d833c88b86bfb3cc7c7937ee607f3b0c6bdfa270b8a1"
+        },
+        {
+          "template": "navigation/mainline/scene-s051-1.png",
+          "box": [
+            513,
+            232,
+            88,
+            63
+          ],
+          "roi": [
+            443,
+            152,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "118bc2dfa40645afa69a7f2cb5a5a05dfdbb49e07e1d1f2ba0c19420e00f0cf8"
+        }
+      ],
+      "equivalent_ids": [
+        51
+      ]
+    },
+    {
+      "id": 52,
+      "name": "梦影寺",
+      "map_url": "mengyingsi",
+      "source": {
+        "camera": [
+          0,
+          110
+        ],
+        "landing_y": 577.0,
+        "missing_layers": [],
+        "empty_layers": [
+          "bg12",
+          "front1"
+        ],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "d96ce086460c5bccb0fa3b64602e38c2853763f99bea5d5f32efda01dd7a2e80",
+        "swf_sha256": "8c9b8255d3c55989c7af2e4fa63d30d2538fceeb11dde3ee799dc6b66c399d10"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s052-0.png",
+          "box": [
+            1001,
+            256,
+            88,
+            63
+          ],
+          "roi": [
+            931,
+            176,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "d379965a0bffcb4dddf61d7fb7e0f1062377b8ae0798874bbd88dfc3d39b3119"
+        },
+        {
+          "template": "navigation/mainline/scene-s052-1.png",
+          "box": [
+            635,
+            232,
+            88,
+            63
+          ],
+          "roi": [
+            565,
+            152,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "f94afd5bc555f709cf206af02373baca3538fbba87d2a3985da48cebd74cece0"
+        }
+      ],
+      "equivalent_ids": [
+        52
+      ]
+    },
+    {
+      "id": 53,
+      "name": "抱犊山",
+      "map_url": "baodushan",
+      "source": {
+        "camera": [
+          0,
+          57.58271051373657
+        ],
+        "landing_y": 352.5827105137366,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "0a82d477700fe6320f39df2a1d28fe277a0a54aca0b3e3b8e2e5105d30f33607",
+        "swf_sha256": "6b5d7e0f56fdf5d96e09ceaeef1439e3f3c6d03aa01e54e729b06dd4247e75c0"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s053-0.png",
+          "box": [
+            513,
+            427,
+            88,
+            63
+          ],
+          "roi": [
+            443,
+            347,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "8f1842bf2edf952f90eea54a59f27d0fedcfe655dde118860cda17a5177626f6"
+        },
+        {
+          "template": "navigation/mainline/scene-s053-1.png",
+          "box": [
+            610,
+            378,
+            88,
+            63
+          ],
+          "roi": [
+            540,
+            298,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "a42afe61eb43c4cd2f54a0ace17076e79b7a966074a2e5e30c5f47eddd11877a"
+        }
+      ],
+      "equivalent_ids": [
+        53
+      ]
+    },
+    {
+      "id": 54,
+      "name": "彼岸花海",
+      "map_url": "bianhuahai",
+      "source": {
+        "camera": [
+          0,
+          10
+        ],
+        "landing_y": 479.79488136363636,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "2196cfbac83b6376f0059f33bf17efd6b3f639fa6fb34191d0fc721bb27a9d98",
+        "swf_sha256": "4f941ef38b6270b378554d2c6aef7513a87f52e604792e8474effd39ff457fe9"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s054-0.png",
+          "box": [
+            830,
+            452,
+            88,
+            63
+          ],
+          "roi": [
+            760,
+            372,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "cfc37a715ddac110bbf6f56ffa9a95556ba001ada22744fd8e07eef6a26a13ab"
+        },
+        {
+          "template": "navigation/mainline/scene-s054-1.png",
+          "box": [
+            1025,
+            427,
+            88,
+            63
+          ],
+          "roi": [
+            955,
+            347,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "f6952dbe48a1e4d51450ff8ae111c244a309546d99d59c8a9780b92bc004c242"
+        }
+      ],
+      "equivalent_ids": [
+        54
+      ]
+    },
+    {
+      "id": 55,
+      "name": "往生路",
+      "map_url": "wangshenglu_V478",
+      "source": {
+        "camera": [
+          0,
+          10
+        ],
+        "landing_y": 500.0,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [
+          {
+            "layer": "bg15",
+            "reference": "wangshenglu,bg15",
+            "box": [
+              322.0,
+              292.0,
+              967.25,
+              479.0
+            ]
+          },
+          {
+            "layer": "bg16",
+            "reference": "wangshenglu,bg16",
+            "box": [
+              1536.0,
+              393.0,
+              1732.0,
+              451.0
+            ]
+          },
+          {
+            "layer": "bg17",
+            "reference": "wangshenglu,bg17",
+            "box": [
+              2302.95,
+              20.0,
+              2696.95,
+              123.0
+            ]
+          },
+          {
+            "layer": "bg171",
+            "reference": "wangshenglu,bg171",
+            "box": [
+              2499.0,
+              77.0,
+              2700.0,
+              168.0
+            ]
+          },
+          {
+            "layer": "bg18",
+            "reference": "wangshenglu,bg18",
+            "box": [
+              3597.0,
+              61.0,
+              3721.0,
+              113.0
+            ]
+          },
+          {
+            "layer": "bg151",
+            "reference": "wangshenglu,bg151",
+            "box": [
+              2959.0,
+              285.0,
+              3097.0,
+              421.0
+            ]
+          }
+        ],
+        "layout_sha256": "98e237f5d794cd6dc0b6b501b81796dfb4c2106a6d5453c031135df6373ed514",
+        "swf_sha256": "2f9c0bc0ddda462ccfa6c1cdf8d8458c9873f131a61bd5a73cd24b6124b903b2"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s055-0.png",
+          "box": [
+            805,
+            207,
+            88,
+            63
+          ],
+          "roi": [
+            735,
+            127,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "08ddde8650bcf36f1189035cb0b2eaebccc3a622edefa5ec8beee245ffcfc8d9"
+        },
+        {
+          "template": "navigation/mainline/scene-s055-1.png",
+          "box": [
+            366,
+            134,
+            88,
+            63
+          ],
+          "roi": [
+            296,
+            54,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "0bd040c60c9634a71bea4bb8fbc28d36d448926f6df08156e1631b87c52f83c2"
+        }
+      ],
+      "equivalent_ids": [
+        55
+      ]
+    },
+    {
+      "id": 56,
+      "name": "罗酆谷",
+      "map_url": "luofenggu",
+      "source": {
+        "camera": [
+          0,
+          156.23247460538937
+        ],
+        "landing_y": 451.23247460538937,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "e3d50609cc64c17e19e871c99ccb05d1ba501ff0cc8af86358159e210418c7df",
+        "swf_sha256": "8dfc93f839308cb5a2d0827f2a559fe8f22c6c11f84b71e7e3bee144245256bd"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s056-0.png",
+          "box": [
+            903,
+            574,
+            88,
+            63
+          ],
+          "roi": [
+            833,
+            494,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "8650e89243b1f556603b7146ef2276291c7c331f009c2b2705254015703ef58f"
+        },
+        {
+          "template": "navigation/mainline/scene-s056-1.png",
+          "box": [
+            659,
+            452,
+            88,
+            63
+          ],
+          "roi": [
+            589,
+            372,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "b51f87b6a4c52f0ee6c139e72bb5c98ce1dca08ed10e7c896b8e85104559cd0a"
+        }
+      ],
+      "equivalent_ids": [
+        56
+      ]
+    },
+    {
+      "id": 57,
+      "name": "九泉",
+      "map_url": "jiuquan",
+      "source": {
+        "camera": [
+          0,
+          110
+        ],
+        "landing_y": 545.0,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "96e05a47751ab604b16d76c48eca1002daef167cc38e265f78ecaf069459e670",
+        "swf_sha256": "1ad3aace1f1bff99fec1acc7c4287a3d2a70298a2e8f731e57a4275ad2a1f3f9"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s057-0.png",
+          "box": [
+            1025,
+            476,
+            88,
+            63
+          ],
+          "roi": [
+            955,
+            396,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "043f674606bcb6f8ed4aea77c33d1ded90a2d61731ec2831077c70896f826237"
+        },
+        {
+          "template": "navigation/mainline/scene-s057-1.png",
+          "box": [
+            488,
+            232,
+            88,
+            63
+          ],
+          "roi": [
+            418,
+            152,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "1072cf84cc96570d448bd0644d45f07259252281eccab2b79cd7bcb2aa1778c1"
+        }
+      ],
+      "equivalent_ids": [
+        57
+      ]
+    },
+    {
+      "id": 58,
+      "name": "业火莲台",
+      "map_url": "yehuoliantai",
+      "source": {
+        "camera": [
+          0,
+          1810
+        ],
+        "landing_y": 2329.1210084033614,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "0ec07dd42759d1cd2ada40aa4f5a7c4bb3d03f7e63f9978120cb640cc0dad98e",
+        "swf_sha256": "1f147f47dba8aa57183892100254db318fa409b8d52184fb17e6745e608e3b0e"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s058-0.png",
+          "box": [
+            708,
+            232,
+            88,
+            63
+          ],
+          "roi": [
+            638,
+            152,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "1cc4c6c074a818cdd5f47fe213b0c7a9becb528a227ba4e899ed4ab8261fc2db"
+        },
+        {
+          "template": "navigation/mainline/scene-s058-1.png",
+          "box": [
+            1025,
+            549,
+            88,
+            63
+          ],
+          "roi": [
+            955,
+            469,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "1fbfd1d7f8cf9e7aa1997fef4f59e919fde91a22177d1cf44f3f7f02d805c9b9"
+        }
+      ],
+      "equivalent_ids": [
+        58
+      ]
+    },
+    {
+      "id": 59,
+      "name": "桃止山",
+      "map_url": "taozhishan",
+      "source": {
+        "camera": [
+          0,
+          1810
+        ],
+        "landing_y": 2321.40903549656,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "7151be75bc22748e041a604265b895c21784ad56692c6d875e81814a8b75ca18",
+        "swf_sha256": "2bff2abb5baf0981deea29d5698d1605b8ebc8e6abb3b1fe62b695d13335c825"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s059-0.png",
+          "box": [
+            1001,
+            183,
+            88,
+            63
+          ],
+          "roi": [
+            931,
+            103,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "85d2c8ced69855d4baf853a3db1eb9e3456cb608f6dce127495f7bcd5edf99a0"
+        },
+        {
+          "template": "navigation/mainline/scene-s059-1.png",
+          "box": [
+            537,
+            281,
+            88,
+            63
+          ],
+          "roi": [
+            467,
+            201,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "a7f45d4de732a63c5541a1756f36db3cbb83ae4138751145cf3a7663b552d920"
+        }
+      ],
+      "equivalent_ids": [
+        59
+      ]
+    },
+    {
+      "id": 60,
+      "name": "幽都鬼城",
+      "map_url": "youduguicheng",
+      "source": {
+        "camera": [
+          0,
+          405.0
+        ],
+        "landing_y": 700.0,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "7e2d06b983c4a09633169c1a66736082fad054597c0b3d2acb6b7614e8a0ef23",
+        "swf_sha256": "6b8bec9f0bfa387cd8cced898ae1501ce9fd24cd3c264f87934a8a0cb8ffd3b3"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s060-0.png",
+          "box": [
+            927,
+            427,
+            88,
+            63
+          ],
+          "roi": [
+            857,
+            347,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "65c56f133bb229e3d6bf0b2a0a9796eda337cce1714004b1bcc77be7f9858e71"
+        },
+        {
+          "template": "navigation/mainline/scene-s060-1.png",
+          "box": [
+            830,
+            476,
+            88,
+            63
+          ],
+          "roi": [
+            760,
+            396,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "b08b0e52f213adbe101dac95e11f35d541dfadf5eb3a83cbe0dd58d27d749761"
+        }
+      ],
+      "equivalent_ids": [
+        60
+      ]
+    },
+    {
+      "id": 61,
+      "name": "万世冥阁",
+      "map_url": "wanshimingge_V527",
+      "source": {
+        "camera": [
+          0,
+          0
+        ],
+        "landing_y": 235.6895680806016,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "15f07385422bf674a6a9b945428fb98676d5b2028ea60ccd8c2d8690ec5b4bb3",
+        "swf_sha256": "17e2302fab9585ee8696333508855f1c4c2e4714731caad332b4755b38893e4b"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s061-0.png",
+          "box": [
+            342,
+            378,
+            88,
+            63
+          ],
+          "roi": [
+            272,
+            298,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "067259a85caf459c1ee34274eaa73ac0195ca94e25d88be76924839e62677856"
+        },
+        {
+          "template": "navigation/mainline/scene-s061-1.png",
+          "box": [
+            1025,
+            525,
+            88,
+            63
+          ],
+          "roi": [
+            955,
+            445,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "dd7356e7d329a38626bb2275e6941cea9a5f5e82276669e7aba956bdbbcfc650"
+        }
+      ],
+      "equivalent_ids": [
+        61
+      ]
+    },
+    {
+      "id": 62,
+      "name": "血河池",
+      "map_url": "xuehechi_BOSS1",
+      "source": {
+        "camera": [
+          0,
+          10
+        ],
+        "landing_y": 517.0,
+        "missing_layers": [],
+        "empty_layers": [],
+        "conditional_comic_layers": [],
+        "excluded_animations": [],
+        "layout_sha256": "f51055ddd379bbdf67798c51358cfeeba6cd4b983cf6ffa15367bf3c8d698ff7",
+        "swf_sha256": "8f4edbfd6098a6ec94e491bdc9b387083fd929ad0b7bf60296060705829b2394"
+      },
+      "checks": [
+        {
+          "template": "navigation/mainline/scene-s062-0.png",
+          "box": [
+            683,
+            232,
+            88,
+            63
+          ],
+          "roi": [
+            613,
+            152,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "eb3d714365a586eed34777292877fa40a7aafe71012cda564605f3683ac9cc14"
+        },
+        {
+          "template": "navigation/mainline/scene-s062-1.png",
+          "box": [
+            513,
+            500,
+            88,
+            63
+          ],
+          "roi": [
+            443,
+            420,
+            228,
+            223
+          ],
+          "threshold": 0.83,
+          "sha256": "55213c46f9a5ceab9343f1e674c3c7d256cbd4fd4002c1e8695c08a36af09855"
+        }
+      ],
+      "equivalent_ids": [
+        62
+      ]
+    }
+  ]
+}

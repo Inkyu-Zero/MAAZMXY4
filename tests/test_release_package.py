@@ -121,7 +121,7 @@ class ReleasePackageTests(unittest.TestCase):
         with zipfile.ZipFile(self.package) as archive: archive.extractall(self.root)
         checked = validate_client_resources(self.root)
         self.assertIn('烛时（钟晷极地）', checked)
-        self.assertEqual(len(checked), 10)
+        self.assertEqual(len(checked), 10+62)
         path = self.root/'resource/base/pipeline/烛时（钟晷极地）.json'
         data = json.loads(path.read_text(encoding='utf8'))
         del data['烛时（钟晷极地）-回放战斗']['action']['param']['custom_action_param']['script_binding']
@@ -140,6 +140,13 @@ class ReleasePackageTests(unittest.TestCase):
         built['binary_sha256']={name:hashlib.sha256((frontend/name).read_bytes()).hexdigest()
                                for name in ('MFAAvalonia.dll','libs/MFAAvalonia.Core.dll')}
         self.write('frontend/script-studio-build.json',json.dumps(built).encode('utf8'))
+        guard = 'frontend/' + build_release.NATIVE_FOLDER + '/'
+        self.write(guard+'MaaBackgroundMouseGuard.dll', b'fixture mouse guard; never executed')
+        receipt = dict(schema=1, protocol=1, architecture='x64',
+            sha256=hashlib.sha256((self.root/guard/'MaaBackgroundMouseGuard.dll').read_bytes()).hexdigest(),
+            source_sha256=hashlib.sha256((ROOT/'native/background_mouse_guard/guard.cpp').read_bytes()).hexdigest(),
+            builder_sha256=hashlib.sha256((ROOT/'tools/build_mouse_guard.ps1').read_bytes()).hexdigest())
+        self.write(guard+'mouse-guard-build.json', json.dumps(receipt).encode('utf8'))
         for name in build_release.PYTHON_REQUIRED:
             if name in ('DLLs', 'Lib/site-packages/MaaAgentBinary'):
                 (self.root/'python'/name).mkdir(parents=True, exist_ok=True)
@@ -150,6 +157,24 @@ class ReleasePackageTests(unittest.TestCase):
         self.write(build_release.LAUNCHER_NAME, b'fixture launcher; never executed')
         self.launcher_hash = hashlib.sha256(launcher.read_bytes()).hexdigest()
         return frontend, self.root/'python', launcher
+
+    def test_full_client_requires_current_mouse_guard_and_detects_tampering(self):
+        frontend, runtime, launcher = self.client_fixture()
+        folder = frontend / build_release.NATIVE_FOLDER
+        receipt = folder / 'mouse-guard-build.json'
+        original = receipt.read_bytes()
+        with patch.object(build_release, 'LAUNCHER_SHA256', self.launcher_hash):
+            receipt.unlink()
+            with self.assertRaisesRegex(ValueError, '后台鼠标保护模块缺少'):
+                client_files(ROOT, frontend, runtime, launcher)
+            data = json.loads(original); data['source_sha256'] = '0'*64
+            receipt.write_text(json.dumps(data), encoding='utf8')
+            with self.assertRaisesRegex(ValueError, '不是当前源码构建'):
+                client_files(ROOT, frontend, runtime, launcher)
+            receipt.write_bytes(original)
+            (folder/'MaaBackgroundMouseGuard.dll').write_bytes(b'changed')
+            with self.assertRaisesRegex(ValueError, '与构建记录不一致'):
+                client_files(ROOT, frontend, runtime, launcher)
 
     def test_full_client_rejects_old_frontend_even_with_current_resource_version(self):
         frontend,runtime,launcher=self.client_fixture()
@@ -253,7 +278,7 @@ class ReleasePackageTests(unittest.TestCase):
                 destination = stage/relative
                 destination.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(source, destination)
-            self.assertEqual(len(validate_client(stage)), 10)
+            self.assertEqual(len(validate_client(stage)), 10+62)
             (stage/'runtimes/python/pythonw.exe').unlink()
             with self.assertRaisesRegex(ValueError, 'pythonw.exe'):
                 validate_client(stage)

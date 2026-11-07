@@ -19,7 +19,8 @@ runtime=load_runtime()
 class RoundTests(unittest.TestCase):
     def run_round(self, task, *, results=('map',), mode='recorded_return', retry=False, afk=False,
                   restart=False, entry_scene='stage', return_after=1, cancel=False, changed=False,
-                  observed_failure=False, observed_unknown_dialog=False):
+                  observed_failure=False, observed_unknown_dialog=False, box_speed=1, speed_proof=None,
+                  existing_entry_duration=None):
         with tempfile.TemporaryDirectory() as temp:
             root=Path(temp);library=root/'recordings';library.mkdir()
             recording=library/'test.json'
@@ -27,14 +28,17 @@ class RoundTests(unittest.TestCase):
                       actions=[dict(t=0,op='keydown',key=65),dict(t=1,op='keyup',key=65)])
             recording.write_text(json.dumps(data),encoding='utf8')
             context=Context();context.scene='map';context.inputs=[];context.captures=[];context.recognitions=[]
+            context.entry_durations=[]
             context.tasker.controller.cached_image=Frame()
             context.play_count=0;context.return_count=0;clock=[0.0]
             profile=task['management_profile'];params=deepcopy(profile['parameters'])
             params.update(file=str(recording),exit_mode=mode,run_id=str(uuid4()),game_management=dict(restart_on_failure=restart))
             play=params['playback_node'];target=params['navigation']['target_node'];scene=params['round_flow']['scene_node']
+            if existing_entry_duration is not None:
+                context.nodes[target]['action']['param']['duration']=existing_entry_duration
             context.nodes[play]['action']['param']['custom_action_param']['file']=str(recording)
             context.nodes['脚本任务设置']['action']['param']['custom_action_param'].update(exit_mode=mode,afk_mode=afk,
-                failure_retry=dict(enabled=retry,max_retries=1))
+                failure_retry=dict(enabled=retry,max_retries=1),box_speed=box_speed,box_speed_proof=speed_proof)
             def capture():
                 context.captures.append((context.scene,len(context.inputs)))
                 return Frame()
@@ -52,7 +56,9 @@ class RoundTests(unittest.TestCase):
                 return SimpleNamespace(hit=name in possible[context.scene],box=[100,100,30,20])
             def action(name,*,box):
                 context.inputs.append(name)
-                if name==target:context.scene=entry_scene
+                if name==target:
+                    context.entry_durations.append(context.nodes[target]['action']['param']['duration'])
+                    context.scene=entry_scene
                 elif name=='Nav_OpenQuest':context.scene='quest'
                 elif name=='Nav_SelectBountyTab':context.scene='accepted'
                 elif name=='Nav_ChooseBounty':context.scene='detail'
@@ -97,9 +103,16 @@ class RoundTests(unittest.TestCase):
     def test_all_eleven_profiles_reuse_verified_frames_and_preserve_bindings(self):
         for task in self.tasks():
             with self.subTest(task=task['name']):
-                ok,status,ctx=self.run_round(task)
+                ok,status,ctx=self.run_round(task,existing_entry_duration=50)
                 self.assertTrue(ok);self.assertEqual(status['status'],'success')
                 self.assertEqual(ctx.play_count,1)
+                self.assertEqual(ctx.entry_durations,[100])
+                target=task['management_profile']['parameters']['navigation']['target_node']
+                is_map=task['management_profile']['parameters']['navigation']['kind']=='stage'
+                self.assertEqual(ctx.nodes[target].get('repeat',1),2 if is_map else 1)
+                self.assertEqual(ctx.nodes[target].get('repeat_delay',0),50 if is_map else 0)
+                play=task['management_profile']['parameters']['playback_node']
+                self.assertIsNone(ctx.nodes[play]['action']['param']['custom_action_param']['box_speed_proof'])
                 self.assertEqual(len(ctx.captures),len(ctx.inputs))
                 self.assertEqual(len({n for _,n in ctx.captures}),len(ctx.captures))
 
@@ -110,6 +123,37 @@ class RoundTests(unittest.TestCase):
                 ok,status,ctx=self.run_round(task,results=[result],mode='battle_only')
                 self.assertTrue(ok)
                 self.assertEqual([n for n in ctx.inputs if n in ('Nav_SettingsReturn','Bounty_OpenSettings')],expected)
+
+    def test_double_speed_reaches_shared_playback_and_missing_ack_stops_before_input(self):
+        task=self.tasks()[0];proof=dict(state='ready',speed=2,pid=123)
+        ok,status,ctx=self.run_round(task,box_speed=2,speed_proof=proof)
+        self.assertTrue(ok,status)
+        play=task['management_profile']['parameters']['playback_node']
+        params=ctx.nodes[play]['action']['param']['custom_action_param']
+        self.assertEqual(params['speed'],2)
+        self.assertEqual(params['box_speed_proof'],proof)
+        ok,status,ctx=self.run_round(task,box_speed=2)
+        self.assertFalse(ok)
+        self.assertEqual(status['reason'],'configuration_or_recording_error')
+        self.assertEqual(ctx.play_count,0)
+        self.assertEqual(ctx.inputs,[])
+
+    def test_every_stage_and_bounty_entry_uses_50ms_at_confirmed_double_speed(self):
+        for task in self.tasks():
+            with self.subTest(task=task['name']):
+                ok,status,ctx=self.run_round(task,box_speed=2,speed_proof=dict(state='ready',speed=2),
+                                            existing_entry_duration=100)
+                self.assertTrue(ok,status)
+                self.assertEqual(ctx.entry_durations,[50])
+                target=task['management_profile']['parameters']['navigation']['target_node']
+                is_map=task['management_profile']['parameters']['navigation']['kind']=='stage'
+                self.assertEqual(ctx.nodes[target].get('repeat',1),2 if is_map else 1)
+
+    def test_double_speed_retry_does_not_halve_an_already_scaled_entry_again(self):
+        ok,status,ctx=self.run_round(self.tasks()[0],results=['failed','map'],retry=True,box_speed=2,
+                                    speed_proof=dict(state='ready',speed=2),existing_entry_duration=50)
+        self.assertTrue(ok,status)
+        self.assertEqual(ctx.entry_durations,[50,50])
 
     def test_recorded_return_miss_recovers_through_shared_settings_for_every_task(self):
         for task in self.tasks():

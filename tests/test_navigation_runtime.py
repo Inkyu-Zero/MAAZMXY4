@@ -1,5 +1,6 @@
 """Candidate activation, verification and failure bounds without device input."""
 from copy import deepcopy
+from contextlib import contextmanager
 import json
 from pathlib import Path
 from types import SimpleNamespace
@@ -80,6 +81,29 @@ class NavigationRuntimeTests(unittest.TestCase):
         self.assertFalse(nav.perform('Go'))
         self.assertIsNone(nav._frame)
         self.assertEqual(nav._recognized,{})
+
+    def test_guard_covers_native_action_and_releases_on_action_exception(self):
+        events=[]
+        @contextmanager
+        def guard(controller):
+            events.append('begin')
+            try: yield
+            finally: events.append('end')
+        def action(*args, **kwargs):
+            events.append('input')
+            raise RuntimeError('input failed')
+        self.context.run_action=action
+        nav=self.nav();nav.locate()
+        with patch('navigation.runtime.hold_background_mouse',guard), self.assertRaises(NavigationError):
+            nav.perform('Go')
+        self.assertEqual(events,['begin','input','end'])
+
+    def test_guard_start_failure_prevents_navigation_input(self):
+        nav=self.nav();nav.locate()
+        with patch('navigation.runtime.hold_background_mouse',side_effect=RuntimeError('guard unavailable')), \
+             self.assertRaisesRegex(NavigationError,'guard unavailable'):
+            nav.perform('Go')
+        self.assertFalse(self.context.inputs)
     def test_seed_frame_does_not_request_another_capture(self):
         nav=Navigator(self.context,self.routine,capture=self.context.capture,check=lambda:None,
                       frame=frozenset({'goal'}),log=lambda _:None)

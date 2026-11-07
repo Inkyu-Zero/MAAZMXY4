@@ -33,7 +33,7 @@ class RoutineResourceTests(unittest.TestCase):
             for target in a['verify']:self.assertTrue(target in routines['screens'] or target=='task_destination')
         for route in routines['routes'].values():
             for action in route:self.assertIn(action,routines['actions'])
-        self.assertEqual(len(routines['stages']),7)
+        self.assertEqual(len(routines['stages']),7+62)
         self.assertIn('nanzhan',routines['screens'])
         self.assertIn('world',routines['screens'])
         self.assertTrue(routines['actions']['Result_DeclineRevive']['wait_for_clear'])
@@ -66,8 +66,9 @@ class RoutineResourceTests(unittest.TestCase):
             title_aliases=['捉拿大盗'],target_node='target')))
         parts=context.patch['Nav_ChooseBounty']['recognition']['param']['all_of']
         self.assertEqual(parts[0]['recognition']['param']['expected'],['^遁地大盗$','^捉拿大盗$'])
-        self.assertEqual(context.patch['Nav_BountyDetailTitle']['recognition']['param']['expected'],
-                         ['^遁地大盗$','^捉拿大盗$'])
+        detail=context.patch['Nav_BountyDetailTitle']['recognition']
+        self.assertEqual(detail['type'],'And')
+        self.assertTrue(all(c['recognition']['param']['roi']==[510,228,430,94] for c in detail['param']['all_of']))
         self.assertIn('Nav_AcceptedBounties',parts)
         self.assertIn('Result_NoRevivePrompt',parts)
         for config in ({'title':'','target_node':'target'},

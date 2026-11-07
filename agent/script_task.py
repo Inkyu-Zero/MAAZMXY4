@@ -14,6 +14,7 @@ import tempfile
 import threading
 import time
 from window_geometry import prepare_playback_controller
+from mouse_input import ENTRY_PRESS_MS
 from types import SimpleNamespace
 from uuid import UUID, uuid4
 
@@ -199,7 +200,7 @@ def begin_round(context, parameters, state, *, frame=None):
         # node; do not invent a second options store or a task-name whitelist.
         settings = context.get_node_data(parameters.get('settings_node', '脚本任务设置'))
         for key, value in custom_parameters(settings or {}).items():
-            if key in ('exit_mode', 'failure_retry', 'recovery', 'afk_mode'):
+            if key in ('exit_mode', 'failure_retry', 'recovery', 'afk_mode','box_speed','box_speed_proof'):
                 parameters[key] = deepcopy(value)
     reference = parameters.get('file', '@task')
     if reference == '@task':
@@ -253,10 +254,26 @@ def begin_round(context, parameters, state, *, frame=None):
     # map may otherwise fail before BattlePlay can ever perform its adaptation.
     playback = dict(file=recording['path'], expected_sha256=recording['sha256'],
                     strict_task=True, expected_short_side=720, expected_base=recording['base'], speed=1,
-                    result_guard=None)
+                    result_guard=None, box_speed_proof=None)
+    from box_speed import validate_speed
+    speed=validate_speed(parameters.get('box_speed',1))
+    if speed==2:
+        proof=parameters.get('box_speed_proof')
+        if not isinstance(proof,dict) or proof.get('state')!='ready' or proof.get('speed')!=2:
+            raise ValueError('盒子倍速尚未确认，未开始脚本回放。')
+        playback.update(speed=2,box_speed_proof=deepcopy(proof))
     if not isinstance(playback_node, str) or not playback_node:
         raise ValueError('任务缺少脚本回放节点配置。')
     patch = {playback_node: {'action': {'param': {'custom_action_param': playback}}}}
+    if parameters.get('navigation'):
+        target = parameters['navigation']['target_node']
+        # Always derive from the base dwell: retries/tasks may inherit an
+        # already-scaled node. Native navigation does not use playback speed.
+        is_map_entry = parameters['navigation']['kind'] == 'stage'
+        # Native repeats share the verified point and finish before the single
+        # post-delay/hover cleanup. Bounty entries remain single presses.
+        patch[target] = {'action': {'type': 'LongPress', 'param': {'duration': ENTRY_PRESS_MS // speed}},
+                         'repeat': 2 if is_map_entry else 1, 'repeat_delay': 50 if is_map_entry else 0}
     completion = parameters.get('completion_node')
     if completion is not None:
         dispatch = parameters.get('completion_dispatch_node')
