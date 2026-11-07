@@ -64,6 +64,7 @@ def merge(base, overlay):
 
 
 def _inside(root, value):
+    root = Path(root).resolve()
     path = (root / value.replace('{PROJECT_DIR}', str(root))).resolve()
     if not path.is_relative_to(root): raise ValueError('任务资源不能指向工程外部。')
     return path
