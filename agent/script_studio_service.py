@@ -20,7 +20,7 @@ from weakref import WeakKeyDictionary
 
 from script_studio.model import RecordingDocument
 from script_library import (bind_task_recording, unbind_task_recording, library_recording_path,
-                            read_task_bindings, resolve_task_recording)
+                            read_task_bindings, resolve_task_recording, publish_new_file)
 from task_catalog import task_catalog, execution_plan
 from recording_store import (ensure_default_recordings, default_recordings,
                              duplicate_recording, rename_recording, delete_recording, binding_snapshot, set_file_bindings)
@@ -55,9 +55,7 @@ def atomic_json(path, data, *, overwrite=True):
         if overwrite:
             os.replace(temporary, path)
         else:
-            # Same-directory hard linking publishes a complete new file and
-            # atomically refuses a name created by another editor meanwhile.
-            os.link(temporary, path)
+            publish_new_file(temporary, path)
         return hashlib.sha256(raw).hexdigest()
     finally:
         if temporary is not None and temporary.exists():
@@ -86,6 +84,7 @@ class StudioService:
         self.capture_draft = False
         self._closed = False
         self.playback = None
+        self.box_speed = None
 
     def initialize_library(self):
         try:
@@ -113,6 +112,8 @@ class StudioService:
         return self.document
 
     def require_idle(self):
+        if self.box_speed is not None and self.box_speed.thread.is_alive():
+            raise ValueError('本进程正在管理任务倍速，请先结束该任务。')
         if self.playback is not None and self.playback.snapshot()['state'] == 'running':
             raise ValueError('请先停止脚本播放。')
         if self.capture is not None and self.capture.snapshot()["state"] not in {"idle", "stopped", "failed", "closed"}:
@@ -251,6 +252,15 @@ class StudioService:
         if self._closed:
             raise RuntimeError("脚本工具服务已关闭。")
         params = params or {}
+        if method == 'box_speed_start':
+            self.require_idle()
+            from box_speed_native import SpeedJob, initialize_runtime
+            initialize_runtime(self.root)
+            self.box_speed = SpeedJob(self.root, params)
+            return self.box_speed.snapshot()
+        if method in ('box_speed_status','box_speed_stop'):
+            if self.box_speed is None:return dict(state='idle',error='')
+            return self.box_speed.stop() if method=='box_speed_stop' else self.box_speed.snapshot()
         if method == 'playback_start':
             self.require_idle()
             if self.playback and self.playback.snapshot()['state'] == 'running':
@@ -528,6 +538,17 @@ class StudioService:
         if self._closed:
             return
         errors = []
+        if self.box_speed is not None:
+            try:
+                self.box_speed.stop()
+                # Native toast confirmation includes a 2.2s lifetime, plus
+                # capture warm-up. Match the host's bounded cleanup deadline.
+                self.box_speed.thread.join(8)
+                status=self.box_speed.snapshot()
+                if status['state'] not in ('stopped','lost') and not (status['state']=='failed' and status.get('restored')):
+                    raise RuntimeError(status['error'] or '盒子倍速仍在清理，请在盒子按数字行 1 恢复正常速度。')
+            except Exception as error:
+                errors.append(error)
         if self.playback is not None:
             try:
                 self.playback.stop()

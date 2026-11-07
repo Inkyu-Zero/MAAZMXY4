@@ -121,7 +121,7 @@ class ReleasePackageTests(unittest.TestCase):
         with zipfile.ZipFile(self.package) as archive: archive.extractall(self.root)
         checked = validate_client_resources(self.root)
         self.assertIn('烛时（钟晷极地）', checked)
-        self.assertEqual(len(checked), 10)
+        self.assertEqual(len(checked), 10+62)
         path = self.root/'resource/base/pipeline/烛时（钟晷极地）.json'
         data = json.loads(path.read_text(encoding='utf8'))
         del data['烛时（钟晷极地）-回放战斗']['action']['param']['custom_action_param']['script_binding']
@@ -253,7 +253,7 @@ class ReleasePackageTests(unittest.TestCase):
                 destination = stage/relative
                 destination.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(source, destination)
-            self.assertEqual(len(validate_client(stage)), 10)
+            self.assertEqual(len(validate_client(stage)), 10+62)
             (stage/'runtimes/python/pythonw.exe').unlink()
             with self.assertRaisesRegex(ValueError, 'pythonw.exe'):
                 validate_client(stage)

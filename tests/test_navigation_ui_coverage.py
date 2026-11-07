@@ -81,7 +81,7 @@ class NavigationUICoverageTests(unittest.TestCase):
     def test_all_profiles_use_the_same_guarded_return_actions(self):
         from task_catalog import task_catalog
         profiles=[t['management_profile'] for t in task_catalog(ROOT,bindings={}) if t['management_profile']]
-        self.assertEqual(len(profiles),11)
+        self.assertEqual(len(profiles),11+62)
         for profile in profiles:
             self.assertIn('round_flow',profile['parameters'])
         nodes=read('assets/resource/base/pipeline/navigation_settings.json')
