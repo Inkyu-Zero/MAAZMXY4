@@ -15,6 +15,9 @@ from navigation.runtime import Navigator
 
 class StageScrollTests(unittest.TestCase):
     def navigator(self, context, *, capture=lambda:object(), check=lambda:None):
+        # Real Maa Context always owns a tasker. These viewport tests have no
+        # window controller, so the AIR input lease must remain a no-op.
+        context.tasker = SimpleNamespace(controller=None)
         nav=Navigator(context,{},capture=capture,check=check,log=lambda _:None)
         nav.locate=lambda:'map'
         nav._settle=lambda:None
