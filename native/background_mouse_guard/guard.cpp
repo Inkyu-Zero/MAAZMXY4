@@ -20,6 +20,7 @@ static SharedLease leases[16] = {};
 static HMODULE module;
 static constexpr WPARAM handshake = 0x4d41414d475631;
 static constexpr WPARAM drainQueue = handshake + 1;
+static constexpr ULONGLONG drainTimeoutMs = 5000;
 struct Session { int slot; HANDLE process, mutex; HHOOK hook; DWORD ownerThread; ULONG_PTR token; };
 
 static ULONGLONG created(HANDLE process) {
@@ -76,7 +77,10 @@ extern "C" __declspec(dllexport) BOOL MaaMouseGuardEnd(void* value, DWORD* filte
     // filtering until a marker behind those inputs is removed by that thread.
     if (lease.ready && sameTarget(session, lease)) {
         if (!PostMessageW(lease.window, WM_NULL, drainQueue, static_cast<LPARAM>(lease.token))) error = GetLastError();
-        ULONGLONG deadline = GetTickCount64() + 1000;
+        // UP can start a level load on AIR's UI thread. A one-second drain
+        // deadline misclassified short loading stalls as cleanup failures.
+        // Healthy queues acknowledge immediately; persistent stalls still fail.
+        ULONGLONG deadline = GetTickCount64() + drainTimeoutMs;
         while (!error && !lease.drained && GetTickCount64() < deadline && sameTarget(session, lease)) Sleep(1);
         if (!lease.drained && !error && sameTarget(session, lease)) error = ERROR_TIMEOUT;
     }

@@ -104,6 +104,21 @@ class NavigationRuntimeTests(unittest.TestCase):
              self.assertRaisesRegex(NavigationError,'guard unavailable'):
             nav.perform('Go')
         self.assertFalse(self.context.inputs)
+
+    def test_guard_cleanup_failure_has_a_nonrecoverable_reason(self):
+        from background_mouse_guard import MouseGuardError
+        @contextmanager
+        def guard(_):
+            yield
+            self.now=2  # Cleanup may cross the ordinary navigation deadline.
+            raise MouseGuardError('cleanup timeout 1460')
+        nav=self.nav()
+        nav.deadline=1
+        with patch('navigation.runtime.hold_background_mouse',guard), self.assertRaises(NavigationError) as error:
+            nav.perform('Go')
+        self.assertEqual(error.exception.reason,'input_guard_failed')
+        self.assertEqual(len(self.context.inputs),1)
+        self.assertIsNone(nav._frame)
     def test_seed_frame_does_not_request_another_capture(self):
         nav=Navigator(self.context,self.routine,capture=self.context.capture,check=lambda:None,
                       frame=frozenset({'goal'}),log=lambda _:None)

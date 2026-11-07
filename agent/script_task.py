@@ -15,6 +15,7 @@ import threading
 import time
 from window_geometry import prepare_playback_controller
 from mouse_input import ENTRY_PRESS_MS
+from background_mouse_guard import MouseGuardError
 from types import SimpleNamespace
 from uuid import UUID, uuid4
 
@@ -621,7 +622,7 @@ def run_compact_round(context, parameters, state, node_name):
             navigator.deadline = None  # recording length is not navigation time
             navigator.invalidate()
             from battle_player import BattlePlay
-            played = BattlePlay().run(context, SimpleNamespace(node_name=play,
+            played = BattlePlay().run_managed(context, SimpleNamespace(node_name=play,
                 custom_action_param=custom_parameters(context.get_node_data(play))))
             if not played:
                 _check(context)
@@ -737,6 +738,14 @@ class ScriptTaskState(CustomAction):
             terminal = True
             if state is not None:
                 _stop_status(state, 'cancelled', 'user_cancelled')
+            return False
+        except MouseGuardError as error:
+            terminal = True
+            if state is not None:
+                if context.tasker.stopping:
+                    _stop_status(state, 'cancelled', 'user_cancelled', message=str(error))
+                else:
+                    _stop_status(state, 'fatal', 'input_guard_failed', message=str(error))
             return False
         except (CaptureUnavailable, RecordingChanged) as error:
             terminal = True

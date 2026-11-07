@@ -151,12 +151,21 @@ def native_case(mode):
         server.write_text('''\
 import sys
 sys.path.insert(0, sys.argv[2])
+assert sys.flags.utf8_mode, 'Agent fixture requires explicit UTF-8 when using -E'
 from maa.agent.agent_server import AgentServer
 from maa.custom_action import CustomAction
 import battle_player
 import script_task
 from pathlib import Path
 from unittest.mock import patch
+if sys.argv[3] == 'guard_failure':
+    from contextlib import contextmanager
+    @contextmanager
+    def failing_guard(_controller):
+        yield
+        print('GUARD_FAILURE_INJECTED', flush=True)
+        raise battle_player.MouseGuardError('synthetic guard cleanup timeout')
+    battle_player.hold_background_mouse = failing_guard
 script_task.ROOT=Path.cwd()
 script_task.RECORDINGS=Path.cwd()
 script_task.STATUS_DIRECTORY=Path.cwd()/'debug/task-runs'
@@ -191,8 +200,8 @@ AgentServer.shut_down()
         client.set_timeout(6000)
         assert client.bind(resource)
         with (directory / 'server.log').open('wb') as output:
-            process = subprocess.Popen([sys.executable, '-B', '-E', '-s', '-u', str(server),
-                client.identifier, str(ROOT / 'agent')], cwd=directory, stdout=output,
+            process = subprocess.Popen([sys.executable, '-B', '-E', '-s', '-u', '-X', 'utf8', str(server),
+                client.identifier, str(ROOT / 'agent'), mode], cwd=directory, stdout=output,
                 stderr=output, creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
             result = {}
             try:
@@ -209,10 +218,13 @@ AgentServer.shut_down()
                 report = dict(stalled=waiter.is_alive(), succeeded=result.get('succeeded', False),
                               playback_captures=server_output.count('PLAYBACK_CAPTURE'),
                               frames=controller.frames, inputs=controller.inputs, branches=branches,
+                              guard_failure_injected='GUARD_FAILURE_INJECTED' in server_output,
+                              callback_exception='Exception ignored on calling ctypes callback function' in server_output,
                               input_times_ms=[round((t - controller.input_times[0]) * 1000, 1)
                                               for t in controller.input_times])
                 print('RESULT ' + json.dumps(report), flush=True)
-                if report['stalled'] or not report['succeeded']:
+                if (report['stalled'] or not report['succeeded'] or report['callback_exception']
+                        or mode == 'guard_failure' and not report['guard_failure_injected']):
                     print(server_output[-4000:], flush=True)
             finally:
                 process.terminate()
@@ -226,7 +238,7 @@ AgentServer.shut_down()
 
 @unittest.skipUnless(os.environ.get('MAA_AGENT_NATIVE_TESTS') == '1', 'opt-in Agent IPC memory test')
 class PlaybackTransportTests(unittest.TestCase):
-    def run_case(self, mode):
+    def run_case(self, mode, *, succeeds=True):
         env = dict(os.environ)
         env.setdefault('MAAFW_BINARY_PATH', str(ROOT / 'runtimes/win-x64/native'))
         result = subprocess.run([sys.executable, '-B', '-X', 'utf8', str(Path(__file__).resolve()), '--native-case', mode],
@@ -236,8 +248,15 @@ class PlaybackTransportTests(unittest.TestCase):
         self.assertEqual(len(lines), 1, result.stdout[-4000:])
         report = json.loads(lines[0])
         self.assertFalse(report['stalled'], result.stdout[-4000:])
-        self.assertTrue(report['succeeded'], result.stdout[-4000:])
+        self.assertEqual(report['succeeded'], succeeds, result.stdout[-4000:])
         return report
+
+    def test_guard_failure_returns_failed_action_over_agent_ipc(self):
+        report = self.run_case('guard_failure', succeeds=False)
+        self.assertTrue(report['guard_failure_injected'])
+        self.assertFalse(report['callback_exception'])
+        self.assertEqual(report['branches'], [])
+        self.assertEqual(report['inputs'], [['down', 68], ['up', 68], ['down', 75], ['up', 75]])
 
     def test_playback_and_outcome_monitor_share_agent_without_stalling(self):
         report = self.run_case('normal')

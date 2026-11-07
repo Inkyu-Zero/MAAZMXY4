@@ -3,6 +3,7 @@
 #include <fstream>
 #include <cstdint>
 static LONG counts[3][6] = {};
+static DWORD delayAfterUp;
 static LRESULT CALLBACK windowProc(HWND window, UINT msg, WPARAM wp, LPARAM lp) {
     if (msg == WM_NCCREATE) SetWindowLongPtrW(window, GWLP_USERDATA,
         reinterpret_cast<LONG_PTR>(reinterpret_cast<CREATESTRUCTW*>(lp)->lpCreateParams));
@@ -16,8 +17,12 @@ static LRESULT CALLBACK windowProc(HWND window, UINT msg, WPARAM wp, LPARAM lp) 
     case WM_KEYDOWN: bucket=4; break;
     case WM_APP+1: bucket=5; break;
     case WM_APP+2: PostQuitMessage(0); return 0;
+    case WM_APP+4: delayAfterUp=static_cast<DWORD>(wp); return 0;
     }
     if (bucket >= 0) ++counts[index][bucket];
+    if (msg == WM_LBUTTONUP && delayAfterUp) {
+        DWORD delay=delayAfterUp; delayAfterUp=0; Sleep(delay);
+    }
     if (msg == WM_APP+3 && wp < 6) return counts[index][wp];
     return DefWindowProcW(window, msg, wp, lp);
 }

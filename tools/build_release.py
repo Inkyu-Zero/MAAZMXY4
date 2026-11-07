@@ -258,13 +258,14 @@ def client_files(root, frontend, python_runtime, launcher, mouse_guard=None):
     files.extend((path, 'runtimes/python/' + path.relative_to(python_runtime).as_posix())
                  for path in python_runtime.rglob('*')
                  if path.is_file() and '__pycache__' not in path.parts and path.suffix not in ('.pyc', '.pyo'))
-    for name in ('DependencySetup_依赖库安装_win.bat', 'LICENSE', 'NOTICE', 'README.md',
+    for name in ('DependencySetup_依赖库安装_win.bat', 'LICENSE', 'NOTICE', '许可说明.md', 'README.md',
                  'docs/zh_cn/脚本工具-使用说明.md', 'docs/zh_cn/更新协议与发布规范.md',
-                 'docs/zh_cn/游戏数据库与导航素材.md', 'docs/zh_cn/游戏管理.md',
+                 'docs/zh_cn/游戏数据库与导航素材.md', 'docs/zh_cn/游戏管理.md', 'docs/zh_cn/生存大冒险-使用说明.md',
                  'docs/zh_cn/个人配置备份与迁移.md',
                  'docs/zh_cn/后台点击与孤魂岭事件修复.md',
                  'docs/zh_cn/2026-10-31更新日志.md',
                  'docs/zh_cn/2026-11-06更新日志.md',
+                 'docs/zh_cn/2026-11-07更新日志.md',
                  'docs/zh_cn/通用导航迁移与失败重试说明.md', 'docs/zh_cn/2.3.9更新说明.md',
                  'docs/zh_cn/2.4.1-rc.1更新说明.md'):
         files.append((root / name, name))

@@ -1,6 +1,6 @@
 """Shared round behavior: one observation per transition, real state/retry policy."""
 from copy import deepcopy
-from contextlib import redirect_stdout
+from contextlib import redirect_stdout, contextmanager
 import io
 import json
 from pathlib import Path
@@ -20,7 +20,7 @@ class RoundTests(unittest.TestCase):
     def run_round(self, task, *, results=('map',), mode='recorded_return', retry=False, afk=False,
                   restart=False, entry_scene='stage', return_after=1, cancel=False, changed=False,
                   observed_failure=False, observed_unknown_dialog=False, box_speed=1, speed_proof=None,
-                  existing_entry_duration=None):
+                  existing_entry_duration=None, guard_failure=None):
         with tempfile.TemporaryDirectory() as temp:
             root=Path(temp);library=root/'recordings';library.mkdir()
             recording=library/'test.json'
@@ -79,8 +79,12 @@ class RoundTests(unittest.TestCase):
                     clock=lambda:clock[0],wait=lambda delay:clock.__setitem__(0,clock[0]+delay))
             player=ModuleType('battle_player')
             class Player:
-                def run(self,ctx,argv):
+                def run_managed(self,ctx,argv):
                     context.inputs.append('play');context.play_count+=1
+                    if guard_failure in ('playback','playback-cancel'):
+                        from background_mouse_guard import MouseGuardError
+                        if guard_failure=='playback-cancel':context.tasker.stopping=True
+                        raise MouseGuardError('后台鼠标保护清理未确认（Windows 1460）')
                     context.scene=results[min(context.play_count-1,len(results)-1)]
                     if observed_failure and context.play_count==1:
                         context.nodes[play]['next']=[dict(name='Result_Failed')]
@@ -89,7 +93,14 @@ class RoundTests(unittest.TestCase):
                     else:context.nodes[play]['next']=[dict(name='Round_PlayDone')]
                     return True
             player.BattlePlay=Player
+            @contextmanager
+            def guard(_):
+                yield
+                if guard_failure=='navigation':
+                    from background_mouse_guard import MouseGuardError
+                    raise MouseGuardError('后台鼠标保护清理未确认（Windows 1460）')
             with patch.multiple(runtime,ROOT=root,RECORDINGS=library,STATUS_DIRECTORY=root/'debug/task-runs'), \
+                    patch('navigation.runtime.hold_background_mouse',guard), \
                     patch.object(runtime,'_navigator',side_effect=navigator), \
                     patch.dict(Navigator._modal_state.__globals__,modal_present=lambda *_:False), \
                     patch.dict(sys.modules,{'battle_player':player}),redirect_stdout(io.StringIO()):
@@ -99,6 +110,21 @@ class RoundTests(unittest.TestCase):
 
     def tasks(self):
         return [t for t in task_catalog(ROOT,bindings={}) if t['management_profile']]
+
+    def test_guard_failure_never_restarts_even_with_afk_and_recovery_enabled(self):
+        for phase in ('navigation','playback'):
+            with self.subTest(phase=phase):
+                ok,status,ctx=self.run_round(self.tasks()[0],afk=True,retry=True,restart=True,guard_failure=phase)
+                self.assertFalse(ok)
+                self.assertEqual(status['status'],'fatal')
+                self.assertEqual(status['reason'],'navigation_input_guard_failed' if phase=='navigation' else 'input_guard_failed')
+                self.assertEqual(status['failure_retries'],0)
+                self.assertEqual(ctx.play_count,0 if phase=='navigation' else 1)
+
+    def test_manual_stop_during_guard_cleanup_remains_cancelled(self):
+        ok,status,ctx=self.run_round(self.tasks()[0],afk=True,restart=True,guard_failure='playback-cancel')
+        self.assertFalse(ok)
+        self.assertEqual((status['status'],status['reason']),('cancelled','user_cancelled'))
 
     def test_all_eleven_profiles_reuse_verified_frames_and_preserve_bindings(self):
         for task in self.tasks():

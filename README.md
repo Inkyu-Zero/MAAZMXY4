@@ -2,12 +2,12 @@
 
 基于 MaaFramework 的《造梦西游4》日常自动化项目，适配「造梦盒子」客户端。提供后台截图与输入、14 个常用任务，以及录制、脚本库和时间轴编辑工作台。开发分支另有 62 个可通过“＋”添加的普通主线关卡任务。
 
-**下载与说明：** [正式版本](https://github.com/Inkyu-Zero/MAAZMXY4/releases) · [2.4.5 更新日志](docs/zh_cn/2026-11-06更新日志.md) · [脚本工具](docs/zh_cn/脚本工具-使用说明.md) · [个人配置 ZIP 迁移](docs/zh_cn/个人配置备份与迁移.md)
+**下载与说明：** [正式版本](https://github.com/Inkyu-Zero/MAAZMXY4/releases) · [2.5.0 更新日志](docs/zh_cn/2026-11-07更新日志.md) · [脚本工具](docs/zh_cn/脚本工具-使用说明.md) · [个人配置 ZIP 迁移](docs/zh_cn/个人配置备份与迁移.md)
 
 ## 版本状态
 
 - **当前正式发布版本：2.4.5。** 下载以 [上游发布页](https://github.com/Inkyu-Zero/MAAZMXY4/releases/tag/v2.4.5) 的正式资产为准。自 2.4.2 起采用完整客户端手动升级，不再通过应用内自动更新。
-- **下一源码版本：2.4.6（尚未发布安装包）。** [更新日志](docs/zh_cn/2026-11-07更新日志.md)。 四洲与血海 62 个主线关卡、无需硬链接的脚本保存，以及盒子和脚本同步 2 倍速；倍速默认关闭，切换时核验，结束时恢复。使用条件和验证边界见[脚本工具说明](docs/zh_cn/脚本工具-使用说明.md)，不代表现有正式安装包已包含这些功能。
+- **下一源码版本：2.5.0（尚未正式发布）。** [更新日志](docs/zh_cn/2026-11-07更新日志.md)汇总此前未发布的 2.4.6 功能和本次鼠标保护修复：四洲与血海 62 个主线关卡、无需硬链接的脚本保存，以及盒子和脚本同步 2 倍速。倍速默认关闭，切换时核验，结束时恢复。使用条件和验证边界见[脚本工具说明](docs/zh_cn/脚本工具-使用说明.md)，不代表现有正式安装包已包含这些功能。
 - **2.4.5 更新：** 包含共享导航与血海端点复用、进关漏点快速重试、窗口调整与锁定、通用脚本播放、放弃并重录及离线安装器。使用者已于 2026-11-06 确认测试版手动测试完成；旧版盒子和所有关卡组合不视为已逐项实测。
 - **炼丹兼容性提示：** 2.4.3 早期安装包曾漏带 OpenCV（`cv2`），源码和模板仍完整，但实际识别会失败。该版本发布附件后来发生过变更，请以实际下载文件及依赖检查为准，不能只看版本号。排查方法见下方常见问题。
 
@@ -62,7 +62,7 @@
 - **后台运行**：支持窗口被遮挡时截图与输入；请保持游戏窗口非最小化，并先核对预览画面。
 - **720p 基准**：常规任务按短边 720 换算坐标；录制和回放仍需保持兼容的游戏布局，不能保证任意缩放与布局都可识别。
 - **录制回放**：把你的操作录成 JSON，副本任务里直接重放，不需要写任何代码。
-- **脚本工作台**：完整客户端内置“脚本库与录制”“时间轴编辑”两个子标签，支持暂停、阶段标记、框选、批量移动/删除、撤销重做和安全拆分，兼容原有录制及 ZaoMengScript 导入。[使用说明](docs/zh_cn/脚本工具-使用说明.md) · [构建说明](frontend/README.md)。
+- **脚本工作台**：完整客户端内置“脚本库与录制”“时间轴编辑”两个子标签，支持暂停、阶段标记、框选、批量移动/删除、撤销重做和安全拆分，兼容原有录制及 ZaoMengScript 导入。[使用说明](docs/zh_cn/脚本工具-使用说明.md) · [构建说明](https://github.com/Inkyu-Zero/MAAZMXY4/blob/main/frontend/README.md)。
 - **游戏数据库与多状态导航**：原生侧栏查询电脑版装备、道具和 Boss，保留官方/社区/客户端配置来源；七关卡入口增加实际 SWF 状态模板以兼容悬停差分。[资料与验证范围](docs/zh_cn/游戏数据库与导航素材.md)。
 - **游戏管理**：可选的失败恢复、按分钟间隔重启及内存维护；维护在任务边界执行，答题异常中断停止并保留日志。[使用说明](docs/zh_cn/游戏管理.md)。
 - **挂机与重试**：挂机时持续刷取并重试，直到手动停止或遇到不能自动继续的异常；刷取次数与重试选项由挂机模式接管。仅勾选挂机不会开启盒子重启；失败重启需单独启用，在任务内重试耗尽或确认失败后才介入。
@@ -137,12 +137,12 @@ MAA造梦西游4/
 
 需要自己准备运行环境：
 
-1. 按[前端构建说明](frontend/README.md)构建本项目固定版本的定制 MFAAvalonia。
-2. 按[运行时准备工具](tools/setup_runtime.py)准备内嵌 Python；完整发布包已包含该运行时。
+1. 按[前端构建说明](https://github.com/Inkyu-Zero/MAAZMXY4/blob/main/frontend/README.md)构建本项目固定版本的定制 MFAAvalonia。
+2. 按[运行时准备工具](https://github.com/Inkyu-Zero/MAAZMXY4/blob/main/tools/setup_runtime.py)准备内嵌 Python；完整发布包已包含该运行时。
 3. 使用 `tools/build_release.py --client` 从 `assets/interface.json`、`assets/resource/`、`agent/` 和明确指定的构建产物组合客户端。
 4. 不要把日常使用目录整体打包，也不要用通用 MFA 前端覆盖本项目的定制页面。
 
-源码准备运行时时，需包含 MaaFramework Python 绑定、NumPy、pynput、Pillow、OpenCV 等依赖；具体清单以 `tools/setup_runtime.py` 和 `tools/runtime_check.py` 为准。`python tools/runtime_check.py` 检查源码树的内嵌运行时；最终包还须使用自己的解释器做功能探针，不能借用开发机环境。炼丹必须实际加载模板并执行图像匹配，仅导入模块不会触发所有依赖。[打包与依赖验收](frontend/README.md#发布前依赖检查)。
+源码准备运行时时，需包含 MaaFramework Python 绑定、NumPy、pynput、Pillow、OpenCV 等依赖；具体清单以 `tools/setup_runtime.py` 和 `tools/runtime_check.py` 为准。`python tools/runtime_check.py` 检查源码树的内嵌运行时；最终包还须使用自己的解释器做功能探针，不能借用开发机环境。炼丹必须实际加载模板并执行图像匹配，仅导入模块不会触发所有依赖。[打包与依赖验收](https://github.com/Inkyu-Zero/MAAZMXY4/blob/main/frontend/README.md#发布前依赖检查)。
 
 改完 Pipeline 后记得校验：
 
@@ -187,7 +187,7 @@ python tools/check_adventure.py     # 生存大冒险题库与事件自检
 
 这是内嵌 Python 缺少 OpenCV。2.4.3 早期安装包曾出现这一问题：4 个炼丹 Python 文件和 11 张模板齐全，但图像匹配时才会延迟加载 `cv2`，因此“模块能导入”或“任务能显示”不代表能正常炼丹。
 
-安装系统 Python 或运行 .NET / VC++ 依赖安装脚本不能补齐包内的 `cv2`。请使用包含完整运行依赖、通过验收的客户端包；同名版本附件也可能被重新上传，以实际资产和检查结果为准。开发者须检查包内 `runtimes/python/Lib/site-packages/cv2/` 及本机扩展，构建和验收步骤见[前端说明](frontend/README.md#发布前依赖检查)。
+安装系统 Python 或运行 .NET / VC++ 依赖安装脚本不能补齐包内的 `cv2`。请使用包含完整运行依赖、通过验收的客户端包；同名版本附件也可能被重新上传，以实际资产和检查结果为准。开发者须检查包内 `runtimes/python/Lib/site-packages/cv2/` 及本机扩展，构建和验收步骤见[前端说明](https://github.com/Inkyu-Zero/MAAZMXY4/blob/main/frontend/README.md#发布前依赖检查)。
 
 ## 文件说明
 

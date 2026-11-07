@@ -49,7 +49,7 @@ class GuardTests(unittest.TestCase):
         lib = SimpleNamespace(MaaMouseGuardBegin=Mock(return_value=123), MaaMouseGuardEnd=Mock(return_value=False))
         with patch.object(guard, '_native', return_value=lib), patch.object(guard, '_air_window', return_value=True), \
              patch.object(guard.ctypes, 'get_last_error', return_value=5, create=True):
-            with self.assertRaisesRegex(RuntimeError, '清理未确认'):
+            with self.assertRaisesRegex(guard.MouseGuardError, '清理未确认.*不自动重启'):
                 with guard.hold_background_mouse(hwnd=42): pass
 
 

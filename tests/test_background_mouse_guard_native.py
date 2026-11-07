@@ -133,6 +133,29 @@ class NativeGuardTests(unittest.TestCase):
         self.assertEqual(self.send(self.windows[0], 0x8003, 0), 1)
         self.end(self.begin())
 
+    def test_busy_target_after_release_can_acknowledge_without_false_failure(self):
+        target=self.windows[0]
+        self.send(target,0x8004,1800)
+        lease=self.begin()
+        self.post(target,0x2a3);self.post(target,0x202)
+        started=time.monotonic()
+        self.assertEqual(self.end(lease),1)
+        self.assertGreater(time.monotonic()-started,1.5)
+        self.assertEqual(self.send(target,0x8003,2),1)
+        self.end(self.begin())  # Cleanup released the ownership lock.
+
+    def test_persistent_busy_target_fails_boundedly_and_releases_ownership(self):
+        target=self.windows[0]
+        self.send(target,0x8004,6500)
+        lease=self.begin();self.post(target,0x202)
+        started=time.monotonic();count=W.DWORD()
+        self.assertFalse(self.lib.MaaMouseGuardEnd(lease,ctypes.byref(count)))
+        self.assertEqual(ctypes.get_last_error(),1460)
+        elapsed=time.monotonic()-started
+        self.assertGreaterEqual(elapsed,4.8);self.assertLess(elapsed,6)
+        time.sleep(max(0,6.6-elapsed))
+        self.end(self.begin())
+
     def test_closed_target_can_be_cleaned_and_non_air_is_rejected(self):
         self.assertFalse(self.lib.MaaMouseGuardBegin(self.windows[2]))
         self.assertEqual(ctypes.get_last_error(), 1400)
