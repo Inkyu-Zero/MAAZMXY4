@@ -64,7 +64,6 @@ def merge(base, overlay):
 
 
 def _inside(root, value):
-    root = Path(root).resolve()
     path = (root / value.replace('{PROJECT_DIR}', str(root))).resolve()
     if not path.is_relative_to(root): raise ValueError('任务资源不能指向工程外部。')
     return path
@@ -166,13 +165,8 @@ def task_catalog(root, bindings=None, *, overrides=None):
         name, entry = definition.get('name'), definition.get('entry')
         if not isinstance(name, str) or not isinstance(entry, str): continue
         if (name, entry) in seen and overrides is not None: continue
-        # Discovery only reads the graph. Share the freshly loaded definitions
-        # until an actual overlay is present; returned mutable data is copied
-        # below. Large add-only catalogs must not clone the whole graph twice
-        # for every task, and this keeps no cache across configuration reads.
-        local_override = definition.get('pipeline_override', {}) or {}
-        graph = merge(nodes, local_override) if local_override else nodes
-        if overrides: graph = merge(graph, overrides)
+        graph = merge(nodes, definition.get('pipeline_override', {}) or {})
+        if overrides is not None: graph = merge(graph, overrides)
         parameters = custom_parameters(graph.get(entry, {}))
         profile = None
         if isinstance(parameters, dict) and isinstance(parameters.get('execution'), dict):

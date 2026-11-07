@@ -93,12 +93,6 @@ jobs:
           NAVIGATION_SCROLL_TEST_LOG: '${{ runner.temp }}/navigation-native/scroll'
           OMP_NUM_THREADS: '2'
         run: python -m unittest discover -s tests -p "test_game_management_scroll.py" -v
-      - name: Native speed confirmation on synthetic pixels
-        env:
-          NAVIGATION_NATIVE_TESTS: '1'
-          MAAFW_BINARY_PATH: '${{ github.workspace }}/dist/script-studio/runtimes/win-x64/native'
-          OMP_NUM_THREADS: '2'
-        run: python -m unittest discover -s tests -p "test_box_speed_native.py" -v
       - name: Endpoint reuse and missed entry clicks over real Agent IPC
         env:
           MAA_AGENT_NATIVE_TESTS: '1'

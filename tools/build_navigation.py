@@ -75,8 +75,6 @@ def compile_library(bank):
 
 def build(root=ROOT):
     bank = json.loads((root / 'tools/navigation_library.json').read_text(encoding='utf8'))
-    from mainline_tasks import stages, names
-    bank['routines']['stages'].update({names(stage)['target']:stage['town'] for stage in stages(root)})
     nodes = compile_library(bank)
     write(root / 'assets/resource/base/pipeline/navigation.json', nodes)
     write(root / 'agent/data/navigation/routines.json', bank['routines'])

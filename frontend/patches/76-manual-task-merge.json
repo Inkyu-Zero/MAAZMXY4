@@ -1,6 +1,0 @@
-{
-  "description": "Preserve optional auto-add policy when merging interface definitions",
-  "path": "MFAAvalonia/Extensions/MaaFW/MaaInterface.cs",
-  "find": "             if (other.Check != null) Check = other.Check;",
-  "replace": "             if (other.Check != null) Check = other.Check;\n             if (other.DefaultAdd != null) DefaultAdd = other.DefaultAdd;"
-}

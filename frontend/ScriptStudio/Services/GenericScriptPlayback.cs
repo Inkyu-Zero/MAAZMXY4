@@ -19,8 +19,7 @@ public sealed class GenericScriptPlayback
     public static bool IsContinuous(string? parameters) =>
         TaskRecoveryPolicy.MergePipelineOverrides(parameters)[Entry]?["attach"]?["continuous"]?.GetValue<bool>() == true;
 
-    public async Task<MaaJobStatus> RunAsync(MaaProcessor processor, string name, CancellationToken token,
-        NativeBoxSpeedSession? speedSession = null)
+    public async Task<MaaJobStatus> RunAsync(MaaProcessor processor, string name, CancellationToken token)
     {
         using var client = new ScriptStudioClient(AppPaths.DataRoot, releaseCaptureOnDisconnect: false);
         var started = false;
@@ -37,7 +36,6 @@ public sealed class GenericScriptPlayback
             if (_revision != null && (_revision != revision || _file != file))
                 throw new InvalidOperationException("本次连续播放的绑定或脚本已改变，请重新开始任务。");
             _revision = revision; _file = file;
-            var speedProof = speedSession == null ? null : await speedSession.EnsureAsync(processor, recording, token);
             token.ThrowIfCancellationRequested();
             started = true; // Also clean up a request cancelled before its reply arrives.
             await client.CallAsync("playback_start", new JsonObject
@@ -45,8 +43,7 @@ public sealed class GenericScriptPlayback
                 ["file"] = file, ["sha256"] = revision,
                 ["hwnd"] = (long)processor.Config.DesktopWindow.HWnd,
                 ["mouse"] = processor.Config.DesktopWindow.Mouse.ToString(),
-                ["keyboard"] = processor.Config.DesktopWindow.KeyBoard.ToString(),
-                ["speed"] = speedProof == null ? 1 : 2, ["box_speed_proof"] = speedProof
+                ["keyboard"] = processor.Config.DesktopWindow.KeyBoard.ToString()
             }, token);
             while (true)
             {

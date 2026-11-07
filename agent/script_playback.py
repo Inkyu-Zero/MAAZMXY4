@@ -169,12 +169,6 @@ class PlaybackJob:
             from script_library import resolve_recording_reference
             path = resolve_recording_reference(self.root / 'recordings', self.params['file'])
             rec = read_recording(path, expected_sha256=self.params['sha256'], strict=True)
-            from box_speed import validate_speed, validate_recording
-            speed=validate_speed(self.params.get('speed',1))
-            validate_recording(rec,speed)
-            if speed==2:
-                from box_speed_native import verify_playback_proof
-                verify_playback_proof(self.params.get('box_speed_proof'),self.params['hwnd'],self.params['sha256'])
             if self.cancel.is_set():
                 self.state = 'stopped'
                 return
@@ -187,7 +181,6 @@ class PlaybackJob:
                     controller = self.input_adapter_factory(native, lease, self.params.get('mouse', 'SendMessage'), self.cancel.is_set)
                     self.phase = 'playing'
                     succeeded = play_actions(rec, controller, self.cancel.is_set, ensure=lease.ensure,
-                        speed=speed,
                         clock=lease.clock, cleanup_guard=lease.require_identity,
                         after_playback=getattr(controller, 'clear_hover', None),
                         log=lambda message: print(message, file=sys.stderr, flush=True))

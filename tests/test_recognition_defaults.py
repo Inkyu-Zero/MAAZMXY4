@@ -37,7 +37,7 @@ class RecognitionDefaultsTests(unittest.TestCase):
         self.assertGreater(standard, 100)
         self.assertGreater(difference, 0)
 
-    def test_every_task_entry_uses_a_100ms_press_with_release_dwell(self):
+    def test_every_task_entry_uses_a_300ms_press_with_release_dwell(self):
         nodes = {}
         for path in (ROOT/'assets/resource/base/pipeline').glob('*.json'):
             nodes.update(json.loads(path.read_text(encoding='utf8')))
@@ -51,8 +51,8 @@ class RecognitionDefaultsTests(unittest.TestCase):
                 continue
             target = nodes[params['navigation']['target_node']]
             self.assertEqual(target['action']['type'], 'LongPress')
-            self.assertEqual(target['action']['param']['duration'], 100)
+            self.assertEqual(target['action']['param']['duration'], 300)
             self.assertEqual(target['pre_delay'], 0)
             self.assertEqual(target['post_delay'], 2000 if params['navigation']['kind']=='bounty' else 1000)
             checked += 1
-        self.assertEqual(checked, 11+62)
+        self.assertEqual(checked, 11)

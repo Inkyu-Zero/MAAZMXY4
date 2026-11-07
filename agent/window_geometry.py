@@ -12,7 +12,7 @@ import time
 
 STANDARD_BASE = (1148, 720)
 SIZING_STYLE = 0x00040000 | 0x00010000  # WS_THICKFRAME | WS_MAXIMIZEBOX
-SIZE_TOLERANCE = 8  # Physical-pixel allowance for window sizing and AIR/DPI rounding.
+SIZE_TOLERANCE = 2  # Physical pixels: AIR/DPI integer rounding.
 LAYOUT_TOLERANCE = 8  # Existing short-side-720 recording compatibility.
 
 

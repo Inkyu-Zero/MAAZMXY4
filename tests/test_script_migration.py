@@ -279,15 +279,11 @@ class MigrationTests(unittest.TestCase):
 
     def test_temp_cleanup_failure_after_publication_never_rolls_back_committed_outputs(self):
         original_unlink=Path.unlink
-        # Model a successful publisher which retains the temporary name. The
-        # Windows rename path consumes it; the POSIX link path still needs cleanup.
-        def retain_temporary(source,target):
-            target.write_bytes(source.read_bytes())
         def locked_temporary(path,*args,**kwargs):
             if path.name.startswith(".migration-"):
                 raise PermissionError("fake antivirus lock")
             return original_unlink(path,*args,**kwargs)
-        with patch.object(migration,"publish_new_file",side_effect=retain_temporary), patch.object(Path,"unlink",locked_temporary):
+        with patch.object(Path,"unlink",locked_temporary):
             result=self.run_migration()
         self.assertEqual(result["errors"],[])
         self.assertTrue(any("临时文件" in warning for warning in result["warnings"]))

@@ -323,11 +323,6 @@ class BattlePlay(CustomAction):
         monitor = None
         hwnd = controller_hwnd(ctrl)
         try:
-            if param.get('box_speed_proof') is not None:
-                from box_speed import validate_recording
-                from box_speed_native import verify_playback_proof
-                validate_recording(rec,2)
-                speed=verify_playback_proof(param['box_speed_proof'],hwnd,param.get('expected_sha256'))
             with WindowLease(hwnd, rec['base']) if hwnd else nullcontext() as lease:
                 if lease:
                     # Normal tasks use native scaling and may inspect the game.

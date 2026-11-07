@@ -178,13 +178,13 @@ class ServiceTests(unittest.TestCase):
         self.service.dispatch("new")
         before = self.service.snapshot()
         destination = self.recordings / "新脚本.json"
-        real_publish = bridge.publish_new_file
+        real_link = bridge.os.link
 
         def competing_writer(source, target):
             self.write(target, legacy("别人先保存"))
-            return real_publish(source, target)
+            return real_link(source, target)
 
-        with patch.object(bridge, "publish_new_file", side_effect=competing_writer):
+        with patch.object(bridge.os, "link", side_effect=competing_writer):
             with self.assertRaises(FileExistsError):
                 self.service.dispatch("save", dict(file="新脚本.json"))
         self.assertEqual(bridge.read_json(destination)[0]["name"], "别人先保存")
