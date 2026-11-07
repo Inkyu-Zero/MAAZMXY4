@@ -82,21 +82,37 @@ class WindowGeometryTests(unittest.TestCase):
                     self.assertEqual(tuple(lease.ensure()[k] for k in ('width','height')),size)
                 self.assertFalse(any(c[0]=='size' for c in api.changes))
 
-    def test_one_pixel_rounding_is_accepted_but_large_mismatch_is_not(self):
+    def test_eight_pixel_rounding_is_accepted_but_nine_is_not(self):
         class Rounded(Geometry):
             def resize(self,hwnd,base):
                 super().resize(hwnd,base)
                 self.info['width']+=self.offset
-        for offset in (-1,1,8):
+        for offset in (-9,-8,-1,1,8,9):
             with self.subTest(offset=offset):
                 api=Rounded();api.offset=offset;api.info.update(width=2000,height=720)
-                if abs(offset)<=2:
+                if abs(offset)<=8:
                     with WindowLease(42,(1145,720),api=api) as lease:
                         self.assertEqual(lease.ensure()['width'],1145+offset)
                     self.assertEqual(sum(c[0]=='size' for c in api.changes),1)
                 else:
                     with self.assertRaisesRegex(RuntimeError,'无法将'):
                         WindowLease(42,(1145,720),api=api)
+
+    def test_physical_tolerance_is_independent_of_scaled_layout_tolerance(self):
+        # At 200%, nine physical pixels still pass the 720-base layout guard.
+        # The physical guard must accept eight and reject nine on either axis.
+        for axis in ('width','height'):
+            for sign in (-1,1):
+                with self.subTest(axis=axis,sign=sign):
+                    api=Geometry();api.bits=0;api.info.update(width=2296,height=1440)
+                    with WindowLease(42,api=api) as lease:
+                        original=api.info[axis]
+                        api.info[axis]=original+sign*8
+                        lease.ensure()
+                        api.info[axis]=original+sign*9
+                        with self.assertRaisesRegex(RuntimeError,'播放期间.*尺寸'):
+                            lease.ensure()
+                    self.assertFalse(api.claimed)
 
     def test_legacy_prepare_handshake_does_not_resize_or_lock(self):
         api=Geometry()

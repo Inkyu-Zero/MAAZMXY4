@@ -22,7 +22,7 @@ class UpstreamMergeTests(unittest.TestCase):
                      'agent/recordings/manifest.json','agent/recordings/示例-移动与攻击.json'):
             self.assertIn(name,names)
         interface=json.loads((ROOT/'assets/interface.json').read_bytes())
-        self.assertEqual(len(interface['task']),14)
+        self.assertEqual(len(interface['task']),14+62)
         self.assertIn('GenericScriptPlayback',[t['entry'] for t in interface['task']])
         self.assertIn('九转炼丹-入口',[t['entry'] for t in interface['task']])
         self.assertFalse((ROOT/'updater.py').exists())

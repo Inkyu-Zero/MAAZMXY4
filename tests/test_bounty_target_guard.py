@@ -16,6 +16,12 @@ sys.path.insert(0,str(ROOT/'agent'))
 from navigation.catalog import task_routine
 PIPELINES = ROOT / 'assets/resource/base/pipeline'
 TASKS = ('守卫太宗', '守卫宝烛', '追捕飞贼', '遁地大盗')
+DESCRIPTIONS = {
+    '守卫太宗': ['太子亡后阴魂不散', '保护太宗'],
+    '守卫宝烛': ['香花宝烛被盗', '击败恶鼠'],
+    '追捕飞贼': ['飞天大盗重出江湖', '诚邀高手相助'],
+    '遁地大盗': ['遁地大盗被困密室', '速去捉拿'],
+}
 
 # 720-pixel reference frame: accepted wrong bounty and its own detail panel.
 WRONG_BOUNTY_FRAME = (
@@ -28,8 +34,10 @@ WRONG_BOUNTY_FRAME = (
 
 
 def frame_for(task):
+    canonical = '遁地大盗' if task in ('捉拿大盗','捉拿大盜') else task
+    body = tuple((text,(520,240+i*27,len(text)*20,24)) for i,text in enumerate(DESCRIPTIONS.get(canonical,[])))
     return tuple((task if text == '守卫宝烛' else text, box)
-                 for text, box in WRONG_BOUNTY_FRAME)
+                 for text, box in WRONG_BOUNTY_FRAME) + body
 
 
 def evaluate_config(recognition, observations):
@@ -43,7 +51,7 @@ def evaluate_config(recognition, observations):
                    for item in recognition['param']['all_of']]
         if any(result is None for result in results):
             return None
-        return results[recognition['param']['box_index']]
+        return results[recognition['param'].get('box_index',0)]
     if recognition['type'] == 'Or':
         return next((result for item in recognition['param']['any_of']
                      if (result := evaluate_config(item['recognition'], observations)) is not None), None)
@@ -79,7 +87,7 @@ class BountyTargetGuardTests(unittest.TestCase):
             if n.get('action',{}).get('param',{}).get('custom_action_param',{}).get('phase')=='begin')
         task_routine(Context(),params)
         node = nodes['Bounty_Target']
-        self.assertEqual(node['action'], {'type':'LongPress','param':{'duration':300}})
+        self.assertEqual(node['action'], {'type':'LongPress','param':{'duration':100}})
         def expand(rec):
             for field in ('all_of','any_of'):
                 if field in rec.get('param',{}):
@@ -108,7 +116,7 @@ class BountyTargetGuardTests(unittest.TestCase):
     def test_acceptance_button_title_and_selected_bounty_tab_are_all_required(self):
         for task in TASKS:
             frame = frame_for(task)
-            for omitted in ('已接受', '前往副本', task, '完成悬赏任务，获得高额奖励'):
+            for omitted in ('已接受', '前往副本', DESCRIPTIONS[task][0], '完成悬赏任务，获得高额奖励'):
                 with self.subTest(task=task, omitted=omitted):
                     self.assertIsNone(evaluate_config(self.recognition(task),
                                       tuple(item for item in frame if item[0] != omitted)))
@@ -135,11 +143,20 @@ class BountyTargetGuardTests(unittest.TestCase):
                 unrelated = tuple(('未接受' if text == '已搜受' else text, box) for text, box in frame)
                 self.assertIsNone(evaluate_config(self.recognition(task), unrelated))
 
-    def test_ocr_traditional_variant_of_thief_name_matches(self):
-        frame = tuple(('遁地大盜' if text == '守卫宝烛' and box[0] == 665 else text, box)
-                      for text, box in WRONG_BOUNTY_FRAME)
-        self.assertEqual(evaluate_config(self.recognition('遁地大盗'), frame),
-                         (587, 593, 94, 29))
+    def test_body_is_required_but_title_is_not_used_as_detail_identity(self):
+        for task in TASKS:
+            frame=frame_for(task)
+            no_title=tuple(item for item in frame if item[1][0]!=665)
+            self.assertEqual(evaluate_config(self.recognition(task),no_title),(587,593,94,29))
+            for phrase in DESCRIPTIONS[task]:
+                self.assertIsNone(evaluate_config(self.recognition(task),tuple(item for item in frame if item[0]!=phrase)))
+            moved=tuple((text,(220,300,box[2],box[3])) if text in DESCRIPTIONS[task] else (text,box) for text,box in frame)
+            self.assertIsNone(evaluate_config(self.recognition(task),moved))
+
+    def test_observed_traditional_ocr_variant_in_description(self):
+        for task in ('追捕飞贼','遁地大盗'):
+            frame=tuple((text.replace('盗','盜'),box) for text,box in frame_for(task))
+            self.assertEqual(evaluate_config(self.recognition(task),frame),(587,593,94,29))
 
     def test_known_renamed_bounty_belongs_only_to_its_own_profile(self):
         for name in ('捉拿大盗','捉拿大盜'):

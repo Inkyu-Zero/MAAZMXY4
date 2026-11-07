@@ -1,0 +1,6112 @@
+{
+  "version": 1,
+  "viewport": [
+    1147,
+    720
+  ],
+  "configuration_sha256": "b487e68090552a4c1b8b3cf2f15fada42e8d8f66dfab01b849a0b4c0e13a16c2",
+  "origin": "Offline cached game SWFs and their FFDec exports; no game input or screenshots.",
+  "states": "MovieClipButton frame 1 normal, frame 2 first-enterable, frame 3 hover.",
+  "provinces": [
+    {
+      "id": "town1",
+      "label": "南瞻部洲",
+      "first": 1,
+      "last": 16,
+      "source": {
+        "name": "town1",
+        "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/ui/town_20260629_1.swf",
+        "file": "town_20260629_1.swf",
+        "sha256": "ad053e895194a0ea3e0cf173b4e0dbc3b0d4503341aad54d278d40053a7e1111",
+        "bytes": 1011387,
+        "referer": "https://www.4399.com/flash/zmhj.htm?g=4"
+      },
+      "xml_sha256": "cff327072fbc6e24f8b0fa7ea31ac31cd9c4c993f64596b7cc4739071de25099",
+      "container": 122
+    },
+    {
+      "id": "town2",
+      "label": "东胜神洲",
+      "first": 17,
+      "last": 29,
+      "source": {
+        "name": "town2",
+        "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/ui/town2_20250407_1.swf",
+        "file": "town2_20250407_1.swf",
+        "sha256": "2d6dabb469d495511080c48ef053cbd013dc37794551d326f5d7eeab64c324c4",
+        "bytes": 810828,
+        "referer": "https://www.4399.com/flash/zmhj.htm?g=4"
+      },
+      "xml_sha256": "9a707324d0e536d350c435c02302c4fc8da58f3acebec73e63525af820e3bb9b",
+      "container": 94
+    },
+    {
+      "id": "town3",
+      "label": "北俱芦洲",
+      "first": 30,
+      "last": 39,
+      "source": {
+        "name": "town3",
+        "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/ui/town3_20161219_1.swf",
+        "file": "town3_20161219_1.swf",
+        "sha256": "035f5058f32bab9d4b7f72eb6485b4699543e4edf3cc09ccbc73ce128dd6909b",
+        "bytes": 847962,
+        "referer": "https://www.4399.com/flash/zmhj.htm?g=4"
+      },
+      "xml_sha256": "267892b64f7292992d6e6d983a8c87133895b5835067aa8c21f774bedfc298b9",
+      "container": 78
+    },
+    {
+      "id": "town4",
+      "label": "西牛贺洲",
+      "first": 40,
+      "last": 46,
+      "source": {
+        "name": "town4",
+        "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/ui/town4_20230508_1.swf",
+        "file": "town4_20230508_1.swf",
+        "sha256": "a8c8bd45d78368734c985dca10a499453350dc0b004e4806987c30d28c6d4d39",
+        "bytes": 760020,
+        "referer": "https://www.4399.com/flash/zmhj.htm?g=4"
+      },
+      "xml_sha256": "a904496cf13e3b6db74eb46264318d2e468fb71e5b7bf12f56bb2203af79b0e1",
+      "container": 57
+    },
+    {
+      "id": "town5",
+      "label": "幽冥血海",
+      "first": 47,
+      "last": 62,
+      "source": {
+        "name": "town5",
+        "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/ui/town5_20260202_1.swf",
+        "file": "town5_20260202_1.swf",
+        "sha256": "73d93449bfc5d9223930b426d0a2d17e784f53b0e5e8b99105a1cb71f18bb3cd",
+        "bytes": 1643657,
+        "referer": "https://www.4399.com/flash/zmhj.htm?g=4"
+      },
+      "xml_sha256": "40bf688af9df5e7bdfd5be116b269a34a46cdeb6507b2a28795ee54aac0b7d81",
+      "container": 448
+    }
+  ],
+  "stages": [
+    {
+      "id": 1,
+      "name": "玄武门",
+      "town": "town1",
+      "province": "南瞻部洲",
+      "map_url": "xuanwumenV498",
+      "source_sprite": 9,
+      "source_bounds": [
+        638.0,
+        509.0,
+        741.0,
+        576.0
+      ],
+      "scene_layout": {
+        "width": 4997,
+        "height": 650,
+        "screen_width": 1200,
+        "birth_point": [
+          90.0,
+          293.0
+        ],
+        "class_type": "",
+        "cartoons": ""
+      },
+      "endpoint": null,
+      "offset": 0,
+      "roi": [
+        806,
+        627,
+        143,
+        93
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s001-f1.png",
+          "crop": [
+            68,
+            51,
+            62,
+            43
+          ],
+          "green_mask": false,
+          "box": [
+            847,
+            672,
+            62,
+            43
+          ],
+          "sha256": "8cb458c95d95abdb49cf919a8a71e1297cec88942b9e5cf9c9933a5f67529a78",
+          "source_frame_sha256": "98242132641155b84b97baa93ff5267625adb6fb4f0718fd4b86897d6814c866"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s001-f3.png",
+          "crop": [
+            55,
+            34,
+            87,
+            61
+          ],
+          "green_mask": false,
+          "box": [
+            834,
+            655,
+            87,
+            61
+          ],
+          "sha256": "aa45efc14d7a762cac4d9ee30641a9af1e0c8fad4246bb6fad73697e4c02ebf1",
+          "source_frame_sha256": "735cd1fe6ec9c09f164b79887cf90946821465adceba75d5cb7ea7683c4df84e"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s001-f1.png",
+            "navigation/mainline/s001-f3.png"
+          ],
+          "roi": [
+            806,
+            627,
+            143,
+            93
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 2,
+      "name": "朱雀街",
+      "town": "town1",
+      "province": "南瞻部洲",
+      "map_url": "zhuquejieV498",
+      "source_sprite": 16,
+      "source_bounds": [
+        754.0,
+        473.0,
+        862.0,
+        543.0
+      ],
+      "scene_layout": {
+        "width": 4997,
+        "height": 800,
+        "screen_width": 1200,
+        "birth_point": [
+          90.0,
+          293.0
+        ],
+        "class_type": "",
+        "cartoons": ""
+      },
+      "endpoint": null,
+      "offset": 0,
+      "roi": [
+        931,
+        579,
+        127,
+        141
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s002-f1.png",
+          "crop": [
+            39,
+            30,
+            37,
+            44
+          ],
+          "green_mask": false,
+          "box": [
+            959,
+            607,
+            37,
+            44
+          ],
+          "sha256": "289f0a92ee0fc880d813892f447a544a1cd5211f31deb80e6955484ad2f18c5b",
+          "source_frame_sha256": "67af407bf352331b03eff0ca56fa12eaaa0badfdc27f42ab470de665b10d4885"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s002-f3.png",
+          "crop": [
+            46,
+            35,
+            64,
+            84
+          ],
+          "green_mask": false,
+          "box": [
+            966,
+            612,
+            64,
+            84
+          ],
+          "sha256": "178bacddfe50ee8f4b16594717c46eddb3536235c5ad6ca01efba42212ed154f",
+          "source_frame_sha256": "41886a79215f32d97f52dd27501737c9ce911a85cdaa1a82468158e736ce0e01"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s002-f1.png",
+            "navigation/mainline/s002-f3.png"
+          ],
+          "roi": [
+            931,
+            579,
+            127,
+            141
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 3,
+      "name": "未央宫",
+      "town": "town1",
+      "province": "南瞻部洲",
+      "map_url": "weiyanggongV1",
+      "source_sprite": 23,
+      "source_bounds": [
+        600.0,
+        427.0,
+        709.0,
+        484.0
+      ],
+      "scene_layout": {
+        "width": 4997,
+        "height": 590,
+        "screen_width": 1200,
+        "birth_point": [
+          90.0,
+          293.0
+        ],
+        "class_type": "",
+        "cartoons": ""
+      },
+      "endpoint": null,
+      "offset": 0,
+      "roi": [
+        740,
+        520,
+        159,
+        94
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s003-f1.png",
+          "crop": [
+            36,
+            38,
+            100,
+            21
+          ],
+          "green_mask": false,
+          "box": [
+            768,
+            559,
+            100,
+            21
+          ],
+          "sha256": "c1d55b5baf7bba8082feda82270f3abf4b1b3c5b84cd03951f1669160caf2a77",
+          "source_frame_sha256": "4115ad21a8ba5b68865feb41ed3a212331d21dcd3bea1d7b83757d5ade5bdd6c"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s003-f3.png",
+          "crop": [
+            39,
+            27,
+            100,
+            38
+          ],
+          "green_mask": false,
+          "box": [
+            771,
+            548,
+            100,
+            38
+          ],
+          "sha256": "af0d1a1988ac4f4fb8c7e9acf0b41b8fcb47448de340e04f91d68d83ebf8b5d0",
+          "source_frame_sha256": "cf40897c16baff4ce685323d1c47f67686362e90f00e502c1d9e87d030195529"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s003-f1.png",
+            "navigation/mainline/s003-f3.png"
+          ],
+          "roi": [
+            740,
+            520,
+            159,
+            94
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 4,
+      "name": "九华山麓",
+      "town": "town1",
+      "province": "南瞻部洲",
+      "map_url": "jiuhuashanV409",
+      "source_sprite": 30,
+      "source_bounds": [
+        498.0,
+        369.0,
+        582.0,
+        455.0
+      ],
+      "scene_layout": {
+        "width": 4997,
+        "height": 720,
+        "screen_width": 1200,
+        "birth_point": [
+          90.0,
+          293.0
+        ],
+        "class_type": "",
+        "cartoons": ""
+      },
+      "endpoint": null,
+      "offset": 0,
+      "roi": [
+        618,
+        496,
+        128,
+        134
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s004-f1.png",
+          "crop": [
+            63,
+            74,
+            47,
+            39
+          ],
+          "green_mask": false,
+          "box": [
+            671,
+            524,
+            47,
+            39
+          ],
+          "sha256": "750b881b9a155b4aa2f17c329b278693753dd6e2ff76a386850bbae6b3c248d1",
+          "source_frame_sha256": "c4301ee4b1e408003e3640c520f3a1e24798508c7295621333a8ab4080cde2aa"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s004-f3.png",
+          "crop": [
+            38,
+            85,
+            63,
+            67
+          ],
+          "green_mask": false,
+          "box": [
+            646,
+            535,
+            63,
+            67
+          ],
+          "sha256": "694de19c6b90e718ad44785a56dfd2b85ed6a5c6dda0532d8c588411252b8b9b",
+          "source_frame_sha256": "46ad6b772f17dbc23770a5a9958aacde8586f12f63a896e161b5cb80d179247e"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s004-f1.png",
+            "navigation/mainline/s004-f3.png"
+          ],
+          "roi": [
+            618,
+            496,
+            128,
+            134
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 5,
+      "name": "双溪寺",
+      "town": "town1",
+      "province": "南瞻部洲",
+      "map_url": "shuangxisiV1",
+      "source_sprite": 37,
+      "source_bounds": [
+        326.0,
+        329.0,
+        437.0,
+        401.0
+      ],
+      "scene_layout": {
+        "width": 4997,
+        "height": 720,
+        "screen_width": 1200,
+        "birth_point": [
+          90.0,
+          293.0
+        ],
+        "class_type": "",
+        "cartoons": ""
+      },
+      "endpoint": null,
+      "offset": 0,
+      "roi": [
+        411,
+        437,
+        162,
+        108
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s005-f1.png",
+          "crop": [
+            47,
+            70,
+            100,
+            36
+          ],
+          "green_mask": false,
+          "box": [
+            445,
+            471,
+            100,
+            36
+          ],
+          "sha256": "e4d01ac56ec3fc841b8f4d9b4defa2d50063ede016f682d9bac7870c41aa1ff2",
+          "source_frame_sha256": "874361df1f217fa81d5aa7a06233dc239be070eeaf177d993b6f786914bf0c7e"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s005-f3.png",
+          "crop": [
+            41,
+            64,
+            100,
+            52
+          ],
+          "green_mask": false,
+          "box": [
+            439,
+            465,
+            100,
+            52
+          ],
+          "sha256": "c17d0b45adc1a290b38190b01730155659d00925c1b758351015f30103858e6b",
+          "source_frame_sha256": "17d521138ad24f857395faa3421769ffd43fac8ea78aafd892c3926d958bfb48"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s005-f1.png",
+            "navigation/mainline/s005-f3.png"
+          ],
+          "roi": [
+            411,
+            437,
+            162,
+            108
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 6,
+      "name": "神光金岭",
+      "town": "town1",
+      "province": "南瞻部洲",
+      "map_url": "shenguangjinlingV1",
+      "source_sprite": 44,
+      "source_bounds": [
+        564.0,
+        290.0,
+        620.0,
+        351.0
+      ],
+      "scene_layout": {
+        "width": 4997,
+        "height": 720,
+        "screen_width": 1200,
+        "birth_point": [
+          90.0,
+          293.0
+        ],
+        "class_type": "",
+        "cartoons": ""
+      },
+      "endpoint": null,
+      "offset": 0,
+      "roi": [
+        738,
+        381,
+        98,
+        131
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s006-f1.png",
+          "crop": [
+            78,
+            67,
+            25,
+            38
+          ],
+          "green_mask": false,
+          "box": [
+            766,
+            421,
+            25,
+            38
+          ],
+          "sha256": "65d4e195a79f1648884c719692d6ca5d89e8cf79cd760c6bb63e0900bdc9321c",
+          "source_frame_sha256": "98e5c2fb5030fd2bef20aae7c457fd32ec7427ebc3c64eb11f103e9d611e314b"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s006-f3.png",
+          "crop": [
+            78,
+            55,
+            42,
+            75
+          ],
+          "green_mask": false,
+          "box": [
+            766,
+            409,
+            42,
+            75
+          ],
+          "sha256": "4f9c7604e3cd4b19d308df56e39747b6243e159cdc75af0e3ec0160a93a33d0e",
+          "source_frame_sha256": "bfc045796d2d1fcc09bf18a46a54b1ebb4c8bfb828697d2543debeb8d9fc53d7"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s006-f1.png",
+            "navigation/mainline/s006-f3.png"
+          ],
+          "roi": [
+            738,
+            381,
+            98,
+            131
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 7,
+      "name": "普陀山脚",
+      "town": "town1",
+      "province": "南瞻部洲",
+      "map_url": "putuoshanjiaoV1",
+      "source_sprite": 51,
+      "source_bounds": [
+        682.0,
+        231.0,
+        769.0,
+        315.0
+      ],
+      "scene_layout": {
+        "width": 4997,
+        "height": 1320,
+        "screen_width": 1200,
+        "birth_point": [
+          90.0,
+          293.0
+        ],
+        "class_type": "",
+        "cartoons": ""
+      },
+      "endpoint": null,
+      "offset": 0,
+      "roi": [
+        858,
+        297,
+        132,
+        146
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s007-f1.png",
+          "crop": [
+            76,
+            55,
+            43,
+            55
+          ],
+          "green_mask": false,
+          "box": [
+            908,
+            337,
+            43,
+            55
+          ],
+          "sha256": "3acc50723771c8757dff11b6fa686ec75c8ba45c25c248c81e533948de86500f",
+          "source_frame_sha256": "b5c0404262f67fb4a2a0465283e31bd6837970cb1751eadd69fe306c5b68d13f"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s007-f3.png",
+          "crop": [
+            54,
+            43,
+            76,
+            90
+          ],
+          "green_mask": false,
+          "box": [
+            886,
+            325,
+            76,
+            90
+          ],
+          "sha256": "f83868d81b54f40aa6f7d49c1098f49a8490a8ab3318216f1d69dc05d6b9c5cb",
+          "source_frame_sha256": "f5a41339fccf351d1cafc336908d1eab2fd73bdac9f660b61539fe3f7e2067e4"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s007-f1.png",
+            "navigation/mainline/s007-f3.png"
+          ],
+          "roi": [
+            858,
+            297,
+            132,
+            146
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 8,
+      "name": "九龙宝殿",
+      "town": "town1",
+      "province": "南瞻部洲",
+      "map_url": "jiulongbaodianV1",
+      "source_sprite": 58,
+      "source_bounds": [
+        526.0,
+        197.0,
+        625.0,
+        283.0
+      ],
+      "scene_layout": {
+        "width": 4997,
+        "height": 1320,
+        "screen_width": 1200,
+        "birth_point": [
+          90.0,
+          293.0
+        ],
+        "class_type": "",
+        "cartoons": ""
+      },
+      "endpoint": null,
+      "offset": 0,
+      "roi": [
+        652,
+        308,
+        160,
+        112
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s008-f1.png",
+          "crop": [
+            38,
+            105,
+            100,
+            25
+          ],
+          "green_mask": false,
+          "box": [
+            680,
+            345,
+            100,
+            25
+          ],
+          "sha256": "3f13faae45d2c800960932e28e1d04e82a6023906cfb254fad2bd697a6b770ce",
+          "source_frame_sha256": "0909794e5794089d08075a4475652b0ec9c378c497bb5245d6973c166442179b"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s008-f3.png",
+          "crop": [
+            43,
+            96,
+            99,
+            56
+          ],
+          "green_mask": false,
+          "box": [
+            685,
+            336,
+            99,
+            56
+          ],
+          "sha256": "4798640997253d4a3d074d7b1a8b6049291ddccb2445a30dd1d10a432c319030",
+          "source_frame_sha256": "6d3790de270b1ae059a81b9d80482cea8464f3527fe592bf09cdd031560b62b5"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s008-f1.png",
+            "navigation/mainline/s008-f3.png"
+          ],
+          "roi": [
+            652,
+            308,
+            160,
+            112
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 9,
+      "name": "法华灵洞",
+      "town": "town1",
+      "province": "南瞻部洲",
+      "map_url": "fahualingdongV1",
+      "source_sprite": 86,
+      "source_bounds": [
+        303.0,
+        222.0,
+        399.0,
+        321.0
+      ],
+      "scene_layout": {
+        "width": 3988,
+        "height": 1320,
+        "screen_width": 1200,
+        "birth_point": [
+          90.0,
+          293.0
+        ],
+        "class_type": "",
+        "cartoons": ""
+      },
+      "endpoint": null,
+      "offset": 0,
+      "roi": [
+        399,
+        311,
+        141,
+        146
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s009-f1.png",
+          "crop": [
+            66,
+            76,
+            66,
+            54
+          ],
+          "green_mask": false,
+          "box": [
+            436,
+            347,
+            66,
+            54
+          ],
+          "sha256": "ca47127c9bb378dd64a716e40f983d36951e5ec0241a2d58587d419d88eb6eb3",
+          "source_frame_sha256": "3d25d67e7d89ef1cd52b128c17c132df4fe09c96f561d34025abbd04c0fb001b"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s009-f3.png",
+          "crop": [
+            57,
+            68,
+            85,
+            90
+          ],
+          "green_mask": false,
+          "box": [
+            427,
+            339,
+            85,
+            90
+          ],
+          "sha256": "a7bcff85c48f05712b73de5bad5a19274c0c28116091d3f2f2dbdb2803f03283",
+          "source_frame_sha256": "89deae2071205e3f62dfecf79c0a31ccb08e8dd0695d50967056d63c0bcb9cda"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s009-f1.png",
+            "navigation/mainline/s009-f3.png"
+          ],
+          "roi": [
+            399,
+            311,
+            141,
+            146
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 10,
+      "name": "峨眉山道",
+      "town": "town1",
+      "province": "南瞻部洲",
+      "map_url": "emeishandao",
+      "source_sprite": 65,
+      "source_bounds": [
+        214.0,
+        304.0,
+        268.0,
+        373.0
+      ],
+      "scene_layout": {
+        "width": 4997,
+        "height": 700,
+        "screen_width": 1200,
+        "birth_point": [
+          90.0,
+          293.0
+        ],
+        "class_type": "",
+        "cartoons": ""
+      },
+      "endpoint": null,
+      "offset": 0,
+      "roi": [
+        308,
+        374,
+        87,
+        146
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s010-f1.png",
+          "crop": [
+            76,
+            38,
+            28,
+            56
+          ],
+          "green_mask": false,
+          "box": [
+            337,
+            409,
+            28,
+            56
+          ],
+          "sha256": "f43bf301a891d7a95653a01d7f2a8d57f2873d1a50fae07db233d297f59cad6c",
+          "source_frame_sha256": "5e0244b9a635e0007886f3785ea453318b806e6146ea9d8a686c98e055febdf1"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s010-f3.png",
+          "crop": [
+            75,
+            31,
+            31,
+            90
+          ],
+          "green_mask": false,
+          "box": [
+            336,
+            402,
+            31,
+            90
+          ],
+          "sha256": "42224939d56d0a86c883418b844409076c0667c9068f6904666aa2d564b92dfa",
+          "source_frame_sha256": "bcc3609f50b3737779257d5d0e2353641fb28aaaaea6ad4a345d78a416568688"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s010-f1.png",
+            "navigation/mainline/s010-f3.png"
+          ],
+          "roi": [
+            308,
+            374,
+            87,
+            146
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 11,
+      "name": "清音阁",
+      "town": "town1",
+      "province": "南瞻部洲",
+      "map_url": "qingyinge",
+      "source_sprite": 72,
+      "source_bounds": [
+        87.0,
+        267.0,
+        171.0,
+        342.0
+      ],
+      "scene_layout": {
+        "width": 4997,
+        "height": 700,
+        "screen_width": 1200,
+        "birth_point": [
+          90.0,
+          293.0
+        ],
+        "class_type": "",
+        "cartoons": ""
+      },
+      "endpoint": null,
+      "offset": 0,
+      "roi": [
+        122,
+        336,
+        122,
+        111
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s011-f1.png",
+          "crop": [
+            49,
+            49,
+            58,
+            34
+          ],
+          "green_mask": false,
+          "box": [
+            155,
+            375,
+            58,
+            34
+          ],
+          "sha256": "aa4d628acf6768259ea8fbe28a87ca65d0658c43f6426b362b682011d9fb4033",
+          "source_frame_sha256": "9fa769351f459052a3b68336c80f5a48fd19b67bac7690b2758c9ad180a9f3be"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s011-f3.png",
+          "crop": [
+            44,
+            38,
+            66,
+            55
+          ],
+          "green_mask": false,
+          "box": [
+            150,
+            364,
+            66,
+            55
+          ],
+          "sha256": "68952ae2587c6d8195c3abc63201fe0d2925f2d7d8e89e25e4749f3969834f23",
+          "source_frame_sha256": "b9124e9ac6175dd48e2b3c3327df2a8a6722e8db24f0a009bef1592cfee27578"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s011-f1.png",
+            "navigation/mainline/s011-f3.png"
+          ],
+          "roi": [
+            122,
+            336,
+            122,
+            111
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 12,
+      "name": "金顶云海",
+      "town": "town1",
+      "province": "南瞻部洲",
+      "map_url": "jindingyunhai",
+      "source_sprite": 79,
+      "source_bounds": [
+        174.0,
+        187.0,
+        295.0,
+        285.0
+      ],
+      "scene_layout": {
+        "width": 4997,
+        "height": 700,
+        "screen_width": 1200,
+        "birth_point": [
+          90.0,
+          293.0
+        ],
+        "class_type": "",
+        "cartoons": ""
+      },
+      "endpoint": null,
+      "offset": 0,
+      "roi": [
+        248,
+        256,
+        148,
+        146
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s012-f1.png",
+          "crop": [
+            80,
+            69,
+            76,
+            62
+          ],
+          "green_mask": false,
+          "box": [
+            292,
+            297,
+            76,
+            62
+          ],
+          "sha256": "291f99b19dfe2687747e276589017a4a857e348fc7c72af27380c509e393b7b8",
+          "source_frame_sha256": "d47529d2c18c3801a89b943a2546e2670f17b5ffc53f068246175a762fdace0a"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s012-f3.png",
+          "crop": [
+            64,
+            56,
+            92,
+            90
+          ],
+          "green_mask": false,
+          "box": [
+            276,
+            284,
+            92,
+            90
+          ],
+          "sha256": "62301ff310364005255dc175ea8edd518daedc1ee2bf998b74b55e62b1fba953",
+          "source_frame_sha256": "73ee5962541c1e9fafaceba6143d5a34d4b573d4129f53f37b23a0960c18e789"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s012-f1.png",
+            "navigation/mainline/s012-f3.png"
+          ],
+          "roi": [
+            248,
+            256,
+            148,
+            146
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 13,
+      "name": "五台山口",
+      "town": "town1",
+      "province": "南瞻部洲",
+      "map_url": "wutaishankouV5",
+      "source_sprite": 93,
+      "source_bounds": [
+        309.0,
+        107.0,
+        422.0,
+        181.0
+      ],
+      "scene_layout": {
+        "width": 4997,
+        "height": 1300,
+        "screen_width": 1200,
+        "birth_point": [
+          90.0,
+          893.0
+        ],
+        "class_type": "",
+        "cartoons": ""
+      },
+      "endpoint": null,
+      "offset": 0,
+      "roi": [
+        392,
+        166,
+        156,
+        113
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s013-f1.png",
+          "crop": [
+            48,
+            63,
+            35,
+            45
+          ],
+          "green_mask": false,
+          "box": [
+            425,
+            194,
+            35,
+            45
+          ],
+          "sha256": "418f5d11a9b2ed8816b4ef0b56ee510b612d2de20265520112272081177d4e7b",
+          "source_frame_sha256": "d8d9feaba95adde74e27f95e64926fcd71077f478728f4d063308b3179f532ac"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s013-f3.png",
+          "crop": [
+            43,
+            82,
+            100,
+            38
+          ],
+          "green_mask": false,
+          "box": [
+            420,
+            213,
+            100,
+            38
+          ],
+          "sha256": "eabe15dfbcaeaefa8f09695d6ae01a94b8b9853b453439207ff8d45d1dd1b679",
+          "source_frame_sha256": "6420aa5b727edb002c133e0aeb5c36ad58a1730e061c4c9bea9aa94a74f855dc"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s013-f1.png",
+            "navigation/mainline/s013-f3.png"
+          ],
+          "roi": [
+            392,
+            166,
+            156,
+            113
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 14,
+      "name": "锦绣峰",
+      "town": "town1",
+      "province": "南瞻部洲",
+      "map_url": "jinxiufengV469",
+      "source_sprite": 100,
+      "source_bounds": [
+        480.0,
+        75.0,
+        568.0,
+        159.0
+      ],
+      "scene_layout": {
+        "width": 1200,
+        "height": 3600,
+        "screen_width": 1200,
+        "birth_point": [
+          90.0,
+          3410.0
+        ],
+        "class_type": "",
+        "cartoons": ""
+      },
+      "endpoint": null,
+      "offset": 0,
+      "roi": [
+        637,
+        105,
+        93,
+        146
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s014-f1.png",
+          "crop": [
+            87,
+            44,
+            27,
+            78
+          ],
+          "green_mask": false,
+          "box": [
+            673,
+            136,
+            27,
+            78
+          ],
+          "sha256": "3468bd5b7ac43dd720df61a4f56ce5fb45caee86c8efc3c8e73568db397eee8f",
+          "source_frame_sha256": "bb5cefcc089fc4da7321147d5828e7b60e8df789e3966925778d918ebbe3dee7"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s014-f3.png",
+          "crop": [
+            79,
+            41,
+            37,
+            90
+          ],
+          "green_mask": false,
+          "box": [
+            665,
+            133,
+            37,
+            90
+          ],
+          "sha256": "7de1fe65dc251246300a025d0e24025fd06a2f369ddc371a1869befcfb630205",
+          "source_frame_sha256": "0fff306ced122a6be1c0b367448e9def53b32d9da7981588924580c89d398f9f"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s014-f1.png",
+            "navigation/mainline/s014-f3.png"
+          ],
+          "roi": [
+            637,
+            105,
+            93,
+            146
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 15,
+      "name": "万佛朝阁",
+      "town": "town1",
+      "province": "南瞻部洲",
+      "map_url": "wanfochaogeV2",
+      "source_sprite": 107,
+      "source_bounds": [
+        632.0,
+        68.0,
+        712.0,
+        131.0
+      ],
+      "scene_layout": {
+        "width": 4997,
+        "height": 600,
+        "screen_width": 1200,
+        "birth_point": [
+          90.0,
+          293.0
+        ],
+        "class_type": "",
+        "cartoons": ""
+      },
+      "endpoint": null,
+      "offset": 0,
+      "roi": [
+        793,
+        92,
+        127,
+        139
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s015-f1.png",
+          "crop": [
+            62,
+            43,
+            52,
+            62
+          ],
+          "green_mask": false,
+          "box": [
+            833,
+            126,
+            52,
+            62
+          ],
+          "sha256": "f1f2cf323dc4555e33c573000784a1004089ef9786f2f0a0aa097b8af45c5c70",
+          "source_frame_sha256": "083e42cda0daee87bd3039302afbe0c11133c880f7ff1dde0f73a7c823bcdcee"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s015-f3.png",
+          "crop": [
+            50,
+            37,
+            71,
+            83
+          ],
+          "green_mask": false,
+          "box": [
+            821,
+            120,
+            71,
+            83
+          ],
+          "sha256": "6e0f5d52815f583bf27ef6da193f8a3687f5f02fa3caa844df2b179df6b97595",
+          "source_frame_sha256": "23c6b8622d4b1df5abbaeb4204dcd0554e7d8c59ff48499595286219bb04dfd4"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s015-f1.png",
+            "navigation/mainline/s015-f3.png"
+          ],
+          "roi": [
+            793,
+            92,
+            127,
+            139
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 16,
+      "name": "冥海",
+      "town": "town1",
+      "province": "南瞻部洲",
+      "map_url": "minghai",
+      "source_sprite": 114,
+      "source_bounds": [
+        713.0,
+        331.0,
+        811.0,
+        390.0
+      ],
+      "scene_layout": {
+        "width": 1200,
+        "height": 700,
+        "screen_width": 1200,
+        "birth_point": [
+          464.0,
+          412.0
+        ],
+        "class_type": "Minghai",
+        "cartoons": ""
+      },
+      "endpoint": null,
+      "offset": 0,
+      "roi": [
+        882,
+        428,
+        127,
+        102
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s016-f1.png",
+          "crop": [
+            40,
+            59,
+            61,
+            21
+          ],
+          "green_mask": false,
+          "box": [
+            910,
+            463,
+            61,
+            21
+          ],
+          "sha256": "59d924605e6f06d9bda67f464bdcde53d757fb1ef7840557cbc5f4b63eb3ac84",
+          "source_frame_sha256": "2de452baacf52cf841fb055b5b0ab7a2725460e278bb01329988630bbdfde75b"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s016-f3.png",
+          "crop": [
+            46,
+            52,
+            65,
+            46
+          ],
+          "green_mask": false,
+          "box": [
+            916,
+            456,
+            65,
+            46
+          ],
+          "sha256": "0e10a182a0d9110546c137ba9b47b24ff1dc3d890044bb8759999326b8c4f106",
+          "source_frame_sha256": "859547996c0a68125bfada986861721ce33c05fab9c49b935a909793e0251894"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s016-f1.png",
+            "navigation/mainline/s016-f3.png"
+          ],
+          "roi": [
+            882,
+            428,
+            127,
+            102
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 17,
+      "name": "金沙村",
+      "town": "town2",
+      "province": "东胜神洲",
+      "map_url": "jinshacun",
+      "source_sprite": 9,
+      "source_bounds": [
+        69.0,
+        333.0,
+        175.3996584,
+        388.0998231
+      ],
+      "scene_layout": {
+        "width": 4997,
+        "height": 600,
+        "screen_width": 1200,
+        "birth_point": [
+          90.0,
+          293.0
+        ],
+        "class_type": "",
+        "cartoons": ""
+      },
+      "endpoint": null,
+      "offset": 0,
+      "roi": [
+        89,
+        392,
+        149,
+        141
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s017-f1.png",
+          "crop": [
+            37,
+            29,
+            89,
+            45
+          ],
+          "green_mask": false,
+          "box": [
+            121,
+            435,
+            89,
+            45
+          ],
+          "sha256": "5fd8a6d7460b585bdad65f31a1c61ad5bf461b6e63bd1fb04b234ef286778b83",
+          "source_frame_sha256": "18d2ea4fac0c1f973c4d7afcf2202a84fa37c2f56545a121529f8ba018c3523f"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s017-f3.png",
+          "crop": [
+            33,
+            14,
+            72,
+            85
+          ],
+          "green_mask": false,
+          "box": [
+            117,
+            420,
+            72,
+            85
+          ],
+          "sha256": "a74c534d60ba9fce9ea00c54b6fa5d910adb21042a46b2fc6f0179094d5ac3ca",
+          "source_frame_sha256": "381eebb49daa5b1a52e868dc849aaf4862b45f850890fc2bf77a313c4e57c0d3"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s017-f1.png",
+            "navigation/mainline/s017-f3.png"
+          ],
+          "roi": [
+            89,
+            392,
+            149,
+            141
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 18,
+      "name": "百仙园",
+      "town": "town2",
+      "province": "东胜神洲",
+      "map_url": "baixianyuan",
+      "source_sprite": 16,
+      "source_bounds": [
+        201.0,
+        359.0,
+        299.7996828,
+        438.7997438
+      ],
+      "scene_layout": {
+        "width": 4997,
+        "height": 600,
+        "screen_width": 1200,
+        "birth_point": [
+          90.0,
+          293.0
+        ],
+        "class_type": "",
+        "cartoons": ""
+      },
+      "endpoint": null,
+      "offset": 0,
+      "roi": [
+        256,
+        442,
+        140,
+        146
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s018-f1.png",
+          "crop": [
+            55,
+            56,
+            66,
+            62
+          ],
+          "green_mask": false,
+          "box": [
+            300,
+            494,
+            66,
+            62
+          ],
+          "sha256": "3eea1e94d684f7f03316681c446d5e23160f7991ff3af63f1ea03560b49686f3",
+          "source_frame_sha256": "0232dd3f9167952e6fe8f91d2b4d25c2894d8f849cdafad5a169e4a34caa293a"
+        },
+        {
+          "frame": 2,
+          "template": "navigation/mainline/s018-f2.png",
+          "crop": [
+            55,
+            56,
+            66,
+            62
+          ],
+          "green_mask": false,
+          "box": [
+            300,
+            494,
+            66,
+            62
+          ],
+          "sha256": "fa7e279da61e19c7a74d2aa63ccaa65cccda6cd4c14fe5f097178ba5974f8297",
+          "source_frame_sha256": "23b065ec38d98bd98b13ea3bbd3a6d47e5215c26f102890103b8d087b93b5fbc"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s018-f3.png",
+          "crop": [
+            39,
+            32,
+            84,
+            90
+          ],
+          "green_mask": false,
+          "box": [
+            284,
+            470,
+            84,
+            90
+          ],
+          "sha256": "2b3b3598fdc575f17e0af62ad796972779cbb4a50651c9db0b4871ae2f861983",
+          "source_frame_sha256": "accf32b4655a0c5e4381bf6f226f5fc5e225d141e31ba1f0daf3eafbda0cbd7b"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s018-f1.png",
+            "navigation/mainline/s018-f2.png",
+            "navigation/mainline/s018-f3.png"
+          ],
+          "roi": [
+            256,
+            442,
+            140,
+            146
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 19,
+      "name": "傲来国",
+      "town": "town2",
+      "province": "东胜神洲",
+      "map_url": "aolaiguo",
+      "source_sprite": 23,
+      "source_bounds": [
+        113.0,
+        143.0,
+        248.84956384999998,
+        237.99969499999997
+      ],
+      "scene_layout": {
+        "width": 3988,
+        "height": 600,
+        "screen_width": 1200,
+        "birth_point": [
+          90.0,
+          293.0
+        ],
+        "class_type": "",
+        "cartoons": ""
+      },
+      "endpoint": null,
+      "offset": 0,
+      "roi": [
+        186,
+        207,
+        115,
+        143
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s019-f1.png",
+          "crop": [
+            82,
+            63,
+            47,
+            56
+          ],
+          "green_mask": false,
+          "box": [
+            220,
+            238,
+            47,
+            56
+          ],
+          "sha256": "79122d8910eee31cc31e1a87b879fdc103de479fe465bb2c867cca74fe2279a5",
+          "source_frame_sha256": "a4fac33a229702b20171b70df776e4fd3b670ed7a32efbd0404774a34e95ec16"
+        },
+        {
+          "frame": 2,
+          "template": "navigation/mainline/s019-f2.png",
+          "crop": [
+            81,
+            63,
+            47,
+            56
+          ],
+          "green_mask": false,
+          "box": [
+            219,
+            238,
+            47,
+            56
+          ],
+          "sha256": "766cac56ff400eb22ac5bbadc0c89b002574fc366322c029b78e1442404c1060",
+          "source_frame_sha256": "0da041529abcc751dd741408a4a314b575233848130d83b08696ebf845781d8e"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s019-f3.png",
+          "crop": [
+            76,
+            60,
+            59,
+            87
+          ],
+          "green_mask": false,
+          "box": [
+            214,
+            235,
+            59,
+            87
+          ],
+          "sha256": "94731fa77b56652a8d4d5021a818546f966adacd7595aec476985b2f66e01002",
+          "source_frame_sha256": "26a2bb0ed0951d3009717c4f27a8b693ac413f27ea71d0977e94814e9704491c"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s019-f1.png",
+            "navigation/mainline/s019-f2.png",
+            "navigation/mainline/s019-f3.png"
+          ],
+          "roi": [
+            186,
+            207,
+            115,
+            143
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 20,
+      "name": "花果山",
+      "town": "town2",
+      "province": "东胜神洲",
+      "map_url": "huaguoshan",
+      "source_sprite": 30,
+      "source_bounds": [
+        334.0,
+        372.0,
+        452.74961874999997,
+        453.6997377
+      ],
+      "scene_layout": {
+        "width": 4997,
+        "height": 600,
+        "screen_width": 1200,
+        "birth_point": [
+          90.0,
+          293.0
+        ],
+        "class_type": "",
+        "cartoons": ""
+      },
+      "endpoint": null,
+      "offset": 0,
+      "roi": [
+        440,
+        452,
+        121,
+        146
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s020-f1.png",
+          "crop": [
+            83,
+            34,
+            31,
+            79
+          ],
+          "green_mask": false,
+          "box": [
+            491,
+            488,
+            31,
+            79
+          ],
+          "sha256": "8f19cf1d6e7c162bf1e0ef542e4808791f37ac350081307e97aa2cb82ccafd91",
+          "source_frame_sha256": "6ce5d85f4a68764ec31f3199ad78476981c6494a8bb2a9da28c534ea6b9fe2e0"
+        },
+        {
+          "frame": 2,
+          "template": "navigation/mainline/s020-f2.png",
+          "crop": [
+            83,
+            34,
+            32,
+            78
+          ],
+          "green_mask": false,
+          "box": [
+            491,
+            488,
+            32,
+            78
+          ],
+          "sha256": "55104a840f2dee6dc6d124ab5e417198b6afb7b8cc7bfaea96d06adc425f1674",
+          "source_frame_sha256": "29b3295d1ed96f113d5d066925e4e0be166d2e44236919d01b3ee47c7d3afc83"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s020-f3.png",
+          "crop": [
+            60,
+            26,
+            65,
+            90
+          ],
+          "green_mask": false,
+          "box": [
+            468,
+            480,
+            65,
+            90
+          ],
+          "sha256": "fe4ee81dce99f39248af825037e103d6d963c7bfd46099e225cc7a8c7b87b12e",
+          "source_frame_sha256": "c4f4eab123e342c43f61c0770648af70dd001d5162b1bf578802f1ef960b0d70"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s020-f1.png",
+            "navigation/mainline/s020-f2.png",
+            "navigation/mainline/s020-f3.png"
+          ],
+          "roi": [
+            440,
+            452,
+            121,
+            146
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 21,
+      "name": "水帘洞",
+      "town": "town2",
+      "province": "东胜神洲",
+      "map_url": "shuiliandong",
+      "source_sprite": 37,
+      "source_bounds": [
+        435.0,
+        431.0,
+        520.4997255,
+        493.6997987
+      ],
+      "scene_layout": {
+        "width": 4997,
+        "height": 600,
+        "screen_width": 1200,
+        "birth_point": [
+          90.0,
+          293.0
+        ],
+        "class_type": "",
+        "cartoons": ""
+      },
+      "endpoint": null,
+      "offset": 0,
+      "roi": [
+        559,
+        517,
+        133,
+        121
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s021-f1.png",
+          "crop": [
+            62,
+            37,
+            58,
+            18
+          ],
+          "green_mask": false,
+          "box": [
+            593,
+            563,
+            58,
+            18
+          ],
+          "sha256": "25094643d2aaf4634026e778732c867cc8aa3bcf87d44d3842ddc8378bcb492b",
+          "source_frame_sha256": "932849687fbe76eefb52d691185b4933f829411f463cedc73e78e7af68426302"
+        },
+        {
+          "frame": 2,
+          "template": "navigation/mainline/s021-f2.png",
+          "crop": [
+            62,
+            37,
+            58,
+            18
+          ],
+          "green_mask": false,
+          "box": [
+            593,
+            563,
+            58,
+            18
+          ],
+          "sha256": "0c300bb6af1d805c815d2118c1de022c0ed68ba57c2bb0114894d1ab7cf426bb",
+          "source_frame_sha256": "27293b1215783db3812d9f47602094b128dd39290eb7141005732a8724ee7012"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s021-f3.png",
+          "crop": [
+            56,
+            19,
+            77,
+            65
+          ],
+          "green_mask": false,
+          "box": [
+            587,
+            545,
+            77,
+            65
+          ],
+          "sha256": "58a4f2ac91bf87b899eb04d46ab54f765687248f7f69530f3bc669dd8216678d",
+          "source_frame_sha256": "24048c438011a03513b89a66b2c928c72225cebf15b1b57f640d289c9b404a96"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s021-f1.png",
+            "navigation/mainline/s021-f2.png",
+            "navigation/mainline/s021-f3.png"
+          ],
+          "roi": [
+            559,
+            517,
+            133,
+            121
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 22,
+      "name": "桃花谷",
+      "town": "town2",
+      "province": "东胜神洲",
+      "map_url": "taohuaguV521",
+      "source_sprite": 44,
+      "source_bounds": [
+        552.0,
+        432.0,
+        663.14964315,
+        503.24977125
+      ],
+      "scene_layout": {
+        "width": 1200,
+        "height": 3000,
+        "screen_width": 1200,
+        "birth_point": [
+          196.0,
+          115.0
+        ],
+        "class_type": "",
+        "cartoons": ""
+      },
+      "endpoint": null,
+      "offset": 0,
+      "roi": [
+        692,
+        544,
+        142,
+        133
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s022-f1.png",
+          "crop": [
+            115,
+            45,
+            17,
+            59
+          ],
+          "green_mask": false,
+          "box": [
+            789,
+            572,
+            17,
+            59
+          ],
+          "sha256": "fccfb08d95f8b56c8709d7df6d528557e08f4ad2770a44e6b36950e5cc4ba5d7",
+          "source_frame_sha256": "385d7ce13364cd3f11c5b4d93bdc1ef7c9358b9ea86b2855fa819cb0aa0ee1ef"
+        },
+        {
+          "frame": 2,
+          "template": "navigation/mainline/s022-f2.png",
+          "crop": [
+            115,
+            45,
+            17,
+            60
+          ],
+          "green_mask": false,
+          "box": [
+            789,
+            572,
+            17,
+            60
+          ],
+          "sha256": "ef23e3854e8c6b0eb83eed23a19de8764050a87c414d3966c3375c2d6fa1523c",
+          "source_frame_sha256": "f533d0acfa79bd0f38ad1ec00adcce284108216fb9c5475a8c2b2dfba988bbbc"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s022-f3.png",
+          "crop": [
+            46,
+            83,
+            65,
+            39
+          ],
+          "green_mask": false,
+          "box": [
+            720,
+            610,
+            65,
+            39
+          ],
+          "sha256": "b811a37b04eb9a19a8445e76043f201375d328b9eaf5e8cad233ce225960502b",
+          "source_frame_sha256": "7ecdc4441c8983a9851f453c25ec3fe16c5b21a350699c499ba6f9affbba6e60"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s022-f1.png",
+            "navigation/mainline/s022-f2.png",
+            "navigation/mainline/s022-f3.png"
+          ],
+          "roi": [
+            692,
+            544,
+            142,
+            133
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 23,
+      "name": "蝙蝠窟",
+      "town": "town2",
+      "province": "东胜神洲",
+      "map_url": "bianfuku",
+      "source_sprite": 51,
+      "source_bounds": [
+        711.5,
+        362.55,
+        811.24967975,
+        446.1497316
+      ],
+      "scene_layout": {
+        "width": 1200,
+        "height": 600,
+        "screen_width": 1200,
+        "birth_point": [
+          96.0,
+          115.0
+        ],
+        "class_type": "BianFuKu",
+        "cartoons": ""
+      },
+      "endpoint": null,
+      "offset": 0,
+      "roi": [
+        865,
+        458,
+        135,
+        133
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s023-f1.png",
+          "crop": [
+            37,
+            44,
+            44,
+            56
+          ],
+          "green_mask": false,
+          "box": [
+            905,
+            486,
+            44,
+            56
+          ],
+          "sha256": "b9b4c180e0fcc2db755c53dbfdb231576f716d8c273340a90a6f586761bc0796",
+          "source_frame_sha256": "9c4b0f4676ae78d2ac06eb12813516ed0c06f5f302cc7123a5158a423edae8c4"
+        },
+        {
+          "frame": 2,
+          "template": "navigation/mainline/s023-f2.png",
+          "crop": [
+            37,
+            44,
+            44,
+            56
+          ],
+          "green_mask": false,
+          "box": [
+            905,
+            486,
+            44,
+            56
+          ],
+          "sha256": "abc46151db6911e44191781caee4fa4b5ac6bab93775990689a86589e1b80d48",
+          "source_frame_sha256": "8a2f355c1a1848d28ac0b2c2252ea02b330ff6502f927006786025cd55c454c8"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s023-f3.png",
+          "crop": [
+            25,
+            49,
+            79,
+            72
+          ],
+          "green_mask": false,
+          "box": [
+            893,
+            491,
+            79,
+            72
+          ],
+          "sha256": "d60043dccc3cd45015cecc7083b5708bd0d7ae30c0143cd51f45b51168b176d9",
+          "source_frame_sha256": "182f258dee7f29c2cb148498d0ad68fe88b78264fb6a8a137ce8f9739a33df2a"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s023-f1.png",
+            "navigation/mainline/s023-f2.png",
+            "navigation/mainline/s023-f3.png"
+          ],
+          "roi": [
+            865,
+            458,
+            135,
+            133
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 24,
+      "name": "七星洞",
+      "town": "town2",
+      "province": "东胜神洲",
+      "map_url": "qixingdongV1",
+      "source_sprite": 58,
+      "source_bounds": [
+        557.75,
+        307.25,
+        694.5495608,
+        393.69972244999997
+      ],
+      "scene_layout": {
+        "width": 4997,
+        "height": 600,
+        "screen_width": 1200,
+        "birth_point": [
+          90.0,
+          293.0
+        ],
+        "class_type": "",
+        "cartoons": ""
+      },
+      "endpoint": null,
+      "offset": 0,
+      "roi": [
+        697,
+        402,
+        161,
+        114
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s024-f1.png",
+          "crop": [
+            44,
+            56,
+            72,
+            40
+          ],
+          "green_mask": false,
+          "box": [
+            725,
+            431,
+            72,
+            40
+          ],
+          "sha256": "34e748a72f0e7d95369a25f4b3e581f35d2524f1c29fa767df6ae5bc6f234590",
+          "source_frame_sha256": "91f8b4f1b4d5ee9e8b290d76de760b9c65193d571810ccb94ad4c19b2b2f3fe8"
+        },
+        {
+          "frame": 2,
+          "template": "navigation/mainline/s024-f2.png",
+          "crop": [
+            44,
+            55,
+            71,
+            41
+          ],
+          "green_mask": false,
+          "box": [
+            725,
+            430,
+            71,
+            41
+          ],
+          "sha256": "5c49df014ac9471fc8e2587b866359ce62c15612858b95ff91af8d0ebbb97a14",
+          "source_frame_sha256": "26a9f7f41875ebb27bea8d6e4e2dcbc65b4e87256e0f1389f93ae277b28cc78e"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s024-f3.png",
+          "crop": [
+            51,
+            62,
+            98,
+            51
+          ],
+          "green_mask": false,
+          "box": [
+            732,
+            437,
+            98,
+            51
+          ],
+          "sha256": "69a723ca8a35e319458470f0ccec1d181c593c8c8b8422548abb709872baaf5f",
+          "source_frame_sha256": "9bf394f58ddcfe3318972143b8797a4af25a7b310b994b67e14d77d98d86a829"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s024-f1.png",
+            "navigation/mainline/s024-f2.png",
+            "navigation/mainline/s024-f3.png"
+          ],
+          "roi": [
+            697,
+            402,
+            161,
+            114
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 25,
+      "name": "万妖穴",
+      "town": "town2",
+      "province": "东胜神洲",
+      "map_url": "wanyaoxueV1",
+      "source_sprite": 65,
+      "source_bounds": [
+        440.0,
+        243.0,
+        540.6996767,
+        309.4997865
+      ],
+      "scene_layout": {
+        "width": 4997,
+        "height": 600,
+        "screen_width": 1200,
+        "birth_point": [
+          90.0,
+          293.0
+        ],
+        "class_type": "",
+        "cartoons": ""
+      },
+      "endpoint": null,
+      "offset": 0,
+      "roi": [
+        543,
+        309,
+        125,
+        120
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s025-f1.png",
+          "crop": [
+            55,
+            40,
+            45,
+            30
+          ],
+          "green_mask": false,
+          "box": [
+            592,
+            337,
+            45,
+            30
+          ],
+          "sha256": "a468faa11aedd455090b9aa88d0541a54820018332a11cc60a2e9b638e65c0c4",
+          "source_frame_sha256": "cedaf69a52bdb0117fa696546c02a687e219b74aefd1c18451bc25a35dd2b0be"
+        },
+        {
+          "frame": 2,
+          "template": "navigation/mainline/s025-f2.png",
+          "crop": [
+            55,
+            40,
+            45,
+            29
+          ],
+          "green_mask": false,
+          "box": [
+            592,
+            337,
+            45,
+            29
+          ],
+          "sha256": "6b2434f8b6dd510637d229cc5af52636f7747ef53e18b2412b65b87f1728ebc6",
+          "source_frame_sha256": "1ce0273269cbea0f4d03309b6c5878844c8b7bddfdd04952894acbb775366af2"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s025-f3.png",
+          "crop": [
+            34,
+            78,
+            69,
+            26
+          ],
+          "green_mask": false,
+          "box": [
+            571,
+            375,
+            69,
+            26
+          ],
+          "sha256": "95d5a220917612fbf8803778e14fff6ac55468e5f2cc3115c636b0f3e5bd6c7a",
+          "source_frame_sha256": "cc21cff3652e854ce5d9b463721fe489675231ddda5407c0352f025f743b0e0c"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s025-f1.png",
+            "navigation/mainline/s025-f2.png",
+            "navigation/mainline/s025-f3.png"
+          ],
+          "roi": [
+            543,
+            309,
+            125,
+            120
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 26,
+      "name": "琉璃宫",
+      "town": "town2",
+      "province": "东胜神洲",
+      "map_url": "liuligongV3",
+      "source_sprite": 72,
+      "source_bounds": [
+        318.0,
+        154.0,
+        469.999512,
+        231.8997499
+      ],
+      "scene_layout": {
+        "width": 4997,
+        "height": 600,
+        "screen_width": 1200,
+        "birth_point": [
+          90.0,
+          293.0
+        ],
+        "class_type": "",
+        "cartoons": ""
+      },
+      "endpoint": null,
+      "offset": 0,
+      "roi": [
+        416,
+        223,
+        149,
+        102
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s026-f1.png",
+          "crop": [
+            62,
+            76,
+            84,
+            21
+          ],
+          "green_mask": false,
+          "box": [
+            450,
+            264,
+            84,
+            21
+          ],
+          "sha256": "5040ff9ace85a0d915aa5e72867ef2f6f54079302cb8e1bfc59b951962566683",
+          "source_frame_sha256": "9587d944b56bc6930665c96cd31cde55a80d97936d3ba619e9faf2bf2d91bee9"
+        },
+        {
+          "frame": 2,
+          "template": "navigation/mainline/s026-f2.png",
+          "crop": [
+            62,
+            76,
+            87,
+            20
+          ],
+          "green_mask": false,
+          "box": [
+            450,
+            264,
+            87,
+            20
+          ],
+          "sha256": "e58c0324d7f6a89d6c668830e6b2cd3b3ad45b98e81a396cf4b71ebed537681c",
+          "source_frame_sha256": "36089ef239c93d6d7b29397f554d90cab035abbafa23dd4ebd8afe70731a660a"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s026-f3.png",
+          "crop": [
+            56,
+            63,
+            69,
+            46
+          ],
+          "green_mask": false,
+          "box": [
+            444,
+            251,
+            69,
+            46
+          ],
+          "sha256": "23ce6b8c7bb9ab2dfd518bf6799fa94025bc33e57cfc721cc70f3311e9532829",
+          "source_frame_sha256": "648e3c7f5a22fb981747dbc866ee225d650635c9b75544e2d6b84088c6169a9f"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s026-f1.png",
+            "navigation/mainline/s026-f2.png",
+            "navigation/mainline/s026-f3.png"
+          ],
+          "roi": [
+            416,
+            223,
+            149,
+            102
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 27,
+      "name": "金玉宫",
+      "town": "town2",
+      "province": "东胜神洲",
+      "map_url": "jinyugongV3",
+      "source_sprite": 79,
+      "source_bounds": [
+        586.55,
+        164.35,
+        684.55,
+        269.35
+      ],
+      "scene_layout": {
+        "width": 4997,
+        "height": 600,
+        "screen_width": 1200,
+        "birth_point": [
+          90.0,
+          293.0
+        ],
+        "class_type": "",
+        "cartoons": ""
+      },
+      "endpoint": null,
+      "offset": 0,
+      "roi": [
+        722,
+        253,
+        147,
+        105
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s027-f1.png",
+          "crop": [
+            42,
+            96,
+            72,
+            33
+          ],
+          "green_mask": false,
+          "box": [
+            758,
+            297,
+            72,
+            33
+          ],
+          "sha256": "d1428fa42eed0d2c90157c433bf906ca2bb79237ad3a9f4c2269d66020f5aa72",
+          "source_frame_sha256": "83f8da8f4418421e4de28261aa95ddc556e279180da7c7b5e1dfd0bad1b8afe5"
+        },
+        {
+          "frame": 2,
+          "template": "navigation/mainline/s027-f2.png",
+          "crop": [
+            38,
+            98,
+            77,
+            31
+          ],
+          "green_mask": false,
+          "box": [
+            754,
+            299,
+            77,
+            31
+          ],
+          "sha256": "0936ae64964a983d5dcc1c0a63ea80f2110c9c0a96a7693222c61b201151e122",
+          "source_frame_sha256": "bc2af4ce548563f6a5f3710413aa338e071b07f4f212145628837c22f8e46792"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s027-f3.png",
+          "crop": [
+            34,
+            80,
+            91,
+            37
+          ],
+          "green_mask": false,
+          "box": [
+            750,
+            281,
+            91,
+            37
+          ],
+          "sha256": "ef40040c99c85359080233e61210f56ebbc6f0e8e7b68426ddf891218a1ac9b1",
+          "source_frame_sha256": "cfd9d6fccfe8fb516ffda5c1f820685afcc4af9a927ea3de43af046e0aaa86cd"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s027-f1.png",
+            "navigation/mainline/s027-f2.png",
+            "navigation/mainline/s027-f3.png"
+          ],
+          "roi": [
+            722,
+            253,
+            147,
+            105
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 28,
+      "name": "浮天台",
+      "town": "town2",
+      "province": "东胜神洲",
+      "map_url": "futiantai",
+      "source_sprite": 86,
+      "source_bounds": [
+        730.45,
+        147.9,
+        810.2497438,
+        242.899695
+      ],
+      "scene_layout": {
+        "width": 4997,
+        "height": 1200,
+        "screen_width": 1200,
+        "birth_point": [
+          90.0,
+          900.0
+        ],
+        "class_type": "",
+        "cartoons": ""
+      },
+      "endpoint": null,
+      "offset": 0,
+      "roi": [
+        906,
+        242,
+        124,
+        117
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s028-f1.png",
+          "crop": [
+            44,
+            110,
+            66,
+            29
+          ],
+          "green_mask": false,
+          "box": [
+            935,
+            290,
+            66,
+            29
+          ],
+          "sha256": "aa4b3edec3109674996e43e3729cc6c5e84d83c132606baa143fa86b574abb36",
+          "source_frame_sha256": "6c683ff80e95ede38c2c64d3087f96031e3273cb2c6338a73a88d8901873e44f"
+        },
+        {
+          "frame": 2,
+          "template": "navigation/mainline/s028-f2.png",
+          "crop": [
+            44,
+            110,
+            67,
+            28
+          ],
+          "green_mask": false,
+          "box": [
+            935,
+            290,
+            67,
+            28
+          ],
+          "sha256": "8d6e75b63f3686ca6c7cbfbf520a7cf0662a95755e62f747c2295860380360b6",
+          "source_frame_sha256": "4ee6e5091fa1701555ce671383572e9f4bf4c9005c47dd45f36690b73f14ee83"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s028-f3.png",
+          "crop": [
+            43,
+            90,
+            60,
+            61
+          ],
+          "green_mask": false,
+          "box": [
+            934,
+            270,
+            60,
+            61
+          ],
+          "sha256": "8959bbb4c765f4abbd640bae58519a09113170fdcd44f689cd8204fd992a8741",
+          "source_frame_sha256": "b0e109e6448bbfa8ff30dd447a9a20114a0845f8af0802be5cc1d5d3bbeeaf6e"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s028-f1.png",
+            "navigation/mainline/s028-f2.png",
+            "navigation/mainline/s028-f3.png"
+          ],
+          "roi": [
+            906,
+            242,
+            124,
+            117
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 29,
+      "name": "云川",
+      "town": "town2",
+      "province": "东胜神洲",
+      "map_url": "yunhaiV580",
+      "source_sprite": 93,
+      "source_bounds": [
+        619.0,
+        66.0,
+        771.94950895,
+        122.99981700000001
+      ],
+      "scene_layout": {
+        "width": 4997,
+        "height": 600,
+        "screen_width": 1200,
+        "birth_point": [
+          120.0,
+          293.0
+        ],
+        "class_type": "YunChuan",
+        "cartoons": ""
+      },
+      "endpoint": null,
+      "offset": 0,
+      "roi": [
+        797,
+        92,
+        160,
+        90
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s029-f1.png",
+          "crop": [
+            71,
+            45,
+            98,
+            26
+          ],
+          "green_mask": false,
+          "box": [
+            826,
+            126,
+            98,
+            26
+          ],
+          "sha256": "ea1cc0e9f8e7688414f8a6ea89fb7dfab01bdf2553954c3a32acf36a2be44f6e",
+          "source_frame_sha256": "e5a67a6bd4602f9340652b83f1811b3d2eb34d17d87b44edd532f7f5609a7416"
+        },
+        {
+          "frame": 2,
+          "template": "navigation/mainline/s029-f2.png",
+          "crop": [
+            70,
+            45,
+            100,
+            25
+          ],
+          "green_mask": false,
+          "box": [
+            825,
+            126,
+            100,
+            25
+          ],
+          "sha256": "86fd34ced34be47a9b9e1942208f182af555e7111266ccee94bac29b0b04ad4a",
+          "source_frame_sha256": "0c3987789449602ca2e3e924d9fe79dde0e2f2b7ae1d3aa069ef780850a0e3b1"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s029-f3.png",
+          "crop": [
+            74,
+            39,
+            100,
+            34
+          ],
+          "green_mask": false,
+          "box": [
+            829,
+            120,
+            100,
+            34
+          ],
+          "sha256": "732b5dfc34fabce7329d318f7265f2684cb6088500c27d4bffefcd8f8559adf2",
+          "source_frame_sha256": "fdc53e1a386d7648bfe33ed6988369efbc0ccc5860ca31342fb0e21423b9477f"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s029-f1.png",
+            "navigation/mainline/s029-f2.png",
+            "navigation/mainline/s029-f3.png"
+          ],
+          "roi": [
+            797,
+            92,
+            160,
+            90
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 30,
+      "name": "苍梧渊",
+      "town": "town3",
+      "province": "北俱芦洲",
+      "map_url": "cangwuyuanV398",
+      "source_sprite": 21,
+      "source_bounds": [
+        662.0,
+        381.0,
+        774.0,
+        499.0
+      ],
+      "scene_layout": {
+        "width": 1450,
+        "height": 3600,
+        "screen_width": 1450,
+        "birth_point": [
+          200.0,
+          3300.0
+        ],
+        "class_type": "CangWuYuan",
+        "cartoons": ""
+      },
+      "endpoint": null,
+      "offset": 0,
+      "roi": [
+        813,
+        486,
+        147,
+        159
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s030-f1.png",
+          "crop": [
+            55,
+            49,
+            69,
+            67
+          ],
+          "green_mask": false,
+          "box": [
+            863,
+            514,
+            69,
+            67
+          ],
+          "sha256": "5441e532ca386ac252fb9c9903d17dcd0e55be67bce2efec874b3bf3af0e8942",
+          "source_frame_sha256": "efa56105ae53e69f36d095c9b4d11faabcf4a30e81b2177a19d3ed57a62ce77f"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s030-f3.png",
+          "crop": [
+            33,
+            62,
+            67,
+            90
+          ],
+          "green_mask": false,
+          "box": [
+            841,
+            527,
+            67,
+            90
+          ],
+          "sha256": "a9dd29e570ba2bf118f5b8c69c82971ef325fba97acd788918d52a1d60937c7b",
+          "source_frame_sha256": "00d6f23df52f635598e9ee5b2d4161ac72f8aa506394ac3c28c374c4365d6da6"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s030-f1.png",
+            "navigation/mainline/s030-f3.png"
+          ],
+          "roi": [
+            813,
+            486,
+            147,
+            159
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 31,
+      "name": "寒山坡",
+      "town": "town3",
+      "province": "北俱芦洲",
+      "map_url": "hanshanpoV2",
+      "source_sprite": 28,
+      "source_bounds": [
+        446.0,
+        387.0,
+        589.0,
+        487.0
+      ],
+      "scene_layout": {
+        "width": 4997,
+        "height": 1200,
+        "screen_width": 1200,
+        "birth_point": [
+          90.0,
+          900.0
+        ],
+        "class_type": "",
+        "cartoons": ""
+      },
+      "endpoint": null,
+      "offset": 0,
+      "roi": [
+        550,
+        493,
+        183,
+        143
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s031-f1.png",
+          "crop": [
+            61,
+            70,
+            100,
+            35
+          ],
+          "green_mask": false,
+          "box": [
+            605,
+            542,
+            100,
+            35
+          ],
+          "sha256": "4e6196b7b3b010b51fd2652cc4e6745a37009e6fbb36d7a4ec420ad045aa8abf",
+          "source_frame_sha256": "96552d0ce6992dc6ef3cf509d418fe1b610f6cfd4cd6588cfb043594f0854021"
+        },
+        {
+          "frame": 2,
+          "template": "navigation/mainline/s031-f2.png",
+          "crop": [
+            61,
+            70,
+            100,
+            35
+          ],
+          "green_mask": false,
+          "box": [
+            605,
+            542,
+            100,
+            35
+          ],
+          "sha256": "48e06accdbf11e15985de05d51f9bb8e67ca179212705247410947ce07db80b1",
+          "source_frame_sha256": "3cb6f76dfeecfbb2115c7b2ea5a9feead65134f209160ae28280c638810bd99b"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s031-f3.png",
+          "crop": [
+            34,
+            49,
+            100,
+            87
+          ],
+          "green_mask": false,
+          "box": [
+            578,
+            521,
+            100,
+            87
+          ],
+          "sha256": "bbee0f018eb58144db75927653c724ebf6b0eb5b3aba05177f3c75d0c4a30117",
+          "source_frame_sha256": "090e77870a1d5abf43e0cd381c1127e91edc16718a04a58e042a58704c3e0c83"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s031-f1.png",
+            "navigation/mainline/s031-f2.png",
+            "navigation/mainline/s031-f3.png"
+          ],
+          "roi": [
+            550,
+            493,
+            183,
+            143
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 32,
+      "name": "冻天",
+      "town": "town3",
+      "province": "北俱芦洲",
+      "map_url": "dongtian",
+      "source_sprite": 35,
+      "source_bounds": [
+        129.0,
+        357.0,
+        375.0,
+        494.0
+      ],
+      "scene_layout": {
+        "width": 4997,
+        "height": 600,
+        "screen_width": 1200,
+        "birth_point": [
+          90.0,
+          293.0
+        ],
+        "class_type": "",
+        "cartoons": ""
+      },
+      "endpoint": null,
+      "offset": 0,
+      "roi": [
+        316,
+        484,
+        130,
+        148
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s032-f1.png",
+          "crop": [
+            187,
+            83,
+            70,
+            85
+          ],
+          "green_mask": false,
+          "box": [
+            344,
+            519,
+            70,
+            85
+          ],
+          "sha256": "16955c40b3109f150046b985b804e25afeff8f5a00cd749a8e553de85f60f5c1",
+          "source_frame_sha256": "e10449cd04ec457b062f5a90cb25d4ba4f95494219ed0cbb817ec99988c944df"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s032-f3.png",
+          "crop": [
+            187,
+            76,
+            74,
+            90
+          ],
+          "green_mask": false,
+          "box": [
+            344,
+            512,
+            74,
+            90
+          ],
+          "sha256": "1c93903b87a1bd96263e46a0d6ac2def78990b1eedcb540abe28d373db0fd083",
+          "source_frame_sha256": "b85fc09d361f311c6e95967a00d3a44b6070e31e625e88c0b1edb897acda3735"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s032-f1.png",
+            "navigation/mainline/s032-f3.png"
+          ],
+          "roi": [
+            316,
+            484,
+            130,
+            148
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 33,
+      "name": "蜃楼城",
+      "town": "town3",
+      "province": "北俱芦洲",
+      "map_url": "shenlouchengV1",
+      "source_sprite": 42,
+      "source_bounds": [
+        109.0,
+        227.0,
+        254.0,
+        329.0
+      ],
+      "scene_layout": {
+        "width": 2000,
+        "height": 2000,
+        "screen_width": 2000,
+        "birth_point": [
+          90.0,
+          1700.0
+        ],
+        "class_type": "",
+        "cartoons": ""
+      },
+      "endpoint": null,
+      "offset": 0,
+      "roi": [
+        160,
+        283,
+        151,
+        155
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s033-f1.png",
+          "crop": [
+            55,
+            43,
+            91,
+            90
+          ],
+          "green_mask": false,
+          "box": [
+            188,
+            320,
+            91,
+            90
+          ],
+          "sha256": "f0cc28ac1b28a0a68e18db0a065d5d887e0ce5ac1a38d0d95acb176df3eb3490",
+          "source_frame_sha256": "8fc5179349607753dec7546e9c34b4237a3ae264911e346a9c49b4ac4d7a430a"
+        },
+        {
+          "frame": 2,
+          "template": "navigation/mainline/s033-f2.png",
+          "crop": [
+            55,
+            43,
+            91,
+            90
+          ],
+          "green_mask": false,
+          "box": [
+            188,
+            320,
+            91,
+            90
+          ],
+          "sha256": "2fa4ca6a481c650e875a6be9ef52cda7398b5216f8f8255f3ddf5db8d884bd98",
+          "source_frame_sha256": "1ad24f7738328f7c601856bcc034aeb8cfac18bdd98479fa986ccdf3cf1d93f7"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s033-f3.png",
+          "crop": [
+            58,
+            34,
+            92,
+            90
+          ],
+          "green_mask": false,
+          "box": [
+            191,
+            311,
+            92,
+            90
+          ],
+          "sha256": "e1055262906bdee90890a585b612f2259f6485b70bc057ffe0639b8b8b42262c",
+          "source_frame_sha256": "7e863508155fe663a0fd333f8747419c69cddf16cf18c858be23fcbb17b48ff2"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s033-f1.png",
+            "navigation/mainline/s033-f2.png",
+            "navigation/mainline/s033-f3.png"
+          ],
+          "roi": [
+            160,
+            283,
+            151,
+            155
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 34,
+      "name": "幻境阁",
+      "town": "town3",
+      "province": "北俱芦洲",
+      "map_url": "huanjinggeV2",
+      "source_sprite": 49,
+      "source_bounds": [
+        430.0,
+        198.0,
+        529.0,
+        327.0
+      ],
+      "scene_layout": {
+        "width": 1200,
+        "height": 600,
+        "screen_width": 1200,
+        "birth_point": [
+          590.0,
+          293.0
+        ],
+        "class_type": "HuanJingGe",
+        "cartoons": ""
+      },
+      "endpoint": null,
+      "offset": 0,
+      "roi": [
+        528,
+        274,
+        148,
+        156
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s034-f1.png",
+          "crop": [
+            37,
+            60,
+            86,
+            90
+          ],
+          "green_mask": false,
+          "box": [
+            562,
+            302,
+            86,
+            90
+          ],
+          "sha256": "aedd265d232d6d6a92489f0f9356a6c9ad5e6d55258bfc4e5ce072853424c9cd",
+          "source_frame_sha256": "9abbe4cc3576ccb373a6d84c9165c182a2710dcee631804bb0e4b4c8f003109d"
+        },
+        {
+          "frame": 2,
+          "template": "navigation/mainline/s034-f2.png",
+          "crop": [
+            37,
+            60,
+            86,
+            90
+          ],
+          "green_mask": false,
+          "box": [
+            562,
+            302,
+            86,
+            90
+          ],
+          "sha256": "0c688865fe57bca46b341636d70d4ea9538b958c4bb388235048452cfb8a671d",
+          "source_frame_sha256": "32d30c0b042a70ec54cc7153e86ce77bd72997a8ad3d71e444c892f33edacb1a"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s034-f3.png",
+          "crop": [
+            31,
+            70,
+            83,
+            90
+          ],
+          "green_mask": false,
+          "box": [
+            556,
+            312,
+            83,
+            90
+          ],
+          "sha256": "1f4225ace1ec16ce194bf39ebb0f0b4ce79a214c9cb7d363bf1708be28a01429",
+          "source_frame_sha256": "c507df56be67572046d00ca918d74fb6b7bd087e63fec8b7b98084fb1f7c4399"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s034-f1.png",
+            "navigation/mainline/s034-f2.png",
+            "navigation/mainline/s034-f3.png"
+          ],
+          "roi": [
+            528,
+            274,
+            148,
+            156
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 35,
+      "name": "壶中洞天",
+      "town": "town3",
+      "province": "北俱芦洲",
+      "map_url": "huzhongdongtian",
+      "source_sprite": 14,
+      "source_bounds": [
+        694.0,
+        203.0,
+        804.0,
+        308.0
+      ],
+      "scene_layout": {
+        "width": 4997,
+        "height": 750,
+        "screen_width": 1200,
+        "birth_point": [
+          90.0,
+          500.0
+        ],
+        "class_type": "HuZhongDongTian",
+        "cartoons": ""
+      },
+      "endpoint": null,
+      "offset": 0,
+      "roi": [
+        865,
+        262,
+        139,
+        157
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s035-f1.png",
+          "crop": [
+            63,
+            42,
+            53,
+            90
+          ],
+          "green_mask": false,
+          "box": [
+            910,
+            290,
+            53,
+            90
+          ],
+          "sha256": "b3a3d0d23de770e385efe99579c26f3f56a97c36620d3594d46f756cf999d87e",
+          "source_frame_sha256": "aa41d1878a31e8c1ac5fcf51371107f21cfc571c29ce197cb466c8f7fdfa4de5"
+        },
+        {
+          "frame": 2,
+          "template": "navigation/mainline/s035-f2.png",
+          "crop": [
+            63,
+            42,
+            53,
+            90
+          ],
+          "green_mask": false,
+          "box": [
+            910,
+            290,
+            53,
+            90
+          ],
+          "sha256": "28f6a1e8b4a5aecc4c9da67d6a4fe80489b3c9bbc2948eeae56e5be014c3b265",
+          "source_frame_sha256": "c3277d6758a64b141f12ab5ba9bf130e9d51797c1866d14d579307a24b9f0930"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s035-f3.png",
+          "crop": [
+            46,
+            53,
+            83,
+            90
+          ],
+          "green_mask": false,
+          "box": [
+            893,
+            301,
+            83,
+            90
+          ],
+          "sha256": "d422bf0a9d8793400dfdec0df1cd9560c2727e4cefa9538510c46dc474d1b76b",
+          "source_frame_sha256": "2c25aaa4ea0953bbe2fb67e1b4e4ba13f00cd2fd74d1e1886a1d231a4f7a5920"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s035-f1.png",
+            "navigation/mainline/s035-f2.png",
+            "navigation/mainline/s035-f3.png"
+          ],
+          "roi": [
+            865,
+            262,
+            139,
+            157
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 36,
+      "name": "夙夜径",
+      "town": "town3",
+      "province": "北俱芦洲",
+      "map_url": "anyemeng",
+      "source_sprite": 56,
+      "source_bounds": [
+        239.0,
+        129.0,
+        420.0,
+        258.0
+      ],
+      "scene_layout": {
+        "width": 5797,
+        "height": 600,
+        "screen_width": 1200,
+        "birth_point": [
+          90.0,
+          500.0
+        ],
+        "class_type": "AnYeMeng",
+        "cartoons": ""
+      },
+      "endpoint": null,
+      "offset": 0,
+      "roi": [
+        341,
+        172,
+        172,
+        146
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s036-f1.png",
+          "crop": [
+            77,
+            59,
+            100,
+            57
+          ],
+          "green_mask": false,
+          "box": [
+            369,
+            216,
+            100,
+            57
+          ],
+          "sha256": "25b09728b4c117ed09bcf4ce98faea6258d534bfee4d4f9e13b3e982d1b57f1a",
+          "source_frame_sha256": "f9ab9d869ddbdbde8ccdedf107afb0370375177881af0d792dd0e4ab368b91b7"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s036-f3.png",
+          "crop": [
+            93,
+            43,
+            100,
+            90
+          ],
+          "green_mask": false,
+          "box": [
+            385,
+            200,
+            100,
+            90
+          ],
+          "sha256": "a504e7376accb22f7bd20215c2daf376a6d89f47927ec487ea626bd7fc6c6942",
+          "source_frame_sha256": "e70dd684bdfd4cdf7e7dd524dd6ccc6028b012235bebf16f008c86b2b982b7b8"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s036-f1.png",
+            "navigation/mainline/s036-f3.png"
+          ],
+          "roi": [
+            341,
+            172,
+            172,
+            146
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 37,
+      "name": "太虚星河",
+      "town": "town3",
+      "province": "北俱芦洲",
+      "map_url": "taixuxingheV423",
+      "source_sprite": 63,
+      "source_bounds": [
+        361.0,
+        62.0,
+        496.0,
+        155.0
+      ],
+      "scene_layout": {
+        "width": 4997,
+        "height": 600,
+        "screen_width": 1200,
+        "birth_point": [
+          90.0,
+          300.0
+        ],
+        "class_type": "TaiXuXingHe",
+        "cartoons": ""
+      },
+      "endpoint": null,
+      "offset": 0,
+      "roi": [
+        470,
+        92,
+        115,
+        135
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s037-f1.png",
+          "crop": [
+            59,
+            44,
+            55,
+            44
+          ],
+          "green_mask": false,
+          "box": [
+            500,
+            120,
+            55,
+            44
+          ],
+          "sha256": "a1b867b6e9c0ed212ffe9b7eefac189b166b131828a78c07bbd8e2e89e27feea",
+          "source_frame_sha256": "e1f288154c2163b9bc4abd771246389222f379c22ee31eff22415836c00c73bb"
+        },
+        {
+          "frame": 2,
+          "template": "navigation/mainline/s037-f2.png",
+          "crop": [
+            57,
+            44,
+            59,
+            41
+          ],
+          "green_mask": false,
+          "box": [
+            498,
+            120,
+            59,
+            41
+          ],
+          "sha256": "1c8e0de85bcd084731cb3b7221e7c1f7531ec2a8df405a18690f9bce2e4be64e",
+          "source_frame_sha256": "3fe994e16dad7a46321257e54f4c019d2668ae5eaa6339c3de7b0cfdb89b850f"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s037-f3.png",
+          "crop": [
+            60,
+            44,
+            55,
+            79
+          ],
+          "green_mask": false,
+          "box": [
+            501,
+            120,
+            55,
+            79
+          ],
+          "sha256": "7a8c871e77142a85350fa7671b36f673fe8a80c894e8d91ff753389024504d0f",
+          "source_frame_sha256": "27273b3127b183b2a6d55129c526d98999630cce17f6429109916958b3134572"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s037-f1.png",
+            "navigation/mainline/s037-f2.png",
+            "navigation/mainline/s037-f3.png"
+          ],
+          "roi": [
+            470,
+            92,
+            115,
+            135
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 38,
+      "name": "钟晷极地",
+      "town": "town3",
+      "province": "北俱芦洲",
+      "map_url": "suiyunjianV3",
+      "source_sprite": 70,
+      "source_bounds": [
+        518.0,
+        60.0,
+        627.0,
+        153.0
+      ],
+      "scene_layout": {
+        "width": 4997,
+        "height": 600,
+        "screen_width": 1200,
+        "birth_point": [
+          90.0,
+          300.0
+        ],
+        "class_type": "",
+        "cartoons": ""
+      },
+      "endpoint": null,
+      "offset": 0,
+      "roi": [
+        641,
+        92,
+        160,
+        147
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s038-f1.png",
+          "crop": [
+            48,
+            47,
+            93,
+            55
+          ],
+          "green_mask": false,
+          "box": [
+            680,
+            120,
+            93,
+            55
+          ],
+          "sha256": "2f2dc215b2d258fb86f3d8607b20808b70ac32d49bb5e33a6d60f438a9c1457f",
+          "source_frame_sha256": "0ef214e498b2872f6b8f8fe2ba13887bded103d44ddc0730a5402f3eebc4c8c4"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s038-f3.png",
+          "crop": [
+            37,
+            48,
+            91,
+            90
+          ],
+          "green_mask": false,
+          "box": [
+            669,
+            121,
+            91,
+            90
+          ],
+          "sha256": "1ebf2bd05bc661d52fbe6e5cf667be0c3791f57c32cc768783c1e4972ec7a4bd",
+          "source_frame_sha256": "9be250d6e21e9364c3fe4dfbb2dab725c4c1fc2842965f52425cfe00b7335a24"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s038-f1.png",
+            "navigation/mainline/s038-f3.png"
+          ],
+          "roi": [
+            641,
+            92,
+            160,
+            147
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 39,
+      "name": "星域",
+      "town": "town3",
+      "province": "北俱芦洲",
+      "map_url": "feitianV1",
+      "source_sprite": 77,
+      "source_bounds": [
+        654.0,
+        45.0,
+        816.0,
+        170.0
+      ],
+      "scene_layout": {
+        "width": 940,
+        "height": 600,
+        "screen_width": 940,
+        "birth_point": [
+          120.0,
+          293.0
+        ],
+        "class_type": "SW",
+        "cartoons": ""
+      },
+      "endpoint": null,
+      "offset": 0,
+      "roi": [
+        832,
+        92,
+        142,
+        116
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s039-f1.png",
+          "crop": [
+            64,
+            65,
+            84,
+            33
+          ],
+          "green_mask": false,
+          "box": [
+            862,
+            120,
+            84,
+            33
+          ],
+          "sha256": "5dd1ff8b0b5e0e14c12307a6b676a7712f890da805034d6697d22e55b2d9e7e3",
+          "source_frame_sha256": "6e8269151b64de08894f7f839e65982df9c4c905b89112d6adf342ccd87a8ea6"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s039-f3.png",
+          "crop": [
+            62,
+            65,
+            65,
+            60
+          ],
+          "green_mask": false,
+          "box": [
+            860,
+            120,
+            65,
+            60
+          ],
+          "sha256": "cd7090f938f23b6213824d212daa34fa8d81aaf9e6fc4a4ea4a6941faec7c660",
+          "source_frame_sha256": "04f885ffe88c097e9ba1bd9572d37bb1e9d3e838ec472bba16ef1626e8e46e00"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s039-f1.png",
+            "navigation/mainline/s039-f3.png"
+          ],
+          "roi": [
+            832,
+            92,
+            142,
+            116
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 40,
+      "name": "凌云渡",
+      "town": "town4",
+      "province": "西牛贺洲",
+      "map_url": "lingyundu",
+      "source_sprite": 9,
+      "source_bounds": [
+        652.15,
+        406.45,
+        757.15,
+        533.45
+      ],
+      "scene_layout": {
+        "width": 4000,
+        "height": 600,
+        "screen_width": 1000,
+        "birth_point": [
+          90.0,
+          250.0
+        ],
+        "class_type": "LingYunDu",
+        "cartoons": ""
+      },
+      "endpoint": null,
+      "offset": 0,
+      "roi": [
+        796,
+        504,
+        124,
+        146
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s040-f1.png",
+          "crop": [
+            28,
+            40,
+            64,
+            58
+          ],
+          "green_mask": false,
+          "box": [
+            824,
+            536,
+            64,
+            58
+          ],
+          "sha256": "23baed0b5476d9bc4bb50ff769aea4b6475002f7bb9fef554132c1cc86f61f0e",
+          "source_frame_sha256": "ab35f5a275b2c6509bb4ce7c6e0877c4bbe38424d84ae74a9ca4807f77e6fc3b"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s040-f3.png",
+          "crop": [
+            49,
+            36,
+            47,
+            90
+          ],
+          "green_mask": false,
+          "box": [
+            845,
+            532,
+            47,
+            90
+          ],
+          "sha256": "cf8c4df36af27d7fe7ddb400c294273a4e54a44f262db49dadaf03615a8ba8ed",
+          "source_frame_sha256": "9e0e77b278852320acc58bfd4b7405f164ab42ca0886676c6794bc0086f9126a"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s040-f1.png",
+            "navigation/mainline/s040-f3.png"
+          ],
+          "roi": [
+            796,
+            504,
+            124,
+            146
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 41,
+      "name": "蓝毗尼园",
+      "town": "town4",
+      "province": "西牛贺洲",
+      "map_url": "lanpiniyuanV1",
+      "source_sprite": 49,
+      "source_bounds": [
+        528.45,
+        275.85,
+        711.45,
+        408.85
+      ],
+      "scene_layout": {
+        "width": 4997,
+        "height": 600,
+        "screen_width": 1000,
+        "birth_point": [
+          90.0,
+          250.0
+        ],
+        "class_type": "",
+        "cartoons": ""
+      },
+      "endpoint": null,
+      "offset": 0,
+      "roi": [
+        685,
+        388,
+        156,
+        122
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s041-f1.png",
+          "crop": [
+            68,
+            85,
+            100,
+            18
+          ],
+          "green_mask": false,
+          "box": [
+            713,
+            422,
+            100,
+            18
+          ],
+          "sha256": "183986b2e03edea1407579a837efece9d3e4552929ae9f60a7a4b1b7073a2b31",
+          "source_frame_sha256": "3c962a507d6604cbfd6045c5a4656f4ba4ddcffdc29438d93d53a1b891c65bd1"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s041-f3.png",
+          "crop": [
+            68,
+            79,
+            77,
+            66
+          ],
+          "green_mask": false,
+          "box": [
+            713,
+            416,
+            77,
+            66
+          ],
+          "sha256": "30175ecdb14654890b77370e83ae7b7fe33aa8e41e37056a44c6ff42b19d72b1",
+          "source_frame_sha256": "b1912881c51120c740976b016532cfd070601ec038e61afd98830c0559c8d22d"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s041-f1.png",
+            "navigation/mainline/s041-f3.png"
+          ],
+          "roi": [
+            685,
+            388,
+            156,
+            122
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 42,
+      "name": "菩提道场",
+      "town": "town4",
+      "province": "西牛贺洲",
+      "map_url": "putidaochangV2",
+      "source_sprite": 56,
+      "source_bounds": [
+        358.8,
+        337.95,
+        527.8,
+        475.95
+      ],
+      "scene_layout": {
+        "width": 4997,
+        "height": 600,
+        "screen_width": 1200,
+        "birth_point": [
+          90.0,
+          250.0
+        ],
+        "class_type": "",
+        "cartoons": ""
+      },
+      "endpoint": null,
+      "offset": 0,
+      "roi": [
+        459,
+        416,
+        125,
+        155
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s042-f1.png",
+          "crop": [
+            52,
+            32,
+            66,
+            73
+          ],
+          "green_mask": false,
+          "box": [
+            490,
+            444,
+            66,
+            73
+          ],
+          "sha256": "aa6d3545e76e91444a71354e8ba3f3ed8a89540b35c4712f4e5c02373d3cb4a5",
+          "source_frame_sha256": "7077ec9cc2894bc5a26d0b4e7f56913ef66d5e33eafd6c47d915648c28ee587f"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s042-f3.png",
+          "crop": [
+            49,
+            41,
+            62,
+            90
+          ],
+          "green_mask": false,
+          "box": [
+            487,
+            453,
+            62,
+            90
+          ],
+          "sha256": "70e3fba96d8ac4c9a82463e88f26c567e969589ed273286f5941a72e230c2b83",
+          "source_frame_sha256": "b4551e13e6d15d27fa7584f706cb1180b4f606f68ae5eb4cdd9e45c544fd1adc"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s042-f1.png",
+            "navigation/mainline/s042-f3.png"
+          ],
+          "roi": [
+            459,
+            416,
+            125,
+            155
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 43,
+      "name": "七叶树窟",
+      "town": "town4",
+      "province": "西牛贺洲",
+      "map_url": "qiyeshukuV1",
+      "source_sprite": 16,
+      "source_bounds": [
+        215.3,
+        245.35,
+        367.3,
+        355.35
+      ],
+      "scene_layout": {
+        "width": 997,
+        "height": 600,
+        "screen_width": 997,
+        "birth_point": [
+          90.0,
+          250.0
+        ],
+        "class_type": "ShuKu",
+        "cartoons": ""
+      },
+      "endpoint": null,
+      "offset": 0,
+      "roi": [
+        273,
+        296,
+        153,
+        147
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s043-f1.png",
+          "crop": [
+            94,
+            25,
+            41,
+            66
+          ],
+          "green_mask": false,
+          "box": [
+            357,
+            324,
+            41,
+            66
+          ],
+          "sha256": "f0bd6a76099102498ef2eda24c3ee0ea42b5bbbc88a52052b6e560d7a012a3a1",
+          "source_frame_sha256": "cf316ff2ee7a1c509d7e94f4045bcc3849fc4073b9788be7b1f3a20a545e614c"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s043-f3.png",
+          "crop": [
+            38,
+            26,
+            97,
+            90
+          ],
+          "green_mask": false,
+          "box": [
+            301,
+            325,
+            97,
+            90
+          ],
+          "sha256": "8410d97dc14224173d35bb9ff2328dc857e68e063e35d723f0d670317a66226a",
+          "source_frame_sha256": "063ade8d240794c446aa8dad8cfa4198ee20a73834fbf365f51b6edfb38ea10b"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s043-f1.png",
+            "navigation/mainline/s043-f3.png"
+          ],
+          "roi": [
+            273,
+            296,
+            153,
+            147
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 44,
+      "name": "寒暑水",
+      "town": "town4",
+      "province": "西牛贺洲",
+      "map_url": "hanshushuiV1",
+      "source_sprite": 23,
+      "source_bounds": [
+        338.0,
+        86.0,
+        502.0,
+        203.0
+      ],
+      "scene_layout": {
+        "width": 4997,
+        "height": 600,
+        "screen_width": 1200,
+        "birth_point": [
+          150.0,
+          250.0
+        ],
+        "class_type": "",
+        "cartoons": ""
+      },
+      "endpoint": null,
+      "offset": 0,
+      "roi": [
+        431,
+        123,
+        156,
+        114
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s044-f1.png",
+          "crop": [
+            47,
+            52,
+            100,
+            51
+          ],
+          "green_mask": false,
+          "box": [
+            459,
+            157,
+            100,
+            51
+          ],
+          "sha256": "37977ac40f6da9b5317eb3fc6e0b4c5c0b3254077694fef233c3ffbec97d56bc",
+          "source_frame_sha256": "f08228ae70108e9463454c868a2ae90de40608de10b8525c727c6baba50b45de"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s044-f3.png",
+          "crop": [
+            47,
+            46,
+            100,
+            58
+          ],
+          "green_mask": false,
+          "box": [
+            459,
+            151,
+            100,
+            58
+          ],
+          "sha256": "d9d8cbea75d6aa807da32b8931a49dfce328da5a18876872aa793a86130239e4",
+          "source_frame_sha256": "9efdd9fc1abf36f9f877acfc7c532569ea95f6848af27bbc5f4fc042641824e0"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s044-f1.png",
+            "navigation/mainline/s044-f3.png"
+          ],
+          "roi": [
+            431,
+            123,
+            156,
+            114
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 45,
+      "name": "幕山",
+      "town": "town4",
+      "province": "西牛贺洲",
+      "map_url": "mushanshangV2",
+      "source_sprite": 30,
+      "source_bounds": [
+        440.0,
+        171.0,
+        549.0,
+        288.0
+      ],
+      "scene_layout": {
+        "width": 1000,
+        "height": 2400,
+        "screen_width": 1000,
+        "birth_point": [
+          150.0,
+          2000.0
+        ],
+        "class_type": "Mushanshang",
+        "cartoons": ""
+      },
+      "endpoint": null,
+      "offset": 0,
+      "roi": [
+        565,
+        219,
+        116,
+        126
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s045-f1.png",
+          "crop": [
+            61,
+            40,
+            51,
+            64
+          ],
+          "green_mask": false,
+          "box": [
+            598,
+            249,
+            51,
+            64
+          ],
+          "sha256": "0a96e53663b323ceb6d32e87cc87e2ce90ea3c4b2c04372641971cba71045966",
+          "source_frame_sha256": "70ed6cb8cf4afba5e07cd3b57e0dc64feab56f723209f088bdb51ec32491b802"
+        },
+        {
+          "frame": 2,
+          "template": "navigation/mainline/s045-f2.png",
+          "crop": [
+            56,
+            45,
+            57,
+            59
+          ],
+          "green_mask": false,
+          "box": [
+            593,
+            254,
+            57,
+            59
+          ],
+          "sha256": "75b7ebef937e34ba9ff0ba63d875d869b29708c5f4d603c516b18b536bdee838",
+          "source_frame_sha256": "a35a9d86bcc1bda809c7c03dd748e8a674aaa267fe0fa95d2b85902164f79caf"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s045-f3.png",
+          "crop": [
+            60,
+            38,
+            56,
+            70
+          ],
+          "green_mask": false,
+          "box": [
+            597,
+            247,
+            56,
+            70
+          ],
+          "sha256": "1e7114ba2435eee85b8ca03d4105c6c410ff3bb9a313ab7753a47eb7155ece4e",
+          "source_frame_sha256": "da3c0d01201099cc9264b140d7481e2b5e7b86befac5736fcefe8ace71db6289"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s045-f1.png",
+            "navigation/mainline/s045-f2.png",
+            "navigation/mainline/s045-f3.png"
+          ],
+          "roi": [
+            565,
+            219,
+            116,
+            126
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 46,
+      "name": "不周山",
+      "town": "town4",
+      "province": "西牛贺洲",
+      "map_url": "buzhoushanqianV1",
+      "source_sprite": 37,
+      "source_bounds": [
+        587.0,
+        130.0,
+        692.0,
+        245.0
+      ],
+      "scene_layout": {
+        "width": 1200,
+        "height": 600,
+        "screen_width": 1200,
+        "birth_point": [
+          150.0,
+          300.0
+        ],
+        "class_type": "BuZhouShan",
+        "cartoons": "46,buzhoushanqianV1-bg11,buzhoushanqianV1-bg12,buzhoushanqianV1-bg13"
+      },
+      "endpoint": null,
+      "offset": 0,
+      "roi": [
+        717,
+        190,
+        129,
+        120
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s046-f1.png",
+          "crop": [
+            30,
+            66,
+            72,
+            30
+          ],
+          "green_mask": false,
+          "box": [
+            746,
+            225,
+            72,
+            30
+          ],
+          "sha256": "b7fadf49ac9a606920ee52cb0c5c277b47b9b2c255b9b4b9a4b04ce402cb9cc3",
+          "source_frame_sha256": "c477c34378b43bfa18911c94126de20f44d8d85b751ad6559c213fc47f02808a"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s046-f3.png",
+          "crop": [
+            29,
+            59,
+            70,
+            64
+          ],
+          "green_mask": false,
+          "box": [
+            745,
+            218,
+            70,
+            64
+          ],
+          "sha256": "7229da2ba75ae3999ec080e28227a3ecff33ddf9fcff0a894e2e0076cdbfa638",
+          "source_frame_sha256": "e0b2b1703ccf1aedf3450cdf8344e0ce42167711e2e7397d903404722610225d"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s046-f1.png",
+            "navigation/mainline/s046-f3.png"
+          ],
+          "roi": [
+            717,
+            190,
+            129,
+            120
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 47,
+      "name": "孤魂岭",
+      "town": "town5",
+      "province": "幽冥血海",
+      "map_url": "guhunling_V464",
+      "source_sprite": 34,
+      "source_bounds": [
+        211.0,
+        66.0,
+        361.0,
+        216.0
+      ],
+      "scene_layout": {
+        "width": 4800,
+        "height": 800,
+        "screen_width": 1200,
+        "birth_point": [
+          60.0,
+          680.0
+        ],
+        "class_type": "GuHunLing",
+        "cartoons": "47,guhunling-c1,guhunling-c2,guhunling-c3,guhunling-c4,guhunling-c6,guhunling-c7"
+      },
+      "endpoint": "left",
+      "offset": 0,
+      "roi": [
+        273,
+        106,
+        150,
+        138
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s047-f1.png",
+          "crop": [
+            44,
+            65,
+            89,
+            50
+          ],
+          "green_mask": false,
+          "box": [
+            301,
+            146,
+            89,
+            50
+          ],
+          "sha256": "2671581fa6ae9bc199e02d4eb979ec0e1698991aec377deef6def4ee5be27a06",
+          "source_frame_sha256": "10e87859e07b7935133b06488a1d9d589977a8b7fe49b725d0473832b5e9ac06"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s047-f3.png",
+          "crop": [
+            53,
+            53,
+            85,
+            82
+          ],
+          "green_mask": false,
+          "box": [
+            310,
+            134,
+            85,
+            82
+          ],
+          "sha256": "f312315a5f4e9cdc4e0b797066d035717f97dacc5002a60b0b691745651d6071",
+          "source_frame_sha256": "d99002b6e1b4e2816c03786b2670e7466fe74f23fa177017e70f2ed6987db7a3"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s047-f1.png",
+            "navigation/mainline/s047-f3.png"
+          ],
+          "roi": [
+            273,
+            106,
+            150,
+            138
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 48,
+      "name": "通冥铁索",
+      "town": "town5",
+      "province": "幽冥血海",
+      "map_url": "tongmingtiesuo_V531",
+      "source_sprite": 63,
+      "source_bounds": [
+        80.0,
+        91.0,
+        230.0,
+        241.0
+      ],
+      "scene_layout": {
+        "width": 4070,
+        "height": 700,
+        "screen_width": 940,
+        "birth_point": [
+          60.0,
+          500.0
+        ],
+        "class_type": "TongMingTieSuo",
+        "cartoons": ""
+      },
+      "endpoint": "left",
+      "offset": 0,
+      "roi": [
+        120,
+        175,
+        148,
+        119
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s048-f1.png",
+          "crop": [
+            63,
+            99,
+            71,
+            30
+          ],
+          "green_mask": false,
+          "box": [
+            161,
+            210,
+            71,
+            30
+          ],
+          "sha256": "53c8fe6d2facae57327666dc3976c49381130a82ce660dae83f544998c41e689",
+          "source_frame_sha256": "3e7a83a6082d6616b7536fc6827255f53dcbbf554adf0333f373306579dffbbb"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s048-f3.png",
+          "crop": [
+            50,
+            92,
+            92,
+            63
+          ],
+          "green_mask": false,
+          "box": [
+            148,
+            203,
+            92,
+            63
+          ],
+          "sha256": "d631ee27d3c0c11fa729650c4f8c3a6c295e23d9cffdfa35173d34c5bb0a9463",
+          "source_frame_sha256": "0f4361943632d69820f80fbc88da1660109dfaa98044774875322cb5fcb398ac"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s048-f1.png",
+            "navigation/mainline/s048-f3.png"
+          ],
+          "roi": [
+            120,
+            175,
+            148,
+            119
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 49,
+      "name": "播冢山巅",
+      "town": "town5",
+      "province": "幽冥血海",
+      "map_url": "bozhongshandian",
+      "source_sprite": 71,
+      "source_bounds": [
+        190.0,
+        174.0,
+        330.0,
+        324.0
+      ],
+      "scene_layout": {
+        "width": 1200,
+        "height": 2400,
+        "screen_width": 1200,
+        "birth_point": [
+          100.0,
+          2190.0
+        ],
+        "class_type": "",
+        "cartoons": ""
+      },
+      "endpoint": "left",
+      "offset": 0,
+      "roi": [
+        241,
+        228,
+        151,
+        167
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s049-f1.png",
+          "crop": [
+            68,
+            44,
+            35,
+            71
+          ],
+          "green_mask": false,
+          "box": [
+            300,
+            256,
+            35,
+            71
+          ],
+          "sha256": "33209460e1c5fdb77077a9eae7839e0ff6efc6428620a362c1ff7c187bd9f69f",
+          "source_frame_sha256": "6d25ebc5be524b18c2a28e6a0cd36656508c93ed592e0e4e11f99a0e91be5b5f"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s049-f3.png",
+          "crop": [
+            37,
+            91,
+            95,
+            64
+          ],
+          "green_mask": false,
+          "box": [
+            269,
+            303,
+            95,
+            64
+          ],
+          "sha256": "d37f73eba09897c204a20fafbcf281c2cb631a67fedc54b00dd8b4f97e36514e",
+          "source_frame_sha256": "a202a93010f3b7744a03a372817617bc2432fdbac983ef41dce82db4ec3181a2"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s049-f1.png",
+            "navigation/mainline/s049-f3.png"
+          ],
+          "roi": [
+            241,
+            228,
+            151,
+            167
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 50,
+      "name": "罗浮山",
+      "town": "town5",
+      "province": "幽冥血海",
+      "map_url": "luofushan_V464",
+      "source_sprite": 100,
+      "source_bounds": [
+        34.35,
+        251.5,
+        174.35,
+        390.5
+      ],
+      "scene_layout": {
+        "width": 3860,
+        "height": 800,
+        "screen_width": 1040,
+        "birth_point": [
+          133.0,
+          155.0
+        ],
+        "class_type": "",
+        "cartoons": ""
+      },
+      "endpoint": "left",
+      "offset": 0,
+      "roi": [
+        53,
+        347,
+        138,
+        141
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s050-f1.png",
+          "crop": [
+            44,
+            74,
+            71,
+            60
+          ],
+          "green_mask": false,
+          "box": [
+            86,
+            381,
+            71,
+            60
+          ],
+          "sha256": "8942b3e99de9963c99549e1b147c6481efa8387cad82ed6c986c14211af4805f",
+          "source_frame_sha256": "8741f142c9180e217d53cce7bf7dda2e5d3c6dad8c23b6ccebc10867b41f2bed"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s050-f3.png",
+          "crop": [
+            39,
+            68,
+            82,
+            85
+          ],
+          "green_mask": false,
+          "box": [
+            81,
+            375,
+            82,
+            85
+          ],
+          "sha256": "5872ad0b64105a73a60f3a1c52bd462501c0d9b11ba71bb30dff79c34c60b9c1",
+          "source_frame_sha256": "61f81ded8cfb578b21b90e7fe4da313a3f33ff10a80745f862d891f79f77801c"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s050-f1.png",
+            "navigation/mainline/s050-f3.png"
+          ],
+          "roi": [
+            53,
+            347,
+            138,
+            141
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 51,
+      "name": "岁暮荒园",
+      "town": "town5",
+      "province": "幽冥血海",
+      "map_url": "suimuhuangyuan_V468",
+      "source_sprite": 108,
+      "source_bounds": [
+        159.0,
+        338.0,
+        297.0,
+        477.0
+      ],
+      "scene_layout": {
+        "width": 4800,
+        "height": 800,
+        "screen_width": 1200,
+        "birth_point": [
+          60.0,
+          480.0
+        ],
+        "class_type": "",
+        "cartoons": ""
+      },
+      "endpoint": "left",
+      "offset": 0,
+      "roi": [
+        197,
+        477,
+        159,
+        118
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s051-f1.png",
+          "crop": [
+            62,
+            93,
+            72,
+            28
+          ],
+          "green_mask": false,
+          "box": [
+            256,
+            505,
+            72,
+            28
+          ],
+          "sha256": "eab15160785ae4343fbb81f38eba7946ece565b56d9592a02aa2ba527032972a",
+          "source_frame_sha256": "f3bc36d2a7e01ee2614cc107b9dcb450806c161abbb0bfbf96a1fff9076ba460"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s051-f3.png",
+          "crop": [
+            31,
+            94,
+            100,
+            61
+          ],
+          "green_mask": false,
+          "box": [
+            225,
+            506,
+            100,
+            61
+          ],
+          "sha256": "10d4fd22f077c2ea8868ae0dfc222c50706ae62361070a7ac8c627a44405ccff",
+          "source_frame_sha256": "147ba6a8696d9746131f5ce3417353792cdc44732b332f673dc69bc1743287a0"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s051-f1.png",
+            "navigation/mainline/s051-f3.png"
+          ],
+          "roi": [
+            197,
+            477,
+            159,
+            118
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 52,
+      "name": "梦影寺",
+      "town": "town5",
+      "province": "幽冥血海",
+      "map_url": "mengyingsi",
+      "source_sprite": 116,
+      "source_bounds": [
+        297.8,
+        266.8,
+        435.8,
+        405.8
+      ],
+      "scene_layout": {
+        "width": 6000,
+        "height": 700,
+        "screen_width": 1400,
+        "birth_point": [
+          60.0,
+          480.0
+        ],
+        "class_type": "",
+        "cartoons": ""
+      },
+      "endpoint": "left",
+      "offset": 0,
+      "roi": [
+        376,
+        360,
+        150,
+        110
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s052-f1.png",
+          "crop": [
+            57,
+            62,
+            60,
+            37
+          ],
+          "green_mask": false,
+          "box": [
+            420,
+            388,
+            60,
+            37
+          ],
+          "sha256": "8ff77b143dc839c4ae227151c48f0ca8ae3fa7f5bc0e342cff200fe2875ff1e8",
+          "source_frame_sha256": "32546b677f68f8946de75e0bd57970ff790c263cdb1bc7d50e5ca3fba9d95d80"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s052-f3.png",
+          "crop": [
+            41,
+            72,
+            94,
+            44
+          ],
+          "green_mask": false,
+          "box": [
+            404,
+            398,
+            94,
+            44
+          ],
+          "sha256": "87ff7ed8d121b98a56ad4db2a9da931aff953522655e715de6067605ec825e46",
+          "source_frame_sha256": "955667ac7dbdad3158ce93b563d6a42a4a98e4b3f22eba0dbc565484eb566a63"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s052-f1.png",
+            "navigation/mainline/s052-f3.png"
+          ],
+          "roi": [
+            376,
+            360,
+            150,
+            110
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 53,
+      "name": "抱犊山",
+      "town": "town5",
+      "province": "幽冥血海",
+      "map_url": "baodushan",
+      "source_sprite": 145,
+      "source_bounds": [
+        699.0,
+        108.0,
+        869.0,
+        278.0
+      ],
+      "scene_layout": {
+        "width": 1200,
+        "height": 2400,
+        "screen_width": 1200,
+        "birth_point": [
+          100.0,
+          330.0
+        ],
+        "class_type": "",
+        "cartoons": ""
+      },
+      "endpoint": "right",
+      "offset": 560,
+      "roi": [
+        191,
+        209,
+        156,
+        136
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s053-f1.png",
+          "crop": [
+            49,
+            114,
+            100,
+            51
+          ],
+          "green_mask": false,
+          "box": [
+            219,
+            246,
+            100,
+            51
+          ],
+          "sha256": "76df2ae909791b662899b01e03c9df4a9f1b715bc9bdcd6fcee95cf6006322fb",
+          "source_frame_sha256": "a0eb4cd7bcb1e8c3aca679fd633c9b0b81625ec35ca78e31a023f46c26f99f57"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s053-f3.png",
+          "crop": [
+            50,
+            105,
+            90,
+            80
+          ],
+          "green_mask": false,
+          "box": [
+            220,
+            237,
+            90,
+            80
+          ],
+          "sha256": "e47756dd48a0c3916aa6ad1e6e56063f0b0cf637c826dbc09fb32a807cfb4df0",
+          "source_frame_sha256": "bb77f866fc39fd55bde9d361ea3e78120fe5e5d65c6925c799e6967b4b7ba1d6"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s053-f1.png",
+            "navigation/mainline/s053-f3.png"
+          ],
+          "roi": [
+            191,
+            209,
+            156,
+            136
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 54,
+      "name": "彼岸花海",
+      "town": "town5",
+      "province": "幽冥血海",
+      "map_url": "bianhuahai",
+      "source_sprite": 153,
+      "source_bounds": [
+        762.0,
+        258.0,
+        932.0,
+        348.0
+      ],
+      "scene_layout": {
+        "width": 4800,
+        "height": 600,
+        "screen_width": 1200,
+        "birth_point": [
+          90.0,
+          293.0
+        ],
+        "class_type": "",
+        "cartoons": ""
+      },
+      "endpoint": "right",
+      "offset": 560,
+      "roi": [
+        247,
+        311,
+        209,
+        120
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s054-f1.png",
+          "crop": [
+            28,
+            24,
+            153,
+            58
+          ],
+          "green_mask": true,
+          "box": [
+            275,
+            339,
+            153,
+            58
+          ],
+          "sha256": "89563939cd98ae0a990a0f5052e1631a6d61e240b280c99ff53b719a622fb579",
+          "source_frame_sha256": "bf66721c56ed18d3c4510cb8b74ffc39c818f8d4fb7e4978adba695371d37b21"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s054-f3.png",
+          "crop": [
+            62,
+            37,
+            90,
+            51
+          ],
+          "green_mask": false,
+          "box": [
+            309,
+            352,
+            90,
+            51
+          ],
+          "sha256": "658dcb07e80602a23dbce48f4d50022ba05f78849cacd1b533ea5c29d8df88c6",
+          "source_frame_sha256": "885b6a1142bea67909935cff8c8acf5a04b260eb6d969fe46873fd20d20f6eba"
+        }
+      ],
+      "recognition": {
+        "type": "Or",
+        "param": {
+          "any_of": [
+            {
+              "recognition": {
+                "type": "TemplateMatch",
+                "param": {
+                  "template": [
+                    "navigation/mainline/s054-f3.png"
+                  ],
+                  "roi": [
+                    247,
+                    311,
+                    209,
+                    120
+                  ],
+                  "method": 5,
+                  "green_mask": false
+                }
+              }
+            },
+            {
+              "recognition": {
+                "type": "TemplateMatch",
+                "param": {
+                  "template": [
+                    "navigation/mainline/s054-f1.png"
+                  ],
+                  "roi": [
+                    247,
+                    311,
+                    209,
+                    120
+                  ],
+                  "method": 5,
+                  "green_mask": true
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": 55,
+      "name": "往生路",
+      "town": "town5",
+      "province": "幽冥血海",
+      "map_url": "wangshenglu_V478",
+      "source_sprite": 192,
+      "source_bounds": [
+        889.0,
+        208.0,
+        1059.0,
+        328.0
+      ],
+      "scene_layout": {
+        "width": 4000,
+        "height": 600,
+        "screen_width": 1150,
+        "birth_point": [
+          60.0,
+          480.0
+        ],
+        "class_type": "",
+        "cartoons": ""
+      },
+      "endpoint": "right",
+      "offset": 560,
+      "roi": [
+        414,
+        249,
+        192,
+        158
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s055-f1.png",
+          "crop": [
+            41,
+            23,
+            136,
+            84
+          ],
+          "green_mask": true,
+          "box": [
+            442,
+            277,
+            136,
+            84
+          ],
+          "sha256": "782ccfe7450d4d0988f0472046fb4baf922616e18fea4b44a9de9c077ecf4a44",
+          "source_frame_sha256": "186a6acdb877b6c868861cc2a4c0acce65e908cbb13929031888bbaf3b8967eb"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s055-f3.png",
+          "crop": [
+            51,
+            85,
+            88,
+            40
+          ],
+          "green_mask": false,
+          "box": [
+            452,
+            339,
+            88,
+            40
+          ],
+          "sha256": "77337c5e191d2ab295ddf8a82828d1f2feef886da18112977e8a499aa801865a",
+          "source_frame_sha256": "01b26c6ce08d29901198b1c9dfde2162847b0fb032c83eee3c8fb7a9a590f303"
+        }
+      ],
+      "recognition": {
+        "type": "Or",
+        "param": {
+          "any_of": [
+            {
+              "recognition": {
+                "type": "TemplateMatch",
+                "param": {
+                  "template": [
+                    "navigation/mainline/s055-f3.png"
+                  ],
+                  "roi": [
+                    414,
+                    249,
+                    192,
+                    158
+                  ],
+                  "method": 5,
+                  "green_mask": false
+                }
+              }
+            },
+            {
+              "recognition": {
+                "type": "TemplateMatch",
+                "param": {
+                  "template": [
+                    "navigation/mainline/s055-f1.png"
+                  ],
+                  "roi": [
+                    414,
+                    249,
+                    192,
+                    158
+                  ],
+                  "method": 5,
+                  "green_mask": true
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": 56,
+      "name": "罗酆谷",
+      "town": "town5",
+      "province": "幽冥血海",
+      "map_url": "luofenggu",
+      "source_sprite": 200,
+      "source_bounds": [
+        900.0,
+        62.0,
+        1080.0,
+        242.0
+      ],
+      "scene_layout": {
+        "width": 2400,
+        "height": 1157,
+        "screen_width": 2400,
+        "birth_point": [
+          70.0,
+          330.0
+        ],
+        "class_type": "",
+        "cartoons": ""
+      },
+      "endpoint": "right",
+      "offset": 560,
+      "roi": [
+        418,
+        117,
+        224,
+        163
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s056-f1.png",
+          "crop": [
+            31,
+            69,
+            168,
+            96
+          ],
+          "green_mask": true,
+          "box": [
+            446,
+            145,
+            168,
+            96
+          ],
+          "sha256": "e4e0640bac5c0674b542178f5e6bf8ebba7025d3fe7a52a7600dcf60de9266fc",
+          "source_frame_sha256": "127066f44041b78a21dd137694f6a8df233865274e80d785c63903ea3427124d"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s056-f3.png",
+          "crop": [
+            70,
+            148,
+            80,
+            28
+          ],
+          "green_mask": false,
+          "box": [
+            485,
+            224,
+            80,
+            28
+          ],
+          "sha256": "06bbfcf34c758b1bb255e9026b1c78f4081bea52468ca36c8905ec8f227b5940",
+          "source_frame_sha256": "9f3bcec080e240f56c0145d671fc0e1b1c47284015d89d81d6135b973abfd1ed"
+        }
+      ],
+      "recognition": {
+        "type": "Or",
+        "param": {
+          "any_of": [
+            {
+              "recognition": {
+                "type": "TemplateMatch",
+                "param": {
+                  "template": [
+                    "navigation/mainline/s056-f3.png"
+                  ],
+                  "roi": [
+                    418,
+                    117,
+                    224,
+                    163
+                  ],
+                  "method": 5,
+                  "green_mask": false
+                }
+              }
+            },
+            {
+              "recognition": {
+                "type": "TemplateMatch",
+                "param": {
+                  "template": [
+                    "navigation/mainline/s056-f1.png"
+                  ],
+                  "roi": [
+                    418,
+                    117,
+                    224,
+                    163
+                  ],
+                  "method": 5,
+                  "green_mask": true
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": 57,
+      "name": "九泉",
+      "town": "town5",
+      "province": "幽冥血海",
+      "map_url": "jiuquan",
+      "source_sprite": 229,
+      "source_bounds": [
+        1093.25,
+        137.35,
+        1263.25,
+        307.35
+      ],
+      "scene_layout": {
+        "width": 4800,
+        "height": 700,
+        "screen_width": 1350,
+        "birth_point": [
+          90.0,
+          300.0
+        ],
+        "class_type": "",
+        "cartoons": ""
+      },
+      "endpoint": "right",
+      "offset": 560,
+      "roi": [
+        679,
+        196,
+        156,
+        142
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s057-f1.png",
+          "crop": [
+            56,
+            68,
+            96,
+            74
+          ],
+          "green_mask": false,
+          "box": [
+            707,
+            236,
+            96,
+            74
+          ],
+          "sha256": "b0fc85dd47751113eb91809f851ad2a2bb5d1d376ab7afb1a96fc5e5f1c41eb7",
+          "source_frame_sha256": "5922081c83a3972d6d87b4f8275ed9ff420f832b926827db83f34c32dde267c8"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s057-f3.png",
+          "crop": [
+            56,
+            56,
+            100,
+            77
+          ],
+          "green_mask": false,
+          "box": [
+            707,
+            224,
+            100,
+            77
+          ],
+          "sha256": "2048b7615827c7e1dec1c52e299d56d2b0eedf402c261760500d6949137f1fbc",
+          "source_frame_sha256": "99830484fafe5733b387c626e7569e07b3718045ed2e7e605b6a0b7044e82d9b"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s057-f1.png",
+            "navigation/mainline/s057-f3.png"
+          ],
+          "roi": [
+            679,
+            196,
+            156,
+            142
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 58,
+      "name": "业火莲台",
+      "town": "town5",
+      "province": "幽冥血海",
+      "map_url": "yehuoliantai",
+      "source_sprite": 237,
+      "source_bounds": [
+        1149.0,
+        7.0,
+        1319.0,
+        177.0
+      ],
+      "scene_layout": {
+        "width": 1400,
+        "height": 2400,
+        "screen_width": 1400,
+        "birth_point": [
+          70.0,
+          2160.0
+        ],
+        "class_type": "",
+        "cartoons": ""
+      },
+      "endpoint": "right",
+      "offset": 560,
+      "roi": [
+        766,
+        100,
+        118,
+        123
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s058-f1.png",
+          "crop": [
+            79,
+            123,
+            54,
+            27
+          ],
+          "green_mask": false,
+          "box": [
+            798,
+            132,
+            54,
+            27
+          ],
+          "sha256": "1cde4637965174be8ede218e24aa47cd19fb240509a50f6a98d8a21de1acad4e",
+          "source_frame_sha256": "a70f800ecb3b40c34b93a30a68ff996b4a7302abbb2e027236f61d1fe64ecbd4"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s058-f3.png",
+          "crop": [
+            75,
+            119,
+            62,
+            67
+          ],
+          "green_mask": false,
+          "box": [
+            794,
+            128,
+            62,
+            67
+          ],
+          "sha256": "a649d8259baf0bc3343da059beea932057445656ce2adfe85ad8986988de2d50",
+          "source_frame_sha256": "688134d87b8fd8ec45e42405cfda5e8a9dbb3e5832486af7cee25d89d676e6ab"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s058-f1.png",
+            "navigation/mainline/s058-f3.png"
+          ],
+          "roi": [
+            766,
+            100,
+            118,
+            123
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 59,
+      "name": "桃止山",
+      "town": "town5",
+      "province": "幽冥血海",
+      "map_url": "taozhishan",
+      "source_sprite": 245,
+      "source_bounds": [
+        1283.7,
+        306.3,
+        1385.7,
+        401.3
+      ],
+      "scene_layout": {
+        "width": 1200,
+        "height": 2400,
+        "screen_width": 1200,
+        "birth_point": [
+          100.0,
+          2200.0
+        ],
+        "class_type": "",
+        "cartoons": ""
+      },
+      "endpoint": "right",
+      "offset": 560,
+      "roi": [
+        884,
+        394,
+        134,
+        145
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s059-f1.png",
+          "crop": [
+            45,
+            48,
+            53,
+            67
+          ],
+          "green_mask": false,
+          "box": [
+            928,
+            422,
+            53,
+            67
+          ],
+          "sha256": "615e538469fec3e06b513fd65ffb5973182e5b26938ee4f2dd1037643cdbba3f",
+          "source_frame_sha256": "5ddf848c40c2d7058110b008e08169d829fbc67cb48687ff874769e6e38e234e"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s059-f3.png",
+          "crop": [
+            29,
+            68,
+            78,
+            69
+          ],
+          "green_mask": false,
+          "box": [
+            912,
+            442,
+            78,
+            69
+          ],
+          "sha256": "1b89b66101bd3d79a493f2842c77712a8ce43f639ca0190e3849ed791a3c2fda",
+          "source_frame_sha256": "cd2345e2d38800829cbe0f95d4852a90118bdb5fe30daac9a126b507e89df118"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s059-f1.png",
+            "navigation/mainline/s059-f3.png"
+          ],
+          "roi": [
+            884,
+            394,
+            134,
+            145
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 60,
+      "name": "幽都鬼城",
+      "town": "town5",
+      "province": "幽冥血海",
+      "map_url": "youduguicheng",
+      "source_sprite": 253,
+      "source_bounds": [
+        1296.0,
+        398.0,
+        1399.0,
+        482.0
+      ],
+      "scene_layout": {
+        "width": 4800,
+        "height": 2000,
+        "screen_width": 2400,
+        "birth_point": [
+          90.0,
+          380.0
+        ],
+        "class_type": "",
+        "cartoons": ""
+      },
+      "endpoint": "right",
+      "offset": 560,
+      "roi": [
+        897,
+        480,
+        153,
+        165
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s060-f1.png",
+          "crop": [
+            36,
+            22,
+            75,
+            24
+          ],
+          "green_mask": false,
+          "box": [
+            934,
+            508,
+            75,
+            24
+          ],
+          "sha256": "3a78f6082d16e42460a0926e097f1b119e3c1c7351a5d20d50a907cb39c65b81",
+          "source_frame_sha256": "4a5841cbf97da8f9cef23d754d959f09ec623f6fc2980bac9626fe9d15a156a0"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s060-f3.png",
+          "crop": [
+            27,
+            102,
+            97,
+            29
+          ],
+          "green_mask": false,
+          "box": [
+            925,
+            588,
+            97,
+            29
+          ],
+          "sha256": "9da1b1838f2dbec752e38253bcbaaa56d83ece7036e8105b6ec30740649e3ce7",
+          "source_frame_sha256": "6a17f78496108240ff8c3b46ec4b8edd3cb5602aa7dae671d03eedc6f9e4f979"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s060-f1.png",
+            "navigation/mainline/s060-f3.png"
+          ],
+          "roi": [
+            897,
+            480,
+            153,
+            165
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 61,
+      "name": "万世冥阁",
+      "town": "town5",
+      "province": "幽冥血海",
+      "map_url": "wanshimingge_V527",
+      "source_sprite": 261,
+      "source_bounds": [
+        1099.8,
+        342.95,
+        1202.8,
+        426.95
+      ],
+      "scene_layout": {
+        "width": 2400,
+        "height": 1074,
+        "screen_width": 2400,
+        "birth_point": [
+          120.0,
+          100.0
+        ],
+        "class_type": "",
+        "cartoons": ""
+      },
+      "endpoint": "right",
+      "offset": 560,
+      "roi": [
+        659,
+        424,
+        156,
+        155
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s061-f1.png",
+          "crop": [
+            42,
+            33,
+            57,
+            29
+          ],
+          "green_mask": false,
+          "box": [
+            701,
+            452,
+            57,
+            29
+          ],
+          "sha256": "ff35f285ca816745ac9911099535de506f355d25408b87dae5fabc36ea4c5f5b",
+          "source_frame_sha256": "848ef552abbb09373bd7bcabcfbcb06c1c5a681b25e505404be6b815845e51b6"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s061-f3.png",
+          "crop": [
+            28,
+            88,
+            100,
+            44
+          ],
+          "green_mask": false,
+          "box": [
+            687,
+            507,
+            100,
+            44
+          ],
+          "sha256": "0e8780147f810c64adac13823fc32018cc437e1edeb380773314080e64332a92",
+          "source_frame_sha256": "fe01a3bdf6c93bbe52facf8df44ab251eaced941b2e2095108bd46f8d0833078"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s061-f1.png",
+            "navigation/mainline/s061-f3.png"
+          ],
+          "roi": [
+            659,
+            424,
+            156,
+            155
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    },
+    {
+      "id": 62,
+      "name": "血河池",
+      "town": "town5",
+      "province": "幽冥血海",
+      "map_url": "xuehechi_BOSS1",
+      "source_sprite": 269,
+      "source_bounds": [
+        891.5,
+        428.5,
+        1087.5,
+        584.5
+      ],
+      "scene_layout": {
+        "width": 1200,
+        "height": 600,
+        "screen_width": 1200,
+        "birth_point": [
+          90.0,
+          450.0
+        ],
+        "class_type": "",
+        "cartoons": ""
+      },
+      "endpoint": "right",
+      "offset": 560,
+      "roi": [
+        433,
+        544,
+        156,
+        94
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s062-f1.png",
+          "crop": [
+            79,
+            49,
+            56,
+            38
+          ],
+          "green_mask": false,
+          "box": [
+            484,
+            572,
+            56,
+            38
+          ],
+          "sha256": "b7edae4b2a7a7f4e3294eaa7dff8d6eb78861dfe25bf31ec5f13d2add6640abb",
+          "source_frame_sha256": "896eb55bf5bd3ba6045c1fb3af6fb4f986ad37948d1752588a8dda1f23f19eb2"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s062-f3.png",
+          "crop": [
+            56,
+            55,
+            100,
+            32
+          ],
+          "green_mask": false,
+          "box": [
+            461,
+            578,
+            100,
+            32
+          ],
+          "sha256": "4718596a173197c282a74396784aef12cda46797cc5b2c33a09a48f9f89a5c5e",
+          "source_frame_sha256": "ef5172f662c2d91ea7e45ce3134d5283153a2f9a85c1f5933cbb73e81adb76ae"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s062-f1.png",
+            "navigation/mainline/s062-f3.png"
+          ],
+          "roi": [
+            433,
+            544,
+            156,
+            94
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      }
+    }
+  ]
+}

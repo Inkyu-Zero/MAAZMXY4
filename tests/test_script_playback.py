@@ -50,6 +50,39 @@ class PlaybackTests(unittest.TestCase):
         self.assertEqual([c[0] for c in self.ctrl.calls],['post_key_down','post_key_up','post_touch_down','post_touch_move','post_touch_up'])
         self.assertFalse(self.geometry.claimed)
 
+    def test_confirmed_double_speed_scales_actual_timeline_including_trailing_wait(self):
+        from box_speed import verify_proof
+        proof=dict(state='ready',speed=2,hwnd=42,pid=17,started_utc_ticks=123,
+                   exe_path=str(self.root/'box.exe'),sha256=self.params['sha256'])
+        self.params.update(speed=2,box_speed_proof=proof)
+        now=[10.0];deadlines=[];events=[]
+        self.ctrl.after_call=lambda name,args,kwargs:events.append((name,now[0]-10.0))
+        def wait_until(target,should_stop,clock):
+            deadlines.append(target-10.0);now[0]=target
+            return not should_stop()
+        def confirmed(receipt,hwnd,revision):
+            return verify_proof(receipt,hwnd,revision,dict(pid=17,started_utc_ticks=123),proof['exe_path'])
+        with patch('box_speed_native.verify_playback_proof',side_effect=confirmed) as verify, \
+                patch('window_geometry.WindowLease.clock',lambda lease:now[0]), \
+                patch('recording_playback._sleep_until',side_effect=wait_until):
+            result=self.finish(self.job())
+        self.assertEqual(result['state'],'succeeded',result)
+        verify.assert_called_once_with(proof,42,self.params['sha256'])
+        self.assertEqual(len(deadlines),5)
+        for actual,expected in zip(deadlines,[0,.015,.015,.03,.035]):
+            self.assertAlmostEqual(actual,expected)
+        self.assertEqual([name for name,_ in events],
+                         ['post_key_down','post_key_up','post_touch_down','post_touch_move','post_touch_up'])
+        self.assertFalse(self.geometry.claimed)
+
+    def test_unconfirmed_double_speed_never_adapts_window_or_sends_input(self):
+        self.params['speed']=2
+        result=self.finish(self.job())
+        self.assertEqual(result['state'],'failed',result)
+        self.assertIn('尚未确认',result['error'])
+        self.assertEqual(self.ctrl.calls,[])
+        self.assertEqual(self.geometry.changes,[])
+
     def test_stop_during_gap_releases_input_and_never_counts_success(self):
         data=json.loads(self.file.read_text());data['actions'][1]['t']=10000;data['duration_ms']=10040
         self.file.write_text(json.dumps(data));self.params['sha256']=hashlib.sha256(self.file.read_bytes()).hexdigest()

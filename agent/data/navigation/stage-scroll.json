@@ -523,6 +523,166 @@
       ],
       "end_x": 1000,
       "view": "left"
+    },
+    {
+      "task": "主线（孤魂岭）",
+      "target": "Mainline_047_Target",
+      "town": "town5",
+      "axis": "x",
+      "max_steps": 2,
+      "drag_node": "GameManagement_town5_DragBack",
+      "end_x": 1000,
+      "view": "left"
+    },
+    {
+      "task": "主线（通冥铁索）",
+      "target": "Mainline_048_Target",
+      "town": "town5",
+      "axis": "x",
+      "max_steps": 2,
+      "drag_node": "GameManagement_town5_DragBack",
+      "end_x": 1000,
+      "view": "left"
+    },
+    {
+      "task": "主线（播冢山巅）",
+      "target": "Mainline_049_Target",
+      "town": "town5",
+      "axis": "x",
+      "max_steps": 2,
+      "drag_node": "GameManagement_town5_DragBack",
+      "end_x": 1000,
+      "view": "left"
+    },
+    {
+      "task": "主线（罗浮山）",
+      "target": "Mainline_050_Target",
+      "town": "town5",
+      "axis": "x",
+      "max_steps": 2,
+      "drag_node": "GameManagement_town5_DragBack",
+      "end_x": 1000,
+      "view": "left"
+    },
+    {
+      "task": "主线（岁暮荒园）",
+      "target": "Mainline_051_Target",
+      "town": "town5",
+      "axis": "x",
+      "max_steps": 2,
+      "drag_node": "GameManagement_town5_DragBack",
+      "end_x": 1000,
+      "view": "left"
+    },
+    {
+      "task": "主线（梦影寺）",
+      "target": "Mainline_052_Target",
+      "town": "town5",
+      "axis": "x",
+      "max_steps": 2,
+      "drag_node": "GameManagement_town5_DragBack",
+      "end_x": 1000,
+      "view": "left"
+    },
+    {
+      "task": "主线（抱犊山）",
+      "target": "Mainline_053_Target",
+      "town": "town5",
+      "axis": "x",
+      "max_steps": 2,
+      "drag_node": "GameManagement_town5_Drag",
+      "end_x": 20,
+      "view": "right"
+    },
+    {
+      "task": "主线（彼岸花海）",
+      "target": "Mainline_054_Target",
+      "town": "town5",
+      "axis": "x",
+      "max_steps": 2,
+      "drag_node": "GameManagement_town5_Drag",
+      "end_x": 20,
+      "view": "right"
+    },
+    {
+      "task": "主线（往生路）",
+      "target": "Mainline_055_Target",
+      "town": "town5",
+      "axis": "x",
+      "max_steps": 2,
+      "drag_node": "GameManagement_town5_Drag",
+      "end_x": 20,
+      "view": "right"
+    },
+    {
+      "task": "主线（罗酆谷）",
+      "target": "Mainline_056_Target",
+      "town": "town5",
+      "axis": "x",
+      "max_steps": 2,
+      "drag_node": "GameManagement_town5_Drag",
+      "end_x": 20,
+      "view": "right"
+    },
+    {
+      "task": "主线（九泉）",
+      "target": "Mainline_057_Target",
+      "town": "town5",
+      "axis": "x",
+      "max_steps": 2,
+      "drag_node": "GameManagement_town5_Drag",
+      "end_x": 20,
+      "view": "right"
+    },
+    {
+      "task": "主线（业火莲台）",
+      "target": "Mainline_058_Target",
+      "town": "town5",
+      "axis": "x",
+      "max_steps": 2,
+      "drag_node": "GameManagement_town5_Drag",
+      "end_x": 20,
+      "view": "right"
+    },
+    {
+      "task": "主线（桃止山）",
+      "target": "Mainline_059_Target",
+      "town": "town5",
+      "axis": "x",
+      "max_steps": 2,
+      "drag_node": "GameManagement_town5_Drag",
+      "end_x": 20,
+      "view": "right"
+    },
+    {
+      "task": "主线（幽都鬼城）",
+      "target": "Mainline_060_Target",
+      "town": "town5",
+      "axis": "x",
+      "max_steps": 2,
+      "drag_node": "GameManagement_town5_Drag",
+      "end_x": 20,
+      "view": "right"
+    },
+    {
+      "task": "主线（万世冥阁）",
+      "target": "Mainline_061_Target",
+      "town": "town5",
+      "axis": "x",
+      "max_steps": 2,
+      "drag_node": "GameManagement_town5_Drag",
+      "end_x": 20,
+      "view": "right"
+    },
+    {
+      "task": "主线（血河池）",
+      "target": "Mainline_062_Target",
+      "town": "town5",
+      "axis": "x",
+      "max_steps": 2,
+      "drag_node": "GameManagement_town5_Drag",
+      "end_x": 20,
+      "view": "right"
     }
   ],
   "assets": [

@@ -2,9 +2,11 @@
 from copy import deepcopy
 import json
 from pathlib import Path
+import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-ENTRY_PRESS_MS = 300
+sys.path.insert(0, str(ROOT/'agent'))
+from mouse_input import ENTRY_PRESS_MS
 
 def write(path, value):
     path.write_text(json.dumps(value, ensure_ascii=False, indent=2)+'\n', encoding='utf8', newline='\n')
@@ -81,8 +83,8 @@ def build(root=ROOT):
         target_definition=deepcopy(profile['target']);target_definition['next']=[]
         # No delay between recognition and dispatch: a dialog can appear there.
         target_definition['pre_delay']=0
-        # Native Click holds for 100 ms. Entry targets use an explicit 300 ms
-        # press and release dwell before the shared background hover cleanup.
+        # Explicit base dwell; the round applies the confirmed task speed.
+        # Release dwell remains separate from background hover cleanup.
         target_definition['action']=dict(type='LongPress',param=dict(duration=ENTRY_PRESS_MS))
         target_definition['post_delay']=1000
         icon=target_definition['recognition']['param']['all_of'][1]
@@ -104,8 +106,32 @@ def build(root=ROOT):
                repeat:node(action=custom('loop_count',label=name),max_hit=1),
                target:target_definition,scene:node(scene_rec),play:play_node(scene_rec,binding)}
         write(folder/(name+'.json'),graph)
+    from mainline_tasks import build as build_mainline
+    build_mainline(root)
+    configure_box_speed(root)
+
+
+def configure_box_speed(root=ROOT):
+    from task_catalog import task_catalog
+    supported={task['entry'] for task in task_catalog(root,bindings={}) if task['management_profile'] or task['input_only']}
+    path=root/'assets/interface.json'
+    interface=json.loads(path.read_text(encoding='utf8'))
+    cases=[]
+    for speed in (1,2):
+        cases.append(dict(name='1 倍（默认）' if speed==1 else '2 倍',pipeline_override={
+            '脚本任务设置':dict(action=dict(param=dict(custom_action_param=dict(box_speed=speed)))),
+            'GenericScriptPlayback':dict(attach=dict(box_speed=speed))}))
+    interface['option']['盒子与脚本倍速']=dict(type='select',label='盒子与脚本倍速',default_case='1 倍（默认）',cases=cases,
+        description='默认 1 倍保持现有行为。2 倍会同步启用盒子原生倍速与脚本倍速，结束或停止后恢复 1 倍。\n进入造梦 4 并关闭盒子高帧率后使用；联机副本不适用。只在切换倍速时截图核验。录制内不能包含数字行 1/2 倍速快捷键。')
+    for task in interface['task']:
+        if task['entry'] not in supported:continue
+        options=[name for name in task.get('option',[]) if name!='盒子与脚本倍速']
+        options.insert(1 if options and options[0] in ('挂机模式','持续播放') else 0,'盒子与脚本倍速')
+        task['option']=options
+        if task['entry']=='GenericScriptPlayback':
+            task['description']=task['description'].replace('全程不截图、不识别，实时预览暂停',
+                '回放期间不截图、不识别，实时预览暂停；选择 2 倍时仅在切换阶段截图核验')
+    write(path,interface)
 
 if __name__=='__main__':
-    import sys
-    sys.path.insert(0,str(ROOT/'agent'))
     build()
