@@ -49,7 +49,7 @@ def build(root=ROOT):
         graph[spec['target']]['post_delay'] = 1000
         graph[spec['play']] = play_node(scene,binding)
         interface['task'].append(dict(name=spec['name'],label=stage['province']+' · '+stage['name'],
-            entry=spec['entry'],default_add=False,group=[stage['province']],option=['挂机模式','刷取次数','战斗录制内容','失败自动重试'],
+            entry=spec['entry'],default_add=False,group=[stage['province']],option=['挂机模式','盒子与脚本倍速','刷取次数','战斗录制内容','失败自动重试'],
             description='从任务列表“＋”添加本关卡，并在脚本库绑定对应战斗录制。普通模式下自动导航、核对入口与进关场景，回放后确认返回再计次。\n录制包含返回地图请选择“是”；仅战斗请选择“否”。未绑定、未解锁或界面无法确认时停止。战败重试、挂机及游戏管理沿用公共流程。'))
         counters[spec['repeat']] = dict(max_hit='{刷取次数}')
         if stage['town'] == 'town5':

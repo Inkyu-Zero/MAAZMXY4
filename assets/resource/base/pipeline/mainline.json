@@ -105,7 +105,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -275,7 +275,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -445,7 +445,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -615,7 +615,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -785,7 +785,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -955,7 +955,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -1125,7 +1125,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -1295,7 +1295,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -1465,7 +1465,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -1635,7 +1635,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -1805,7 +1805,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -1975,7 +1975,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -2145,7 +2145,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -2315,7 +2315,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -2485,7 +2485,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -2655,7 +2655,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -2825,7 +2825,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -2996,7 +2996,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -3167,7 +3167,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -3338,7 +3338,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -3509,7 +3509,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -3680,7 +3680,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -3851,7 +3851,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -4022,7 +4022,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -4193,7 +4193,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -4364,7 +4364,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -4535,7 +4535,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -4706,7 +4706,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -4877,7 +4877,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -5047,7 +5047,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -5218,7 +5218,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -5388,7 +5388,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -5559,7 +5559,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -5730,7 +5730,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -5901,7 +5901,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -6071,7 +6071,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -6242,7 +6242,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -6412,7 +6412,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -6582,7 +6582,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -6752,7 +6752,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -6922,7 +6922,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -7092,7 +7092,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -7262,7 +7262,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -7432,7 +7432,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -7603,7 +7603,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -7773,7 +7773,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -7943,7 +7943,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -8113,7 +8113,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -8283,7 +8283,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -8453,7 +8453,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -8623,7 +8623,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -8793,7 +8793,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -8963,7 +8963,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -9159,7 +9159,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -9355,7 +9355,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -9551,7 +9551,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -9721,7 +9721,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -9891,7 +9891,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -10061,7 +10061,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -10231,7 +10231,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -10401,7 +10401,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],
@@ -10571,7 +10571,7 @@
     "action": {
       "type": "LongPress",
       "param": {
-        "duration": 300
+        "duration": 100
       }
     },
     "next": [],

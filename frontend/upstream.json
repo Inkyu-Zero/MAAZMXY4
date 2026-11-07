@@ -90,6 +90,10 @@
     "frontend/patches/73-host-continuous-loop.json",
     "frontend/patches/74-task-default-add.json",
     "frontend/patches/75-manual-task-loading.json",
-    "frontend/patches/76-manual-task-merge.json"
+    "frontend/patches/76-manual-task-merge.json",
+    "frontend/patches/77-task-owned-cleanup.json",
+    "frontend/patches/78-task-success-after-cleanup.json",
+    "frontend/patches/79-native-speed-task-session.json",
+    "frontend/patches/80-speed-switch-preview-description.json"
   ]
 }

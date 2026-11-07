@@ -46,11 +46,17 @@ public sealed class ScriptStudioClient : IDisposable
     private long _sequence;
     private volatile bool _disconnected;
     private readonly bool _releaseCaptureOnDisconnect;
+    private readonly int _shutdownTimeoutMs;
     public string ProjectRoot { get; }
     public bool IsDisconnected => _disconnected;
 
-    public ScriptStudioClient(string? projectRoot = null, bool releaseCaptureOnDisconnect = true)
-    { ProjectRoot = projectRoot ?? FindRoot(); _releaseCaptureOnDisconnect = releaseCaptureOnDisconnect; }
+    public ScriptStudioClient(string? projectRoot = null, bool releaseCaptureOnDisconnect = true, int shutdownTimeoutMs = 2500)
+    {
+        if (shutdownTimeoutMs <= 0) throw new ArgumentOutOfRangeException(nameof(shutdownTimeoutMs));
+        ProjectRoot = projectRoot ?? FindRoot();
+        _releaseCaptureOnDisconnect = releaseCaptureOnDisconnect;
+        _shutdownTimeoutMs = shutdownTimeoutMs;
+    }
 
     private static string FindRoot()
     {
@@ -150,7 +156,7 @@ public sealed class ScriptStudioClient : IDisposable
                 process.StandardInput.WriteLine("{\"method\":\"shutdown\"}");
                 process.StandardInput.Flush();
                 process.StandardInput.Close();
-                if (!process.WaitForExit(2500)) process.Kill(entireProcessTree: true);
+                if (!process.WaitForExit(_shutdownTimeoutMs)) process.Kill(entireProcessTree: true);
             }
         }
         catch (InvalidOperationException) { }

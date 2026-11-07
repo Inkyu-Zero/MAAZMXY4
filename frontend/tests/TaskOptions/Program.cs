@@ -16,6 +16,7 @@ using MFAAvalonia.Helper.ValueType;
 using MFAAvalonia.ViewModels.Pages;
 using MFAAvalonia.ViewModels.Windows;
 using MFAAvalonia.ViewModels.UsersControls.Settings;
+using MFAAvalonia.Services;
 using Newtonsoft.Json;
 
 // Exercise the actual built host generator, without constructing the app,
@@ -120,8 +121,59 @@ internal static class Program
         var failed=new MFATask {Count=3,ContinueOnError=false,MaaAction=()=> {iterations++;return Task.FromResult(MaaFramework.Binding.MaaJobStatus.Failed);} };
         Check(failed.Run(CancellationToken.None).GetAwaiter().GetResult().Status==MFATask.MFATaskStatus.FAILED && iterations==1,
             "A failed playback is not counted or retried as success");
+        VerifySpeedTaskLifecycle(source,panel,item,generator,window,root);
         window.Close();
         Console.WriteLine("PASS actual built task options: one count label, AFK dependencies, saved values, legacy migration; no app/controllers/processes created.");
+    }
+
+    private static void VerifySpeedTaskLifecycle(MaaInterface source,StackPanel panel,DragItemViewModel item,
+        TaskOptionGenerator generator,Window window,RootViewModel root)
+    {
+        var calls=new List<string>();
+        var task=new MFATask {Count=3,MaaAction=()=> {calls.Add("play");return Task.FromResult(MaaFramework.Binding.MaaJobStatus.Succeeded);},
+            CompletionCleanup=()=> {calls.Add("cleanup");return Task.CompletedTask;} };
+        Check(task.Run(CancellationToken.None).GetAwaiter().GetResult().Status==MFATask.MFATaskStatus.SUCCEEDED
+            && calls.SequenceEqual(new[]{"play","play","play","cleanup"}),"One speed cleanup follows all host repetitions");
+        using var cancellation=new CancellationTokenSource();calls.Clear();
+        task.Count=-1;task.MaaAction=()=> {calls.Add("play");cancellation.Cancel();return Task.FromResult(MaaFramework.Binding.MaaJobStatus.Succeeded);};
+        Check(task.Run(cancellation.Token).GetAwaiter().GetResult().Status==MFATask.MFATaskStatus.STOPPED
+            && calls.SequenceEqual(new[]{"play","cleanup"}),"Manual stop still awaits native reset");
+        calls.Clear();task.Count=1;task.MaaAction=()=>Task.FromResult(MaaFramework.Binding.MaaJobStatus.Failed);
+        Check(task.Run(CancellationToken.None).GetAwaiter().GetResult().Status==MFATask.MFATaskStatus.FAILED && calls.Count==1,
+            "Failed task also releases native speed once");
+        task.ContinueOnError=true;task.MaaAction=()=>Task.FromResult(MaaFramework.Binding.MaaJobStatus.Succeeded);
+        task.CompletionCleanup=()=>throw new InvalidOperationException("reset not confirmed");
+        var failure=task.Run(CancellationToken.None).GetAwaiter().GetResult();
+        Check(failure.Status==MFATask.MFATaskStatus.FAILED && !failure.ContinueQueue,"A failed native reset cannot continue the queue");
+        var normal=new NativeBoxSpeedSession(1);
+        Check(normal.EnsureAsync(Empty<MaaProcessor>(),null,CancellationToken.None).GetAwaiter().GetResult()==null,
+            "Default 1x never starts a worker, captures, or reads window state");
+        normal.CloseAsync().GetAwaiter().GetResult();
+        var remembered=NativeBoxSpeedSession.WithProof("{}",new System.Text.Json.Nodes.JsonObject { ["state"]="ready",["speed"]=2 });
+        var cleared=System.Text.Json.Nodes.JsonNode.Parse(NativeBoxSpeedSession.WithProof(remembered,null))!.AsObject();
+        var settings=TaskScriptPlan.Parameters(cleared,"脚本任务设置");
+        Check(settings["box_speed"]!.GetValue<int>()==1 && settings["box_speed_proof"]==null,
+            "A default-speed task clears a previous task's native confirmation");
+        var choices=source.Option!["盒子与脚本倍速"].Cases!;
+        for(var index=0;index<2;index++)
+        {
+            var parameters=JsonConvert.SerializeObject(choices[index].PipelineOverride);
+            Check(NativeBoxSpeedSession.Read(parameters,"Mainline_001")==index+1
+                && NativeBoxSpeedSession.Read(parameters,GenericScriptPlayback.Entry)==index+1,
+                "The same option controls farming and generic playback");
+        }
+        var selection=new MaaInterface.MaaInterfaceTask {Name="speed",Entry=GenericScriptPlayback.Entry,
+            Option=[new(){Name="持续播放",Index=0},new(){Name="盒子与脚本倍速",Index=0}]};
+        Set(item,"_interfaceItem",selection);panel.Children.Clear();generator.GenerateCommonPanelContent(panel,item);
+        window.Width=360;Draw(window,"native-speed-default.png");
+        var combo=panel.GetVisualDescendants().OfType<ComboBox>().Single(c=>c.Items.OfType<MaaInterface.MaaInterfaceOptionCase>().Any(v=>v.Name=="2 倍"));
+        Check(combo.SelectedIndex==0,"Native speed defaults to 1x in a narrow layout");
+        combo.SelectedIndex=1;Dispatcher.UIThread.RunJobs();
+        Check(selection.Option[1].Index==1,"2x selection uses the host's saved task option");
+        root.Idle=false;Dispatcher.UIThread.RunJobs();
+        Check(!combo.IsEffectivelyEnabled,"Running tasks cannot change the selected factor");
+        root.Idle=true;
+        Console.WriteLine("PASS native-speed options and task-wide cleanup: repetition, cancellation, failure, and failed-reset queue stop.");
     }
     private static void Draw(Window window,string? name=null)
     {

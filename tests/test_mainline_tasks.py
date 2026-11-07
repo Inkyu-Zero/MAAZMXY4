@@ -32,7 +32,7 @@ class MainlineTasksTests(unittest.TestCase):
             self.assertEqual(task['entry'],names(stage)['entry'])
             self.assertIs(task['default_add'],False)
             self.assertEqual(task['group'],[stage['province']])
-            self.assertEqual(task['option'],['挂机模式','刷取次数','战斗录制内容','失败自动重试'])
+            self.assertEqual(task['option'],['挂机模式','盒子与脚本倍速','刷取次数','战斗录制内容','失败自动重试'])
         self.assertTrue(all('default_add' not in t for t in self.interface['task'] if not t['entry'].startswith('Mainline_')))
 
     def test_each_stage_reuses_one_round_and_stable_independent_binding(self):
@@ -58,7 +58,7 @@ class MainlineTasksTests(unittest.TestCase):
             self.assertEqual(parts[0]['recognition'],stage['recognition'])
             self.assertEqual(parts[1:],['Nav_Province_'+stage['town'],'GameManagement_NormalMap','Nav_ClearMap'])
             self.assertEqual(node['recognition']['param']['box_index'],0)
-            self.assertEqual(node['action'],{'type':'LongPress','param':{'duration':300}})
+            self.assertEqual(node['action'],{'type':'LongPress','param':{'duration':100}})
             self.assertEqual(node['pre_delay'],0)
             self.assertEqual(routines['stages'][target],stage['town'])
             self.assertLess(stage['roi'][2]*stage['roi'][3]/(1147*720),0.05)
