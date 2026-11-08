@@ -538,6 +538,66 @@ class RecordingDocument:
         result._markers = [marker for marker in result._markers if marker['id'] not in ids]
         return self._finish(result)
 
+    def copy_many(self, operation_ids):
+        """Copy a neutral fragment, retaining tracks, paths and relative timing."""
+        operations, ids = self._selection(operation_ids)
+        origin = min(operation['start_ms'] for operation in operations)
+        end = max(operation['start_ms'] + operation['duration_ms'] for operation in operations)
+        actions, previous = [], origin
+        for event in self._events:
+            if event['id'] not in ids:
+                continue
+            action = deepcopy(event['payload'])
+            action['t'] = event['at_ms'] - previous
+            previous = event['at_ms']
+            actions.append(action)
+        markers = [deepcopy(marker) for marker in self._markers if marker['id'] in ids]
+        for marker in markers:
+            marker['at_ms'] -= origin
+            marker['anchor'] = 'point'  # A copied endpoint becomes a regular marker.
+        fragment = RecordingDocument.from_dict(dict(version=1, name='时间轴片段', base=self.base,
+            duration_ms=end-origin, actions=actions, editor=dict(markers=markers)))
+        return dict(format='maazmxy4.timeline', version=1, recording=fragment.to_dict())
+
+    def paste_many(self, clipboard, at_ms):
+        """Add the fragment at the playhead as one validated, undoable edit."""
+        _time(at_ms, '粘贴位置')
+        _json_size(clipboard)
+        if (not isinstance(clipboard, dict) or clipboard.get('format') != 'maazmxy4.timeline'
+                or type(clipboard.get('version')) is not int or clipboard['version'] != 1):
+            raise ValueError('剪贴板不是受支持的时间轴片段，请先选择操作并复制')
+        fragment = RecordingDocument.from_dict(clipboard.get('recording'))
+        fragment.to_dict()  # Reject incomplete key/mouse pairs before changing the document.
+        if not fragment._events and not fragment._markers:
+            raise ValueError('剪贴板片段为空')
+        if fragment.base != self.base and any('x' in e['payload'] or 'y' in e['payload'] for e in fragment._events):
+            raise ValueError('两个脚本的窗口尺寸不同，不能直接粘贴鼠标坐标；键盘操作可单独复制')
+        result = deepcopy(self)
+        pasted_events, pasted_ids, releases = [], set(), set()
+        release_ids = {op['event_ids'][-1] for op in fragment._analysis()[0]
+                       if op['kind'] in ('key_hold', 'mouse_hold') and op['duration_ms'] > 0}
+        for event in fragment._events:
+            ident = str(uuid4())
+            pasted_ids.add(ident)
+            if event['id'] in release_ids:
+                releases.add(ident)
+            pasted_events.append(_event(ident, _time(at_ms+event['at_ms']), event['payload']))
+        result._events.extend(pasted_events)
+        result._events.sort(key=lambda event: (event['at_ms'],
+                            -1 if event['id'] in releases else 1 if event['id'] in pasted_ids else 0))
+        for marker in fragment._markers:
+            copied = deepcopy(marker)
+            copied.update(id=str(uuid4()), at_ms=_time(at_ms+marker['at_ms']), anchor='point')
+            pasted_ids.add(copied['id'])
+            result._markers.append(copied)
+        result.duration_ms = max(self.duration_ms, _time(at_ms+fragment.duration_ms))
+        result = self._finish(result)
+        old_paths = {op['id']: op['event_ids'] for op in self._analysis()[0]}
+        if any(op['id'] in old_paths and op['event_ids'] != old_paths[op['id']] for op in result._analysis()[0]):
+            raise ValueError('粘贴位置与已有按住或鼠标轨迹重叠，请更换时间位置')
+        selected = [op['id'] for op in result._analysis()[0] if op['id'] in pasted_ids]
+        return result, selected
+
     def move_many(self, operation_ids, delta_ms):
         """Translate the whole selection without changing relative timing or paths."""
         operations, ids = self._selection(operation_ids)
@@ -571,12 +631,12 @@ class RecordingDocument:
         # Legacy recorders wrote a stop marker (and sometimes a pause at the
         # same instant). These describe the endpoint, not a timed game input.
         ends = [m for m in self._markers if m.get('anchor') == 'script_end'
-                or m['label'] in ('录制停止', '结束录制')]
+                or m.get('anchor') != 'point' and m['label'] in ('录制停止', '结束录制')]
         if not ends:
             return set()
         last_stop = max(m['at_ms'] for m in ends)
         return {m['id'] for m in self._markers if m in ends and m['at_ms'] == last_stop
-                or m['label'] == '暂停录制' and m['at_ms'] == last_stop}
+                or m.get('anchor') != 'point' and m['label'] == '暂停录制' and m['at_ms'] == last_stop}
 
     def set_duration(self, duration_ms):
         duration = _time(duration_ms, "总时长")

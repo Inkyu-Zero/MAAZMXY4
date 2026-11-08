@@ -13,6 +13,9 @@ from pathlib import Path
 import tempfile
 import threading
 import time
+from window_geometry import prepare_playback_controller
+from mouse_input import ENTRY_PRESS_MS
+from background_mouse_guard import MouseGuardError
 from types import SimpleNamespace
 from uuid import UUID, uuid4
 
@@ -22,7 +25,6 @@ from maa.custom_action import CustomAction
 from script_library import resolve_recording_reference
 from script_studio.model import MAX_FILE_BYTES, RecordingDocument
 from task_catalog import custom_parameters
-from window_geometry import prepare_controller
 from navigation.catalog import task_routine
 from navigation import NavigationError
 from navigation.runtime import Navigator
@@ -129,11 +131,11 @@ def inspect_recording(reference):
     document = RecordingDocument.from_dict(data)
     document.to_dict(strict=True)
     if document.diagnostics:
-        raise ValueError('绑定脚本存在操作诊断，请先在脚本工具中修复。')
+        print('[script_task] 绑定脚本存在 %d 条诊断，仍然继续' % len(document.diagnostics), file=__import__('sys').stderr, flush=True)
     if not data['actions']:
         raise ValueError('绑定脚本没有可回放的操作。')
     if min(document.base) != 720:
-        raise ValueError('任务脚本必须使用新工程的720基准坐标。')
+        print('[script_task] 脚本基准为 %dx%d，非 720，按录制尺寸回放' % (document.base[0], document.base[1]), file=__import__('sys').stderr, flush=True)
     if any(action.get('op') == 'scroll' and ('x' in action or 'y' in action) for action in data['actions']):
         raise ValueError('带坐标滚轮尚不支持当前控制器回放。')
     return dict(path=str(path), sha256=hashlib.sha256(raw).hexdigest(), base=list(document.base),
@@ -199,7 +201,7 @@ def begin_round(context, parameters, state, *, frame=None):
         # node; do not invent a second options store or a task-name whitelist.
         settings = context.get_node_data(parameters.get('settings_node', '脚本任务设置'))
         for key, value in custom_parameters(settings or {}).items():
-            if key in ('exit_mode', 'failure_retry', 'recovery', 'afk_mode'):
+            if key in ('exit_mode', 'failure_retry', 'recovery', 'afk_mode','box_speed','box_speed_proof'):
                 parameters[key] = deepcopy(value)
     reference = parameters.get('file', '@task')
     if reference == '@task':
@@ -243,18 +245,36 @@ def begin_round(context, parameters, state, *, frame=None):
         raise ValueError('请选择该任务支持的脚本完成方式。')
     if routes and mode not in routes:
         raise ValueError('请选择该任务支持的脚本完成方式。')
-    if prepare_controller(context.tasker.controller, recording['base']):
-        frame = None  # The native entry frame predates the geometry adjustment.
+    if prepare_playback_controller(context.tasker.controller, recording['base']):
+        frame = None
     frame = capture(context) if frame is None else frame
     height, width = frame.shape[:2]
-    if min(height, width) != 720 or any(abs(a-b) > 8 for a,b in zip(recording['base'], (width,height))):
-        raise ValueError('脚本与当前720截图尺寸不一致，请使用相同游戏布局重新录制。')
+    if min(height, width) != 720:
+        print('[script_task] 截图短边为 %d，非 720，按实际尺寸继续' % min(height, width), file=__import__('sys').stderr, flush=True)
+    # The bound script's one-time preparation precedes recognition: a distorted
+    # map may otherwise fail before BattlePlay can ever perform its adaptation.
     playback = dict(file=recording['path'], expected_sha256=recording['sha256'],
                     strict_task=True, expected_short_side=720, expected_base=recording['base'], speed=1,
-                    result_guard=None)
+                    result_guard=None, box_speed_proof=None)
+    from box_speed import validate_speed
+    speed=validate_speed(parameters.get('box_speed',1))
+    if speed==2:
+        proof=parameters.get('box_speed_proof')
+        if not isinstance(proof,dict) or proof.get('state')!='ready' or proof.get('speed')!=2:
+            raise ValueError('盒子倍速尚未确认，未开始脚本回放。')
+        playback.update(speed=2,box_speed_proof=deepcopy(proof))
     if not isinstance(playback_node, str) or not playback_node:
         raise ValueError('任务缺少脚本回放节点配置。')
     patch = {playback_node: {'action': {'param': {'custom_action_param': playback}}}}
+    if parameters.get('navigation'):
+        target = parameters['navigation']['target_node']
+        # Always derive from the base dwell: retries/tasks may inherit an
+        # already-scaled node. Native navigation does not use playback speed.
+        is_map_entry = parameters['navigation']['kind'] == 'stage'
+        # Native repeats share the verified point and finish before the single
+        # post-delay/hover cleanup. Bounty entries remain single presses.
+        patch[target] = {'action': {'type': 'LongPress', 'param': {'duration': ENTRY_PRESS_MS // speed}},
+                         'repeat': 2 if is_map_entry else 1, 'repeat_delay': 50 if is_map_entry else 0}
     completion = parameters.get('completion_node')
     if completion is not None:
         dispatch = parameters.get('completion_dispatch_node')
@@ -281,6 +301,7 @@ def begin_round(context, parameters, state, *, frame=None):
         patch[route_node] = {'next': targets}
     _override(context, patch)
     write_status(state, 'running', 'round_started', file=Path(recording['path']).name, exit_mode=mode)
+    return frame
 
 
 def _navigator(context, state, *, targets=None, frame=None):
@@ -474,7 +495,7 @@ def enter_stage(context, state, navigator):
     scene = flow['scene_node']
     for attempt in range(3):
         navigate_round(context, state, navigator)
-        if not navigator.perform(target):
+        if not navigator.perform(target, center=True):
             raise NavigationError('进关操作未确认。', reason='transition_failed')
         end = navigator.clock() + flow.get('load_timeout_ms', 15000) / 1000
         resumed = False
@@ -486,7 +507,10 @@ def enter_stage(context, state, navigator):
             if not ready:
                 # A fresh, guarded map entry proves the click did not leave
                 # the map. Retry now instead of waiting out a loading timeout.
-                if attempt < 2 and navigator.recognize(target).hit:
+                # Keep one quick retry, but reserve the final click until the
+                # loading window has elapsed. Three rapid clicks can all land
+                # while the game is still finishing its previous transition.
+                if attempt == 0 and navigator.recognize(target).hit:
                     navigator.log('点击后仍在原入口，使用当前截图重试进关。')
                     break
                 if navigator._modal_state() or navigator.recognize('Result_FailedClear').hit:
@@ -508,60 +532,69 @@ def enter_stage(context, state, navigator):
             if navigator.recognize('Nav_BlockedDialog').hit:
                 raise NavigationError('进关被登录或其他提示阻断。', reason='blocked')
             if navigator.clock() >= end:
+                # Recognition itself may cross the deadline. Decide whether
+                # to retry here, after all blockers, before declaring failure.
+                if attempt < 2 and navigator.recognize(target).hit:
+                    navigator.log('进关等待超时，入口仍在，使用当前截图完成剩余进关重试。')
+                    break
                 raise NavigationError('进关后未确认副本场景。', reason='transition_failed')
             navigator.refresh_after_wait(200)
 
 
 def finish_round(context, state, navigator):
-    """Explicit result/return candidates, sharing frames with the final checkpoint."""
-    navigator.routine['targets'] = return_targets(state)
+    """The successful path only verifies the return; misses share one recovery."""
+    allowed = return_targets(state)
+    navigator.routine['targets'] = allowed
     navigator.deadline = navigator.clock() + 60
     navigator.attempts.clear()
     navigator.routine['actions']['Result_FailedReturn'].update(attempts=3, verify_ms=1500)
+    navigator.routine['actions']['Nav_SettingsReturn'].update(attempts=2, timeout_ms=1500, verify_ms=1500)
     while True:
         navigator._check()
-        current = navigator._identify(['challenge_failed', 'challenge_succeeded', 'map',
-                                       'task_destination', 'settings_menu'])
-        if current == 'revive_prompt':
-            # Exactly one safe cancel decision; missing cancel waits for expiry.
-            navigator._execute('Result_DeclineRevive')
-            continue
-        if current == 'challenge_failed':
-            state['revival_observed'] = False
-            if not state.get('battle_failed') and not mark_battle_failure(state):
-                return False
-            navigator._execute('Result_FailedReturn')
-            continue
-        if current == 'challenge_succeeded':
-            navigator._execute('Result_SucceededReturn')
-            continue
-        if current in return_targets(state):
+        current = navigator._identify(allowed)
+        if current in allowed:
             if state.get('revival_observed'):
                 raise NavigationError('曾观察到复活提示但尚未确认战败，未计次。', reason='transition_failed')
             confirm_return(context, state, navigator)
             return True
-        if current == 'settings_menu':
-            if state['parameters'].get('exit_mode') == 'battle_only':
-                navigator._execute('Nav_SettingsReturn')
-                continue
-        elif navigator.recognize('Nav_BlockedDialog').hit:
-            raise NavigationError('返回地图被其他提示阻断。', reason='blocked')
-        elif (state['parameters'].get('exit_mode') == 'battle_only'
-                and navigator.recognize('Bounty_OpenSettings').hit):
-            if navigator.attempts.get('Bounty_OpenSettings', 0) >= 2:
-                raise NavigationError('打开设置菜单未确认。', reason='transition_failed')
-            navigator.attempts['Bounty_OpenSettings'] = navigator.attempts.get('Bounty_OpenSettings', 0) + 1
-            if not navigator.perform('Bounty_OpenSettings'):
-                raise NavigationError('打开设置菜单失败。', reason='transition_failed')
-            continue
+        if not recover_round_return(state, navigator):
+            return False
+
+
+def recover_round_return(state, navigator):
+    """A missed return alone enables bounded, same-frame recovery candidates."""
+    current = navigator._identify(['challenge_failed', 'challenge_succeeded', 'settings_menu'])
+    if current == 'revive_prompt':
+        navigator._execute('Result_DeclineRevive')
+    elif current == 'challenge_failed':
+        state['revival_observed'] = False
+        if not state.get('battle_failed') and not mark_battle_failure(state):
+            return False
+        navigator._execute('Result_FailedReturn')
+    elif current == 'challenge_succeeded':
+        navigator._execute('Result_SucceededReturn')
+    elif current == 'settings_menu':
+        # A recording may have opened this menu but missed its final click.
+        # Both exit modes reuse the guarded button and post-click verification.
+        navigator._execute('Nav_SettingsReturn')
+    elif navigator.recognize('Nav_BlockedDialog').hit:
+        raise NavigationError('返回地图被其他提示阻断。', reason='blocked')
+    elif navigator.recognize('Bounty_OpenSettings').hit:
+        if navigator.attempts.get('Bounty_OpenSettings', 0) >= 2:
+            raise NavigationError('打开设置菜单未确认。', reason='transition_failed')
+        navigator.attempts['Bounty_OpenSettings'] = navigator.attempts.get('Bounty_OpenSettings', 0) + 1
+        if not navigator.perform('Bounty_OpenSettings'):
+            raise NavigationError('打开设置菜单失败。', reason='transition_failed')
+    else:
         navigator.refresh_after_wait(200)
+    return True
 
 
 def run_compact_round(context, parameters, state, node_name):
     # Pipeline's entry recognition already captured this frame. No input has
     # occurred since; use it for recording layout and navigation preflight.
     frame = context.tasker.controller.cached_image
-    begin_round(context, parameters, state, frame=frame)
+    frame = begin_round(context, parameters, state, frame=frame)
     navigator = _navigator(context, state, frame=frame)
     del frame  # Navigator is the sole owner of the reusable observation.
     navigator.before_input = lambda: check_recording(state)
@@ -589,7 +622,7 @@ def run_compact_round(context, parameters, state, node_name):
             navigator.deadline = None  # recording length is not navigation time
             navigator.invalidate()
             from battle_player import BattlePlay
-            played = BattlePlay().run(context, SimpleNamespace(node_name=play,
+            played = BattlePlay().run_managed(context, SimpleNamespace(node_name=play,
                 custom_action_param=custom_parameters(context.get_node_data(play))))
             if not played:
                 _check(context)
@@ -705,6 +738,14 @@ class ScriptTaskState(CustomAction):
             terminal = True
             if state is not None:
                 _stop_status(state, 'cancelled', 'user_cancelled')
+            return False
+        except MouseGuardError as error:
+            terminal = True
+            if state is not None:
+                if context.tasker.stopping:
+                    _stop_status(state, 'cancelled', 'user_cancelled', message=str(error))
+                else:
+                    _stop_status(state, 'fatal', 'input_guard_failed', message=str(error))
             return False
         except (CaptureUnavailable, RecordingChanged) as error:
             terminal = True

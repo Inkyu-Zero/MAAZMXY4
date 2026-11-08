@@ -8,6 +8,7 @@ from types import SimpleNamespace
 
 from . import NavigationError
 from .recognition import modal_present
+from background_mouse_guard import hold_background_mouse, MouseGuardError
 
 
 def _move_cursor_off_target(controller):
@@ -62,7 +63,7 @@ class Navigator:
                 box=getattr(detail, 'box', None), frame_id=self._frame_id, name=name)
         return self._recognized[name]
 
-    def perform(self, name, hit=None, *, pipeline_override=None):
+    def perform(self, name, hit=None, *, pipeline_override=None, center=False):
         """Dispatch native input using the box already verified on this frame."""
         hit = hit or self.recognize(name)
         self._check()
@@ -70,6 +71,9 @@ class Navigator:
                 or hit.frame_id != self._frame_id or hit.name != name):
             raise NavigationError('操作缺少当前帧的有效识别，未发送输入。', reason='transition_failed')
         box = hit.box
+        if center:
+            x, y, width, height = box
+            box = [int(x + width // 2), int(y + height // 2), 1, 1]
         if self.before_input is not None:
             self.before_input()
         self._check()
@@ -78,14 +82,22 @@ class Navigator:
         self.invalidate()
         try:
             options = {'pipeline_override': pipeline_override} if pipeline_override else {}
-            result = self.context.run_action(name, box=box, **options)
+            with hold_background_mouse(getattr(self.context.tasker, 'controller', None)):
+                self._check()
+                result = self.context.run_action(name, box=box, **options)
+        except MouseGuardError as error:
+            # Cancellation still wins, but an expired navigation deadline must
+            # not turn an ownership failure back into a restartable timeout.
+            self.check()
+            self.log(str(error))
+            raise NavigationError(str(error), reason='input_guard_failed') from error
         except Exception as error:
             self._check()
-            raise NavigationError('原生导航操作未确认：' + name, reason='transition_failed') from error
+            raise NavigationError('原生导航操作未确认：' + name + '；' + str(error), reason='transition_failed') from error
         self._check()
         kind = getattr(result, 'action', None)
         kind = getattr(kind, 'name', kind)
-        if result is not None and result.success and kind in ('Click', 'Swipe', 'MultiSwipe', 'Scroll', 'TouchUp'):
+        if result is not None and result.success and kind in ('Click', 'LongPress', 'Swipe', 'MultiSwipe', 'Scroll', 'TouchUp'):
             moved, detail = _move_cursor_off_target(self.context.tasker.controller)
             self._check()
             if not moved:

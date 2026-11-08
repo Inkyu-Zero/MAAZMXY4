@@ -14,6 +14,11 @@ def library():
     return json.loads((DATA / 'routines.json').read_text(encoding='utf8'))
 
 
+@lru_cache(maxsize=1)
+def bounty_descriptions():
+    return json.loads((DATA / 'bounty-descriptions.json').read_text(encoding='utf8'))
+
+
 def task_routine(context, parameters, *, targets=None):
     config = parameters.get('navigation', {})
     kind = config.get('kind')
@@ -49,10 +54,18 @@ def task_routine(context, parameters, *, targets=None):
         if any(not isinstance(title, str) or not title or len(title) > 100 for title in titles):
             raise ValueError('悬赏导航需要明确的任务名称。')
         expected = ['^' + re.escape(title) + '$' for title in titles]
-        # The shared entry and navigation shortcut use the same detail title.
-        # Main quests also have an accepted badge and a Go To Stage button.
-        definitions['Nav_BountyDetailTitle'] = dict(recognition=dict(type='OCR',
-            param=dict(expected=expected, roi=[500,165,430,75])),
+        # Keep the existing node ID for shared references and saved profiles.
+        # Detail identity comes only from the description body; title OCR can
+        # merge with the first body line. Row selection still uses the title.
+        descriptions = bounty_descriptions()
+        phrases = descriptions['tasks'].get(config.get('title'))
+        if not phrases:
+            raise ValueError('悬赏任务缺少描述段落识别配置。')
+        checks = [dict(recognition=dict(type='OCR', param=dict(
+            expected=[r'\s*'.join('[盗盜]' if char == '盗' else re.escape(char) for char in phrase)],
+            roi=deepcopy(descriptions['roi'])))) for phrase in phrases]
+        definitions['Nav_BountyDetailTitle'] = dict(recognition=dict(type='And',
+            param=dict(all_of=checks)),
             action=dict(type='DoNothing'), next=[], post_delay=0)
         definitions['Nav_ChooseBounty'] = dict(recognition=dict(type='And', param=dict(all_of=[
             dict(recognition=dict(type='OCR', param=dict(expected=expected, roi=[180,175,320,370]))),

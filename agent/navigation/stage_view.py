@@ -69,6 +69,11 @@ def restore_stage_view(context, navigator, target):
         if 'end_x' in recipe:
             # Native swipe already includes its transition delay. The target
             # includes the map guard, so one new frame also rejects mis-entry.
-            return navigator.recognize(target).hit
+            if navigator.recognize(target).hit:
+                return True
+            # A game frame can miss part of a gesture. Re-localize and match
+            # safe terrain on the new frame before the one corrective swipe.
+            # Mis-entry, dialogs and missing terrain never receive a blind drag.
+            continue
         navigator._settle()
     return False

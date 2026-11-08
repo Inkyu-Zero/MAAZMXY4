@@ -1,9 +1,11 @@
-"""Background hover cleanup shared by navigation, games and playback endings.
+"""Shared entry press timing and background hover cleanup.
 
 No Maa registration, screenshot, polling, physical-cursor movement or clicks.
 """
 import ctypes
 from ctypes import wintypes
+
+ENTRY_PRESS_MS = 100
 
 
 def bound_hwnd(controller):

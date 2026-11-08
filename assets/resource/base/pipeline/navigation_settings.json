@@ -10,7 +10,7 @@
               "type": "TemplateMatch",
               "param": {
                 "template": "navigation/settings/continue.png",
-                "threshold": 0.9,
+                "threshold": 0.8,
                 "green_mask": true,
                 "roi": [
                   400,
@@ -26,7 +26,6 @@
               "type": "TemplateMatch",
               "param": {
                 "template": "navigation/settings/return.png",
-                "threshold": 0.9,
                 "green_mask": true,
                 "roi": "continue",
                 "roi_offset": [
@@ -59,7 +58,7 @@
               "type": "TemplateMatch",
               "param": {
                 "template": "navigation/settings/continue.png",
-                "threshold": 0.9,
+                "threshold": 0.8,
                 "green_mask": true,
                 "roi": [
                   400,
@@ -75,7 +74,6 @@
               "type": "TemplateMatch",
               "param": {
                 "template": "navigation/settings/return.png",
-                "threshold": 0.9,
                 "green_mask": true,
                 "roi": "continue",
                 "roi_offset": [
@@ -113,7 +111,7 @@
               "type": "TemplateMatch",
               "param": {
                 "template": "navigation/settings/continue.png",
-                "threshold": 0.9,
+                "threshold": 0.8,
                 "green_mask": true,
                 "roi": [
                   400,
@@ -129,7 +127,6 @@
               "type": "TemplateMatch",
               "param": {
                 "template": "navigation/settings/return.png",
-                "threshold": 0.9,
                 "green_mask": true,
                 "roi": "continue",
                 "roi_offset": [
@@ -172,7 +169,6 @@
                       "type": "TemplateMatch",
                       "param": {
                         "template": "navigation/settings/sound-title.png",
-                        "threshold": 0.9,
                         "roi": [
                           280,
                           15,
@@ -187,7 +183,6 @@
                       "type": "TemplateMatch",
                       "param": {
                         "template": "navigation/settings/sound-label.png",
-                        "threshold": 0.9,
                         "roi": "sound_title",
                         "roi_offset": [
                           -117,
@@ -207,7 +202,6 @@
                           "navigation/settings/close-2_over.png",
                           "navigation/settings/close-3_down.png"
                         ],
-                        "threshold": 0.9,
                         "green_mask": true,
                         "roi": [
                           750,
@@ -234,7 +228,6 @@
                       "type": "TemplateMatch",
                       "param": {
                         "template": "navigation/settings/detail-title.png",
-                        "threshold": 0.9,
                         "roi": [
                           280,
                           15,
@@ -249,7 +242,6 @@
                       "type": "TemplateMatch",
                       "param": {
                         "template": "navigation/settings/detail-label.png",
-                        "threshold": 0.9,
                         "roi": "detail_title",
                         "roi_offset": [
                           -29,
@@ -269,7 +261,6 @@
                           "navigation/settings/close-2_over.png",
                           "navigation/settings/close-3_down.png"
                         ],
-                        "threshold": 0.9,
                         "green_mask": true,
                         "roi": [
                           750,
@@ -296,7 +287,6 @@
                       "type": "TemplateMatch",
                       "param": {
                         "template": "navigation/settings/damage-title.png",
-                        "threshold": 0.9,
                         "roi": [
                           280,
                           15,
@@ -311,7 +301,6 @@
                       "type": "TemplateMatch",
                       "param": {
                         "template": "navigation/settings/damage-label.png",
-                        "threshold": 0.9,
                         "roi": "damage_title",
                         "roi_offset": [
                           21,
@@ -331,7 +320,6 @@
                           "navigation/settings/close-2_over.png",
                           "navigation/settings/close-3_down.png"
                         ],
-                        "threshold": 0.9,
                         "green_mask": true,
                         "roi": [
                           750,

@@ -1,0 +1,8 @@
+Installer: Inno Setup 7.1.1, Jordan Russell / Martijn Laan. https://jrsoftware.org/
+Bundled Microsoft installers are unmodified; their license terms apply.
+dotnet 10.0.14
+https://builds.dotnet.microsoft.com/dotnet/Runtime/10.0.14/dotnet-runtime-10.0.14-win-x64.exe
+https://github.com/dotnet/runtime/blob/v10.0.14/LICENSE.TXT
+vcredist 14.51.36247.0
+https://aka.ms/vc14/vc_redist.x64.exe
+https://visualstudio.microsoft.com/license-terms/vs2022-cruntime/

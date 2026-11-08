@@ -12,6 +12,7 @@ import threading
 import time
 
 from window_geometry import WindowLease
+from background_mouse_guard import hold_background_mouse
 
 
 class CompletedInput:
@@ -41,6 +42,10 @@ class InputOnlyController:
         self.api.PostMessageW.argtypes = [wintypes.HWND, wintypes.UINT, wintypes.WPARAM, wintypes.LPARAM]
         self.api.PostMessageW.restype = wintypes.BOOL
 
+    @property
+    def info(self):
+        return {'hwnd': self.lease.hwnd}
+
     def __getattr__(self, name):
         if name in ('post_click_key', 'post_key_down', 'post_key_up'):
             def send(*args, **kwargs):
@@ -53,7 +58,7 @@ class InputOnlyController:
         # Cleanup may run after a size failure, but must still target only the
         # original live HWND. It never redirects input to another process.
         self.lease.require_identity()
-        x, y = self.position
+        x, y = self.lease.map_point(*self.position)
         flags = sum({0: 1, 1: 2, 2: 16}[button] for button in self.buttons)
         point = ((y & 0xffff) << 16) | (x & 0xffff)
         return self._message(message, flags, point)
@@ -91,7 +96,7 @@ class InputOnlyController:
 
     def clear_hover(self):
         self.lease.require_identity()
-        self.position = (20, 20)
+        self.position = tuple(round(20*base/size) for base,size in zip(self.lease.base,self.lease.client_size))
         self._message(0x200, 0, (20 << 16) | 20)
 
     def post_input_text(self, text):
@@ -109,7 +114,8 @@ class InputOnlyController:
         # Wheel messages carry screen coordinates; preserve the preceding
         # script mouse position without consulting or moving the real cursor.
         current = self.lease.ensure()
-        x, y = self.position[0] + current['x'], self.position[1] + current['y']
+        x, y = self.lease.map_point(*self.position)
+        x, y = x + current['x'], y + current['y']
         point = ((y & 0xffff) << 16) | (x & 0xffff)
         for message, delta in ((0x20a, dy), (0x20e, dx)):
             if delta:
@@ -168,6 +174,12 @@ class PlaybackJob:
             from script_library import resolve_recording_reference
             path = resolve_recording_reference(self.root / 'recordings', self.params['file'])
             rec = read_recording(path, expected_sha256=self.params['sha256'], strict=True)
+            from box_speed import validate_speed, validate_recording
+            speed=validate_speed(self.params.get('speed',1))
+            validate_recording(rec,speed)
+            if speed==2:
+                from box_speed_native import verify_playback_proof
+                verify_playback_proof(self.params.get('box_speed_proof'),self.params['hwnd'],self.params['sha256'])
             if self.cancel.is_set():
                 self.state = 'stopped'
                 return
@@ -179,10 +191,12 @@ class PlaybackJob:
                 try:
                     controller = self.input_adapter_factory(native, lease, self.params.get('mouse', 'SendMessage'), self.cancel.is_set)
                     self.phase = 'playing'
-                    succeeded = play_actions(rec, controller, self.cancel.is_set, ensure=lease.ensure,
-                        clock=lease.clock, cleanup_guard=lease.require_identity,
-                        after_playback=getattr(controller, 'clear_hover', None),
-                        log=lambda message: print(message, file=sys.stderr, flush=True))
+                    with hold_background_mouse(controller):
+                        succeeded = play_actions(rec, controller, self.cancel.is_set, ensure=lease.ensure,
+                            speed=speed,
+                            clock=lease.clock, cleanup_guard=lease.require_identity,
+                            after_playback=getattr(controller, 'clear_hover', None),
+                            log=lambda message: print(message, file=sys.stderr, flush=True))
                     self.state = 'stopped' if self.cancel.is_set() else 'succeeded' if succeeded else 'failed'
                 finally:
                     # Controller owns its native keys; player already releases each

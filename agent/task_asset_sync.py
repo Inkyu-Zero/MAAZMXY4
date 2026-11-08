@@ -17,7 +17,7 @@ from uuid import uuid4
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'agent'))
 from legacy_script_bindings import plan_legacy_bindings
-from script_library import _bindings_state
+from script_library import _bindings_state, publish_new_file
 from task_catalog import _configuration, custom_parameters, node_links
 
 SEPARATOR = '<|||>'
@@ -98,7 +98,7 @@ def _publish(path, raw, expected):
         if (None if current is None else _sha(current)) != expected:
             raise SyncConflict('暂存期间文件发生变化，未覆盖：' + str(path))
         if expected is None:
-            os.link(temporary, path)
+            publish_new_file(temporary, path)
         else:
             os.replace(temporary, path)
     finally:
@@ -329,6 +329,12 @@ def prepare_task_assets(source_root, target_root, task_names=None, update_versio
     def plan_json(relative, before, after):
         if not _same_json(before, after):
             plan_bytes(relative, _encode(after))
+
+    defaults = _read(_safe(source_root, source_prefix + 'resource/base/default_pipeline.json'), source_inputs)
+    if defaults is not None:
+        if not isinstance(_json(defaults), dict):
+            raise ValueError('资源默认识别配置必须为对象。')
+        plan_bytes('resource/base/default_pipeline.json', defaults)
 
     runtime_interface_path = _safe(target_root, 'interface.json')
     runtime_raw = _read(runtime_interface_path, target_inputs)

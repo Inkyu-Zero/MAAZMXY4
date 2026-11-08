@@ -45,9 +45,10 @@ from maa.custom_action import CustomAction
 from script_studio.model import MAX_FILE_BYTES, RecordingDocument
 from script_library import resolve_recording_reference
 from battle_outcomes import BattleOutcomeMonitor, UnrecognizedDialog
-from window_geometry import controller_hwnd, WindowLease
+from window_geometry import controller_hwnd, WindowLease, matches_layout
 import recording_playback as playback
 from mouse_input import finish_mouse_operation
+from background_mouse_guard import hold_background_mouse, MouseGuardError
 
 try:
     from toast import toast as _toast
@@ -225,6 +226,16 @@ class BattlePlay(CustomAction):
     """
 
     def run(self, context, argv) -> bool:  # noqa: ANN001 - MAA 的接口签名
+        # Maa's ctypes callback requires a concrete bool; exceptions crossing
+        # that boundary do not reliably become a failed native action.
+        try:
+            return self.run_managed(context, argv)
+        except MouseGuardError:
+            return False
+
+    def run_managed(self, context, argv) -> bool:
+        # The compact round runs in this Agent process and needs the typed
+        # cleanup error in order to forbid an automatic recovery restart.
         raw = getattr(argv, "custom_action_param", None)
         # MAA 传过来的形态有三种：
         #   1) dict        —— pipeline 里直接写对象
@@ -323,12 +334,22 @@ class BattlePlay(CustomAction):
         monitor = None
         hwnd = controller_hwnd(ctrl)
         try:
+            if param.get('box_speed_proof') is not None:
+                from box_speed import validate_recording
+                from box_speed_native import verify_playback_proof
+                validate_recording(rec,2)
+                speed=verify_playback_proof(param['box_speed_proof'],hwnd,param.get('expected_sha256'))
             with WindowLease(hwnd, rec['base']) if hwnd else nullcontext() as lease:
                 if lease:
                     # Normal tasks use native scaling and may inspect the game.
                     # Refresh after changing borders/size; input-only jobs bypass
                     # this native action and call the shared timeline directly.
-                    _wait_job(ctrl.post_screencap())
+                    if lease.changed:
+                        _wait_job(ctrl.post_screencap())
+                    frame = ctrl.cached_image
+                    if frame is None or min(frame.shape[:2]) != 720 or not matches_layout(
+                            (frame.shape[1],frame.shape[0]),rec['base']):
+                        raise ValueError('播放前的窗口截图尚未匹配脚本比例，已停止输入。')
                 if param.get('result_guard') is not None:
                     try:
                         monitor = BattleOutcomeMonitor(context, param['result_guard'])
@@ -343,16 +364,19 @@ class BattlePlay(CustomAction):
                                 self._log('[battle_play] 监测清理失败：' + str(cleanup_error))
                         self._log('[battle_play] 战斗结果监测未启动：' + str(error))
                         return False
-                completed = playback.play_actions(rec, ctrl, lambda: context.tasker.stopping,
-                    speed=speed, monitor=monitor, log=self._log,
-                    ensure=lease.ensure if lease else None,
-                    clock=lease.clock if lease else time.monotonic, wait_until=_sleep_until,
-                    cleanup_guard=lease.require_identity if lease else None,
-                    after_playback=(lambda: finish_mouse_operation(context.tasker.controller)) if lease else None)
+                with hold_background_mouse(ctrl):
+                    completed = playback.play_actions(rec, ctrl, lambda: context.tasker.stopping,
+                        speed=speed, monitor=monitor, log=self._log,
+                        ensure=lease.ensure if lease else None,
+                        clock=lease.clock if lease else time.monotonic, wait_until=_sleep_until,
+                        cleanup_guard=lease.require_identity if lease else None,
+                        after_playback=(lambda: finish_mouse_operation(context.tasker.controller)) if lease else None)
         except Exception as error:
             if monitor is not None:
                 monitor.close()
             self._log('[battle_play] 回放已停止：' + str(error))
+            if isinstance(error, MouseGuardError):
+                raise
             return False
         if monitor is not None:
             if monitor.error is not None:

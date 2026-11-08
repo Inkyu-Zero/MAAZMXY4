@@ -64,6 +64,7 @@ def merge(base, overlay):
 
 
 def _inside(root, value):
+    root = Path(root).resolve()
     path = (root / value.replace('{PROJECT_DIR}', str(root))).resolve()
     if not path.is_relative_to(root): raise ValueError('任务资源不能指向工程外部。')
     return path
@@ -165,8 +166,13 @@ def task_catalog(root, bindings=None, *, overrides=None):
         name, entry = definition.get('name'), definition.get('entry')
         if not isinstance(name, str) or not isinstance(entry, str): continue
         if (name, entry) in seen and overrides is not None: continue
-        graph = merge(nodes, definition.get('pipeline_override', {}) or {})
-        if overrides is not None: graph = merge(graph, overrides)
+        # Discovery only reads the graph. Share the freshly loaded definitions
+        # until an actual overlay is present; returned mutable data is copied
+        # below. Large add-only catalogs must not clone the whole graph twice
+        # for every task, and this keeps no cache across configuration reads.
+        local_override = definition.get('pipeline_override', {}) or {}
+        graph = merge(nodes, local_override) if local_override else nodes
+        if overrides: graph = merge(graph, overrides)
         parameters = custom_parameters(graph.get(entry, {}))
         profile = None
         if isinstance(parameters, dict) and isinstance(parameters.get('execution'), dict):
@@ -245,8 +251,10 @@ def inspect_saved_recording(root, reference):
     document = RecordingDocument.from_dict(data)
     document.to_dict(strict=True)
     if not data.get('actions'): raise ValueError('任务不能绑定空白脚本。')
-    if document.diagnostics: raise ValueError('请先修复脚本中的操作诊断。')
-    if min(document.base) != 720: raise ValueError('请先将脚本转换为本工程720坐标。')
+    if document.diagnostics:
+        print('[task_catalog] 脚本存在 %d 条诊断，仍然继续' % len(document.diagnostics), file=__import__('sys').stderr, flush=True)
+    if min(document.base) != 720:
+        print('[task_catalog] 脚本基准为 %dx%d，非 720，按录制尺寸回放' % (document.base[0], document.base[1]), file=__import__('sys').stderr, flush=True)
     return dict(file=path.name, path=str(path), sha256=hashlib.sha256(raw).hexdigest(), base=list(document.base))
 
 

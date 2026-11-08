@@ -10,7 +10,6 @@
               "type": "TemplateMatch",
               "param": {
                 "template": "navigation/dialogs/confirm-left.png",
-                "threshold": 0.9,
                 "roi": [
                   0,
                   70,
@@ -25,7 +24,6 @@
               "type": "TemplateMatch",
               "param": {
                 "template": "navigation/dialogs/confirm-right.png",
-                "threshold": 0.9,
                 "roi": "panel_corner",
                 "roi_offset": [
                   200,
@@ -41,7 +39,6 @@
               "type": "TemplateMatch",
               "param": {
                 "template": "navigation/dialogs/confirm-bottom.png",
-                "threshold": 0.9,
                 "roi": "panel_corner",
                 "roi_offset": [
                   -8,
