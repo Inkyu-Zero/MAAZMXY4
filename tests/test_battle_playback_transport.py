@@ -26,10 +26,13 @@ def native_case(mode):
     from fixture_pixels import read_png_bgr
 
     failed_frame = read_png_bgr(ROOT / 'tests/fixtures/navigation/challenge-failed.png')
-    is_revive = mode in ('revive', 'revive_live')
-    revive_fixture = ('revival-live/vip-p1-countdown10.png' if mode=='revive_live'
+    is_revive = mode in ('revive', 'revive_live', 'revive_settling')
+    revive_fixture = ('revival-live/vip-p1-countdown10.png' if mode in ('revive_live', 'revive_settling')
                       else 'revival/normal-p1-up.png')
     revive_frame = read_png_bgr(ROOT / 'tests/fixtures/navigation' / revive_fixture) if is_revive else None
+    if mode == 'revive_settling':
+        unready_frame = revive_frame.copy()
+        unready_frame[310:350, 424:852] = (170, 120, 50)
     blocked_frame = read_png_bgr(ROOT / 'tests/fixtures/navigation/profile-sell.png') if mode=='blocked' else None
 
     class MemoryController(CustomController):
@@ -39,6 +42,7 @@ def native_case(mode):
             self.inputs = []
             self.input_times = []
             self.declined = False
+            self.transient_seen = self.settled_seen = False
 
         def connect(self): return True
         def request_uuid(self): return 'isolated-playback-transport'
@@ -49,6 +53,11 @@ def native_case(mode):
             if mode=='blocked' and self.inputs==[('down',68)]:return blocked_frame.copy()
             if mode=='return':return failed_frame.copy()
             if is_revive and any(op=='down' for op,_ in self.inputs):
+                if mode == 'revive_settling' and not self.declined:
+                    if ('up', 68) not in self.inputs:
+                        self.transient_seen = True
+                        return unready_frame.copy()
+                    self.settled_seen = True
                 return failed_frame.copy() if self.declined else revive_frame.copy()
             if mode == 'defeat' and any(op == 'down' for op, _ in self.inputs):
                 return failed_frame.copy()
@@ -89,8 +98,11 @@ def native_case(mode):
         definitions = json.loads((ROOT / 'assets/resource/base/pipeline/battle_outcomes.json').read_text(encoding='utf8'))
         pipeline = {name: definitions[name] for name in ('Result_Failed', 'Result_Succeeded',
             'Result_RevivePrompt','Result_ReviveWindow','Result_ReviveLayoutP1','Result_ReviveLayoutP2',
-            'Result_DeclineRevive','Result_NoRevivePrompt','Result_FailedReturn','Nav_ModalPresent','Result_ReviveEvidence','Nav_CachedModal')}
+            'Result_DeclineRevive','Result_NoRevivePrompt','Result_FailedReturn','Nav_ModalPresent',
+            'Result_ReviveEvidence','Nav_CachedModal','Nav_BlockedDialog')}
         pipeline.update(json.loads((ROOT / 'assets/resource/base/pipeline/navigation_common_ui.json').read_text(encoding='utf8')))
+        navigation = json.loads((ROOT / 'assets/resource/base/pipeline/navigation.json').read_text(encoding='utf8'))
+        pipeline['Nav_See_profile_sell'] = navigation['Nav_See_profile_sell']
         def templates(value):
             if isinstance(value,dict):
                 for key,child in value.items():
@@ -102,7 +114,7 @@ def native_case(mode):
             target = directory / 'image' / path
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(ROOT / 'assets/resource/base/image' / path, target)
-        if mode=='revive_live':
+        if mode in ('revive_live', 'revive_settling', 'blocked'):
             shutil.copytree(ROOT / 'assets/resource/base/model/ocr', directory / 'model/ocr')
         recording = directory / 'synthetic.json'
         actions = [
@@ -218,6 +230,7 @@ AgentServer.shut_down()
                 report = dict(stalled=waiter.is_alive(), succeeded=result.get('succeeded', False),
                               playback_captures=server_output.count('PLAYBACK_CAPTURE'),
                               frames=controller.frames, inputs=controller.inputs, branches=branches,
+                              transient_seen=controller.transient_seen, settled_seen=controller.settled_seen,
                               guard_failure_injected='GUARD_FAILURE_INJECTED' in server_output,
                               callback_exception='Exception ignored on calling ctypes callback function' in server_output,
                               input_times_ms=[round((t - controller.input_times[0]) * 1000, 1)
@@ -288,11 +301,18 @@ class PlaybackTransportTests(unittest.TestCase):
         self.assertEqual([op for op,_ in report['inputs']],['down','up','cancel_down','cancel_up'])
         self.assertEqual(report['branches'],['Failure'])
 
-    def test_captured_free_revive_uses_ocr_over_agent_ipc_before_safe_cancel(self):
+    def test_captured_free_revive_uses_template_over_agent_ipc_before_cancel(self):
         report=self.run_case('revive_live')
         self.assertEqual(report['inputs'][:2],[['down',68],['up',68]])
         self.assertEqual([op for op,_ in report['inputs']],['down','up','cancel_down','cancel_up'])
         self.assertEqual(report['branches'],['Failure'])
+
+    def test_unready_revive_releases_input_before_rechecking_over_agent_ipc(self):
+        report = self.run_case('revive_settling')
+        self.assertTrue(report['transient_seen'], report)
+        self.assertTrue(report['settled_seen'], report)
+        self.assertEqual([op for op, _ in report['inputs']], ['down', 'up', 'cancel_down', 'cancel_up'])
+        self.assertEqual(report['branches'], ['Failure'])
 
     def test_return_absence_guard_can_reenter_native_matching_over_agent_ipc(self):
         report=self.run_case('return')

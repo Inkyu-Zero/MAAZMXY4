@@ -79,7 +79,7 @@ class FastEntryTests(unittest.TestCase):
 
     def test_final_ignored_click_exhausts_the_budget_without_a_fourth_click(self):
         clicks=[]
-        with self.assertRaisesRegex(runtime.NavigationError,'进关后未确认副本场景'):
+        with self.assertRaisesRegex(runtime.NavigationError,'进关后未识别到通用战斗界面'):
             self.enter(ignored=3,recognition_costs={'Nav_BlockedDialog':.31},click_trace=clicks)
         self.assertEqual(len(clicks),3)
 

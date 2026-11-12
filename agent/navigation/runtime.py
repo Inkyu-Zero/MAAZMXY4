@@ -121,17 +121,21 @@ class Navigator:
         self.invalidate()
 
     def _modal_state(self):
-        if not modal_present(self.context, self.image):
-            return None
-        if self.recognize('Result_RevivePrompt').hit:
-            return 'revive_prompt'
-        if self.recognize('Nav_See_profile_sell').hit:
-            return 'profile_sell'
-        # This is an exceptional path. Check the same frame for known blockers
-        # before handing an otherwise unrecognized dialog to task recovery.
-        if self.recognize('Nav_BlockedDialog').hit:
-            raise NavigationError('验证码、登录或阻断提示未处理，导航已停止。', reason='blocked')
-        raise NavigationError('确认浮窗无法识别，未发送导航操作。', reason='unrecognized_dialog')
+        for attempt in range(3):
+            if not modal_present(self.context, self.image):
+                return None
+            if self.recognize('Result_RevivePrompt').hit:
+                return 'revive_prompt'
+            if self.recognize('Nav_See_profile_sell').hit:
+                return 'profile_sell'
+            if self.recognize('Nav_BlockedDialog').hit:
+                raise NavigationError('验证码、登录或阻断提示未处理，导航已停止。', reason='blocked')
+            if attempt == 0:
+                from battle_outcomes import save_unknown_frame
+                save_unknown_frame(self.image)
+            if attempt < 2:
+                self.refresh_after_wait(200)
+        raise NavigationError('确认浮窗连续重判后仍无法识别，未发送导航操作。', reason='unrecognized_dialog')
 
     def _identify(self, candidates):
         modal = self._modal_state()

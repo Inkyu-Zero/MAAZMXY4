@@ -100,7 +100,8 @@ class BattlePlayerStudioTests(unittest.TestCase):
     def guarded_monitor(self, outcome):
         events = []
         monitor = SimpleNamespace(branch=None, error=None, interrupted=False, rpc_lock=threading.RLock(),
-            start=lambda:None, probe=lambda:None, request_stop=lambda:None, close=lambda:events.append('closed'))
+            start=lambda:None, probe=lambda:None, request_stop=lambda:None, close=lambda:events.append('closed'),
+            recheck_unknown_dialog=lambda:events.append('rechecked'))
         def after(name, *_args):
             events.append(name)
             if name == 'post_key_down':
@@ -211,6 +212,8 @@ class BattlePlayerStudioTests(unittest.TestCase):
                 else:
                     self.assertLess(events.index('post_key_up'),events.index(target))
                     self.assertLess(events.index('closed'),events.index(target))
+                    self.assertLess(events.index('closed'),events.index('rechecked'))
+                    self.assertLess(events.index('rechecked'),events.index(target))
                     self.assertNotIn(('next',['Fatal']),events)
 
     def test_capture_loss_keeps_the_normal_failure_path_for_verified_window_recovery(self):

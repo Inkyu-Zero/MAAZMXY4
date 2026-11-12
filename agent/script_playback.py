@@ -65,11 +65,16 @@ class InputOnlyController:
 
     def _message(self, message, flags, point):
         self.lease.require_identity()
-        if self.mouse_method == 'PostMessage':
-            ok = self.api.PostMessageW(self.lease.hwnd, message, flags, point)
-        else:
-            result = ctypes.c_size_t()
-            ok = self.api.SendMessageTimeoutW(self.lease.hwnd, message, flags, point, 2, 500, ctypes.byref(result))
+        # Geometry and packed coordinates are physical pixels. Windows converts
+        # mouse messages according to the sending thread's DPI context; leaving
+        # this thread unaware enlarged every point at 125% display scaling.
+        # Reuse the geometry scope and restore it even when dispatch fails.
+        with self.lease.api.windows._physical_pixels():
+            if self.mouse_method == 'PostMessage':
+                ok = self.api.PostMessageW(self.lease.hwnd, message, flags, point)
+            else:
+                result = ctypes.c_size_t()
+                ok = self.api.SendMessageTimeoutW(self.lease.hwnd, message, flags, point, 2, 500, ctypes.byref(result))
         if not ok:
             raise RuntimeError('后台鼠标输入失败或游戏窗口无响应。')
         return CompletedInput()

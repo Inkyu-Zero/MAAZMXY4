@@ -12,6 +12,30 @@ class UnrecognizedDialog(ValueError):
     """An unknown modal, after checking the same frame for known blockers."""
     reason = 'unrecognized_dialog'
 
+    def __init__(self, message, frame=None):
+        super().__init__(message)
+        self.frame = frame
+
+
+def save_unknown_frame(frame):
+    """Save the actual decision frame, never request a diagnostic screenshot."""
+    if frame is None or not hasattr(frame, 'dtype'):
+        return
+    try:
+        from pathlib import Path
+        from datetime import datetime
+        from uuid import uuid4
+        import os
+        from PIL import Image
+        directory = Path(os.environ.get('MAAZMXY4_TEST_LOG_DIR',
+            Path(__file__).resolve().parents[1] / 'debug')) / 'battle-outcomes'
+        directory.mkdir(parents=True, exist_ok=True)
+        path = directory / (datetime.now().strftime('%Y%m%d-%H%M%S-') + uuid4().hex[:8] + '-unknown.png')
+        Image.fromarray(frame[:, :, :3][:, :, ::-1]).save(path)
+        print('[battle_outcomes] 未识别弹窗判定帧：' + str(path), flush=True)
+    except Exception as error:
+        print('[battle_outcomes] 判定帧保存失败：' + str(error), flush=True)
+
 
 class BattleOutcomeMonitor:
     def __init__(self, context, policy):
@@ -89,7 +113,7 @@ class BattleOutcomeMonitor:
                         raise ValueError('缺少已知确认浮窗识别资源，已停止回放。')
                     if sell.hit:
                         raise ValueError('检测到出售确认浮窗，已停止回放。')
-                    raise UnrecognizedDialog('确认浮窗无法识别，已停止回放。')
+                    raise UnrecognizedDialog('确认浮窗暂未识别，已暂停回放。', frame)
                 failed = self.context.run_recognition('Result_Failed', frame)
                 succeeded = self.context.run_recognition('Result_Succeeded', frame)
                 if failed is None or succeeded is None:
@@ -102,6 +126,35 @@ class BattleOutcomeMonitor:
                     self.branch = list(self.policy['succeeded_next'])
             except Exception as error:
                 self.error = error
+
+    def recheck_unknown_dialog(self, wait=time.sleep):
+        """Playback owner calls this only after keys/buttons and worker cleanup.
+
+        At most two fresh frames; a vanished dialog cannot resume a partially
+        played recording or silently count the round as successful.
+        """
+        if not isinstance(self.error, UnrecognizedDialog):
+            return
+        if self._thread is not None and self._thread.is_alive():
+            raise RuntimeError('结果监测尚未退出，不能重判弹窗。')
+        save_unknown_frame(self.error.frame)
+        self.error.frame = None
+        for _ in range(2):
+            if self.context.tasker.stopping:
+                return
+            wait(.2)
+            if self.context.tasker.stopping:
+                return
+            sample = BattleOutcomeMonitor(self.context, self.policy)
+            sample.probe()
+            sample.close()
+            if sample.branch is not None:
+                self.branch, self.error = sample.branch, None
+                return
+            if sample.error is not None and not isinstance(sample.error, UnrecognizedDialog):
+                self.error = sample.error
+                return
+        self.error = UnrecognizedDialog('确认浮窗连续重判后仍无法识别，已停止回放。')
 
     def start(self):
         # Check before the first recorded action, including an already visible

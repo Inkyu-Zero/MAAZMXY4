@@ -7,6 +7,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Layout;
+using Avalonia.Markup.Xaml.MarkupExtensions;
 using Avalonia.Media;
 
 namespace MFAAvalonia.Views.Pages;
@@ -83,6 +84,9 @@ public sealed partial class ScriptStudioView
 
     private async Task<T> ShowStudioDialogAsync<T>(Window dialog, Window owner)
     {
+        // Use the same dynamic palette as MFAA's Suki dialogs, including theme changes while open.
+        dialog.Bind(Window.BackgroundProperty, new DynamicResourceExtension("SukiCardBackground"));
+        dialog.Bind(Window.ForegroundProperty, new DynamicResourceExtension("SukiText"));
         try { return await dialog.ShowDialog<T>(owner); }
         finally { if (IsEffectivelyVisible) Focus(); }
     }

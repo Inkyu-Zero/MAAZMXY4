@@ -26,6 +26,8 @@ class NoRevivePrompt(CustomRecognition):
                 result = _probe(context, argv.image, 'Result_ReviveEvidence')
                 return (CustomRecognition.AnalyzeResult(box=result.box, detail={'revival_prompt': True})
                         if result.hit else None)
+            if mode == 'stage' and _probe(context, argv.image, 'Nav_Probe_hub_world_entry').hit:
+                return None  # Town and battle share the bottom settings icon.
             if mode in ('map', 'hub'):
                 if _probe(context, argv.image, 'Nav_MapOverlay' if mode == 'map' else 'Nav_HubOverlay').hit:
                     return None

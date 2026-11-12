@@ -30,9 +30,8 @@ def native_case(name,deadline_probe=False):
     task=read_png_bgr(image_root/'任务.png')
     mode=read_png_bgr(image_root/'navigation/scroll/normal-mode.png')
     scene=np.zeros((720,1147,3),dtype=np.uint8)
-    template=profile['scene']['recognition']['param']['template'][0]
-    patch=read_png_bgr(image_root/template)
-    scene[50:50+patch.shape[0],200:200+patch.shape[1]]=patch
+    from test_shared_stage_entry import with_stage_controls
+    scene=with_stage_controls(scene)
     bounds={'伽岚（万世冥阁）':(1099.8,342.95,1202.8,426.95),
             '无冥（孤魂岭）':(211,66,361,216)}
 

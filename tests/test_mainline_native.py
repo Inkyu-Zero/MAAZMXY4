@@ -36,10 +36,10 @@ def map_frame(stage, state=1, *, normal=True):
     frame=full.crop((offset,0,offset+940,590)).resize((1147,720),Image.Resampling.BICUBIC).convert('RGB')
     images=ROOT/'assets/resource/base/image'
     with Image.open(images/'任务.png') as task:frame.paste(task.convert('RGB'),(400,630))
-    if not normal:
+    if not normal and stage['town'] not in ('town1', 'town2'):
         from PIL import ImageDraw
         ImageDraw.Draw(frame).rectangle((980,580,1147,720),fill='black')
-    else:
+    elif normal and stage['town'] not in ('town1', 'town2'):
         with Image.open(images/'navigation/scroll/normal-mode.png') as mode:
             rgb=mode.convert('RGB');a=np.asarray(rgb)
             mask=Image.fromarray(np.where((a==[0,255,0]).all(axis=2),0,255).astype('uint8'))
@@ -50,7 +50,7 @@ def map_frame(stage, state=1, *, normal=True):
 @unittest.skipUnless(os.environ.get('NAVIGATION_NATIVE_TESTS')=='1' and SOURCE.is_dir() and SCENES.is_dir(),
                      'requires explicitly configured offline source fixtures and native memory tests')
 class MainlineNativeTests(unittest.TestCase):
-    def test_all_entries_states_guards_and_scene_identity(self):
+    def test_all_entries_and_common_stage_controls(self):
         import cv2
         import numpy as np
         from maa.controller import CustomController
@@ -60,7 +60,7 @@ class MainlineNativeTests(unittest.TestCase):
         sys.path.insert(0,str(ROOT/'agent'))
         from battle_ui import NoRevivePrompt
         data=json.loads((ROOT/'agent/data/navigation/mainline-stages.json').read_text(encoding='utf8'))['stages']
-        scenes={s['id']:s for s in json.loads((ROOT/'agent/data/navigation/mainline-scenes.json').read_text(encoding='utf8'))['stages']}
+        from test_shared_stage_entry import with_stage_controls
         errors=[];evidence=[]
         class Pixels(CustomController):
             def connect(self):return True
@@ -83,17 +83,24 @@ class MainlineNativeTests(unittest.TestCase):
                         evidence.append((stage['id'],state,bool(result and result.hit)))
                     frame=map_frame(stage,normal=False)
                     result=ctx.run_recognition(target,frame)
-                    if result and result.hit:errors.append(('missing_normal_guard',stage['id']))
+                    expected = stage['town'] in ('town1', 'town2')
+                    if bool(result and result.hit) != expected:
+                        errors.append(('mode_guard_scope',stage['id'],expected))
                     frame=map_frame(stage);frame[600:]=0
                     result=ctx.run_recognition(target,frame)
                     if result and result.hit:errors.append(('missing_map_guard',stage['id']))
                 scene_frames={stage['id']:cv2.resize(cv2.imread(str(SCENES/f's{stage["id"]:03d}.png')),(1147,720),interpolation=cv2.INTER_CUBIC) for stage in data}
                 for stage in data:
                     recognizer=f'Mainline_{stage["id"]:03d}_Play'
-                    for ident,frame in scene_frames.items():
+                    # Background identity is intentionally irrelevant. Both a
+                    # different stage and this stage need the same common HUD.
+                    for frame in (scene_frames[stage['id']],scene_frames[47]):
+                        result=ctx.run_recognition(recognizer,with_stage_controls(frame))
+                        if not result or not result.hit:errors.append(('shared_hud',stage['id']))
+                    for frame in (scene_frames[stage['id']],):
                         result=ctx.run_recognition(recognizer,frame)
-                        if bool(result and result.hit)!=(ident in scenes[stage['id']]['equivalent_ids']):errors.append(('scene',stage['id'],ident,bool(result and result.hit)))
-                print('MAINLINE_NATIVE '+json.dumps(dict(entries=len(evidence),scenes=len(data)**2,errors=errors)),flush=True)
+                        if result and result.hit:errors.append(('background_only',stage['id']))
+                print('MAINLINE_NATIVE '+json.dumps(dict(entries=len(evidence),shared_stage_cases=len(data)*3,errors=errors)),flush=True)
                 return True
         with tempfile.TemporaryDirectory(prefix='mainline-native-',ignore_cleanup_errors=True) as temp:
             Tasker.set_log_dir(Path(temp)/'logs')

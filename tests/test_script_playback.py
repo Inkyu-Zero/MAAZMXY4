@@ -137,6 +137,27 @@ class PlaybackTests(unittest.TestCase):
 
 
 class InputCoordinateTests(unittest.TestCase):
+    def test_failed_mouse_dispatch_restores_the_thread_pixel_scope(self):
+        from contextlib import contextmanager
+        from types import SimpleNamespace
+        events=[]
+        @contextmanager
+        def pixels():
+            events.append('enter')
+            try:yield
+            finally:events.append('restore')
+        def failed(*args):
+            events.append('send')
+            return False
+        controller=object.__new__(InputOnlyController)
+        controller.lease=SimpleNamespace(hwnd=42,require_identity=lambda:None,
+            api=SimpleNamespace(windows=SimpleNamespace(_physical_pixels=pixels)))
+        controller.mouse_method='PostMessage'
+        controller.api=SimpleNamespace(PostMessageW=failed)
+        with self.assertRaisesRegex(RuntimeError,'后台鼠标输入失败'):
+            controller._message(0x201,1,0)
+        self.assertEqual(events,['enter','send','restore'])
+
     def test_mouse_and_wheel_map_script_coordinates_without_capture(self):
         api=Geometry();api.bits=0;api.info.update(width=1722,height=1080)
         with WindowLease(42,(1148,720),api=api) as lease:

@@ -114,7 +114,7 @@ class NativeCandleRecognitionTests(unittest.TestCase):
                 results.append(dict(check='real taizong description',actual=bool(result and result.hit),expected=True,ok=bool(result and result.hit)))
                 return True
 
-        log = ROOT / '.runtime-cache/native-candle-recognition'
+        log = Path(os.environ.get('MAAZMXY4_TEST_LOG_DIR', ROOT / '.runtime-cache/native-candle-recognition'))
         log.mkdir(parents=True, exist_ok=True)
         Tasker.set_log_dir(log)
         controller, resource, tasker = PixelsOnly(), Resource(), Tasker()
@@ -289,14 +289,13 @@ class NativeCandleRecognitionTests(unittest.TestCase):
                 self.assertEqual(status['status'],'success');self.assertEqual(status['recording_file'],path.name)
 
             # Seven ordinary stages use the same coordinator and their own
-            # real map fixtures. Scene assets are placed on synthetic canvases.
+            # real map fixtures and a shared HUD on synthetic blank canvases.
             import numpy as np
             cases=json.loads((ROOT/'tests/fixtures/navigation/stage-states/cases.json').read_text(encoding='utf8'))
             stages=[t for t in task_catalog(ROOT,bindings={}) if t['management_profile']
                     and t['management_profile']['parameters']['navigation']['kind']=='stage'
                     and t['name'] in {case['task'] for case in cases}]
             self.assertEqual(len(stages),7)  # New 62 mainline stages have their own fixture suite.
-            source_profiles=json.loads((ROOT/'tools/script_task_profiles.json').read_text(encoding='utf8'))
             stage_reports=[]
             for index,task in enumerate(stages):
                 profile=task['management_profile'];params=dict(profile['parameters'])
@@ -304,11 +303,8 @@ class NativeCandleRecognitionTests(unittest.TestCase):
                 map_name='map:'+str(index);stage_name='stage:'+str(index)
                 from fixture_pixels import read_stage_state
                 frames[map_name]=read_stage_state(ROOT/'tests/fixtures/navigation/stage-states',case)
-                scene=source_profiles[task['name']]['scene']['recognition']['param']['template']
-                scene=scene[0] if isinstance(scene,list) else scene
-                template=read_png_bgr(ROOT/'assets/resource/base/image'/scene)
-                canvas=np.zeros_like(frames[map_name]);h,w=template.shape[:2]
-                canvas[150:150+h,200:200+w]=template;frames[stage_name]=canvas
+                from test_shared_stage_entry import with_stage_controls
+                frames[stage_name]=with_stage_controls(np.zeros_like(frames[map_name]))
                 path=library/('stage-'+str(index)+'.json')
                 raw=json.dumps(dict(version=1,name='Stage profile',base=[1148,720],duration_ms=3,
                     actions=[dict(t=0,op='keydown',key=80+index),dict(t=1,op='keyup',key=80+index)])).encode('utf8')

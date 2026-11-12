@@ -25,7 +25,7 @@ internal static class Program
         AppBuilder.Configure<TestApplication>().UseSkia().UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
         var failed = 0;
         var tests = new Action[] { FirstOpenDuringTask, RefreshAndMutationGuard, RetryFailedInitialization, RecordingUsesCurrentTaskController, NoImplicitRecordingTarget, RenameCancelCollisionAndSave, RenameOtherFileKeepsEditorState, DurationTextApplies, DurationTextSavesWithoutExtraApply, TimelineBoxSelectMoveAndCancel, TimelineDocumentChangeCancelsGesture, EditorBatchRequestsAndTaskGuard, DiscardRecordingStatesAndRestart, DiscardStoppedDraftAndProtectSavedScript, DiscardFailureCanRetry, DiscardIgnoresLateStatusAndSaveRequest, TerminalPollLocksUntilDraftIsReady, RecordingActionLayout, RecordingDiscardClickModes, RecordingDoubleClickCancellationAndRetry };
-        tests=tests.Append(TimelineClipboardShortcuts).ToArray();
+        tests=tests.Concat([TimelineClipboardShortcuts, DialogThemeAndDismissal]).ToArray();
         foreach (var test in tests)
         {
             try { test(); Console.WriteLine("PASS " + test.Method.Name); }
@@ -41,7 +41,7 @@ internal static class Program
     private static void Draw(Window window, string? filename = null)
     {
         Dispatcher.UIThread.RunJobs(); window.UpdateLayout();
-        using var image = new RenderTargetBitmap(new PixelSize((int)window.Width, (int)window.Height), new Vector(96, 96));
+        using var image = new RenderTargetBitmap(new PixelSize((int)Math.Ceiling(window.ClientSize.Width), (int)Math.Ceiling(window.ClientSize.Height)), new Vector(96, 96));
         image.Render(window);
         if (filename != null && Environment.GetEnvironmentVariable("STUDIO_RENDER_DIR") is { } folder)
         { Directory.CreateDirectory(folder); image.Save(Path.Combine(folder, filename)); }
@@ -583,6 +583,79 @@ internal static class Program
         MaaProcessor.Processors.Clear(); model.Capturing = false; ScriptStudioGuard.EndCapture();
         model.Apply(new JsonObject { ["empty"] = true }); window.Close(); Dispatcher.UIThread.RunJobs();
     }
+    private static void DialogThemeAndDismissal()
+    {
+        var (window, view, model) = Open(false);
+        var app = Application.Current!;
+        try
+        {
+            window.Width = 800;
+            var result = (Task<string?>)typeof(ScriptStudioView).GetMethod("AskNameAsync", BindingFlags.Instance | BindingFlags.NonPublic)!
+                .Invoke(view, ["另存为", "Sample", null])!;
+            Dispatcher.UIThread.RunJobs();
+            var dialog = window.OwnedWindows.Single();
+            var input = dialog.GetVisualDescendants().OfType<TextBox>().Single();
+            Check(input.IsFocused && input.SelectionEnd - input.SelectionStart == input.Text!.Length,
+                "Name dialog must focus and select the suggested name");
+            foreach (var theme in new[] { Avalonia.Styling.ThemeVariant.Dark, Avalonia.Styling.ThemeVariant.Light, Avalonia.Styling.ThemeVariant.Dark })
+            {
+                app.RequestedThemeVariant = theme;
+                // Suki buttons animate foreground changes for 100 ms; inspect the settled frame.
+                var settled = DateTime.UtcNow.AddMilliseconds(250);
+                while (DateTime.UtcNow < settled)
+                { Dispatcher.UIThread.RunJobs(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); Thread.Sleep(10); }
+                Draw(dialog, $"name-dialog-{theme}.png");
+                var background = ((ISolidColorBrush)dialog.Background!).Color;
+                var foreground = ((ISolidColorBrush)dialog.Foreground!).Color;
+                var expected = theme == Avalonia.Styling.ThemeVariant.Dark ? Color.Parse("#323232") : Colors.White;
+                Console.WriteLine($"TRACE dialog theme={theme} background={background} foreground={foreground} button={Find(dialog, "取消").Foreground}");
+                Check(background == expected, "Dialog background must follow the host card theme, including while open");
+                Check(Contrast(background, ((ISolidColorBrush)Find(dialog, "取消").Foreground!).Color) >= 4.5,
+                    "Dialog buttons must remain readable against the background");
+                Check(Contrast(background, foreground) >= 4.5, "Dialog text must remain readable");
+            }
+            dialog.KeyPressQwerty(PhysicalKey.Escape, RawInputModifiers.None);
+            Dispatcher.UIThread.RunJobs();
+            Check(result.IsCompletedSuccessfully && result.Result == null && view.IsFocused,
+                "Escape cancels the name dialog and restores page focus");
+
+            result = (Task<string?>)typeof(ScriptStudioView).GetMethod("AskNameAsync", BindingFlags.Instance | BindingFlags.NonPublic)!
+                .Invoke(view, ["保存脚本", "Keyboard saved", null])!;
+            Dispatcher.UIThread.RunJobs();
+            dialog = window.OwnedWindows.Single();
+            dialog.KeyPressQwerty(PhysicalKey.Enter, RawInputModifiers.None);
+            Dispatcher.UIThread.RunJobs();
+            Check(result.IsCompletedSuccessfully && result.Result == "Keyboard saved", "Enter must submit the existing name dialog");
+
+            var deletion = (Task<bool>)typeof(ScriptStudioView).GetMethod("ConfirmDeleteAsync", BindingFlags.Instance | BindingFlags.NonPublic)!
+                .Invoke(view, ["删除此脚本？这是一段用于验证自动换行的较长确认说明。"])!;
+            Dispatcher.UIThread.RunJobs();
+            dialog = window.OwnedWindows.Single();
+            Draw(dialog, "delete-dialog-Dark.png");
+            Check(((ISolidColorBrush)dialog.Background!).Color == Color.Parse("#323232"), "Delete confirmation must share the host theme");
+            dialog.Close(); Dispatcher.UIThread.RunJobs();
+            Check(deletion.IsCompletedSuccessfully && !deletion.Result, "Closing the delete dialog must cancel deletion");
+
+            deletion = (Task<bool>)typeof(ScriptStudioView).GetMethod("ConfirmDeleteAsync", BindingFlags.Instance | BindingFlags.NonPublic)!
+                .Invoke(view, ["删除此脚本？"])!;
+            Dispatcher.UIThread.RunJobs();
+            Click(Find(window.OwnedWindows.Single(), "删除"));
+            Check(deletion.IsCompletedSuccessfully && deletion.Result, "Delete confirmation must return true only when selected");
+        }
+        finally
+        {
+            foreach (var dialog in window.OwnedWindows.ToArray()) dialog.Close();
+            app.RequestedThemeVariant = Avalonia.Styling.ThemeVariant.Light;
+            Close(window, model);
+        }
+    }
+    private static double Contrast(Color a, Color b)
+    {
+        static double Linear(byte value) { var c = value / 255d; return c <= .04045 ? c / 12.92 : Math.Pow((c + .055) / 1.055, 2.4); }
+        static double Luminance(Color c) => .2126 * Linear(c.R) + .7152 * Linear(c.G) + .0722 * Linear(c.B);
+        var x = Luminance(a); var y = Luminance(b);
+        return (Math.Max(x, y) + .05) / (Math.Min(x, y) + .05);
+    }
     private static void RenameCancelCollisionAndSave()
     {
         var (window, view, model) = Open(false);
@@ -699,7 +772,28 @@ internal static class Program
 
 internal sealed class TestApplication : Application
 {
-    public override void Initialize() { Styles.Add(new FluentTheme()); Resources["SukiCardBackground"] = Brushes.White; }
+    public override void Initialize()
+    {
+        Styles.Add(new FluentTheme());
+        // Optionally load the same theme assemblies as the built host, without starting its app or services.
+        if (Environment.GetEnvironmentVariable("STUDIO_MFA_THEME_DIR") is { } directory)
+        {
+            System.Runtime.Loader.AssemblyLoadContext.Default.Resolving += (_, name) =>
+            {
+                var path = Path.Combine(directory, name.Name + ".dll");
+                return File.Exists(path) ? Assembly.LoadFrom(path) : null;
+            };
+            foreach (var entry in new[] { ("FluentAvalonia", "FluentAvalonia.Styling.FluentAvaloniaTheme"), ("SukiUI", "SukiUI.SukiTheme") })
+                Styles.Add((Avalonia.Styling.IStyle)Activator.CreateInstance(Assembly.LoadFrom(Path.Combine(directory, entry.Item1 + ".dll")).GetType(entry.Item2)!)!);
+        }
+        else
+        {
+            Resources.ThemeDictionaries[Avalonia.Styling.ThemeVariant.Light] = new ResourceDictionary
+                { ["SukiCardBackground"] = Colors.White, ["SukiText"] = Color.Parse("#222222") };
+            Resources.ThemeDictionaries[Avalonia.Styling.ThemeVariant.Dark] = new ResourceDictionary
+                { ["SukiCardBackground"] = Color.Parse("#323232"), ["SukiText"] = Color.Parse("#edffffff") };
+        }
+    }
 }
 
 // Only the host/task state, OS discovery and service transport are faked. The production
