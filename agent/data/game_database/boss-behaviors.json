@@ -1,0 +1,1791 @@
+{
+  "version": 1,
+  "checked_on": "2026-11-09",
+  "profiles": [
+    {
+      "entry_id": "4399-859463",
+      "monster_ids": [
+        "3620"
+      ],
+      "scope": "主线普通难度 · 不周山",
+      "version": "配置 2026-10-19 · 单机代码 86a00f8（历史快照）",
+      "summary": "离线静态整理，未实战复核；省略重复动作。旧图鉴名称与配置名称分别保留。动画帧未换算为秒，未分析完整逐帧判定区域。",
+      "roots": [
+        {
+          "title": "选择行动",
+          "text": "攻击条件成立且当前动作允许时进入相应分支；已开始的连招会继续执行。",
+          "evidence_ids": [
+            "mai-20203",
+            "code-aitree"
+          ],
+          "children": [
+            {
+              "title": "暂未锁定目标",
+              "text": "视野内没有可追踪对象，且没有仇恨目标时巡逻并等待。",
+              "evidence_ids": [
+                "mai-20203",
+                "code-getmanonviewconnode"
+              ],
+              "children": []
+            },
+            {
+              "title": "已有目标",
+              "text": "满足追击条件时接近目标。",
+              "evidence_ids": [
+                "mai-20203"
+              ],
+              "children": []
+            },
+            {
+              "title": "随机选择一条满足条件的连招",
+              "text": "每条分支按顺序执行；不代表固定轮流出招，也不等于各技能等概率。",
+              "evidence_ids": [
+                "mai-20203",
+                "code-randchildselnode",
+                "code-idleai",
+                "behavior-1",
+                "behavior-102",
+                "behavior-1041",
+                "behavior-1042",
+                "behavior-1043",
+                "behavior-105",
+                "behavior-107",
+                "behavior-108",
+                "behavior-2",
+                "behavior-201",
+                "behavior-202001",
+                "behavior-202001002",
+                "behavior-2041",
+                "behavior-2042",
+                "behavior-2043",
+                "behavior-205",
+                "behavior-207001002",
+                "behavior-2101",
+                "behavior-2102",
+                "behavior-2103",
+                "behavior-3",
+                "behavior-6"
+              ],
+              "children": [
+                {
+                  "title": "目标进入「横扫四方」的出招范围",
+                  "text": "",
+                  "evidence_ids": [
+                    "mai-20203",
+                    "code-battlemodelmanager"
+                  ],
+                  "children": [
+                    {
+                      "title": "「横扫四方」 → 等待 1～2 秒 → 接近到「天诛地灭」出招范围 → 「天诛地灭」 → 退避 1～2 秒",
+                      "text": "",
+                      "evidence_ids": [
+                        "mai-20203"
+                      ],
+                      "children": []
+                    },
+                    {
+                      "title": "「横扫四方」 → 等待 1～2 秒 → 接近到「诛仙连斩」出招范围 → 「诛仙连斩」 → 退避 1～2 秒",
+                      "text": "",
+                      "evidence_ids": [
+                        "mai-20203"
+                      ],
+                      "children": []
+                    }
+                  ]
+                },
+                {
+                  "title": "目标进入「天诛地灭」的出招范围",
+                  "text": "",
+                  "evidence_ids": [
+                    "mai-20203",
+                    "code-battlemodelmanager"
+                  ],
+                  "children": [
+                    {
+                      "title": "「天诛地灭」 → 等待 1～2 秒 → 接近到「诛仙连斩」出招范围 → 「诛仙连斩」 → 退避 1～2 秒",
+                      "text": "",
+                      "evidence_ids": [
+                        "mai-20203"
+                      ],
+                      "children": []
+                    },
+                    {
+                      "title": "「天诛地灭」 → 等待 1～2 秒 → 接近到「横扫四方」出招范围 → 「横扫四方」 → 退避 1～2 秒",
+                      "text": "",
+                      "evidence_ids": [
+                        "mai-20203"
+                      ],
+                      "children": []
+                    }
+                  ]
+                },
+                {
+                  "title": "目标进入「诛仙连斩」的出招范围",
+                  "text": "",
+                  "evidence_ids": [
+                    "mai-20203",
+                    "code-battlemodelmanager"
+                  ],
+                  "children": [
+                    {
+                      "title": "「诛仙连斩」 → 等待 1～2 秒 → 接近到「天诛地灭」出招范围 → 「天诛地灭」 → 退避 1～2 秒",
+                      "text": "",
+                      "evidence_ids": [
+                        "mai-20203"
+                      ],
+                      "children": []
+                    },
+                    {
+                      "title": "「诛仙连斩」 → 等待 1～2 秒 → 接近到「横扫四方」出招范围 → 「横扫四方」 → 退避 1～2 秒",
+                      "text": "",
+                      "evidence_ids": [
+                        "mai-20203"
+                      ],
+                      "children": []
+                    }
+                  ]
+                },
+                {
+                  "title": "需要先接近目标",
+                  "text": "",
+                  "evidence_ids": [
+                    "mai-20203",
+                    "code-battlemodelmanager"
+                  ],
+                  "children": [
+                    {
+                      "title": "接近到「横扫四方」出招范围 → 「横扫四方」 → 等待 1～2 秒 → 接近到「诛仙连斩」出招范围 → 「诛仙连斩」 → 退避 1～2 秒",
+                      "text": "",
+                      "evidence_ids": [
+                        "mai-20203"
+                      ],
+                      "children": []
+                    },
+                    {
+                      "title": "接近到「天诛地灭」出招范围 → 「天诛地灭」 → 等待 1～2 秒 → 接近到「横扫四方」出招范围 → 「横扫四方」 → 退避 1～2 秒",
+                      "text": "",
+                      "evidence_ids": [
+                        "mai-20203"
+                      ],
+                      "children": []
+                    },
+                    {
+                      "title": "接近到「天诛地灭」出招范围 → 「天诛地灭」 → 等待 1～2 秒 → 接近到「诛仙连斩」出招范围 → 「诛仙连斩」 → 退避 1～2 秒",
+                      "text": "",
+                      "evidence_ids": [
+                        "mai-20203"
+                      ],
+                      "children": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "招式与判定",
+          "text": "展开查看各技能的出招条件和命中要点。",
+          "evidence_ids": [
+            "monster-3620"
+          ],
+          "children": [
+            {
+              "title": "天诛地灭",
+              "text": "出招条件：目标进入配置范围（水平偏移 0～180，竖直偏移 -50～40，游戏坐标）。这是 AI 选招范围，实际受击还要检查动画与碰撞。",
+              "evidence_ids": [
+                "skill-2165100",
+                "code-battlemodelmanager"
+              ],
+              "children": [
+                {
+                  "title": "命中要点",
+                  "text": "本技能配置命中上限 3 次，重复命中间隔 334 毫秒；实际次数取决于接触、子技能及战斗状态，不能据此保证总伤害。",
+                  "evidence_ids": [
+                    "skill-2165100",
+                    "code-playerentity"
+                  ],
+                  "children": []
+                }
+              ]
+            },
+            {
+              "title": "诛仙连斩",
+              "text": "出招条件：目标进入配置范围（水平偏移 0～200，竖直偏移 -120～100，游戏坐标）。这是 AI 选招范围，实际受击还要检查动画与碰撞。",
+              "evidence_ids": [
+                "skill-2165200",
+                "code-battlemodelmanager"
+              ],
+              "children": [
+                {
+                  "title": "命中要点",
+                  "text": "本技能配置命中上限 3 次，重复命中间隔 466 毫秒；实际次数取决于接触、子技能及战斗状态，不能据此保证总伤害。",
+                  "evidence_ids": [
+                    "skill-2165200",
+                    "code-playerentity"
+                  ],
+                  "children": []
+                }
+              ]
+            },
+            {
+              "title": "横扫四方",
+              "text": "出招条件：目标进入配置范围（水平偏移 0～250，竖直偏移 -50～50，游戏坐标）。这是 AI 选招范围，实际受击还要检查动画与碰撞。",
+              "evidence_ids": [
+                "skill-2165300",
+                "code-battlemodelmanager"
+              ],
+              "children": [
+                {
+                  "title": "命中要点",
+                  "text": "本技能配置命中上限 3 次，重复命中间隔 466 毫秒；实际次数取决于接触、子技能及战斗状态，不能据此保证总伤害。",
+                  "evidence_ids": [
+                    "skill-2165300",
+                    "code-playerentity"
+                  ],
+                  "children": []
+                },
+                {
+                  "title": "蓄力横扫",
+                  "text": "配置文字说明先蓄力约 1 秒再横扫；该描述未用动画资源或实战重新计时。",
+                  "evidence_ids": [
+                    "skill-2165300"
+                  ],
+                  "children": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "4399-859466",
+      "monster_ids": [
+        "3625"
+      ],
+      "scope": "主线普通难度 · 不周山",
+      "version": "配置 2026-10-19 · 单机代码 86a00f8（历史快照）",
+      "summary": "离线静态整理，未实战复核；省略重复动作。旧图鉴名称与配置名称分别保留。动画帧未换算为秒，未分析完整逐帧判定区域。",
+      "roots": [
+        {
+          "title": "选择行动",
+          "text": "攻击条件成立且当前动作允许时进入相应分支；已开始的连招会继续执行。",
+          "evidence_ids": [
+            "mai-20204",
+            "code-aitree"
+          ],
+          "children": [
+            {
+              "title": "暂未锁定目标",
+              "text": "视野内没有可追踪对象，且没有仇恨目标时巡逻并等待。",
+              "evidence_ids": [
+                "mai-20204",
+                "code-getmanonviewconnode"
+              ],
+              "children": []
+            },
+            {
+              "title": "已有目标",
+              "text": "满足追击条件时接近目标。",
+              "evidence_ids": [
+                "mai-20204"
+              ],
+              "children": []
+            },
+            {
+              "title": "随机选择一条满足条件的连招",
+              "text": "每条分支按顺序执行；不代表固定轮流出招，也不等于各技能等概率。",
+              "evidence_ids": [
+                "mai-20204",
+                "code-randchildselnode",
+                "code-idleai",
+                "behavior-1",
+                "behavior-102",
+                "behavior-1041",
+                "behavior-1042",
+                "behavior-1043",
+                "behavior-105",
+                "behavior-107",
+                "behavior-108",
+                "behavior-2",
+                "behavior-201",
+                "behavior-202001",
+                "behavior-202001002",
+                "behavior-2041",
+                "behavior-2042",
+                "behavior-2043",
+                "behavior-205",
+                "behavior-207001002",
+                "behavior-2101",
+                "behavior-2102",
+                "behavior-2103",
+                "behavior-3",
+                "behavior-6"
+              ],
+              "children": [
+                {
+                  "title": "目标进入「屠戮四方」的出招范围",
+                  "text": "",
+                  "evidence_ids": [
+                    "mai-20204",
+                    "code-battlemodelmanager"
+                  ],
+                  "children": [
+                    {
+                      "title": "「屠戮四方」 → 等待 1～2 秒 → 接近到「夺命一击」出招范围 → 「夺命一击」 → 退避 1～2 秒",
+                      "text": "",
+                      "evidence_ids": [
+                        "mai-20204"
+                      ],
+                      "children": []
+                    },
+                    {
+                      "title": "「屠戮四方」 → 等待 1～2 秒 → 接近到「灭亡连斩」出招范围 → 「灭亡连斩」 → 退避 1～2 秒",
+                      "text": "",
+                      "evidence_ids": [
+                        "mai-20204"
+                      ],
+                      "children": []
+                    }
+                  ]
+                },
+                {
+                  "title": "目标进入「夺命一击」的出招范围",
+                  "text": "",
+                  "evidence_ids": [
+                    "mai-20204",
+                    "code-battlemodelmanager"
+                  ],
+                  "children": [
+                    {
+                      "title": "「夺命一击」 → 等待 1～2 秒 → 接近到「灭亡连斩」出招范围 → 「灭亡连斩」 → 退避 1～2 秒",
+                      "text": "",
+                      "evidence_ids": [
+                        "mai-20204"
+                      ],
+                      "children": []
+                    },
+                    {
+                      "title": "「夺命一击」 → 等待 1～2 秒 → 接近到「屠戮四方」出招范围 → 「屠戮四方」 → 退避 1～2 秒",
+                      "text": "",
+                      "evidence_ids": [
+                        "mai-20204"
+                      ],
+                      "children": []
+                    }
+                  ]
+                },
+                {
+                  "title": "目标进入「灭亡连斩」的出招范围",
+                  "text": "",
+                  "evidence_ids": [
+                    "mai-20204",
+                    "code-battlemodelmanager"
+                  ],
+                  "children": [
+                    {
+                      "title": "「灭亡连斩」 → 等待 1～2 秒 → 接近到「夺命一击」出招范围 → 「夺命一击」 → 退避 1～2 秒",
+                      "text": "",
+                      "evidence_ids": [
+                        "mai-20204"
+                      ],
+                      "children": []
+                    },
+                    {
+                      "title": "「灭亡连斩」 → 等待 1～2 秒 → 接近到「屠戮四方」出招范围 → 「屠戮四方」 → 退避 1～2 秒",
+                      "text": "",
+                      "evidence_ids": [
+                        "mai-20204"
+                      ],
+                      "children": []
+                    }
+                  ]
+                },
+                {
+                  "title": "需要先接近目标",
+                  "text": "",
+                  "evidence_ids": [
+                    "mai-20204",
+                    "code-battlemodelmanager"
+                  ],
+                  "children": [
+                    {
+                      "title": "接近到「屠戮四方」出招范围 → 「屠戮四方」 → 等待 1～2 秒 → 接近到「灭亡连斩」出招范围 → 「灭亡连斩」 → 退避 1～2 秒",
+                      "text": "",
+                      "evidence_ids": [
+                        "mai-20204"
+                      ],
+                      "children": []
+                    },
+                    {
+                      "title": "接近到「夺命一击」出招范围 → 「夺命一击」 → 等待 1～2 秒 → 接近到「屠戮四方」出招范围 → 「屠戮四方」 → 退避 1～2 秒",
+                      "text": "",
+                      "evidence_ids": [
+                        "mai-20204"
+                      ],
+                      "children": []
+                    },
+                    {
+                      "title": "接近到「夺命一击」出招范围 → 「夺命一击」 → 等待 1～2 秒 → 接近到「灭亡连斩」出招范围 → 「灭亡连斩」 → 退避 1～2 秒",
+                      "text": "",
+                      "evidence_ids": [
+                        "mai-20204"
+                      ],
+                      "children": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "招式与判定",
+          "text": "展开查看各技能的出招条件和命中要点。",
+          "evidence_ids": [
+            "monster-3625"
+          ],
+          "children": [
+            {
+              "title": "夺命一击",
+              "text": "出招条件：目标进入配置范围（水平偏移 0～300，竖直偏移 -80～80，游戏坐标）。这是 AI 选招范围，实际受击还要检查动画与碰撞。",
+              "evidence_ids": [
+                "skill-2165900",
+                "code-battlemodelmanager"
+              ],
+              "children": [
+                {
+                  "title": "命中要点",
+                  "text": "本技能配置命中上限 1 次，重复命中间隔 334 毫秒；实际次数取决于接触、子技能及战斗状态，不能据此保证总伤害。",
+                  "evidence_ids": [
+                    "skill-2165900",
+                    "code-playerentity"
+                  ],
+                  "children": []
+                },
+                {
+                  "title": "瞬移判定",
+                  "text": "技能一动画到第 40 帧后调整到仇恨目标附近的横向位置；落点受场景边界限制，每次施放只触发一次。",
+                  "evidence_ids": [
+                    "code-e3625"
+                  ],
+                  "children": []
+                }
+              ]
+            },
+            {
+              "title": "灭亡连斩",
+              "text": "出招条件：目标进入配置范围（水平偏移 0～150，竖直偏移 -80～80，游戏坐标）。这是 AI 选招范围，实际受击还要检查动画与碰撞。",
+              "evidence_ids": [
+                "skill-2166000",
+                "code-battlemodelmanager"
+              ],
+              "children": [
+                {
+                  "title": "命中要点",
+                  "text": "本技能配置命中上限 4 次，重复命中间隔 380 毫秒；实际次数取决于接触、子技能及战斗状态，不能据此保证总伤害。",
+                  "evidence_ids": [
+                    "skill-2166000",
+                    "code-playerentity"
+                  ],
+                  "children": []
+                }
+              ]
+            },
+            {
+              "title": "屠戮四方",
+              "text": "出招条件：目标进入配置范围（水平偏移 0～150，竖直偏移 -150～50，游戏坐标）。这是 AI 选招范围，实际受击还要检查动画与碰撞。",
+              "evidence_ids": [
+                "skill-2166100",
+                "code-battlemodelmanager"
+              ],
+              "children": [
+                {
+                  "title": "命中要点",
+                  "text": "本技能配置命中上限 5 次，重复命中间隔 200 毫秒；实际次数取决于接触、子技能及战斗状态，不能据此保证总伤害。",
+                  "evidence_ids": [
+                    "skill-2166100",
+                    "code-playerentity"
+                  ],
+                  "children": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "4399-859465",
+      "monster_ids": [
+        "3626"
+      ],
+      "scope": "主线普通难度 · 不周山",
+      "version": "配置 2026-10-19 · 单机代码 86a00f8（历史快照）",
+      "summary": "离线静态整理，未实战复核；省略重复动作。旧图鉴名称与配置名称分别保留。动画帧未换算为秒，未分析完整逐帧判定区域。",
+      "roots": [
+        {
+          "title": "选择行动",
+          "text": "攻击条件成立且当前动作允许时进入相应分支；已开始的连招会继续执行。",
+          "evidence_ids": [
+            "mai-20205",
+            "code-aitree"
+          ],
+          "children": [
+            {
+              "title": "暂未锁定目标",
+              "text": "视野内没有可追踪对象，且没有仇恨目标时巡逻并等待。",
+              "evidence_ids": [
+                "mai-20205",
+                "code-getmanonviewconnode"
+              ],
+              "children": []
+            },
+            {
+              "title": "已有目标",
+              "text": "满足追击条件时接近目标。",
+              "evidence_ids": [
+                "mai-20205"
+              ],
+              "children": []
+            },
+            {
+              "title": "随机选择一条满足条件的连招",
+              "text": "每条分支按顺序执行；不代表固定轮流出招，也不等于各技能等概率。",
+              "evidence_ids": [
+                "mai-20205",
+                "code-randchildselnode",
+                "code-idleai",
+                "behavior-1",
+                "behavior-102",
+                "behavior-1041",
+                "behavior-1042",
+                "behavior-1043",
+                "behavior-105",
+                "behavior-107",
+                "behavior-108",
+                "behavior-2",
+                "behavior-201",
+                "behavior-202001",
+                "behavior-202001002",
+                "behavior-2041",
+                "behavior-2042",
+                "behavior-2043",
+                "behavior-205",
+                "behavior-207001002",
+                "behavior-2101",
+                "behavior-2102",
+                "behavior-2103",
+                "behavior-3",
+                "behavior-6"
+              ],
+              "children": [
+                {
+                  "title": "目标进入「万剑归一」的出招范围",
+                  "text": "",
+                  "evidence_ids": [
+                    "mai-20205",
+                    "code-battlemodelmanager"
+                  ],
+                  "children": [
+                    {
+                      "title": "「万剑归一」 → 等待 1～2 秒 → 接近到「剑气凌霜」出招范围 → 「剑气凌霜」 → 退避 1～2 秒",
+                      "text": "",
+                      "evidence_ids": [
+                        "mai-20205"
+                      ],
+                      "children": []
+                    },
+                    {
+                      "title": "「万剑归一」 → 等待 1～2 秒 → 接近到「凌空一击」出招范围 → 「凌空一击」 → 退避 1～2 秒",
+                      "text": "",
+                      "evidence_ids": [
+                        "mai-20205"
+                      ],
+                      "children": []
+                    }
+                  ]
+                },
+                {
+                  "title": "目标进入「剑气凌霜」的出招范围",
+                  "text": "",
+                  "evidence_ids": [
+                    "mai-20205",
+                    "code-battlemodelmanager"
+                  ],
+                  "children": [
+                    {
+                      "title": "「剑气凌霜」 → 等待 1～2 秒 → 接近到「凌空一击」出招范围 → 「凌空一击」 → 退避 1～2 秒",
+                      "text": "",
+                      "evidence_ids": [
+                        "mai-20205"
+                      ],
+                      "children": []
+                    },
+                    {
+                      "title": "「剑气凌霜」 → 等待 1～2 秒 → 接近到「万剑归一」出招范围 → 「万剑归一」 → 退避 1～2 秒",
+                      "text": "",
+                      "evidence_ids": [
+                        "mai-20205"
+                      ],
+                      "children": []
+                    }
+                  ]
+                },
+                {
+                  "title": "目标进入「凌空一击」的出招范围",
+                  "text": "",
+                  "evidence_ids": [
+                    "mai-20205",
+                    "code-battlemodelmanager"
+                  ],
+                  "children": [
+                    {
+                      "title": "「凌空一击」 → 等待 1～2 秒 → 接近到「剑气凌霜」出招范围 → 「剑气凌霜」 → 退避 1～2 秒",
+                      "text": "",
+                      "evidence_ids": [
+                        "mai-20205"
+                      ],
+                      "children": []
+                    },
+                    {
+                      "title": "「凌空一击」 → 等待 1～2 秒 → 接近到「万剑归一」出招范围 → 「万剑归一」 → 退避 1～2 秒",
+                      "text": "",
+                      "evidence_ids": [
+                        "mai-20205"
+                      ],
+                      "children": []
+                    }
+                  ]
+                },
+                {
+                  "title": "需要先接近目标",
+                  "text": "",
+                  "evidence_ids": [
+                    "mai-20205",
+                    "code-battlemodelmanager"
+                  ],
+                  "children": [
+                    {
+                      "title": "接近到「万剑归一」出招范围 → 「万剑归一」 → 等待 1～2 秒 → 接近到「凌空一击」出招范围 → 「凌空一击」 → 退避 1～2 秒",
+                      "text": "",
+                      "evidence_ids": [
+                        "mai-20205"
+                      ],
+                      "children": []
+                    },
+                    {
+                      "title": "接近到「剑气凌霜」出招范围 → 「剑气凌霜」 → 等待 1～2 秒 → 接近到「万剑归一」出招范围 → 「万剑归一」 → 退避 1～2 秒",
+                      "text": "",
+                      "evidence_ids": [
+                        "mai-20205"
+                      ],
+                      "children": []
+                    },
+                    {
+                      "title": "接近到「剑气凌霜」出招范围 → 「剑气凌霜」 → 等待 1～2 秒 → 接近到「凌空一击」出招范围 → 「凌空一击」 → 退避 1～2 秒",
+                      "text": "",
+                      "evidence_ids": [
+                        "mai-20205"
+                      ],
+                      "children": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "招式与判定",
+          "text": "展开查看各技能的出招条件和命中要点。",
+          "evidence_ids": [
+            "monster-3626"
+          ],
+          "children": [
+            {
+              "title": "剑气凌霜",
+              "text": "出招条件：目标进入配置范围（水平偏移 0～300，竖直偏移 -80～80，游戏坐标）。这是 AI 选招范围，实际受击还要检查动画与碰撞。",
+              "evidence_ids": [
+                "skill-2166200",
+                "code-battlemodelmanager"
+              ],
+              "children": [
+                {
+                  "title": "命中要点",
+                  "text": "本技能配置命中上限 1 次，重复命中间隔 334 毫秒；实际次数取决于接触、子技能及战斗状态，不能据此保证总伤害。",
+                  "evidence_ids": [
+                    "skill-2166200",
+                    "code-playerentity"
+                  ],
+                  "children": []
+                }
+              ]
+            },
+            {
+              "title": "凌空一击",
+              "text": "出招条件：目标进入配置范围（水平偏移 0～100，竖直偏移 -500～0，游戏坐标）。这是 AI 选招范围，实际受击还要检查动画与碰撞。",
+              "evidence_ids": [
+                "skill-2166300",
+                "code-battlemodelmanager"
+              ],
+              "children": [
+                {
+                  "title": "命中要点",
+                  "text": "本技能配置命中上限 1 次，重复命中间隔 334 毫秒；实际次数取决于接触、子技能及战斗状态，不能据此保证总伤害。",
+                  "evidence_ids": [
+                    "skill-2166300",
+                    "code-playerentity"
+                  ],
+                  "children": []
+                },
+                {
+                  "title": "抬高后砸落",
+                  "text": "技能二起手先调整自身高度，再进入后续动作；砸地命中仍看动画与碰撞。",
+                  "evidence_ids": [
+                    "code-e3626"
+                  ],
+                  "children": []
+                }
+              ]
+            },
+            {
+              "title": "万剑归一",
+              "text": "出招条件：目标进入配置范围（水平偏移 -150～150，竖直偏移 -150～0，游戏坐标）。这是 AI 选招范围，实际受击还要检查动画与碰撞。",
+              "evidence_ids": [
+                "skill-2166400",
+                "code-battlemodelmanager"
+              ],
+              "children": [
+                {
+                  "title": "命中要点",
+                  "text": "本技能配置命中上限 8 次，重复命中间隔 400 毫秒；实际次数取决于接触、子技能及战斗状态，不能据此保证总伤害。",
+                  "evidence_ids": [
+                    "skill-2166400",
+                    "code-playerentity"
+                  ],
+                  "children": []
+                },
+                {
+                  "title": "剑阵起手",
+                  "text": "技能三起手会调整自身高度。配置文字说明剑阵内会造成伤害并限制技能；持续时间本样板未核定。",
+                  "evidence_ids": [
+                    "code-e3626",
+                    "skill-2166400"
+                  ],
+                  "children": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "4399-859464",
+      "monster_ids": [
+        "3627"
+      ],
+      "scope": "主线普通难度 · 不周山",
+      "version": "配置 2026-10-19 · 单机代码 86a00f8（历史快照）",
+      "summary": "离线静态整理，未实战复核；省略重复动作。旧图鉴名称与配置名称分别保留。动画帧未换算为秒，未分析完整逐帧判定区域。",
+      "roots": [
+        {
+          "title": "选择行动",
+          "text": "攻击条件成立且当前动作允许时进入相应分支；已开始的连招会继续执行。",
+          "evidence_ids": [
+            "mai-20206",
+            "code-aitree"
+          ],
+          "children": [
+            {
+              "title": "暂未锁定目标",
+              "text": "视野内没有可追踪对象，且没有仇恨目标时巡逻并等待。",
+              "evidence_ids": [
+                "mai-20206",
+                "code-getmanonviewconnode"
+              ],
+              "children": []
+            },
+            {
+              "title": "已有目标",
+              "text": "满足追击条件时接近目标。",
+              "evidence_ids": [
+                "mai-20206"
+              ],
+              "children": []
+            },
+            {
+              "title": "随机选择一条满足条件的连招",
+              "text": "每条分支按顺序执行；不代表固定轮流出招，也不等于各技能等概率。",
+              "evidence_ids": [
+                "mai-20206",
+                "code-randchildselnode",
+                "code-idleai",
+                "behavior-1",
+                "behavior-102",
+                "behavior-1042",
+                "behavior-105",
+                "behavior-107",
+                "behavior-108",
+                "behavior-109000090",
+                "behavior-111012",
+                "behavior-111030",
+                "behavior-2",
+                "behavior-201",
+                "behavior-202001",
+                "behavior-2041",
+                "behavior-2042",
+                "behavior-2043",
+                "behavior-205",
+                "behavior-207001002",
+                "behavior-2102",
+                "behavior-3",
+                "behavior-6"
+              ],
+              "children": [
+                {
+                  "title": "需要先接近目标",
+                  "text": "",
+                  "evidence_ids": [
+                    "mai-20206",
+                    "code-battlemodelmanager"
+                  ],
+                  "children": [
+                    {
+                      "title": "接近到「绝仙连斩」出招范围 → 「绝仙连斩」 → 退避 1～2 秒",
+                      "text": "",
+                      "evidence_ids": [
+                        "mai-20206"
+                      ],
+                      "children": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "title": "生命高于 0% 且不高于 90%；分支计时已就绪（配置间隔 12 秒）",
+              "text": "「绝地逢生」",
+              "evidence_ids": [
+                "mai-20206",
+                "code-gethpconnode",
+                "code-getattcdconnode",
+                "code-compositenode",
+                "behavior-1",
+                "behavior-102",
+                "behavior-1042",
+                "behavior-105",
+                "behavior-107",
+                "behavior-108",
+                "behavior-109000090",
+                "behavior-111012",
+                "behavior-111030",
+                "behavior-2",
+                "behavior-201",
+                "behavior-202001",
+                "behavior-2041",
+                "behavior-2042",
+                "behavior-2043",
+                "behavior-205",
+                "behavior-207001002",
+                "behavior-2102",
+                "behavior-3",
+                "behavior-6"
+              ],
+              "children": []
+            },
+            {
+              "title": "分支计时已就绪（配置间隔 30 秒）",
+              "text": "「遁迹潜形」 → 目标进入「绝仙连斩」的出招范围 → 「绝仙连斩」 → 退避 1～2 秒",
+              "evidence_ids": [
+                "mai-20206",
+                "code-gethpconnode",
+                "code-getattcdconnode",
+                "code-compositenode",
+                "behavior-1",
+                "behavior-102",
+                "behavior-1042",
+                "behavior-105",
+                "behavior-107",
+                "behavior-108",
+                "behavior-109000090",
+                "behavior-111012",
+                "behavior-111030",
+                "behavior-2",
+                "behavior-201",
+                "behavior-202001",
+                "behavior-2041",
+                "behavior-2042",
+                "behavior-2043",
+                "behavior-205",
+                "behavior-207001002",
+                "behavior-2102",
+                "behavior-3",
+                "behavior-6"
+              ],
+              "children": []
+            }
+          ]
+        },
+        {
+          "title": "招式与判定",
+          "text": "展开查看各技能的出招条件和命中要点。",
+          "evidence_ids": [
+            "monster-3627"
+          ],
+          "children": [
+            {
+              "title": "遁迹潜形",
+              "text": "出招条件：目标进入配置范围（水平偏移 0～300，竖直偏移 -80～80，游戏坐标）。这是 AI 选招范围，实际受击还要检查动画与碰撞。",
+              "evidence_ids": [
+                "skill-2166500",
+                "code-battlemodelmanager"
+              ],
+              "children": [
+                {
+                  "title": "命中要点",
+                  "text": "本技能配置命中上限 1 次，重复命中间隔 334 毫秒；实际次数取决于接触、子技能及战斗状态，不能据此保证总伤害。",
+                  "evidence_ids": [
+                    "skill-2166500",
+                    "code-playerentity"
+                  ],
+                  "children": []
+                },
+                {
+                  "title": "隐身与迷雾",
+                  "text": "地图有对应迷雾图层时，技能一显示迷雾并隐藏剑身；计时结束后恢复显示。隐藏外观不代表无敌。",
+                  "evidence_ids": [
+                    "code-e3627"
+                  ],
+                  "children": []
+                }
+              ]
+            },
+            {
+              "title": "绝仙连斩",
+              "text": "出招条件：目标进入配置范围（水平偏移 0～150，竖直偏移 -80～80，游戏坐标）。这是 AI 选招范围，实际受击还要检查动画与碰撞。",
+              "evidence_ids": [
+                "skill-2166600",
+                "code-battlemodelmanager"
+              ],
+              "children": [
+                {
+                  "title": "命中要点",
+                  "text": "本技能配置命中上限 3 次，重复命中间隔 500 毫秒；实际次数取决于接触、子技能及战斗状态，不能据此保证总伤害。",
+                  "evidence_ids": [
+                    "skill-2166600",
+                    "code-playerentity"
+                  ],
+                  "children": []
+                }
+              ]
+            },
+            {
+              "title": "绝地逢生",
+              "text": "出招条件：目标进入配置范围（水平偏移 0～2400，游戏坐标）。这是 AI 选招范围，实际受击还要检查动画与碰撞。",
+              "evidence_ids": [
+                "skill-2166700",
+                "code-battlemodelmanager"
+              ],
+              "children": [
+                {
+                  "title": "命中要点",
+                  "text": "本技能配置命中上限 1 次，重复命中间隔 334 毫秒；实际次数取决于接触、子技能及战斗状态，不能据此保证总伤害。",
+                  "evidence_ids": [
+                    "skill-2166700",
+                    "code-playerentity"
+                  ],
+                  "children": []
+                },
+                {
+                  "title": "回血启动",
+                  "text": "技能三动画到第 8 帧后创建回血效果；离开该动作时移除。本样板不承诺打断窗口的秒数。",
+                  "evidence_ids": [
+                    "code-e3627"
+                  ],
+                  "children": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "4399-541433",
+      "monster_ids": [
+        "3184"
+      ],
+      "scope": "主线普通难度 · 巨水灵",
+      "version": "配置 2026-10-19 · 单机代码 86a00f8（历史快照）",
+      "summary": "离线静态整理，未实战复核；省略重复动作。旧图鉴名称与配置名称分别保留。动画帧未换算为秒，未分析完整逐帧判定区域。",
+      "roots": [
+        {
+          "title": "选择行动",
+          "text": "攻击条件成立且当前动作允许时进入相应分支；已开始的连招会继续执行。",
+          "evidence_ids": [
+            "mai-20054",
+            "code-aitree"
+          ],
+          "children": [
+            {
+              "title": "暂未锁定目标",
+              "text": "视野内没有可追踪对象，且没有仇恨目标时巡逻并等待。",
+              "evidence_ids": [
+                "mai-20054",
+                "code-getmanonviewconnode"
+              ],
+              "children": []
+            },
+            {
+              "title": "已有目标",
+              "text": "满足追击条件时接近目标。",
+              "evidence_ids": [
+                "mai-20054"
+              ],
+              "children": []
+            },
+            {
+              "title": "随机选择一条满足条件的连招",
+              "text": "每条分支按顺序执行；不代表固定轮流出招，也不等于各技能等概率。",
+              "evidence_ids": [
+                "mai-20054",
+                "code-randchildselnode",
+                "code-idleai",
+                "behavior-1",
+                "behavior-102",
+                "behavior-1041",
+                "behavior-105",
+                "behavior-107",
+                "behavior-108",
+                "behavior-2",
+                "behavior-201",
+                "behavior-202000001",
+                "behavior-202001",
+                "behavior-202001002",
+                "behavior-2041",
+                "behavior-2042",
+                "behavior-2043",
+                "behavior-205",
+                "behavior-2101",
+                "behavior-2102",
+                "behavior-2103",
+                "behavior-3",
+                "behavior-6"
+              ],
+              "children": [
+                {
+                  "title": "目标进入「水拳挥舞」的出招范围",
+                  "text": "",
+                  "evidence_ids": [
+                    "mai-20054",
+                    "code-battlemodelmanager"
+                  ],
+                  "children": [
+                    {
+                      "title": "「水拳挥舞」 → 等待 1～2 秒 → 接近到「水弹连冲」出招范围 → 「水弹连冲」 → 等待 0.5～1 秒 → 接近到「水拳挥舞」出招范围 → 「水拳挥舞」 → 等待 1～2 秒",
+                      "text": "",
+                      "evidence_ids": [
+                        "mai-20054"
+                      ],
+                      "children": []
+                    },
+                    {
+                      "title": "「水拳挥舞」 → 等待 1～2 秒 → 接近到「巨浪化身」出招范围 → 「巨浪化身」 → 等待 0.5～1 秒 → 接近到「水拳挥舞」出招范围 → 「水拳挥舞」 → 等待 1～2 秒",
+                      "text": "",
+                      "evidence_ids": [
+                        "mai-20054"
+                      ],
+                      "children": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "title": "死亡 → 水滴分裂",
+              "text": "配置死亡技能时，切换到分裂动作；到第 44 帧后在两侧召唤较小水灵。普通战斗行为树随之结束。",
+              "evidence_ids": [
+                "monster-3184",
+                "skill-2119400",
+                "code-e3184"
+              ],
+              "children": []
+            }
+          ]
+        },
+        {
+          "title": "招式与判定",
+          "text": "展开查看各技能的出招条件和命中要点。",
+          "evidence_ids": [
+            "monster-3184"
+          ],
+          "children": [
+            {
+              "title": "水拳挥舞",
+              "text": "出招条件：目标进入配置范围（水平偏移 0～190，游戏坐标）。这是 AI 选招范围，实际受击还要检查动画与碰撞。",
+              "evidence_ids": [
+                "skill-2119100",
+                "code-battlemodelmanager"
+              ],
+              "children": [
+                {
+                  "title": "命中要点",
+                  "text": "本技能配置命中上限 3 次，重复命中间隔 534 毫秒；实际次数取决于接触、子技能及战斗状态，不能据此保证总伤害。",
+                  "evidence_ids": [
+                    "skill-2119100",
+                    "code-playerentity"
+                  ],
+                  "children": []
+                }
+              ]
+            },
+            {
+              "title": "水弹连冲",
+              "text": "出招条件：目标进入配置范围（水平偏移 0～720，游戏坐标）。这是 AI 选招范围，实际受击还要检查动画与碰撞。",
+              "evidence_ids": [
+                "skill-2119200",
+                "code-battlemodelmanager"
+              ],
+              "children": [
+                {
+                  "title": "命中要点",
+                  "text": "本技能配置命中上限 1 次，重复命中间隔 0 毫秒；实际次数取决于接触、子技能及战斗状态，不能据此保证总伤害。",
+                  "evidence_ids": [
+                    "skill-2119200",
+                    "code-playerentity"
+                  ],
+                  "children": []
+                },
+                {
+                  "title": "水弹生成",
+                  "text": "技能二动画到第 32 帧后生成额外水弹实体；水弹与本体应分别看待。",
+                  "evidence_ids": [
+                    "code-e3184"
+                  ],
+                  "children": []
+                }
+              ]
+            },
+            {
+              "title": "巨浪化身",
+              "text": "出招条件：目标进入配置范围（水平偏移 0～432，游戏坐标）。这是 AI 选招范围，实际受击还要检查动画与碰撞。",
+              "evidence_ids": [
+                "skill-2119300",
+                "code-battlemodelmanager"
+              ],
+              "children": [
+                {
+                  "title": "命中要点",
+                  "text": "本技能配置命中上限 5 次，重复命中间隔 167 毫秒；实际次数取决于接触、子技能及战斗状态，不能据此保证总伤害。",
+                  "evidence_ids": [
+                    "skill-2119300",
+                    "code-playerentity"
+                  ],
+                  "children": []
+                },
+                {
+                  "title": "巨浪移动",
+                  "text": "技能三动画到第 20 帧后生成巨浪实体，读取当时目标的位置来计算横向速度。",
+                  "evidence_ids": [
+                    "code-e3184"
+                  ],
+                  "children": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "id": "code-battlemodelmanager",
+      "title": "BattleModelManager · 静态代码",
+      "version": "单机代码快照 86a00f8（历史版本）",
+      "locator": "models/managers/BattleModelManager.as · getManInAttackRangeView / checkInRance",
+      "sha256": "c18f428664586fe4195e73389426a87c04e2838771bef7d9a24f81711e2c5316",
+      "url": "https://github.com/AperturePlus/ZaoMengXiYou-4/commit/86a00f893f19f19b38754e5d9a062c05f00f4864",
+      "source_sha256": "f6e04fd8139ff3873cd2bcb63488ab7805d524c1188daa235891ac8fed6e8147"
+    },
+    {
+      "id": "code-playerentity",
+      "title": "PlayerEntity · 静态代码",
+      "version": "单机代码快照 86a00f8（历史版本）",
+      "locator": "viewers/entitys/man/PlayerEntity.as · 命中上限与间隔 / hitTest / getAttackBp",
+      "sha256": "c0bbef5bfcf2c9a4f061b384f705b04658b82247d48eb9e92c9c1fbfcbc05049",
+      "url": "https://github.com/AperturePlus/ZaoMengXiYou-4/commit/86a00f893f19f19b38754e5d9a062c05f00f4864",
+      "source_sha256": "f6e04fd8139ff3873cd2bcb63488ab7805d524c1188daa235891ac8fed6e8147"
+    },
+    {
+      "id": "code-aitree",
+      "title": "AITree · 静态代码",
+      "version": "单机代码快照 86a00f8（历史版本）",
+      "locator": "models/ai/AITree.as · execute · 条件与分支调度",
+      "sha256": "e391cd51c01cc2352f751a777805158ad6638f8bb0629d379a3f769fd3f93e84",
+      "url": "https://github.com/AperturePlus/ZaoMengXiYou-4/commit/86a00f893f19f19b38754e5d9a062c05f00f4864",
+      "source_sha256": "f6e04fd8139ff3873cd2bcb63488ab7805d524c1188daa235891ac8fed6e8147"
+    },
+    {
+      "id": "code-randchildselnode",
+      "title": "RandChildSelNode · 静态代码",
+      "version": "单机代码快照 86a00f8（历史版本）",
+      "locator": "models/ai/RandChildSelNode.as · checkAllChild · 从条件成立的分支中选取",
+      "sha256": "57850d49452ef0eaa01de292a4b6c00efbbf89f31454af16d8969bd93a4d3ffb",
+      "url": "https://github.com/AperturePlus/ZaoMengXiYou-4/commit/86a00f893f19f19b38754e5d9a062c05f00f4864",
+      "source_sha256": "f6e04fd8139ff3873cd2bcb63488ab7805d524c1188daa235891ac8fed6e8147"
+    },
+    {
+      "id": "code-idleai",
+      "title": "IdleAI · 静态代码",
+      "version": "单机代码快照 86a00f8（历史版本）",
+      "locator": "models/ai/acs/IdleAI.as · init · 等待区间",
+      "sha256": "80b29be101310fa21e7a975f596d0475f2106a81e841ae3fe1765dcb558eb568",
+      "url": "https://github.com/AperturePlus/ZaoMengXiYou-4/commit/86a00f893f19f19b38754e5d9a062c05f00f4864",
+      "source_sha256": "f6e04fd8139ff3873cd2bcb63488ab7805d524c1188daa235891ac8fed6e8147"
+    },
+    {
+      "id": "code-gethpconnode",
+      "title": "GetHpConNode · 静态代码",
+      "version": "单机代码快照 86a00f8（历史版本）",
+      "locator": "models/ai/GetHpConNode.as · checkCondition · 下界开、上界闭",
+      "sha256": "579a0558a3dd2e239d22f084bc00f9b6bf1c6af03dd4d5c273a722366ff4994f",
+      "url": "https://github.com/AperturePlus/ZaoMengXiYou-4/commit/86a00f893f19f19b38754e5d9a062c05f00f4864",
+      "source_sha256": "f6e04fd8139ff3873cd2bcb63488ab7805d524c1188daa235891ac8fed6e8147"
+    },
+    {
+      "id": "code-getattcdconnode",
+      "title": "GetAttCDConNode · 静态代码",
+      "version": "单机代码快照 86a00f8（历史版本）",
+      "locator": "models/ai/GetAttCDConNode.as · checkCondition / onExecute · 分支计时",
+      "sha256": "9da18b0822a3e167f569db499b175dd5cbea44102138de05f0f21c5f3628861e",
+      "url": "https://github.com/AperturePlus/ZaoMengXiYou-4/commit/86a00f893f19f19b38754e5d9a062c05f00f4864",
+      "source_sha256": "f6e04fd8139ff3873cd2bcb63488ab7805d524c1188daa235891ac8fed6e8147"
+    },
+    {
+      "id": "code-compositenode",
+      "title": "CompositeNode · 静态代码",
+      "version": "单机代码快照 86a00f8（历史版本）",
+      "locator": "com/game/engine/ai/behaviors/node/CompositeNode.as · addNode · 只预检首个动作前的条件",
+      "sha256": "fc833bf5ca1f154f32015e14c654cbc7d8d9424c32905d83fbd46c6ca451aecb",
+      "url": "https://github.com/AperturePlus/ZaoMengXiYou-4/commit/86a00f893f19f19b38754e5d9a062c05f00f4864",
+      "source_sha256": "f6e04fd8139ff3873cd2bcb63488ab7805d524c1188daa235891ac8fed6e8147"
+    },
+    {
+      "id": "code-getmanonviewconnode",
+      "title": "GetManOnViewConNode · 静态代码",
+      "version": "单机代码快照 86a00f8（历史版本）",
+      "locator": "models/ai/GetManOnViewConNode.as · checkCondition · 视野内无对象时返回成立",
+      "sha256": "76f59215f46a616cd5c81b4dd0a2960af006692d5e65afd469fd1579754da3e4",
+      "url": "https://github.com/AperturePlus/ZaoMengXiYou-4/commit/86a00f893f19f19b38754e5d9a062c05f00f4864",
+      "source_sha256": "f6e04fd8139ff3873cd2bcb63488ab7805d524c1188daa235891ac8fed6e8147"
+    },
+    {
+      "id": "monster-3620",
+      "title": "诛仙剑 · 主线普通配置",
+      "version": "客户端配置 2026-10-19",
+      "locator": "Monster.xml · RECORD id=3620",
+      "sha256": "9cf3fcb9ed858f33d9853704d7777b6ecb08eea0163a1821907057d0f6e7f6f4",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+      "source_sha256": "57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c"
+    },
+    {
+      "id": "mai-20203",
+      "title": "诛仙剑 · 行为树",
+      "version": "客户端配置 2026-10-19",
+      "locator": "MAi.xml · RECORD id=20203",
+      "sha256": "0f34c7a7e7b0c862c71a30ad723e50a73182147450fae11fac300bcdfb1f86e0",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+      "source_sha256": "57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c"
+    },
+    {
+      "id": "behavior-1",
+      "title": "行为节点 Patrol",
+      "version": "客户端配置 2026-10-19",
+      "locator": "Behavior.xml · RECORD id=1",
+      "sha256": "1c517bf5c52c5359152c8e70ed30f8a6b425d71091547b83ccb836a33ed9af9c",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+      "source_sha256": "57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c"
+    },
+    {
+      "id": "behavior-102",
+      "title": "行为节点 GetManOnView",
+      "version": "客户端配置 2026-10-19",
+      "locator": "Behavior.xml · RECORD id=102",
+      "sha256": "1c517bf5c52c5359152c8e70ed30f8a6b425d71091547b83ccb836a33ed9af9c",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+      "source_sha256": "57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c"
+    },
+    {
+      "id": "behavior-1041",
+      "title": "行为节点 GetInSkill1Range",
+      "version": "客户端配置 2026-10-19",
+      "locator": "Behavior.xml · RECORD id=1041",
+      "sha256": "1c517bf5c52c5359152c8e70ed30f8a6b425d71091547b83ccb836a33ed9af9c",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+      "source_sha256": "57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c"
+    },
+    {
+      "id": "behavior-1042",
+      "title": "行为节点 GetInSkill2Range",
+      "version": "客户端配置 2026-10-19",
+      "locator": "Behavior.xml · RECORD id=1042",
+      "sha256": "1c517bf5c52c5359152c8e70ed30f8a6b425d71091547b83ccb836a33ed9af9c",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+      "source_sha256": "57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c"
+    },
+    {
+      "id": "behavior-1043",
+      "title": "行为节点 GetInSkill3Range",
+      "version": "客户端配置 2026-10-19",
+      "locator": "Behavior.xml · RECORD id=1043",
+      "sha256": "1c517bf5c52c5359152c8e70ed30f8a6b425d71091547b83ccb836a33ed9af9c",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+      "source_sha256": "57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c"
+    },
+    {
+      "id": "behavior-105",
+      "title": "行为节点 GetInSeekRange",
+      "version": "客户端配置 2026-10-19",
+      "locator": "Behavior.xml · RECORD id=105",
+      "sha256": "1c517bf5c52c5359152c8e70ed30f8a6b425d71091547b83ccb836a33ed9af9c",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+      "source_sha256": "57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c"
+    },
+    {
+      "id": "behavior-107",
+      "title": "行为节点 GetNoThreat",
+      "version": "客户端配置 2026-10-19",
+      "locator": "Behavior.xml · RECORD id=107",
+      "sha256": "1c517bf5c52c5359152c8e70ed30f8a6b425d71091547b83ccb836a33ed9af9c",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+      "source_sha256": "57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c"
+    },
+    {
+      "id": "behavior-108",
+      "title": "行为节点 GetHasThreat",
+      "version": "客户端配置 2026-10-19",
+      "locator": "Behavior.xml · RECORD id=108",
+      "sha256": "1c517bf5c52c5359152c8e70ed30f8a6b425d71091547b83ccb836a33ed9af9c",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+      "source_sha256": "57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c"
+    },
+    {
+      "id": "behavior-2",
+      "title": "行为节点 Seek",
+      "version": "客户端配置 2026-10-19",
+      "locator": "Behavior.xml · RECORD id=2",
+      "sha256": "1c517bf5c52c5359152c8e70ed30f8a6b425d71091547b83ccb836a33ed9af9c",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+      "source_sha256": "57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c"
+    },
+    {
+      "id": "behavior-201",
+      "title": "行为节点 GotoPatrol",
+      "version": "客户端配置 2026-10-19",
+      "locator": "Behavior.xml · RECORD id=201",
+      "sha256": "1c517bf5c52c5359152c8e70ed30f8a6b425d71091547b83ccb836a33ed9af9c",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+      "source_sha256": "57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c"
+    },
+    {
+      "id": "behavior-202001",
+      "title": "行为节点 GotoWait",
+      "version": "客户端配置 2026-10-19",
+      "locator": "Behavior.xml · RECORD id=202001",
+      "sha256": "1c517bf5c52c5359152c8e70ed30f8a6b425d71091547b83ccb836a33ed9af9c",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+      "source_sha256": "57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c"
+    },
+    {
+      "id": "behavior-202001002",
+      "title": "行为节点 GotoWait",
+      "version": "客户端配置 2026-10-19",
+      "locator": "Behavior.xml · RECORD id=202001002",
+      "sha256": "1c517bf5c52c5359152c8e70ed30f8a6b425d71091547b83ccb836a33ed9af9c",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+      "source_sha256": "57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c"
+    },
+    {
+      "id": "behavior-2041",
+      "title": "行为节点 GotoSkill1",
+      "version": "客户端配置 2026-10-19",
+      "locator": "Behavior.xml · RECORD id=2041",
+      "sha256": "1c517bf5c52c5359152c8e70ed30f8a6b425d71091547b83ccb836a33ed9af9c",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+      "source_sha256": "57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c"
+    },
+    {
+      "id": "behavior-2042",
+      "title": "行为节点 GotoSkill2",
+      "version": "客户端配置 2026-10-19",
+      "locator": "Behavior.xml · RECORD id=2042",
+      "sha256": "1c517bf5c52c5359152c8e70ed30f8a6b425d71091547b83ccb836a33ed9af9c",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+      "source_sha256": "57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c"
+    },
+    {
+      "id": "behavior-2043",
+      "title": "行为节点 GotoSkill3",
+      "version": "客户端配置 2026-10-19",
+      "locator": "Behavior.xml · RECORD id=2043",
+      "sha256": "1c517bf5c52c5359152c8e70ed30f8a6b425d71091547b83ccb836a33ed9af9c",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+      "source_sha256": "57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c"
+    },
+    {
+      "id": "behavior-205",
+      "title": "行为节点 GotoSeek",
+      "version": "客户端配置 2026-10-19",
+      "locator": "Behavior.xml · RECORD id=205",
+      "sha256": "1c517bf5c52c5359152c8e70ed30f8a6b425d71091547b83ccb836a33ed9af9c",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+      "source_sha256": "57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c"
+    },
+    {
+      "id": "behavior-207001002",
+      "title": "行为节点 GotoAway",
+      "version": "客户端配置 2026-10-19",
+      "locator": "Behavior.xml · RECORD id=207001002",
+      "sha256": "1c517bf5c52c5359152c8e70ed30f8a6b425d71091547b83ccb836a33ed9af9c",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+      "source_sha256": "57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c"
+    },
+    {
+      "id": "behavior-2101",
+      "title": "行为节点 GotoSkill1Range",
+      "version": "客户端配置 2026-10-19",
+      "locator": "Behavior.xml · RECORD id=2101",
+      "sha256": "1c517bf5c52c5359152c8e70ed30f8a6b425d71091547b83ccb836a33ed9af9c",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+      "source_sha256": "57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c"
+    },
+    {
+      "id": "behavior-2102",
+      "title": "行为节点 GotoSkill2Range",
+      "version": "客户端配置 2026-10-19",
+      "locator": "Behavior.xml · RECORD id=2102",
+      "sha256": "1c517bf5c52c5359152c8e70ed30f8a6b425d71091547b83ccb836a33ed9af9c",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+      "source_sha256": "57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c"
+    },
+    {
+      "id": "behavior-2103",
+      "title": "行为节点 GotoSkill3Range",
+      "version": "客户端配置 2026-10-19",
+      "locator": "Behavior.xml · RECORD id=2103",
+      "sha256": "1c517bf5c52c5359152c8e70ed30f8a6b425d71091547b83ccb836a33ed9af9c",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+      "source_sha256": "57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c"
+    },
+    {
+      "id": "behavior-3",
+      "title": "行为节点 AttackSeq",
+      "version": "客户端配置 2026-10-19",
+      "locator": "Behavior.xml · RECORD id=3",
+      "sha256": "1c517bf5c52c5359152c8e70ed30f8a6b425d71091547b83ccb836a33ed9af9c",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+      "source_sha256": "57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c"
+    },
+    {
+      "id": "behavior-6",
+      "title": "行为节点 RandChild",
+      "version": "客户端配置 2026-10-19",
+      "locator": "Behavior.xml · RECORD id=6",
+      "sha256": "1c517bf5c52c5359152c8e70ed30f8a6b425d71091547b83ccb836a33ed9af9c",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+      "source_sha256": "57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c"
+    },
+    {
+      "id": "skill-2165100",
+      "title": "诛仙剑-天诛地灭",
+      "version": "客户端配置 2026-10-19",
+      "locator": "Skill.xml.amf · RECORD id=2165100",
+      "sha256": "86cad58eab34d67fd4aa70c0d4049c1fa9073b51777646e4578c1de1bcce6688",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+      "source_sha256": "57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c"
+    },
+    {
+      "id": "skill-2165200",
+      "title": "诛仙剑-诛仙连斩",
+      "version": "客户端配置 2026-10-19",
+      "locator": "Skill.xml.amf · RECORD id=2165200",
+      "sha256": "86cad58eab34d67fd4aa70c0d4049c1fa9073b51777646e4578c1de1bcce6688",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+      "source_sha256": "57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c"
+    },
+    {
+      "id": "skill-2165300",
+      "title": "诛仙剑-横扫四方",
+      "version": "客户端配置 2026-10-19",
+      "locator": "Skill.xml.amf · RECORD id=2165300",
+      "sha256": "86cad58eab34d67fd4aa70c0d4049c1fa9073b51777646e4578c1de1bcce6688",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+      "source_sha256": "57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c"
+    },
+    {
+      "id": "monster-3625",
+      "title": "戮仙剑 · 主线普通配置",
+      "version": "客户端配置 2026-10-19",
+      "locator": "Monster.xml · RECORD id=3625",
+      "sha256": "9cf3fcb9ed858f33d9853704d7777b6ecb08eea0163a1821907057d0f6e7f6f4",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+      "source_sha256": "57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c"
+    },
+    {
+      "id": "mai-20204",
+      "title": "戮仙剑 · 行为树",
+      "version": "客户端配置 2026-10-19",
+      "locator": "MAi.xml · RECORD id=20204",
+      "sha256": "0f34c7a7e7b0c862c71a30ad723e50a73182147450fae11fac300bcdfb1f86e0",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+      "source_sha256": "57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c"
+    },
+    {
+      "id": "skill-2165900",
+      "title": "戮仙剑-夺命一击",
+      "version": "客户端配置 2026-10-19",
+      "locator": "Skill.xml.amf · RECORD id=2165900",
+      "sha256": "86cad58eab34d67fd4aa70c0d4049c1fa9073b51777646e4578c1de1bcce6688",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+      "source_sha256": "57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c"
+    },
+    {
+      "id": "skill-2166000",
+      "title": "戮仙剑-灭亡连斩",
+      "version": "客户端配置 2026-10-19",
+      "locator": "Skill.xml.amf · RECORD id=2166000",
+      "sha256": "86cad58eab34d67fd4aa70c0d4049c1fa9073b51777646e4578c1de1bcce6688",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+      "source_sha256": "57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c"
+    },
+    {
+      "id": "skill-2166100",
+      "title": "戮仙剑-屠戮四方",
+      "version": "客户端配置 2026-10-19",
+      "locator": "Skill.xml.amf · RECORD id=2166100",
+      "sha256": "86cad58eab34d67fd4aa70c0d4049c1fa9073b51777646e4578c1de1bcce6688",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+      "source_sha256": "57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c"
+    },
+    {
+      "id": "code-e3625",
+      "title": "E3625 · 静态代码",
+      "version": "单机代码快照 86a00f8（历史版本）",
+      "locator": "viewers/entitys/man/enemys/E3625.as · advanceTime / transPos / skill1",
+      "sha256": "ddfe7cd534bde4cf50033fc98b117eb17092c05134bad5df66723304fb07de4d",
+      "url": "https://github.com/AperturePlus/ZaoMengXiYou-4/commit/86a00f893f19f19b38754e5d9a062c05f00f4864",
+      "source_sha256": "f6e04fd8139ff3873cd2bcb63488ab7805d524c1188daa235891ac8fed6e8147"
+    },
+    {
+      "id": "monster-3626",
+      "title": "陷仙剑 · 主线普通配置",
+      "version": "客户端配置 2026-10-19",
+      "locator": "Monster.xml · RECORD id=3626",
+      "sha256": "9cf3fcb9ed858f33d9853704d7777b6ecb08eea0163a1821907057d0f6e7f6f4",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+      "source_sha256": "57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c"
+    },
+    {
+      "id": "mai-20205",
+      "title": "陷仙剑 · 行为树",
+      "version": "客户端配置 2026-10-19",
+      "locator": "MAi.xml · RECORD id=20205",
+      "sha256": "0f34c7a7e7b0c862c71a30ad723e50a73182147450fae11fac300bcdfb1f86e0",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+      "source_sha256": "57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c"
+    },
+    {
+      "id": "skill-2166200",
+      "title": "陷仙剑-剑气凌霜",
+      "version": "客户端配置 2026-10-19",
+      "locator": "Skill.xml.amf · RECORD id=2166200",
+      "sha256": "86cad58eab34d67fd4aa70c0d4049c1fa9073b51777646e4578c1de1bcce6688",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+      "source_sha256": "57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c"
+    },
+    {
+      "id": "skill-2166300",
+      "title": "陷仙剑-凌空一击",
+      "version": "客户端配置 2026-10-19",
+      "locator": "Skill.xml.amf · RECORD id=2166300",
+      "sha256": "86cad58eab34d67fd4aa70c0d4049c1fa9073b51777646e4578c1de1bcce6688",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+      "source_sha256": "57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c"
+    },
+    {
+      "id": "skill-2166400",
+      "title": "陷仙剑-万剑归一",
+      "version": "客户端配置 2026-10-19",
+      "locator": "Skill.xml.amf · RECORD id=2166400",
+      "sha256": "86cad58eab34d67fd4aa70c0d4049c1fa9073b51777646e4578c1de1bcce6688",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+      "source_sha256": "57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c"
+    },
+    {
+      "id": "code-e3626",
+      "title": "E3626 · 静态代码",
+      "version": "单机代码快照 86a00f8（历史版本）",
+      "locator": "viewers/entitys/man/enemys/E3626.as · toAttack",
+      "sha256": "0db57f1071a34cddcbe4640edae78c04d08bcfb8827c57341394f6be03050531",
+      "url": "https://github.com/AperturePlus/ZaoMengXiYou-4/commit/86a00f893f19f19b38754e5d9a062c05f00f4864",
+      "source_sha256": "f6e04fd8139ff3873cd2bcb63488ab7805d524c1188daa235891ac8fed6e8147"
+    },
+    {
+      "id": "monster-3627",
+      "title": "绝仙剑 · 主线普通配置",
+      "version": "客户端配置 2026-10-19",
+      "locator": "Monster.xml · RECORD id=3627",
+      "sha256": "9cf3fcb9ed858f33d9853704d7777b6ecb08eea0163a1821907057d0f6e7f6f4",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+      "source_sha256": "57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c"
+    },
+    {
+      "id": "mai-20206",
+      "title": "绝仙剑 · 行为树",
+      "version": "客户端配置 2026-10-19",
+      "locator": "MAi.xml · RECORD id=20206",
+      "sha256": "0f34c7a7e7b0c862c71a30ad723e50a73182147450fae11fac300bcdfb1f86e0",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+      "source_sha256": "57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c"
+    },
+    {
+      "id": "behavior-109000090",
+      "title": "行为节点 GetHp",
+      "version": "客户端配置 2026-10-19",
+      "locator": "Behavior.xml · RECORD id=109000090",
+      "sha256": "1c517bf5c52c5359152c8e70ed30f8a6b425d71091547b83ccb836a33ed9af9c",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+      "source_sha256": "57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c"
+    },
+    {
+      "id": "behavior-111012",
+      "title": "行为节点 GetAttCD",
+      "version": "客户端配置 2026-10-19",
+      "locator": "Behavior.xml · RECORD id=111012",
+      "sha256": "1c517bf5c52c5359152c8e70ed30f8a6b425d71091547b83ccb836a33ed9af9c",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+      "source_sha256": "57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c"
+    },
+    {
+      "id": "behavior-111030",
+      "title": "行为节点 GetAttCD",
+      "version": "客户端配置 2026-10-19",
+      "locator": "Behavior.xml · RECORD id=111030",
+      "sha256": "1c517bf5c52c5359152c8e70ed30f8a6b425d71091547b83ccb836a33ed9af9c",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+      "source_sha256": "57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c"
+    },
+    {
+      "id": "skill-2166500",
+      "title": "绝仙剑-遁迹潜形",
+      "version": "客户端配置 2026-10-19",
+      "locator": "Skill.xml.amf · RECORD id=2166500",
+      "sha256": "86cad58eab34d67fd4aa70c0d4049c1fa9073b51777646e4578c1de1bcce6688",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+      "source_sha256": "57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c"
+    },
+    {
+      "id": "skill-2166600",
+      "title": "绝仙剑-绝仙连斩",
+      "version": "客户端配置 2026-10-19",
+      "locator": "Skill.xml.amf · RECORD id=2166600",
+      "sha256": "86cad58eab34d67fd4aa70c0d4049c1fa9073b51777646e4578c1de1bcce6688",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+      "source_sha256": "57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c"
+    },
+    {
+      "id": "skill-2166700",
+      "title": "绝仙剑-绝地逢生",
+      "version": "客户端配置 2026-10-19",
+      "locator": "Skill.xml.amf · RECORD id=2166700",
+      "sha256": "86cad58eab34d67fd4aa70c0d4049c1fa9073b51777646e4578c1de1bcce6688",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+      "source_sha256": "57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c"
+    },
+    {
+      "id": "code-e3627",
+      "title": "E3627 · 静态代码",
+      "version": "单机代码快照 86a00f8（历史版本）",
+      "locator": "viewers/entitys/man/enemys/E3627.as · toAttack / advanceTime",
+      "sha256": "3a9387a2e9cecb3fb55cdcc8154eca5b572358efe0722439a1c23cf79a50c4e9",
+      "url": "https://github.com/AperturePlus/ZaoMengXiYou-4/commit/86a00f893f19f19b38754e5d9a062c05f00f4864",
+      "source_sha256": "f6e04fd8139ff3873cd2bcb63488ab7805d524c1188daa235891ac8fed6e8147"
+    },
+    {
+      "id": "monster-3184",
+      "title": "巨水灵 · 主线普通配置",
+      "version": "客户端配置 2026-10-19",
+      "locator": "Monster.xml · RECORD id=3184",
+      "sha256": "9cf3fcb9ed858f33d9853704d7777b6ecb08eea0163a1821907057d0f6e7f6f4",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+      "source_sha256": "57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c"
+    },
+    {
+      "id": "mai-20054",
+      "title": "巨水灵 · 行为树",
+      "version": "客户端配置 2026-10-19",
+      "locator": "MAi.xml · RECORD id=20054",
+      "sha256": "0f34c7a7e7b0c862c71a30ad723e50a73182147450fae11fac300bcdfb1f86e0",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+      "source_sha256": "57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c"
+    },
+    {
+      "id": "behavior-202000001",
+      "title": "行为节点 GotoWait",
+      "version": "客户端配置 2026-10-19",
+      "locator": "Behavior.xml · RECORD id=202000001",
+      "sha256": "1c517bf5c52c5359152c8e70ed30f8a6b425d71091547b83ccb836a33ed9af9c",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+      "source_sha256": "57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c"
+    },
+    {
+      "id": "skill-2119100",
+      "title": "水灵大技能1-水拳挥舞",
+      "version": "客户端配置 2026-10-19",
+      "locator": "Skill.xml.amf · RECORD id=2119100",
+      "sha256": "86cad58eab34d67fd4aa70c0d4049c1fa9073b51777646e4578c1de1bcce6688",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+      "source_sha256": "57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c"
+    },
+    {
+      "id": "skill-2119200",
+      "title": "水灵大技能2-水弹连冲",
+      "version": "客户端配置 2026-10-19",
+      "locator": "Skill.xml.amf · RECORD id=2119200",
+      "sha256": "86cad58eab34d67fd4aa70c0d4049c1fa9073b51777646e4578c1de1bcce6688",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+      "source_sha256": "57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c"
+    },
+    {
+      "id": "skill-2119300",
+      "title": "水灵大技能3-巨浪化身",
+      "version": "客户端配置 2026-10-19",
+      "locator": "Skill.xml.amf · RECORD id=2119300",
+      "sha256": "86cad58eab34d67fd4aa70c0d4049c1fa9073b51777646e4578c1de1bcce6688",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+      "source_sha256": "57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c"
+    },
+    {
+      "id": "code-e3184",
+      "title": "E3184 · 静态代码",
+      "version": "单机代码快照 86a00f8（历史版本）",
+      "locator": "viewers/entitys/man/enemys/E3184.as · advanceTime / addeffect3_1 / checkZhaoHuan",
+      "sha256": "b3d46722e490b75b970f4a83b127bac36797833269cbc9ed8ffa2337a3c551b2",
+      "url": "https://github.com/AperturePlus/ZaoMengXiYou-4/commit/86a00f893f19f19b38754e5d9a062c05f00f4864",
+      "source_sha256": "f6e04fd8139ff3873cd2bcb63488ab7805d524c1188daa235891ac8fed6e8147"
+    },
+    {
+      "id": "skill-2119400",
+      "title": "水灵大技能4-水滴分裂",
+      "version": "客户端配置 2026-10-19",
+      "locator": "Skill.xml.amf · RECORD id=2119400",
+      "sha256": "86cad58eab34d67fd4aa70c0d4049c1fa9073b51777646e4578c1de1bcce6688",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+      "source_sha256": "57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c"
+    }
+  ]
+}

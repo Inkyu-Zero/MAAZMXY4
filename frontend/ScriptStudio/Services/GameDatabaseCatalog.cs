@@ -32,11 +32,13 @@ public sealed class GameDatabaseEntry
     public GameReference[] References { get; init; } = [];
     public GameConfigVariant[] ConfigVariants { get; init; } = [];
     public GameWikiFact[] WikiFacts { get; init; } = [];
+    public GameBossBehavior? Behavior { get; internal set; }
     public string SearchText { get; private set; } = "";
     public void BuildSearchIndex() => SearchText = string.Join("\n", new[] { Name, Category, Subtype }
         .Concat(Facts.Select(f => f.Value)).Concat(Skills.Select(s => s.Name + " " + s.Description))
         .Concat(WikiFacts.Select(f => f.Value))
-        .Concat(ConfigVariants.SelectMany(v => v.Locations)));
+        .Concat(ConfigVariants.SelectMany(v => v.Locations))
+        .Concat(Behavior?.Nodes.Select(n => n.Title + " " + n.Text) ?? []));
 }
 
 public sealed class GameDatabaseCatalog
@@ -58,6 +60,7 @@ public sealed class GameDatabaseCatalog
         Root = root; Game = document.Game; CheckedOn = document.CheckedOn;
         Entries = Array.AsReadOnly(document.Entries);
         _byId = document.Entries.ToDictionary(entry => entry.Id, StringComparer.Ordinal);
+        GameBossBehavior.Attach(root, Entries);
         foreach (var entry in Entries) entry.BuildSearchIndex();
     }
     public static GameDatabaseCatalog Load(string directory)

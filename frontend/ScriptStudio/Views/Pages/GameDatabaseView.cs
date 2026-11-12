@@ -58,7 +58,7 @@ public sealed class GameDatabaseView : UserControl
         var root = new Grid { RowDefinitions = new RowDefinitions("Auto,Auto,*,Auto"), Margin = new Thickness(20), RowSpacing = 14 };
         var heading = new StackPanel { Spacing = 6 };
         heading.Children.Add(new TextBlock { Text = "游戏百科", FontSize = PlayerUi.TitleSize, FontWeight = FontWeight.Bold });
-        heading.Children.Add(new TextBlock { Text = "查装备、找材料、了解 Boss 技能。", Opacity = .7, TextWrapping = TextWrapping.Wrap });
+        heading.Children.Add(new TextBlock { Text = "查装备、找材料、了解 Boss 技能与行为。", Opacity = .7, TextWrapping = TextWrapping.Wrap });
         root.Children.Add(heading);
         var filters = _filters;
         filters.Children.Add(_search); Grid.SetColumn(_category, 1); filters.Children.Add(_category); Grid.SetColumn(_subtype, 2); filters.Children.Add(_subtype);
@@ -158,6 +158,7 @@ public sealed class GameDatabaseView : UserControl
             }
             _details.Children.Add(PlayerUi.Card(content));
         }
+        if (entry.Behavior is { } behavior) ShowBehavior(behavior);
         if (entry.Skills.Length > 0)
         {
             AddTitle("技能");
@@ -207,6 +208,50 @@ public sealed class GameDatabaseView : UserControl
             references.Children.Add(new Expander { Header = "社区补充资料", IsExpanded = false,
                 Content = new SelectableTextBlock { Text = GameDatabasePresentation.FormatText(fact.Value), TextWrapping = TextWrapping.Wrap, LineHeight=24 }, HorizontalAlignment = HorizontalAlignment.Stretch });
         _details.Children.Add(new Expander { Header = "资料来源与补充", Content = references, IsExpanded = false, HorizontalAlignment = HorizontalAlignment.Stretch });
+    }
+    private void ShowBehavior(GameBossBehavior behavior)
+    {
+        AddTitle("行为树 · 简明版");
+        var content = new StackPanel { Spacing = 10 };
+        content.Children.Add(PlayerUi.Text(behavior.Scope, 14));
+        content.Children.Add(PlayerUi.Text(behavior.Version, 12, true));
+        content.Children.Add(PlayerUi.Text("展开分支查看出招条件与判定；同一分支内按箭头顺序阅读。", 13, true));
+        var tree = new TreeView { Name="BossBehaviorTree", ItemsSource=behavior.Roots.Select(n => BehaviorItem(n, behavior, 0)).ToArray(),
+            HorizontalAlignment=HorizontalAlignment.Stretch };
+        ScrollViewer.SetHorizontalScrollBarVisibility(tree, Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled);
+        AutomationProperties.SetName(tree, "Boss 行为树");
+        content.Children.Add(tree);
+        content.Children.Add(PlayerUi.Text(behavior.Summary, 12, true));
+        _details.Children.Add(PlayerUi.Card(content));
+        var sources = new StackPanel { Spacing=12 };
+        foreach (var source in behavior.Sources)
+        {
+            var item = new StackPanel { Spacing=4 };
+            item.Children.Add(PlayerUi.Text(source.Title, 14));
+            item.Children.Add(PlayerUi.Text(source.Version, 12, true));
+            item.Children.Add(new SelectableTextBlock { Text=source.Locator, TextWrapping=TextWrapping.Wrap, FontSize=12 });
+            var hashes = new SelectableTextBlock { Text=$"文件 SHA-256：{source.Sha256}\n原始包 SHA-256：{source.SourceSha256}",
+                TextWrapping=TextWrapping.Wrap, FontSize=12 };
+            item.Children.Add(new Expander { Header="校验摘要", Content=hashes, HorizontalAlignment=HorizontalAlignment.Stretch });
+            item.Children.Add(FactLink(new("查看来源 ↗",source.Url),13));
+            sources.Children.Add(item);
+        }
+        _details.Children.Add(new Expander { Header="行为依据与版本（离线核对）", Content=sources,
+            HorizontalAlignment=HorizontalAlignment.Stretch });
+    }
+    private TreeViewItem BehaviorItem(GameBehaviorNode node, GameBossBehavior behavior, int depth)
+    {
+        var header = new StackPanel { Spacing=3, Margin=new Thickness(0,4) };
+        header.Children.Add(new TextBlock { Text=node.Title, TextWrapping=TextWrapping.Wrap, FontSize=14,
+            FontWeight=depth==0 ? FontWeight.SemiBold : FontWeight.Normal });
+        if (!string.IsNullOrWhiteSpace(node.Text)) header.Children.Add(PlayerUi.Text(node.Text,13,true));
+        var proof=string.Join("\n",node.EvidenceIds.Select(id => behavior.Evidence[id]).Select(s => s.Title+" · "+s.Version+"\n"+s.Locator));
+        ToolTip.SetTip(header,proof);
+        var item = new TreeViewItem { Header=header, IsExpanded=depth==0, HorizontalAlignment=HorizontalAlignment.Stretch,
+            ItemsSource=node.Children.Select(child => BehaviorItem(child, behavior, depth+1)).ToArray() };
+        AutomationProperties.SetName(item,node.Title);
+        AutomationProperties.SetHelpText(item,proof);
+        return item;
     }
     private SelectableTextBlock FactText(GameFact fact)
     {
