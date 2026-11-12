@@ -40,6 +40,50 @@ class MemoryContext:
 
 
 class BattleOutcomeTests(unittest.TestCase):
+    def test_unknown_modal_can_settle_only_after_playback_cleanup(self):
+        context=MemoryContext();context.frame=Pixels(['Nav_CommonConfirm'])
+        monitor=BattleOutcomeMonitor(context,{**POLICY,'revive_next':['Decline']})
+        monitor.probe()
+        self.assertEqual(getattr(monitor.error,'reason',None),'unrecognized_dialog')
+        monitor.close()
+        context.frame=Pixels(['Result_RevivePrompt'])
+        monitor.recheck_unknown_dialog(wait=lambda _:None)
+        self.assertIsNone(monitor.error)
+        self.assertEqual(monitor.branch,['Decline'])
+        self.assertEqual(context.samples,2)
+
+    def test_unknown_recheck_is_bounded_and_cancellation_stops_capture(self):
+        for cancel in (False,True):
+            context=MemoryContext();context.frame=Pixels(['Nav_CommonConfirm'])
+            monitor=BattleOutcomeMonitor(context,{**POLICY,'revive_next':['Decline']})
+            monitor.probe();monitor.close();context.tasker.stopping=cancel
+            monitor.recheck_unknown_dialog(wait=lambda _:None)
+            self.assertEqual(context.samples,1 if cancel else 3)
+            self.assertEqual(getattr(monitor.error,'reason',None),'unrecognized_dialog')
+            self.assertIsNone(monitor.branch)
+
+    def test_disappeared_unknown_dialog_does_not_resume_partial_recording(self):
+        context = MemoryContext(); context.frame = Pixels(['Nav_CommonConfirm'])
+        monitor = BattleOutcomeMonitor(context, {**POLICY, 'revive_next': ['Decline']})
+        monitor.probe(); monitor.close()
+        context.frame = Pixels()
+        monitor.recheck_unknown_dialog(wait=lambda _: None)
+        self.assertEqual(context.samples, 3)
+        self.assertEqual(getattr(monitor.error, 'reason', None), 'unrecognized_dialog')
+        self.assertIsNone(monitor.branch)
+
+    def test_unknown_diagnostic_saves_the_original_decision_frame(self):
+        from unittest.mock import patch
+        context = MemoryContext(); context.frame = Pixels(['Nav_CommonConfirm'])
+        monitor = BattleOutcomeMonitor(context, {**POLICY, 'revive_next': ['Decline']})
+        monitor.probe(); monitor.close()
+        decision_frame = monitor.error.frame
+        context.frame = Pixels(['Result_RevivePrompt'])
+        with patch('battle_outcomes.save_unknown_frame') as save:
+            monitor.recheck_unknown_dialog(wait=lambda _: None)
+            save.assert_called_once_with(decision_frame)
+        self.assertEqual(context.samples, 2)
+
     def test_common_confirmation_stops_before_a_result_behind_it(self):
         context=MemoryContext()
         context.frame=Pixels(['Nav_CommonConfirm','Result_Failed'])

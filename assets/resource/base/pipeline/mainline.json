@@ -24,7 +24,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_001_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_001_Repeat"
           },
@@ -96,7 +96,6 @@
             }
           },
           "Nav_Province_town1",
-          "GameManagement_NormalMap",
           "Nav_ClearMap"
         ],
         "box_index": 0
@@ -117,35 +116,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s001-0.png",
-                "roi": [
-                  784,
-                  494,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s001-1.png",
-                "roi": [
-                  638,
-                  494,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -194,7 +165,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_002_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_002_Repeat"
           },
@@ -266,7 +237,6 @@
             }
           },
           "Nav_Province_town1",
-          "GameManagement_NormalMap",
           "Nav_ClearMap"
         ],
         "box_index": 0
@@ -287,35 +257,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s002-0.png",
-                "roi": [
-                  516,
-                  445,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s002-1.png",
-                "roi": [
-                  613,
-                  396,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -364,7 +306,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_003_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_003_Repeat"
           },
@@ -436,7 +378,6 @@
             }
           },
           "Nav_Province_town1",
-          "GameManagement_NormalMap",
           "Nav_ClearMap"
         ],
         "box_index": 0
@@ -457,35 +398,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s003-0.png",
-                "roi": [
-                  491,
-                  54,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s003-1.png",
-                "roi": [
-                  491,
-                  298,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -534,7 +447,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_004_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_004_Repeat"
           },
@@ -606,7 +519,6 @@
             }
           },
           "Nav_Province_town1",
-          "GameManagement_NormalMap",
           "Nav_ClearMap"
         ],
         "box_index": 0
@@ -627,35 +539,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s004-0.png",
-                "roi": [
-                  540,
-                  494,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s004-1.png",
-                "roi": [
-                  857,
-                  445,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -704,7 +588,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_005_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_005_Repeat"
           },
@@ -776,7 +660,6 @@
             }
           },
           "Nav_Province_town1",
-          "GameManagement_NormalMap",
           "Nav_ClearMap"
         ],
         "box_index": 0
@@ -797,35 +680,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s005-0.png",
-                "roi": [
-                  638,
-                  420,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s005-1.png",
-                "roi": [
-                  467,
-                  494,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -874,7 +729,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_006_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_006_Repeat"
           },
@@ -946,7 +801,6 @@
             }
           },
           "Nav_Province_town1",
-          "GameManagement_NormalMap",
           "Nav_ClearMap"
         ],
         "box_index": 0
@@ -967,35 +821,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s006-0.png",
-                "roi": [
-                  931,
-                  494,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s006-1.png",
-                "roi": [
-                  662,
-                  494,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -1044,7 +870,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_007_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_007_Repeat"
           },
@@ -1116,7 +942,6 @@
             }
           },
           "Nav_Province_town1",
-          "GameManagement_NormalMap",
           "Nav_ClearMap"
         ],
         "box_index": 0
@@ -1137,35 +962,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s007-0.png",
-                "roi": [
-                  833,
-                  396,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s007-1.png",
-                "roi": [
-                  345,
-                  298,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -1214,7 +1011,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_008_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_008_Repeat"
           },
@@ -1286,7 +1083,6 @@
             }
           },
           "Nav_Province_town1",
-          "GameManagement_NormalMap",
           "Nav_ClearMap"
         ],
         "box_index": 0
@@ -1307,35 +1103,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s008-0.png",
-                "roi": [
-                  833,
-                  396,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s008-1.png",
-                "roi": [
-                  345,
-                  298,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -1384,7 +1152,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_009_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_009_Repeat"
           },
@@ -1456,7 +1224,6 @@
             }
           },
           "Nav_Province_town1",
-          "GameManagement_NormalMap",
           "Nav_ClearMap"
         ],
         "box_index": 0
@@ -1477,35 +1244,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s009-0.png",
-                "roi": [
-                  906,
-                  225,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s009-1.png",
-                "roi": [
-                  272,
-                  225,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -1554,7 +1293,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_010_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_010_Repeat"
           },
@@ -1626,7 +1365,6 @@
             }
           },
           "Nav_Province_town1",
-          "GameManagement_NormalMap",
           "Nav_ClearMap"
         ],
         "box_index": 0
@@ -1647,35 +1385,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s010-0.png",
-                "roi": [
-                  711,
-                  249,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s010-1.png",
-                "roi": [
-                  711,
-                  396,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -1724,7 +1434,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_011_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_011_Repeat"
           },
@@ -1796,7 +1506,6 @@
             }
           },
           "Nav_Province_town1",
-          "GameManagement_NormalMap",
           "Nav_ClearMap"
         ],
         "box_index": 0
@@ -1817,35 +1526,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s011-0.png",
-                "roi": [
-                  321,
-                  469,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s011-1.png",
-                "roi": [
-                  491,
-                  420,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -1894,7 +1575,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_012_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_012_Repeat"
           },
@@ -1966,7 +1647,6 @@
             }
           },
           "Nav_Province_town1",
-          "GameManagement_NormalMap",
           "Nav_ClearMap"
         ],
         "box_index": 0
@@ -1987,35 +1667,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s012-0.png",
-                "roi": [
-                  296,
-                  445,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s012-1.png",
-                "roi": [
-                  565,
-                  469,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -2064,7 +1716,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_013_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_013_Repeat"
           },
@@ -2136,7 +1788,6 @@
             }
           },
           "Nav_Province_town1",
-          "GameManagement_NormalMap",
           "Nav_ClearMap"
         ],
         "box_index": 0
@@ -2157,35 +1808,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s013-0.png",
-                "roi": [
-                  272,
-                  372,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s013-1.png",
-                "roi": [
-                  857,
-                  274,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -2234,7 +1857,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_014_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_014_Repeat"
           },
@@ -2306,7 +1929,6 @@
             }
           },
           "Nav_Province_town1",
-          "GameManagement_NormalMap",
           "Nav_ClearMap"
         ],
         "box_index": 0
@@ -2327,35 +1949,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s014-0.png",
-                "roi": [
-                  565,
-                  469,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s014-1.png",
-                "roi": [
-                  272,
-                  152,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -2404,7 +1998,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_015_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_015_Repeat"
           },
@@ -2476,7 +2070,6 @@
             }
           },
           "Nav_Province_town1",
-          "GameManagement_NormalMap",
           "Nav_ClearMap"
         ],
         "box_index": 0
@@ -2497,35 +2090,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s015-0.png",
-                "roi": [
-                  272,
-                  445,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s015-1.png",
-                "roi": [
-                  638,
-                  445,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -2574,7 +2139,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_016_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_016_Repeat"
           },
@@ -2646,7 +2211,6 @@
             }
           },
           "Nav_Province_town1",
-          "GameManagement_NormalMap",
           "Nav_ClearMap"
         ],
         "box_index": 0
@@ -2667,35 +2231,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s016-0.png",
-                "roi": [
-                  321,
-                  396,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s016-1.png",
-                "roi": [
-                  272,
-                  152,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -2744,7 +2280,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_017_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_017_Repeat"
           },
@@ -2816,7 +2352,6 @@
             }
           },
           "Nav_Province_town2",
-          "GameManagement_NormalMap",
           "Nav_ClearMap"
         ],
         "box_index": 0
@@ -2837,35 +2372,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s017-0.png",
-                "roi": [
-                  735,
-                  347,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s017-1.png",
-                "roi": [
-                  418,
-                  249,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -2914,7 +2421,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_018_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_018_Repeat"
           },
@@ -2987,7 +2494,6 @@
             }
           },
           "Nav_Province_town2",
-          "GameManagement_NormalMap",
           "Nav_ClearMap"
         ],
         "box_index": 0
@@ -3008,35 +2514,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s018-0.png",
-                "roi": [
-                  321,
-                  420,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s018-1.png",
-                "roi": [
-                  687,
-                  420,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -3085,7 +2563,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_019_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_019_Repeat"
           },
@@ -3158,7 +2636,6 @@
             }
           },
           "Nav_Province_town2",
-          "GameManagement_NormalMap",
           "Nav_ClearMap"
         ],
         "box_index": 0
@@ -3179,35 +2656,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s019-0.png",
-                "roi": [
-                  418,
-                  445,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s019-1.png",
-                "roi": [
-                  931,
-                  469,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -3256,7 +2705,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_020_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_020_Repeat"
           },
@@ -3329,7 +2778,6 @@
             }
           },
           "Nav_Province_town2",
-          "GameManagement_NormalMap",
           "Nav_ClearMap"
         ],
         "box_index": 0
@@ -3350,35 +2798,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s020-0.png",
-                "roi": [
-                  662,
-                  445,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s020-1.png",
-                "roi": [
-                  833,
-                  494,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -3427,7 +2847,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_021_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_021_Repeat"
           },
@@ -3500,7 +2920,6 @@
             }
           },
           "Nav_Province_town2",
-          "GameManagement_NormalMap",
           "Nav_ClearMap"
         ],
         "box_index": 0
@@ -3521,35 +2940,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s021-0.png",
-                "roi": [
-                  687,
-                  445,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s021-1.png",
-                "roi": [
-                  272,
-                  445,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -3598,7 +2989,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_022_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_022_Repeat"
           },
@@ -3671,7 +3062,6 @@
             }
           },
           "Nav_Province_town2",
-          "GameManagement_NormalMap",
           "Nav_ClearMap"
         ],
         "box_index": 0
@@ -3692,35 +3082,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s022-0.png",
-                "roi": [
-                  906,
-                  469,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s022-1.png",
-                "roi": [
-                  418,
-                  249,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -3769,7 +3131,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_023_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_023_Repeat"
           },
@@ -3842,7 +3204,6 @@
             }
           },
           "Nav_Province_town2",
-          "GameManagement_NormalMap",
           "Nav_ClearMap"
         ],
         "box_index": 0
@@ -3863,35 +3224,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s023-0.png",
-                "roi": [
-                  516,
-                  372,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s023-1.png",
-                "roi": [
-                  418,
-                  201,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -3940,7 +3273,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_024_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_024_Repeat"
           },
@@ -4013,7 +3346,6 @@
             }
           },
           "Nav_Province_town2",
-          "GameManagement_NormalMap",
           "Nav_ClearMap"
         ],
         "box_index": 0
@@ -4034,35 +3366,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s024-0.png",
-                "roi": [
-                  882,
-                  249,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s024-1.png",
-                "roi": [
-                  711,
-                  201,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -4111,7 +3415,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_025_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_025_Repeat"
           },
@@ -4184,7 +3488,6 @@
             }
           },
           "Nav_Province_town2",
-          "GameManagement_NormalMap",
           "Nav_ClearMap"
         ],
         "box_index": 0
@@ -4205,35 +3508,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s025-0.png",
-                "roi": [
-                  516,
-                  249,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s025-1.png",
-                "roi": [
-                  418,
-                  298,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -4282,7 +3557,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_026_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_026_Repeat"
           },
@@ -4355,7 +3630,6 @@
             }
           },
           "Nav_Province_town2",
-          "GameManagement_NormalMap",
           "Nav_ClearMap"
         ],
         "box_index": 0
@@ -4376,35 +3650,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s026-0.png",
-                "roi": [
-                  321,
-                  396,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s026-1.png",
-                "roi": [
-                  906,
-                  396,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -4453,7 +3699,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_027_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_027_Repeat"
           },
@@ -4526,7 +3772,6 @@
             }
           },
           "Nav_Province_town2",
-          "GameManagement_NormalMap",
           "Nav_ClearMap"
         ],
         "box_index": 0
@@ -4547,35 +3792,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s027-0.png",
-                "roi": [
-                  321,
-                  372,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s027-1.png",
-                "roi": [
-                  491,
-                  347,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -4624,7 +3841,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_028_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_028_Repeat"
           },
@@ -4697,7 +3914,6 @@
             }
           },
           "Nav_Province_town2",
-          "GameManagement_NormalMap",
           "Nav_ClearMap"
         ],
         "box_index": 0
@@ -4718,35 +3934,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s028-0.png",
-                "roi": [
-                  809,
-                  445,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s028-1.png",
-                "roi": [
-                  613,
-                  445,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -4795,7 +3983,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_029_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_029_Repeat"
           },
@@ -4868,7 +4056,6 @@
             }
           },
           "Nav_Province_town2",
-          "GameManagement_NormalMap",
           "Nav_ClearMap"
         ],
         "box_index": 0
@@ -4889,35 +4076,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s029-0.png",
-                "roi": [
-                  955,
-                  323,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s029-1.png",
-                "roi": [
-                  467,
-                  127,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -4966,7 +4125,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_030_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_030_Repeat"
           },
@@ -5059,35 +4218,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s030-0.png",
-                "roi": [
-                  687,
-                  323,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s030-1.png",
-                "roi": [
-                  833,
-                  323,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -5136,7 +4267,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_031_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_031_Repeat"
           },
@@ -5230,35 +4361,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s031-0.png",
-                "roi": [
-                  687,
-                  494,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s031-1.png",
-                "roi": [
-                  931,
-                  494,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -5307,7 +4410,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_032_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_032_Repeat"
           },
@@ -5400,35 +4503,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s032-0.png",
-                "roi": [
-                  931,
-                  445,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s032-1.png",
-                "roi": [
-                  369,
-                  396,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -5477,7 +4552,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_033_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_033_Repeat"
           },
@@ -5571,35 +4646,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s033-0.png",
-                "roi": [
-                  931,
-                  494,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s033-1.png",
-                "roi": [
-                  711,
-                  494,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -5648,7 +4695,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_034_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_034_Repeat"
           },
@@ -5742,35 +4789,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s034-0.png",
-                "roi": [
-                  467,
-                  201,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s034-1.png",
-                "roi": [
-                  369,
-                  152,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -5819,7 +4838,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_035_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_035_Repeat"
           },
@@ -5913,35 +4932,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s035-0.png",
-                "roi": [
-                  784,
-                  494,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s035-1.png",
-                "roi": [
-                  931,
-                  494,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -5990,7 +4981,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_036_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_036_Repeat"
           },
@@ -6083,35 +5074,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s036-0.png",
-                "roi": [
-                  809,
-                  494,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s036-1.png",
-                "roi": [
-                  418,
-                  494,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -6160,7 +5123,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_037_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_037_Repeat"
           },
@@ -6254,35 +5217,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s037-0.png",
-                "roi": [
-                  589,
-                  103,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s037-1.png",
-                "roi": [
-                  296,
-                  79,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -6331,7 +5266,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_038_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_038_Repeat"
           },
@@ -6424,35 +5359,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s038-0.png",
-                "roi": [
-                  931,
-                  152,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s038-1.png",
-                "roi": [
-                  760,
-                  127,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -6501,7 +5408,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_039_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_039_Repeat"
           },
@@ -6594,35 +5501,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s039-0.png",
-                "roi": [
-                  491,
-                  201,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s039-1.png",
-                "roi": [
-                  418,
-                  79,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -6671,7 +5550,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_040_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_040_Repeat"
           },
@@ -6764,35 +5643,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s040-0.png",
-                "roi": [
-                  638,
-                  298,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s040-1.png",
-                "roi": [
-                  516,
-                  274,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -6841,7 +5692,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_041_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_041_Repeat"
           },
@@ -6934,35 +5785,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s041-0.png",
-                "roi": [
-                  760,
-                  54,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s041-1.png",
-                "roi": [
-                  272,
-                  201,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -7011,7 +5834,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_042_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_042_Repeat"
           },
@@ -7104,35 +5927,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s042-0.png",
-                "roi": [
-                  491,
-                  323,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s042-1.png",
-                "roi": [
-                  906,
-                  347,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -7181,7 +5976,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_043_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_043_Repeat"
           },
@@ -7274,35 +6069,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s043-0.png",
-                "roi": [
-                  467,
-                  79,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s043-1.png",
-                "roi": [
-                  931,
-                  494,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -7351,7 +6118,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_044_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_044_Repeat"
           },
@@ -7444,35 +6211,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s044-0.png",
-                "roi": [
-                  906,
-                  494,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s044-1.png",
-                "roi": [
-                  735,
-                  494,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -7521,7 +6260,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_045_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_045_Repeat"
           },
@@ -7615,35 +6354,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s045-0.png",
-                "roi": [
-                  272,
-                  54,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s045-1.png",
-                "roi": [
-                  833,
-                  54,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -7692,7 +6403,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_046_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_046_Repeat"
           },
@@ -7785,35 +6496,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s046-0.png",
-                "roi": [
-                  491,
-                  201,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s046-1.png",
-                "roi": [
-                  418,
-                  54,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -7862,7 +6545,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_047_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_047_Repeat"
           },
@@ -7955,35 +6638,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s047-0.png",
-                "roi": [
-                  321,
-                  201,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s047-1.png",
-                "roi": [
-                  272,
-                  323,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -8032,7 +6687,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_048_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_048_Repeat"
           },
@@ -8125,35 +6780,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s048-0.png",
-                "roi": [
-                  540,
-                  79,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s048-1.png",
-                "roi": [
-                  296,
-                  54,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -8202,7 +6829,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_049_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_049_Repeat"
           },
@@ -8295,35 +6922,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s049-0.png",
-                "roi": [
-                  394,
-                  79,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s049-1.png",
-                "roi": [
-                  589,
-                  445,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -8372,7 +6971,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_050_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_050_Repeat"
           },
@@ -8465,35 +7064,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s050-0.png",
-                "roi": [
-                  613,
-                  323,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s050-1.png",
-                "roi": [
-                  418,
-                  469,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -8542,7 +7113,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_051_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_051_Repeat"
           },
@@ -8635,35 +7206,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s051-0.png",
-                "roi": [
-                  735,
-                  103,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s051-1.png",
-                "roi": [
-                  443,
-                  152,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -8712,7 +7255,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_052_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_052_Repeat"
           },
@@ -8805,35 +7348,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s052-0.png",
-                "roi": [
-                  931,
-                  176,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s052-1.png",
-                "roi": [
-                  565,
-                  152,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -8882,7 +7397,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_053_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_053_Repeat"
           },
@@ -8975,35 +7490,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s053-0.png",
-                "roi": [
-                  443,
-                  347,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s053-1.png",
-                "roi": [
-                  540,
-                  298,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -9052,7 +7539,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_054_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_054_Repeat"
           },
@@ -9171,35 +7658,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s054-0.png",
-                "roi": [
-                  760,
-                  372,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s054-1.png",
-                "roi": [
-                  955,
-                  347,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -9248,7 +7707,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_055_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_055_Repeat"
           },
@@ -9367,35 +7826,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s055-0.png",
-                "roi": [
-                  735,
-                  127,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s055-1.png",
-                "roi": [
-                  296,
-                  54,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -9444,7 +7875,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_056_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_056_Repeat"
           },
@@ -9563,35 +7994,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s056-0.png",
-                "roi": [
-                  833,
-                  494,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s056-1.png",
-                "roi": [
-                  589,
-                  372,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -9640,7 +8043,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_057_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_057_Repeat"
           },
@@ -9733,35 +8136,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s057-0.png",
-                "roi": [
-                  955,
-                  396,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s057-1.png",
-                "roi": [
-                  418,
-                  152,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -9810,7 +8185,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_058_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_058_Repeat"
           },
@@ -9903,35 +8278,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s058-0.png",
-                "roi": [
-                  638,
-                  152,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s058-1.png",
-                "roi": [
-                  955,
-                  469,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -9980,7 +8327,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_059_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_059_Repeat"
           },
@@ -10073,35 +8420,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s059-0.png",
-                "roi": [
-                  931,
-                  103,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s059-1.png",
-                "roi": [
-                  467,
-                  201,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -10150,7 +8469,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_060_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_060_Repeat"
           },
@@ -10243,35 +8562,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s060-0.png",
-                "roi": [
-                  857,
-                  347,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s060-1.png",
-                "roi": [
-                  760,
-                  396,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -10320,7 +8611,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_061_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_061_Repeat"
           },
@@ -10413,35 +8704,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s061-0.png",
-                "roi": [
-                  272,
-                  298,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s061-1.png",
-                "roi": [
-                  955,
-                  445,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -10490,7 +8753,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Mainline_062_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "Mainline_062_Repeat"
           },
@@ -10583,35 +8846,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s062-0.png",
-                "roi": [
-                  613,
-                  152,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/mainline/scene-s062-1.png",
-                "roi": [
-                  443,
-                  420,
-                  228,
-                  223
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },

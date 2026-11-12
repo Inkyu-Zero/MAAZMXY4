@@ -26,7 +26,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "Bounty_Play",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "悬赏（追捕飞贼）-刷取次数",
             "resume_node": "Bounty_ResumeStage"

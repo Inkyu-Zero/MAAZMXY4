@@ -538,22 +538,12 @@
   },
   "Result_DeclineRevive": {
     "recognition": {
-      "type": "And",
+      "type": "Or",
       "param": {
-        "all_of": [
-          {
-            "recognition": {
-              "type": "Or",
-              "param": {
-                "any_of": [
-                  "Result_ReviveLayoutP1",
-                  "Result_ReviveLayoutP2"
-                ]
-              }
-            }
-          }
-        ],
-        "box_index": 0
+        "any_of": [
+          "Result_ReviveLayoutP1",
+          "Result_ReviveLayoutP2"
+        ]
       }
     },
     "action": {
@@ -585,37 +575,7 @@
               }
             }
           },
-          "Result_RevivePrompt",
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/dialogs/confirm-right.png",
-                "roi": "frame_corner",
-                "roi_offset": [
-                  491,
-                  -6,
-                  20,
-                  12
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/dialogs/confirm-bottom.png",
-                "roi": "frame_corner",
-                "roi_offset": [
-                  -6,
-                  197,
-                  12,
-                  -9
-                ]
-              }
-            }
-          }
+          "Result_RevivePrompt"
         ],
         "box_index": 0
       }
@@ -746,65 +706,17 @@
   },
   "Result_ReviveEvidence": {
     "recognition": {
-      "type": "Or",
+      "type": "TemplateMatch",
       "param": {
-        "any_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": [
-                  "navigation/outcomes/revive-normal-caption.png",
-                  "navigation/outcomes/revive-vip-caption.png"
-                ],
-                "roi": [
-                  200,
-                  170,
-                  800,
-                  390
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "And",
-              "param": {
-                "all_of": [
-                  {
-                    "sub_name": "confirm_frame",
-                    "recognition": {
-                      "type": "And",
-                      "param": {
-                        "all_of": [
-                          "Nav_CommonConfirm"
-                        ]
-                      }
-                    }
-                  },
-                  {
-                    "recognition": {
-                      "type": "OCR",
-                      "param": {
-                        "roi": "confirm_frame",
-                        "roi_offset": [
-                          120,
-                          63,
-                          390,
-                          -5
-                        ],
-                        "only_rec": true,
-                        "expected": [
-                          "^你确定免费复活[，,]?\\s*继续进行挑战[？?]?$"
-                        ]
-                      }
-                    }
-                  }
-                ],
-                "box_index": 1
-              }
-            }
-          }
+        "template": [
+          "navigation/outcomes/revive-normal-caption.png",
+          "navigation/outcomes/revive-vip-caption.png"
+        ],
+        "roi": [
+          200,
+          170,
+          800,
+          390
         ]
       }
     },

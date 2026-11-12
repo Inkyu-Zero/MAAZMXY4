@@ -54,7 +54,7 @@ class SharedBountyTests(unittest.TestCase):
             for link in node_links(self.nodes,definition):self.assertIn(link,self.nodes,name)
             assets(definition)
         self.assertLessEqual(len(self.common),8)
-        self.assertIn('Result_NoRevivePrompt',self.common['Bounty_Play']['recognition']['param']['all_of'])
+        self.assertEqual(self.common['Bounty_Play']['recognition']['param']['all_of'],['Nav_InStage'])
         self.assertFalse(any(n in self.common for n in ('Bounty_Navigate','Bounty_AfterPlay','Bounty_Finish')))
 
     def test_every_script_profile_preserves_blockers_and_unknown_dialog_handoff(self):

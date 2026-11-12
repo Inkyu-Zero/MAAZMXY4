@@ -6382,5 +6382,73 @@
         "custom_recognition_param": "hub"
       }
     }
+  },
+  "Nav_BattleControls": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "设置.png"
+        ],
+        "roi": [
+          0,
+          560,
+          1148,
+          160
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0
+  },
+  "Nav_InStage": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          "Nav_Wushuang",
+          {
+            "recognition": {
+              "type": "Custom",
+              "param": {
+                "custom_recognition": "battle_no_revive",
+                "custom_recognition_param": "stage"
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0
+  },
+  "Nav_Wushuang": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "navigation/stage/wushuang-idle.png",
+          "navigation/stage/wushuang-ready.png"
+        ],
+        "roi": [
+          0,
+          580,
+          180,
+          140
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0
   }
 }

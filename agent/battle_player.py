@@ -379,6 +379,13 @@ class BattlePlay(CustomAction):
                 raise
             return False
         if monitor is not None:
+            if isinstance(monitor.error, UnrecognizedDialog):
+                # play_actions has released every held input and joined the
+                # monitor. Retry only this exceptional recognition state.
+                try:
+                    monitor.recheck_unknown_dialog()
+                except Exception as error:
+                    monitor.error = error
             if monitor.error is not None:
                 self._log('[battle_play] 结果监测停止：' + str(monitor.error))
                 # Preserve the exact failure even if releasing input dismisses

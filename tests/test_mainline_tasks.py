@@ -46,7 +46,7 @@ class MainlineTasksTests(unittest.TestCase):
             profile=task['management_profile'];params=profile['parameters']
             self.assertEqual(params['file'],'@task:'+task['id'])
             self.assertEqual(params['navigation']['kind'],'stage')
-            self.assertEqual(params['round_flow']['scene_node'],spec['play'])
+            self.assertEqual(params['round_flow']['scene_node'],'Nav_InStage')
             self.assertEqual(params['round_flow']['repeat_node'],spec['repeat'])
             self.assertEqual(self.interface['option']['刷取次数']['pipeline_override'][spec['repeat']],{'max_hit':'{刷取次数}'})
 
@@ -56,14 +56,17 @@ class MainlineTasksTests(unittest.TestCase):
             target=names(stage)['target'];node=self.nodes[target]
             parts=node['recognition']['param']['all_of']
             self.assertEqual(parts[0]['recognition'],stage['recognition'])
-            self.assertEqual(parts[1:],['Nav_Province_'+stage['town'],'GameManagement_NormalMap','Nav_ClearMap'])
+            expected = ['Nav_Province_'+stage['town']]
+            if stage['town'] not in ('town1', 'town2'):
+                expected.append('GameManagement_NormalMap')
+            self.assertEqual(parts[1:], [*expected, 'Nav_ClearMap'])
             self.assertEqual(node['recognition']['param']['box_index'],0)
             self.assertEqual(node['action'],{'type':'LongPress','param':{'duration':100}})
             self.assertEqual(node['pre_delay'],0)
             self.assertEqual(routines['stages'][target],stage['town'])
             self.assertLess(stage['roi'][2]*stage['roi'][3]/(1147*720),0.05)
 
-    def test_scene_checks_are_two_local_hashed_landmarks_not_fullscreen(self):
+    def test_archived_scene_assets_keep_provenance_but_are_not_entry_guards(self):
         self.assertEqual([s['id'] for s in self.scenes],list(range(1,63)))
         for scene in self.scenes:
             self.assertFalse(scene['source']['missing_layers'])

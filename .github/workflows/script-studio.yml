@@ -98,6 +98,27 @@ jobs:
           Copy-Item -LiteralPath (Join-Path $guard 'MaaBackgroundMouseGuard.dll'), (Join-Path $guard 'mouse-guard-build.json') -Destination 'dist/script-studio/runtimes/win-x64/native/'
       - name: Install pinned memory-only Maa regression dependencies
         run: python -m pip install maafw==5.12.3 numpy==2.2.6 pillow==12.2.0
+      - name: Shared Wushuang entry, plain maps and revival layouts (memory only)
+        env:
+          NAVIGATION_NATIVE_TESTS: '1'
+          MAAFW_BINARY_PATH: '${{ github.workspace }}/dist/script-studio/runtimes/win-x64/native'
+          MAAZMXY4_TEST_LOG_DIR: '${{ runner.temp }}/shared-entry-native'
+          OMP_NUM_THREADS: '2'
+        run: |
+          python -B -m unittest discover -s tests -p "test_shared_stage_entry.py" -v
+          python -B -m unittest discover -s tests -p "test_plain_map_entry.py" -v
+          python -B -m unittest discover -s tests -p "test_revival_anchor.py" -v
+      - name: Script dialogs with the built host theme (headless)
+        env:
+          STUDIO_MFA_THEME_DIR: '${{ github.workspace }}/dist/script-studio/libs'
+        run: dotnet run --project frontend/tests/StudioPage/StudioPage.csproj -c Release
+      - name: Scene animation exclusion and stored Buzhou failure frames
+        env:
+          NAVIGATION_NATIVE_TESTS: '1'
+          MAAFW_BINARY_PATH: '${{ github.workspace }}/dist/script-studio/runtimes/win-x64/native'
+          MAAZMXY4_TEST_LOG_DIR: '${{ runner.temp }}/mainline-scene-regressions'
+          OMP_NUM_THREADS: '2'
+        run: python -B -m unittest discover -s tests -p "test_mainline_scene_regressions.py" -v
       - name: Guard cleanup failure over real Agent IPC
         env:
           MAA_AGENT_NATIVE_TESTS: '1'

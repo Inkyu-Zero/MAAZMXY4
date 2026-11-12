@@ -489,7 +489,7 @@ def mark_battle_failure(state):
 
 
 def enter_stage(context, state, navigator):
-    """One verified entry, bounded loading observations, then the same scene frame."""
+    """One entry and bounded loading; confirm common gameplay, not stage identity."""
     flow = state['parameters']['round_flow']
     target = state['parameters']['navigation']['target_node']
     scene = flow['scene_node']
@@ -501,8 +501,8 @@ def enter_stage(context, state, navigator):
         resumed = False
         while True:
             navigator._check()
-            # The normal scene owns its one modal guard. Failure/return probes
-            # are fallbacks, not work repeated ahead of every ready scene.
+            # Shared gameplay controls own the same-frame modal guard. There
+            # is no background/name check for the selected stage after entry.
             ready = navigator.recognize(scene).hit
             if not ready:
                 # A fresh, guarded map entry proves the click did not leave
@@ -537,7 +537,7 @@ def enter_stage(context, state, navigator):
                 if attempt < 2 and navigator.recognize(target).hit:
                     navigator.log('进关等待超时，入口仍在，使用当前截图完成剩余进关重试。')
                     break
-                raise NavigationError('进关后未确认副本场景。', reason='transition_failed')
+                raise NavigationError('进关后未识别到通用战斗界面。', reason='transition_failed')
             navigator.refresh_after_wait(200)
 
 

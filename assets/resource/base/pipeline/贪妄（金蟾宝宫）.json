@@ -24,7 +24,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "贪妄（金蟾宝宫）-识别场景1",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "贪妄（金蟾宝宫）-刷取次数"
           },
@@ -135,17 +135,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": [
-                  "金蟾宝宫场景.png"
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -161,17 +151,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": [
-                  "金蟾宝宫场景.png"
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },

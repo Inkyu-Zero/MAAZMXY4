@@ -22,13 +22,19 @@ from window_geometry import WindowLease, Win32Geometry, SIZING_STYLE
 
 
 class HiddenWindow:
-    def __init__(self):
+    def __init__(self, dpi_context=-1):
+        self.dpi_context=dpi_context
         self.events=[];self.ready=threading.Event();self.hwnd=0
         self.thread=threading.Thread(target=self.run,daemon=True);self.thread.start()
         if not self.ready.wait(5):raise RuntimeError('hidden window did not start')
 
     def run(self):
         self.api=ctypes.WinDLL('user32',use_last_error=True)
+        self.api.SetThreadDpiAwarenessContext.argtypes=[ctypes.c_void_p]
+        self.api.SetThreadDpiAwarenessContext.restype=ctypes.c_void_p
+        # Explicitly create the receiver in its own DPI coordinate space.
+        if not self.api.SetThreadDpiAwarenessContext(ctypes.c_void_p(self.dpi_context)):
+            raise ctypes.WinError(ctypes.get_last_error())
         proc=ctypes.WINFUNCTYPE(ctypes.c_ssize_t,wintypes.HWND,wintypes.UINT,wintypes.WPARAM,wintypes.LPARAM)
         class WNDCLASS(ctypes.Structure):
             _fields_=[('style',wintypes.UINT),('proc',proc),('cls',ctypes.c_int),('win',ctypes.c_int),
@@ -106,9 +112,10 @@ class PlaybackTransportTests(unittest.TestCase):
         self.assertEqual(response['id'],self.sequence);self.assertTrue(response['ok'],response)
         return response['result']
 
-    def start(self,actions,duration):
+    def start(self,actions,duration,mouse='SendMessage'):
         self.recording.write_text(json.dumps(dict(version=1,name='native test',base=[1140,720],actions=actions,duration_ms=duration)),encoding='utf8')
-        self.call('playback_start',dict(hwnd=self.window.hwnd,file='test.json',sha256=hashlib.sha256(self.recording.read_bytes()).hexdigest()))
+        self.call('playback_start',dict(hwnd=self.window.hwnd,file='test.json',mouse=mouse,
+            sha256=hashlib.sha256(self.recording.read_bytes()).hexdigest()))
 
     def wait(self,predicate,seconds=5):
         deadline=time.monotonic()+seconds
@@ -118,6 +125,44 @@ class PlaybackTransportTests(unittest.TestCase):
         self.fail('offline IPC condition timed out; '+str(self.call('playback_status'))+' events='+str(self.window.events)
                   +(self.root/'worker.err').read_text(encoding='utf8')[-5000:])
 
+    def target_geometry(self):
+        api=self.geometry.api
+        api.GetWindowDpiAwarenessContext.argtypes=[wintypes.HWND]
+        api.GetWindowDpiAwarenessContext.restype=ctypes.c_void_p
+        previous=api.SetThreadDpiAwarenessContext(api.GetWindowDpiAwarenessContext(self.window.hwnd))
+        try:
+            rect,origin=wintypes.RECT(),wintypes.POINT()
+            self.assertTrue(api.GetClientRect(self.window.hwnd,ctypes.byref(rect)))
+            self.assertTrue(api.ClientToScreen(self.window.hwnd,ctypes.byref(origin)))
+            return rect.right-rect.left,rect.bottom-rect.top,origin.x,origin.y
+        finally:api.SetThreadDpiAwarenessContext(previous)
+
+    def parked_event(self):
+        physical=self.geometry.inspect(self.window.hwnd)
+        width,height,_,_=self.target_geometry()
+        x,y=round(20*width/physical['width']),round(20*height/physical['height'])
+        return (0x200,0,(y<<16)|x)
+
+    def test_dpi_click_and_wheel_use_the_receiver_coordinate_space(self):
+        self.check_dpi_coordinates('SendMessage')
+
+    def test_post_message_click_and_wheel_use_the_receiver_coordinate_space(self):
+        self.check_dpi_coordinates('PostMessage')
+
+    def check_dpi_coordinates(self,mouse):
+        self.start([dict(t=0,op='down',x=570,y=360),dict(t=30,op='up',x=570,y=360),
+                    dict(t=30,op='scroll',dx=120,dy=-120),dict(t=20,op='keydown',key=68),
+                    dict(t=10000,op='keyup',key=68)],10080,mouse)
+        self.wait(lambda:any(msg==0x100 for msg,_,_ in self.window.events))
+        width,height,ox,oy=self.target_geometry()
+        for message in (0x201,0x202,0x20a,0x20e):
+            value=next(event[2] for event in self.window.events if event[0]==message)
+            actual=(ctypes.c_short(value&0xffff).value,ctypes.c_short(value>>16).value)
+            offset=(ox,oy) if message in (0x20a,0x20e) else (0,0)
+            expected=(round(width/2)+offset[0],round(height/2)+offset[1])
+            for a,b in zip(actual,expected):self.assertLessEqual(abs(a-b),1,(message,actual,expected))
+        self.assertEqual(self.call('playback_stop')['state'],'stopped')
+
     def test_real_ipc_mouse_keys_size_lock_and_stop(self):
         self.start([dict(t=0,op='down',x=123,y=321),dict(t=25,op='up',x=125,y=322),
                     dict(t=20,op='keydown',key=68),dict(t=10000,op='keyup',key=68)],10045)
@@ -126,9 +171,12 @@ class PlaybackTransportTests(unittest.TestCase):
         self.assertLessEqual(abs(round(info['width']*720/info['height'])-1140),8)
         self.assertFalse(self.geometry.style(self.window.hwnd)&SIZING_STYLE)
         down=next(e for e in self.window.events if e[0]==0x201)
-        self.assertEqual((down[2]&0xffff,(down[2]>>16)&0xffff),
-                         (round(123*info['width']/1140),round(321*info['height']/720)))
-        parked=lambda:[e for e in self.window.events if e==(0x200,0,(20<<16)|20)]
+        width,height,_,_=self.target_geometry()
+        for a,b in zip((down[2]&0xffff,(down[2]>>16)&0xffff),
+                       (round(123*width/1140),round(321*height/720))):
+            self.assertLessEqual(abs(a-b),1)
+        parked_event=self.parked_event()
+        parked=lambda:[e for e in self.window.events if e==parked_event]
         self.assertEqual(parked(),[])
         result=self.call('playback_stop')
         self.assertEqual(result['state'],'stopped',result)
@@ -166,7 +214,7 @@ class PlaybackTransportTests(unittest.TestCase):
         self.assertEqual(states[-1]['state'],'succeeded',states)
         self.assertTrue(any(msg==0x201 for msg,_,_ in self.window.events))
         self.assertTrue(any(msg==0x202 for msg,_,_ in self.window.events))
-        self.wait(lambda:sum(e==(0x200,0,(20<<16)|20) for e in self.window.events)==1)
+        self.wait(lambda:sum(e==self.parked_event() for e in self.window.events)==1)
         self.assertEqual(self.geometry.style(self.window.hwnd),self.original)
 
     def test_text_scroll_and_secondary_mouse_use_same_saved_actions(self):

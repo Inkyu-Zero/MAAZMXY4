@@ -187,7 +187,10 @@ def render(library, name, *, camera=None, phase=0):
                 alpha = np.asarray(image)[:, :, 3]
                 opaque = Image.fromarray((alpha == 255).astype('uint8')*255)
                 unstable.paste(0, (x, y, x+image.width, y+image.height), opaque)
-                if 'moveXSpeed' in p or 'aniPath' in p:
+                # A few exported frames cannot prove that a longer timeline
+                # stays still between samples (as with Buzhou's figure/swords).
+                # Sprite exports cover the complete animation bounds.
+                if animated or 'moveXSpeed' in p or 'aniPath' in p:
                     ImageDraw.Draw(unstable).rectangle((x,y,x+image.width,y+image.height), fill=255)
     for item in excluded:ImageDraw.Draw(unstable).rectangle(item['box'],fill=255)
     return canvas, unstable, dict(camera=list(camera), landing_y=ground_y, missing_layers=[],empty_layers=empty,
@@ -196,15 +199,28 @@ def render(library, name, *, camera=None, phase=0):
         swf_sha256=hashlib.sha256((library/'maps'/f'{name}.swf').read_bytes()).hexdigest())
 
 
-def generate(library, evidence, root=ROOT):
+def generate(library, evidence, root=ROOT, *, stage_ids=None):
     import cv2
     import numpy as np
     from PIL import Image
     stages = json.loads((root/'agent/data/navigation/mainline-stages.json').read_text(encoding='utf-8'))
-    evidence.mkdir(parents=True, exist_ok=True)
+    selected = set(stage_ids) if stage_ids is not None else {stage['id'] for stage in stages['stages']}
+    unknown = selected - {stage['id'] for stage in stages['stages']}
+    if unknown: raise ValueError('Unknown stage ids: '+repr(sorted(unknown)))
+    previous = {}
     metadata = dict(version=1, viewport=stages['viewport'], stages=[])
+    if stage_ids is not None:
+        metadata = json.loads((root/'agent/data/navigation/mainline-scenes.json').read_text(encoding='utf8'))
+        previous = {stage['id']:stage for stage in metadata['stages']}
+        if set(previous) != {stage['id'] for stage in stages['stages']}:
+            raise ValueError('Partial regeneration requires the complete existing scene inventory')
+        metadata['stages'] = []
+    evidence.mkdir(parents=True, exist_ok=True)
     failures = []
     for stage in stages['stages']:
+        if stage['id'] not in selected:
+            metadata['stages'].append(previous[stage['id']])
+            continue
         name = stage['map_url']
         image, unstable, source = render(library, name)
         phases = [np.asarray(render(library,name,phase=phase)[0]) for phase in (1,2)]
@@ -247,7 +263,7 @@ def generate(library, evidence, root=ROOT):
                                sha256=hashlib.sha256(path.read_bytes()).hexdigest()))
         metadata['stages'].append(dict(id=stage['id'],name=stage['name'],map_url=name,source=source,checks=checks,
             equivalent_ids=[7,8] if stage['id'] in (7,8) else [stage['id']]))
-    write_json(evidence/'extraction-report.json',dict(stages=len(metadata['stages']),failures=failures))
+    write_json(evidence/'extraction-report.json',dict(stages=len(metadata['stages']),regenerated=sorted(selected),failures=failures))
     if failures: raise ValueError('Scene crops need review: '+repr(failures))
     write_json(root/'agent/data/navigation/mainline-scenes.json',metadata)
     return metadata
@@ -257,5 +273,6 @@ if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('library',type=Path)
     parser.add_argument('--evidence',required=True,type=Path)
+    parser.add_argument('--stage-id',action='append',type=int,help='Regenerate only selected stages; preserve the other existing resources')
     args=parser.parse_args()
-    print('Extracted scene checks for',len(generate(args.library,args.evidence)['stages']),'stages')
+    print('Scene inventory:',len(generate(args.library,args.evidence,stage_ids=args.stage_id)['stages']),'stages')

@@ -68,16 +68,6 @@
         "type": "Click"
       }
     },
-    "scene": {
-      "recognition": {
-        "type": "TemplateMatch",
-        "param": {
-          "template": [
-            "万世冥阁场景.png"
-          ]
-        }
-      }
-    },
     "view_roi": [
       625,
       390,
@@ -159,16 +149,6 @@
       },
       "post_delay": 500,
       "timeout": 10000
-    },
-    "scene": {
-      "recognition": {
-        "type": "TemplateMatch",
-        "param": {
-          "template": [
-            "金蟾宝宫场景.png"
-          ]
-        }
-      }
     }
   },
   "无冥（孤魂岭）": {
@@ -238,16 +218,6 @@
       },
       "post_delay": 500,
       "timeout": 10000
-    },
-    "scene": {
-      "recognition": {
-        "type": "TemplateMatch",
-        "param": {
-          "template": [
-            "孤魂岭场景.png"
-          ]
-        }
-      }
     },
     "view_roi": [
       240,
@@ -329,16 +299,6 @@
       },
       "post_delay": 500,
       "timeout": 10000
-    },
-    "scene": {
-      "recognition": {
-        "type": "TemplateMatch",
-        "param": {
-          "template": [
-            "七叶树窟场景.png"
-          ]
-        }
-      }
     }
   },
   "摩多（幕山）": {
@@ -415,16 +375,6 @@
       },
       "post_delay": 500,
       "timeout": 10000
-    },
-    "scene": {
-      "recognition": {
-        "type": "TemplateMatch",
-        "param": {
-          "template": [
-            "幕山场景.png"
-          ]
-        }
-      }
     }
   },
   "烛时（钟晷极地）": {
@@ -500,16 +450,6 @@
       },
       "post_delay": 500,
       "timeout": 10000
-    },
-    "scene": {
-      "recognition": {
-        "type": "TemplateMatch",
-        "param": {
-          "template": [
-            "钟晷极地场景.png"
-          ]
-        }
-      }
     }
   },
   "朱电（琉璃宫）": {
@@ -586,16 +526,6 @@
       },
       "post_delay": 500,
       "timeout": 10000
-    },
-    "scene": {
-      "recognition": {
-        "type": "TemplateMatch",
-        "param": {
-          "template": [
-            "琉璃宫场景.png"
-          ]
-        }
-      }
     }
   }
 }

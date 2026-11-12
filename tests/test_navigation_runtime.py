@@ -146,6 +146,20 @@ class NavigationRuntimeTests(unittest.TestCase):
         self.assertEqual(error.exception.reason,'unrecognized_dialog')
         self.assertIn('Nav_BlockedDialog',self.context.calls)
         self.assertFalse(self.context.inputs)
+        self.assertEqual(len(self.context.frames), 3)
+    def test_unready_revive_rechecks_and_uses_the_new_frame(self):
+        self.context.hits = {'modal'}
+        capture = self.context.capture
+        def settle():
+            if self.context.frames:
+                self.context.hits = {'modal', 'Result_RevivePrompt'}
+            return capture()
+        self.context.capture = settle
+        nav = self.nav()
+        self.assertEqual(nav.locate(), 'revive_prompt')
+        self.assertEqual(len(self.context.frames), 2)
+        self.assertEqual(nav.recognize('Result_RevivePrompt').box, (2, 0, 1, 1))
+        self.assertFalse(self.context.inputs)
     def test_known_blocked_modal_still_stops_without_input(self):
         self.context.hits={'goal','modal','Nav_BlockedDialog'}
         with self.assertRaises(NavigationError) as error:self.nav().run()

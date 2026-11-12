@@ -1,0 +1,49 @@
+{
+  "source": "User-authorized local navigation diagnosis, 2026-11-08. Redacted stored screenshots; no live capture.",
+  "size": [
+    1148,
+    720
+  ],
+  "cases": [
+    {
+      "file": "s046-phase-1.png",
+      "source": "Local failure screenshot 2026.11.08-19.32.03.917_Mainline_046",
+      "source_sha256": "5b77c75d84930980ab64652bbeb2907ffa290c182b3be476aefb36b28dc2b50f",
+      "sha256": "aee643e85873ebba0c4fbdca7d14065ce083a58f13b7a31287f1fbadc5ecb35e",
+      "masks": [
+        [
+          0,
+          0,
+          350,
+          720
+        ],
+        [
+          0,
+          600,
+          1148,
+          720
+        ]
+      ]
+    },
+    {
+      "file": "s046-phase-2.png",
+      "source": "Local failure screenshot 2026.11.08-19.33.10.245_Mainline_046",
+      "source_sha256": "fc4620ed8410de383c801e42978b16061ed91ffe073e121b6163e1ba80afc86f",
+      "sha256": "1803d2abc232d729c8e97feccb09c04347862fa62f44578c28143c357a09aa09",
+      "masks": [
+        [
+          0,
+          0,
+          350,
+          720
+        ],
+        [
+          0,
+          600,
+          1148,
+          720
+        ]
+      ]
+    }
+  ]
+}
