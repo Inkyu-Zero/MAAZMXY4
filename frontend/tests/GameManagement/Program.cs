@@ -19,6 +19,7 @@ internal static class Program
     private static void Require(bool condition, string message) { if (!condition) throw new Exception(message); }
     private static void Run()
     {
+        StartupAndBindingPolicy();
         var render = Environment.GetEnvironmentVariable("GAME_MANAGEMENT_RENDER_DIR");
         AppBuilder.Configure<TestApp>().UseSkia().UseHeadless(new AvaloniaHeadlessPlatformOptions
             { UseHeadlessDrawing = render == null }).SetupWithoutStarting();
@@ -26,6 +27,12 @@ internal static class Program
         var control = new GameManagementView { DataContext = first };
         var window = new Window { Width = 430, Height = 940, Content = control };
         window.Show(); Dispatcher.UIThread.RunJobs();
+        var advanced = control.GetVisualDescendants().OfType<Expander>().Single(e => Equals(e.Header, "高级设置"));
+        Require(!advanced.IsExpanded, "Advanced settings start collapsed");
+        var actions = new[] { "启动并连接盒子", "重启盒子", "关闭盒子" }
+            .Select(label => control.GetVisualDescendants().OfType<Button>().Single(b => Equals(b.Content, label))).ToArray();
+        Require(actions.All(b => b.IsEffectivelyVisible), "All three actions are available before expanding settings");
+        advanced.IsExpanded = true; Dispatcher.UIThread.RunJobs();
         var rows = new AfkOptionControls();
         var count = new NumericUpDown { Value = 37 };
         var row = new StackPanel(); row.Children.Add(count); rows.Add(row);
@@ -42,7 +49,7 @@ internal static class Program
         var exe = texts.Single(t => t.Watermark?.Contains("EXE") == true);
         var account = texts.Single(t => t.Watermark?.Contains("账号") == true);
         var role = texts.Single(t => t.Watermark?.Contains("角色") == true);
-        var save = control.GetVisualDescendants().OfType<Button>().Single(b => Equals(b.Content,"保存设置"));
+        var save = control.GetVisualDescendants().OfType<Button>().First(b => Equals(b.Content,"保存设置"));
         checks[1].IsChecked = true; Dispatcher.UIThread.RunJobs();
         Require(checks[1].IsChecked != true && !GameManagementService.For(first.Processor).Options.Enabled,
             "An invalid policy save restores the actual switch state");
@@ -67,6 +74,12 @@ internal static class Program
         Require(GameManagementService.For(first.Processor).Options.RestartOnMemory, "Save applies memory policy");
         // Unsaved invalid form edits must never prevent disabling a restart policy.
         role.Text = ""; minutes.Text = "invalid";
+        var service = GameManagementService.For(first.Processor);
+        var saveCalls = service.SaveCalls;
+        var savedOptions = service.Options;
+        foreach (var button in actions) { button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); Dispatcher.UIThread.RunJobs(); }
+        Require(service.SaveCalls == saveCalls && service.Options == savedOptions && service.StartCalls == 1
+            && service.RestartCalls == 1 && service.CloseCalls == 1, "Actions use saved settings and never submit invalid drafts");
         checks[0].IsChecked = true; Dispatcher.UIThread.RunJobs();
         Require(GameManagementService.For(first.Processor).Options.RoleName == "角色甲", "Policy toggle must not persist a draft login");
         checks[0].IsChecked = false; checks[2].IsChecked = false; Dispatcher.UIThread.RunJobs();
@@ -79,6 +92,7 @@ internal static class Program
         Require(checks[1].IsChecked == true && checks[2].IsChecked == true && minutes.Text == "60", "Saved instance restores its options");
         if (render != null)
         {
+            advanced.IsExpanded = false;
             Directory.CreateDirectory(render);
             Pump();
             using var light = window.CaptureRenderedFrame(); light!.Save(Path.Combine(render,"game-management-light.png"));
@@ -92,6 +106,29 @@ internal static class Program
         }
         window.Close();
         Console.WriteLine("PASS game-management controls, validation, instance isolation and compact layout; no game/process/device used.");
+    }
+    private static void StartupAndBindingPolicy()
+    {
+        var root = Path.GetFullPath("fixture client 中文");
+        var initial = new GameManagementOptions().WithBundledDefault(root);
+        Require(initial.UseBundledBox && initial.ExePath == Path.Combine(root, "造梦盒子", "zmBox.exe"), "New instances bind the bundled box");
+        initial.Validate(requireTarget: true, requireLogin: false);
+        Require(!initial.HasLogin, "First launch needs no account or role");
+        var custom = initial with { UseBundledBox = false, ExePath = Path.GetFullPath("custom box.exe") };
+        Require(custom.WithBundledDefault(root) == custom, "Existing custom binding is preserved");
+        Require(initial.WithBundledDefault(root + " moved").ExePath != initial.ExePath, "Bundled binding follows the installation directory");
+        var launches = 0; var logs = new List<string>();
+        var once = new BoxStartupAttempt();
+        once.Try(() => launches++, () => false, logs.Add);
+        once.Try(() => launches++, () => false, logs.Add);
+        Require(launches == 1, "Startup attempts once across repeated initialization");
+        var running = new BoxStartupAttempt();
+        running.Try(() => launches++, () => true, logs.Add);
+        Require(launches == 1, "Existing box is not duplicated");
+        var failed = new BoxStartupAttempt();
+        failed.Try(() => { launches++; throw new IOException("injected"); }, () => false, logs.Add);
+        failed.Try(() => launches++, () => false, logs.Add);
+        Require(launches == 2 && logs.Last().Contains("injected"), "Launch failure is logged without throwing or retrying");
     }
     private static void Pump()
     {

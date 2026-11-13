@@ -239,9 +239,12 @@ class ReleasePackageTests(unittest.TestCase):
     def test_full_package_keeps_empty_native_plugin_directory(self):
         frontend, runtime, launcher = self.client_fixture()
         output = self.root/'full.zip'
-        with patch.object(build_release, 'LAUNCHER_SHA256', self.launcher_hash):
+        import bundled_box
+        from test_bundled_box import BoxFixture
+        box = BoxFixture(self.root/'box-source')
+        with patch.object(build_release, 'LAUNCHER_SHA256', self.launcher_hash), patch.object(bundled_box, 'SPEC', box.spec):
             build_release.build_client(ROOT, frontend, runtime, output, launcher,
-                channel='preview', manifest_urls=['https://example.test/client-version.json'])
+                channel='preview', manifest_urls=['https://example.test/client-version.json'], box_zip=box.archive)
         with zipfile.ZipFile(output) as archive:
             name = 'runtimes/win-x64/native/plugins/'
             self.assertIn(name, archive.namelist())

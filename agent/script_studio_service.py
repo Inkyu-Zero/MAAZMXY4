@@ -24,6 +24,7 @@ from script_library import (bind_task_recording, unbind_task_recording, library_
 from task_catalog import task_catalog, execution_plan
 from recording_store import (ensure_default_recordings, default_recordings,
                              duplicate_recording, rename_recording, delete_recording, binding_snapshot, set_file_bindings)
+import recording_folders
 
 MAX_BYTES = 16 * 1024 * 1024
 HISTORY_MAX_BYTES = 64 * 1024 * 1024
@@ -244,9 +245,19 @@ class StudioService:
                                     for task in tasks if (task.get('binding') or {}).get('file') == item['file']]
         except (OSError, ValueError) as error:
             binding_errors = {'catalog': str(error)}
+        folders, folder_revision = [], None
+        try:
+            groups, folder_revision = recording_folders.snapshot(self.directory)
+            for item in items:
+                item['folder_id'] = groups['members'].get(item['file'])
+            folders = [{**folder, 'id': ident, 'count': sum(item.get('folder_id') == ident for item in items)}
+                       for ident, folder in groups['folders'].items()]
+        except (OSError, ValueError) as error:
+            library_errors['folders'] = str(error)
         binding_errors.update(library_errors)
         return dict(items=items, selected_file=selected, root=str(self.directory),
-                    task_bindings=bindings, binding_errors=binding_errors, tasks=tasks, binding_revision=binding_revision)
+                    task_bindings=bindings, binding_errors=binding_errors, tasks=tasks, binding_revision=binding_revision,
+                    folders=folders, folder_revision=folder_revision)
 
     def dispatch(self, method, params=None):
         if self._closed:
@@ -280,6 +291,24 @@ class StudioService:
             return prepare_window(params.get('hwnd'), params.get('base', STANDARD_BASE))
         if method == "list":
             return self.list()
+        if method in ('create_folder', 'rename_folder'):
+            return recording_folders.save_folder(self.directory, params.get('name'), params.get('folder_revision'),
+                                                  params.get('folder_id') if method == 'rename_folder' else None)
+        if method == 'move_to_folder':
+            return recording_folders.move_recording(self.directory, params.get('file'), params.get('folder_id'),
+                                                    params.get('folder_revision'))
+        if method == 'delete_folder':
+            self.require_idle()
+            revisions = params.get('revisions', {})
+            if self.file in revisions: self.require_clean()
+            result = recording_folders.delete_folder(self.directory, params.get('folder_id'),
+                                                       params.get('folder_revision'), revisions)
+            if self.file in result['deleted']:
+                self.document = None
+                self.file, self.revision, self.dirty = None, None, False
+                self._clear_history()
+            result['document'] = self.snapshot() if self.document is not None else dict(empty=True)
+            return result
         if method == 'execution_plan':
             return execution_plan(self.root, params.get('name'), params.get('entry'), params.get('overrides'),
                                   report_unbound=params.get('report_unbound', False))

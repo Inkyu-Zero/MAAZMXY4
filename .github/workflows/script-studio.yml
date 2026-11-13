@@ -24,6 +24,7 @@ on:
       - 'tools/navigation_privacy_masks.json'
       - 'tools/sync_task_assets.py'
       - 'tools/build_release.py'
+      - 'tools/bundled_box.py'
       - 'tools/build_sfx.py'
       - 'tools/build_installer.py'
       - 'tools/installer/**'
@@ -86,6 +87,11 @@ jobs:
       - name: Build native MFAAvalonia page
         shell: pwsh
         run: ./tools/build_frontend.ps1
+      - name: Page explanations, progress and headless lifecycle with the built theme
+        shell: pwsh
+        env:
+          PAGE_TOUR_THEME_DIR: '${{ github.workspace }}/dist/script-studio/libs'
+        run: dotnet run --project frontend/tests/PageTours/PageTours.csproj -c Release
       - name: Build and verify scoped background mouse guard
         shell: pwsh
         run: |

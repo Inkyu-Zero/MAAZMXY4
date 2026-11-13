@@ -25,7 +25,7 @@ internal static class Program
         AppBuilder.Configure<TestApplication>().UseSkia().UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
         var failed = 0;
         var tests = new Action[] { FirstOpenDuringTask, RefreshAndMutationGuard, RetryFailedInitialization, RecordingUsesCurrentTaskController, NoImplicitRecordingTarget, RenameCancelCollisionAndSave, RenameOtherFileKeepsEditorState, DurationTextApplies, DurationTextSavesWithoutExtraApply, TimelineBoxSelectMoveAndCancel, TimelineDocumentChangeCancelsGesture, EditorBatchRequestsAndTaskGuard, DiscardRecordingStatesAndRestart, DiscardStoppedDraftAndProtectSavedScript, DiscardFailureCanRetry, DiscardIgnoresLateStatusAndSaveRequest, TerminalPollLocksUntilDraftIsReady, RecordingActionLayout, RecordingDiscardClickModes, RecordingDoubleClickCancellationAndRetry };
-        tests=tests.Concat([TimelineClipboardShortcuts, DialogThemeAndDismissal]).ToArray();
+        tests=tests.Concat([TimelineClipboardShortcuts, DialogThemeAndDismissal, FolderListDragAndDelete, FolderCreateAndRename, GuideTargetsAndDirtyReplay]).ToArray();
         foreach (var test in tests)
         {
             try { test(); Console.WriteLine("PASS " + test.Method.Name); }
@@ -567,6 +567,140 @@ internal static class Program
     private static void Check(bool condition, string message) { if (!condition) throw new Exception(message); }
     private static void Click(Button button) { button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); Dispatcher.UIThread.RunJobs(); }
     private static Button Find(Window window, string name) => window.GetVisualDescendants().OfType<Button>().First(b => Equals(b.Content, name));
+    private static Task InvokeView(ScriptStudioView view, string name, params object?[] args) =>
+        (Task)typeof(ScriptStudioView).GetMethod(name, BindingFlags.Instance | BindingFlags.NonPublic)!.Invoke(view, args)!;
+
+    private static void FolderListDragAndDelete()
+    {
+        var (window, view, model) = Open(false);
+        var listing = JsonNode.Parse("""{"items":[{"name":"Folder script","file":"user.json","folder_id":"first","revision":"saved","duration_ms":1000,"event_count":2,"bindings":[{"id":"stage","label":"关卡"}]},{"name":"Root script","file":"other.json","revision":"other","duration_ms":1000,"event_count":2}],"folders":[{"id":"first","name":"关卡脚本","count":1}],"tasks":[],"folder_revision":"groups","binding_revision":"bindings"}""")!;
+        JsonObject? moved = null, deleted = null;
+        model.Client.Handler = (method, parameters) =>
+        {
+            if (method == "list") return Task.FromResult(listing.DeepClone());
+            if (method == "move_to_folder")
+            {
+                moved = parameters!.DeepClone().AsObject();
+                listing["items"]!.AsArray().First(n => n!["file"]!.GetValue<string>() == parameters["file"]!.GetValue<string>())!["folder_id"] = parameters["folder_id"]?.DeepClone();
+                return Task.FromResult<JsonNode>(new JsonObject());
+            }
+            if (method == "delete_folder")
+            {
+                deleted = parameters!.DeepClone().AsObject();
+                var items = listing["items"]!.AsArray();
+                foreach (var item in items.Where(n => n?["folder_id"]?.GetValue<string>() == "first").ToArray()) items.Remove(item);
+                listing["folders"] = new JsonArray();
+                return Task.FromResult<JsonNode>(new JsonObject { ["document"] = new JsonObject { ["empty"] = true } });
+            }
+            return null;
+        };
+        try
+        {
+            InvokeView(view, "RefreshLibraryAsync").GetAwaiter().GetResult(); Draw(window);
+            var list = Field<ListBox>(view, "_library");
+            Check(list.Items.Count == 3, "Collapsed folders retain root scripts in the list");
+            var folderRow = list.GetVisualDescendants().OfType<Grid>().Single(g => Equals(g.Tag, "first"));
+            Click(folderRow.Children.OfType<Button>().First()); Draw(window);
+            Check(list.Items.Count == 4 && !model.Client.Calls.Contains("load"), "Expanding a folder does not load a script or change the editor");
+            Draw(window, "script-folders-expanded.png");
+            var format = (DataFormat<string>)typeof(ScriptStudioView).GetField("ScriptDragFormat", BindingFlags.Static | BindingFlags.NonPublic)!.GetValue(null)!;
+            void Drop(string? folder)
+            {
+                Draw(window);
+                var target = list.GetVisualDescendants().OfType<Grid>().Single(g => Equals(g.Tag, folder ?? ""));
+                var transfer = new DataTransfer();
+                transfer.Add(DataTransferItem.Create(format, Field<string>(view, "_dragOwner") + "\nuser.json"));
+                var over = new DragEventArgs(DragDrop.DragOverEvent, transfer, target, default, KeyModifiers.None);
+                target.RaiseEvent(over);
+                Check(over.DragEffects == DragDropEffects.Move && target.Background != null, "Valid drop targets visibly highlight");
+                target.RaiseEvent(new DragEventArgs(DragDrop.DropEvent, transfer, target, default, KeyModifiers.None));
+                Dispatcher.UIThread.RunJobs();
+            }
+            Drop(null);
+            Check(moved?["file"]?.GetValue<string>() == "user.json" && moved["folder_id"] == null, "Dropping on root moves out of the folder");
+            Drop("first");
+            Check(moved?["folder_id"]?.GetValue<string>() == "first", "Folder drop sends the selected stable ID");
+            window.Width = 520; Draw(window);
+            var settled = DateTime.UtcNow.AddMilliseconds(350);
+            while (DateTime.UtcNow < settled) { Dispatcher.UIThread.RunJobs(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); Thread.Sleep(10); }
+            Draw(window, "script-folders-narrow.png");
+            Check(list.Bounds.Width < 520, "Folder list fits the narrow page");
+            model.Apply(new JsonObject { ["file"] = "user.json", ["name"] = "Folder script", ["duration_ms"] = 1000.0, ["operations"] = new JsonArray(), ["dirty"] = false });
+            var deletion = InvokeView(view, "DeleteFolderAsync", listing["folders"]![0]!.DeepClone());
+            Dispatcher.UIThread.RunJobs();
+            var dialog = window.OwnedWindows.Single();
+            Check(dialog.GetVisualDescendants().OfType<TextBlock>().Any(t => t.Text?.Contains("全部 1 个脚本") == true), "Confirmation states the complete folder deletion count");
+            Click(Find(dialog, "取消"));
+            Check(deletion.IsCompletedSuccessfully && deleted == null, "Cancel preserves every folder member");
+            deletion = InvokeView(view, "DeleteFolderAsync", listing["folders"]![0]!.DeepClone());
+            Dispatcher.UIThread.RunJobs(); Click(Find(window.OwnedWindows.Single(), "删除"));
+            Check(deletion.IsCompletedSuccessfully && deleted?["revisions"]?["user.json"]?.GetValue<string>() == "saved", "Delete uses exactly the confirmed member revisions");
+            Check(model.Document == null && Field<JsonArray>(view, "_folders").Count == 0, "Deleted current member cannot remain as a stale editor document");
+        }
+        finally { foreach (var dialog in window.OwnedWindows.ToArray()) dialog.Close(); Close(window, model); }
+    }
+
+    private static void FolderCreateAndRename()
+    {
+        var (window, view, model) = Open(false);
+        var groups = new JsonArray(); var writes = 0;
+        model.Client.Handler = (method, parameters) =>
+        {
+            if (method == "list") return Task.FromResult<JsonNode>(new JsonObject { ["items"] = new JsonArray(), ["folders"] = groups.DeepClone(), ["folder_revision"] = "groups" });
+            if (method == "create_folder")
+            {
+                writes++; groups.Add(new JsonObject { ["id"] = "created", ["name"] = parameters!["name"]!.DeepClone(), ["count"] = 0 });
+                return Task.FromResult<JsonNode>(new JsonObject { ["folder_id"] = "created" });
+            }
+            if (method == "rename_folder")
+            {
+                writes++; groups[0]!["name"] = parameters!["name"]!.DeepClone();
+                return Task.FromResult<JsonNode>(new JsonObject { ["folder_id"] = "created" });
+            }
+            return null;
+        };
+        try
+        {
+            InvokeView(view, "RefreshLibraryAsync").GetAwaiter().GetResult();
+            Click(Find(window, "新建文件夹"));
+            var dialog = window.OwnedWindows.Single(); Click(Find(dialog, "取消"));
+            Check(writes == 0, "Cancelling folder creation does not write metadata");
+            Click(Find(window, "新建文件夹")); dialog = window.OwnedWindows.Single();
+            dialog.GetVisualDescendants().OfType<TextBox>().Single().Text = "日常脚本";
+            Click(Find(dialog, "保存"));
+            Check(writes == 1 && groups[0]!["name"]!.GetValue<string>() == "日常脚本", "Folder is created through the normal name dialog");
+            var rename = InvokeView(view, "RenameFolderAsync", groups[0]!.DeepClone()); Dispatcher.UIThread.RunJobs();
+            dialog = window.OwnedWindows.Single(); dialog.GetVisualDescendants().OfType<TextBox>().Single().Text = "刷关脚本";
+            Click(Find(dialog, "保存"));
+            Check(rename.IsCompletedSuccessfully && groups[0]!["id"]!.GetValue<string>() == "created" && groups[0]!["name"]!.GetValue<string>() == "刷关脚本", "Folder rename preserves its stable identity");
+        }
+        finally { foreach (var dialog in window.OwnedWindows.ToArray()) dialog.Close(); Close(window, model); }
+    }
+    private static void GuideTargetsAndDirtyReplay()
+    {
+        var (window, view, model) = Open(false);
+        try
+        {
+            Draw(window);
+            var before = model.Client.Calls.Count;
+            bool Visible(Control control) => control.IsEffectivelyVisible && control.Bounds.Width > 0 && control.Bounds.Height > 0;
+            Check(view.GuidePageId == "script_library" && view.FindGuideTarget("library", Visible) != null, "Library entry has a stable guide region");
+            Check(view.FindGuideTarget("binding", Visible)?.Name == "ScriptTaskBinding", "Visible binding row can be explained without binding it");
+            view.SelectGuidePage("timeline_editor"); Draw(window);
+            Check(view.GuidePageId == "timeline_editor" && view.FindGuideTarget("timeline", Visible) != null && view.FindGuideTarget("save_undo", Visible) != null,
+                "Empty editor has stable timeline and toolbar regions");
+            Check(model.Client.Calls.Count == before && model.Document == null, "Looking up targets and switching tabs do not create or load a script");
+            model.Apply(JsonNode.Parse("""{"file":"user.json","name":"Unsaved","duration_ms":1000,"operations":[],"dirty":true}""")!);
+            var navigation = view.PrepareGuideNavigationAsync("task_page"); Dispatcher.UIThread.RunJobs();
+            Check(!navigation.IsCompleted && window.OwnedWindows.Count() == 1, "Replay leaving the editor uses its dirty-document dialog");
+            Click(Find(window.OwnedWindows.Single(), "取消")); Dispatcher.UIThread.RunJobs();
+            Check(navigation.IsCompletedSuccessfully && !navigation.Result && model.Dirty && view.GuidePageId == "timeline_editor", "Cancelling replay keeps the draft and page");
+            model.Capturing = true;
+            Check(view.PrepareGuideNavigationAsync("timeline_editor").Result == false, "Active or paused capture rejects only the replay, without stopping capture");
+            Check(model.Capturing && !model.Client.Calls.Contains("capture_stop"), "Replay never stops a recording");
+        }
+        finally { foreach (var dialog in window.OwnedWindows.ToArray()) dialog.Close(); Close(window, model); }
+    }
     private static (Window Window, ScriptStudioView View, ScriptStudioViewModel Model) Open(bool active, int failures = 0)
     {
         MaaProcessor.Processors.Clear(); MaaProcessor.Processors.Add(new() { IsTaskRunActive = active });

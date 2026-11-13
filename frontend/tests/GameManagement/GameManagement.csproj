@@ -4,6 +4,7 @@
     <ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../../ScriptStudio/Services/BoxStartupAttempt.cs" Link="BoxStartupAttempt.cs" />
     <Compile Include="../../ScriptStudio/Controls/PlayerUi.cs" Link="PlayerUi.cs" />
     <PackageReference Include="Avalonia.Headless" Version="11.3.12" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.12" />

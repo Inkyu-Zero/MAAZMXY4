@@ -10,6 +10,10 @@
 
 用户操作说明见 [脚本工具使用说明](../docs/zh_cn/脚本工具-使用说明.md)。
 
+首次页面说明分为任务页、脚本库与录制、时间轴编辑、备份与升级四段。新安装在首次空闲进入时展示；已有配置不补弹，可从设置中的原“新手引导”入口选择重看。上一步、下一步、跳过和完成只控制说明，不连接游戏或执行任务；开始业务、切页或卸载时收起，中断位置按页保留。目标隐藏时显示无箭头文字，不自动展开、滚动或加载脚本；只有主动重看可以导航到选定页面，并沿用草稿离开确认。
+
+引导复用固定框架的提示组件和定位计算，由本地覆盖层替换旧的跨页流程，补丁 `82` 在恢复个人配置后、宿主初始化前识别新安装。`PageTours.Progress` 存入宿主当前配置，跨实例共享，保留旧引导标记和未知字段。离线回归入口为 `frontend/tests/PageTours/PageTours.csproj`，脚本页的锚点和草稿保护另由 `frontend/tests/StudioPage` 覆盖。
+
 主线关卡使用宿主现有的“＋”添加窗口和地图分组。补丁 `74`—`76` 增加可空的 `default_add` 字段：省略时维持旧任务自动加入，`false` 时仅供主动添加；克隆、资源合并和队列重载保留该字段及已选任务。前端与包含 62 关任务定义的资源必须配套更新，旧前端不认识该字段。真实加载器和“＋”窗口的无界面回归位于 `tests/TaskOptions`。
 
 开发中的原生倍速复用任务选项与脚本播放时间线：`NativeBoxSpeedSession` 按队列任务持有独立脚本服务，补丁 `77`—`80` 使清理在所有轮次结束后、成功发布前完成。`agent/box_speed_native.py` 仅在切换时使用 Maa 后台输入和中心 ROI OCR，确认后释放截图控制器；播放前校验进程、窗口、脚本哈希，默认 1 倍清空上次确认且不启动倍速服务。正常任务和通用播放共用该生命周期，导航路由与识别策略不变，进关按压按已确认倍率应用 100/50 毫秒。倍速服务关闭允许有界等待恢复，原录制服务的关闭期限不变；恢复失败阻止队列继续。回归入口为 `tests/test_box_speed*.py`、`tests/test_script_playback.py`、`tests/TaskOptions` 和 `tests/StudioClient`。内存 OCR 与协议测试不替代真实游戏手测。
@@ -23,6 +27,8 @@
 `upstream.json` 固定 MFAAvalonia 提交、源码归档 SHA-256 和构建入口，依赖版本以该清单和固定源码为准。`ScriptStudio/` 内的文件按 MFAAvalonia Core 项目目录布局存放。构建脚本将其复制到下载源码的 `MFAAvalonia/` 下，纯 C# `UserControl` 也可使用，不要求额外的 `.axaml` 文件。
 
 需要 .NET 10 SDK；仅安装 .NET Runtime 无法编译。脚本优先使用 `.runtime-cache/dotnet-sdk/dotnet.exe`，也可通过 `-DotnetPath` 指定。
+
+本地构建可用 `-CacheDirectory <源码树外目录>` 指定源码下载和编译缓存，配合 `-OutputDirectory` 将产物与日常客户端分开。游戏管理的应用启动钩子在宿主载入当前实例后只尝试一次盒子启动，失败仅记录日志；不接入任务启动检查，也不修改任务自动执行配置。
 
 ```powershell
 # 下载、校验固定源码，应用补丁并复制页面源码，不编译。
@@ -72,11 +78,15 @@ $version = (Get-Content assets/interface.json -Raw | ConvertFrom-Json).version
 ./tools/build_launcher.ps1 -Version $version
 python tools/runtime_check.py
 ./tools/build_mouse_guard.ps1 -OutputDirectory "<源码树外的原生模块输出目录>"
-python tools/build_release.py --client --launcher "dist/launcher/MAA造梦西游4.exe" --mouse-guard "<原生模块输出目录>" --frontend "<编译输出目录>" --python-runtime "<完整内嵌Python目录>" --repository "<发布者>/<仓库>"
+python tools/build_release.py --client --launcher "dist/launcher/MAA造梦西游4.exe" --mouse-guard "<原生模块输出目录>" --frontend "<编译输出目录>" --python-runtime "<完整内嵌Python目录>" --box-zip "<官方zmBox_x64.zip>" --repository "<发布者>/<仓库>"
 python tools/build_release.py --verify-client "<完整包解压目录>"
 ```
 
 输出 `dist/MAAZMXY4-v<资源版本>-win-x64.zip`，不会覆盖已有同名包。`--frontend` 可指定 CI 前端附件的解压目录。启动器、前端、完整内嵌 Python、项目资源及依赖安装 BAT 均被显式收集；个人配置、录制和日志不作为公共内容打包。`--verify-client` 检查解压后的启动器、必需依赖文件、公共任务及录制返回确认节点，不能替代下方的实际功能探针和启动验收。`runtime_check.py` 默认检查源码树下的 `runtimes/python/`；若打包使用另一个运行时，必须另外检查实际输入及最终包。
+
+完整客户端同时收集 `tools/installer/box.json` 固定的官方 v1.9 x64 ZIP，包含 AIR 51.2.2.6 x64。程序内容原样保留，EXE 统一为 `造梦盒子/zmBox.exe`；根目录 `bundled-box.json` 记录来源和逐文件摘要，盒子目录内保留原有 AIR 文件和第三方说明。安装 EXE 从同一完整 ZIP 生成，不在用户安装时另行下载盒子。安装器仍不自动启动客户端；自动打开盒子只发生在用户启动小助手时。
+
+脚本文件夹保存在用户 `recordings/.folders.json`，只记录分组标识和成员，不移动或改写录制文件。拖动及分组重命名不改变回放哈希和绑定；删除复用库锁、修订校验、回收与失败回滚。损坏的分组索引仅提示，不妨碍原有脚本读取、任务执行或改名，不自动重置索引。
 
 单文件 EXE 使用 Inno Setup 图形安装器，输入仍是同一份已验证完整 ZIP：
 

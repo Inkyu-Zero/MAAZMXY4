@@ -1,0 +1,6 @@
+{
+  "description": "Capture new-install evidence after personal restore and before configuration initialization",
+  "path": "MFAAvalonia.Desktop/Program.cs",
+  "find": "            AppRuntime.Initialize(args, instanceKey);",
+  "replace": "            MFAAvalonia.Services.PageTourConfiguration.CaptureFirstRun(AppPaths.ConfigDirectory, AppPaths.GlobalConfigPath);\n            AppRuntime.Initialize(args, instanceKey);"
+}

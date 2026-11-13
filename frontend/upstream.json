@@ -51,7 +51,6 @@
     "frontend/patches/35-game-database-registration.json",
     "frontend/patches/36-game-management-card.json",
     "frontend/patches/37-task-description-in-settings.json",
-    "frontend/patches/38-disable-first-use-tutorial.json",
     "frontend/patches/39-game-management-lifetime.json",
     "frontend/patches/40-game-reconnect-preview.json",
     "frontend/patches/41-liveview-target-change.json",
@@ -94,6 +93,8 @@
     "frontend/patches/77-task-owned-cleanup.json",
     "frontend/patches/78-task-success-after-cleanup.json",
     "frontend/patches/79-native-speed-task-session.json",
-    "frontend/patches/80-speed-switch-preview-description.json"
+    "frontend/patches/80-speed-switch-preview-description.json",
+    "frontend/patches/81-box-startup.json",
+    "frontend/patches/82-page-tour-startup.json"
   ]
 }

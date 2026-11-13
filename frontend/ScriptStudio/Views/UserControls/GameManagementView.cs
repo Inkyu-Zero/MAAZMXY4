@@ -25,6 +25,7 @@ public sealed class GameManagementView : UserControl
     private readonly TextBox _role = new() { Watermark = "用于核对存档的角色名" };
     private readonly ComboBox _slot = new() { ItemsSource = new[] { "存档 1", "存档 2", "存档 3", "存档 4", "存档 5", "存档 6", "存档 7", "存档 8" }, SelectedIndex = 0 };
     private readonly TextBlock _savedState = Text("当前生效：未启用自动重启", 12);
+    private readonly TextBlock _bindingState = Text("", 12);
     private readonly TextBlock _feedback = Text("重启开关即时保存；程序与存档修改后请保存设置。", 12);
     private bool _busy;
     private bool _loading;
@@ -34,18 +35,32 @@ public sealed class GameManagementView : UserControl
     {
         PlayerUi.Apply(this);
         var panel = new StackPanel { Spacing = 14, Margin = new Thickness(2, 4, 8, 8) };
-        panel.Children.Add(Text("先保存连接与存档，再选择重启条件。挂机与战败重试在任务设置中调整。", 13));
+        var actions = new WrapPanel();
+        actions.Children.Add(Button("启动并连接盒子", async () =>
+        {
+            await Service().StartAsync();
+            _feedback.Text = Service().Options.HasLogin ? "盒子已连接，恢复结果见日志。" : "盒子窗口已连接，请在盒子内完成登录。";
+        }));
+        actions.Children.Add(Button("重启盒子", async () =>
+        {
+            await Service().RequestRestartAsync(); _feedback.Text = "已处理重启请求，进度见日志。";
+        }));
+        actions.Children.Add(Button("关闭盒子", async () =>
+        {
+            await Service().CloseAsync(); _feedback.Text = "盒子已关闭。";
+        }));
+        panel.Children.Add(actions);
+        panel.Children.Add(_bindingState);
+        panel.Children.Add(_savedState);
+        panel.Children.Add(_feedback);
         var policies = new StackPanel { Spacing = 8 };
-        policies.Children.Add(Title("2. 重启与续跑"));
-        policies.Children.Add(_savedState);
+        policies.Children.Add(Title("自动维护"));
         foreach (var check in new[] { _failure, _memory, _interval })
         {
             check.Content = Text(check.Content?.ToString() ?? "", 13);
             check.MinHeight = 32;
             check.IsCheckedChanged += async (_, _) => await SavePolicyChange();
         }
-        policies.Children.Add(_failure);
-        policies.Children.Add(Text("先在游戏内完成战败重试。重试耗尽或返回流程无法恢复时，才重启盒子并继续未完成的轮次。", 12));
         policies.Children.Add(_memory);
         policies.Children.Add(_interval);
         var interval = new WrapPanel { Orientation = Orientation.Horizontal };
@@ -58,34 +73,38 @@ public sealed class GameManagementView : UserControl
         foreach (var child in interval.Children) child.Margin = new Thickness(0, 0, 8, 6);
         policies.Children.Add(interval);
         var login = new StackPanel { Spacing = 8 };
-        login.Children.Add(Title("1. 连接与存档"));
-        login.Children.Add(Text("盒子程序", 12));
-        login.Children.Add(_exe);
+        login.Children.Add(Title("账号与续跑"));
+        login.Children.Add(Text("首次使用可直接启动盒子并手动登录；需要自动登录和续跑时，再填写以下信息。", 12));
+        var binding = new StackPanel { Spacing = 8 };
+        binding.Children.Add(Title("盒子绑定"));
+        binding.Children.Add(Text("盒子程序", 12));
+        binding.Children.Add(_exe);
         var paths = new WrapPanel();
         paths.Children.Add(Button("选择 EXE", ChooseExe));
+        paths.Children.Add(Button("使用内置盒子", () => { _exe.Text = Service().BundledExePath; return Task.CompletedTask; }));
         paths.Children.Add(Button("使用已选窗口", () =>
         {
             if (Page != null) _exe.Text = GameManagementService.For(Page.Processor).SelectedExePath();
             return Task.CompletedTask;
         }));
-        login.Children.Add(paths);
+        binding.Children.Add(paths);
+        binding.Children.Add(Text("改绑后点击“保存设置”。启动、重启和关闭始终使用已保存的绑定。", 12));
         login.Children.Add(Text("历史账号名称", 12));
         login.Children.Add(_account);
         login.Children.Add(Text("角色名称与存档位置", 12));
         var roleRow = new Grid { ColumnDefinitions = new ColumnDefinitions("*,110"), ColumnSpacing = 8 };
         roleRow.Children.Add(_role); Grid.SetColumn(_slot, 1); _slot.HorizontalAlignment = HorizontalAlignment.Stretch;
         roleRow.Children.Add(_slot); login.Children.Add(roleRow);
+        login.Children.Add(_failure);
+        login.Children.Add(Text("失败重试耗尽后才重启续跑，每轮最多 3 次。挂机与战败重试仍在任务设置中调整。", 12));
         login.Children.Add(Button("保存设置", Save));
         panel.Children.Add(Section(login));
         policies.Children.Add(Text("内存与定时重启会等待本轮结束。已完成轮数保留；同一轮连续恢复 3 次仍失败时停止并提示。", 12));
-        panel.Children.Add(Section(policies));
-        panel.Children.Add(_feedback);
-        panel.Children.Add(Title("手动操作"));
-        var actions = new WrapPanel();
-        actions.Children.Add(Button("启动并连接", async () => { await Save(); await Service().StartAsync(); }));
-        actions.Children.Add(Button("重启", async () => { if (Page?.Processor.IsTaskRunActive != true) await Save(); await Service().RequestRestartAsync(); }));
-        actions.Children.Add(Button("关闭盒子", async () => { await Save(); await Service().CloseAsync(); }));
-        panel.Children.Add(actions);
+        var advanced = new StackPanel { Spacing = 14 };
+        advanced.Children.Add(Section(binding)); advanced.Children.Add(Section(policies));
+        advanced.Children.Add(Button("保存设置", Save));
+        panel.Children.Add(new Expander { Header = "高级设置", IsExpanded = false, Content = advanced,
+            HorizontalAlignment = HorizontalAlignment.Stretch, HorizontalContentAlignment = HorizontalAlignment.Stretch });
         foreach (var field in new[] { _exe, _account, _role, _minutes })
             field.TextChanged += (_, _) => ShowDraftHint();
         _slot.SelectionChanged += (_, _) => ShowDraftHint();
@@ -113,6 +132,7 @@ public sealed class GameManagementView : UserControl
         if (options.RestartOnMemory) enabled.Add("内存超限");
         if (options.RestartOnInterval) enabled.Add($"每 {options.IntervalMinutes} 分钟");
         _savedState.Text = "当前生效：" + (enabled.Count == 0 ? "未启用自动重启" : string.Join("、", enabled) + "时重启");
+        _bindingState.Text = options.UseBundledBox ? "当前绑定：内置造梦盒子" : "当前绑定：自定义盒子";
         _minutes.IsEnabled = options.RestartOnInterval;
     }
 
@@ -165,7 +185,7 @@ public sealed class GameManagementView : UserControl
 
     private void ShowError(Exception error)
     {
-        _feedback.Text = "未保存：" + error.Message;
+        _feedback.Text = "操作提示：" + error.Message;
         Page?.Processor.AddLog("游戏管理：" + error.Message);
     }
 
@@ -206,11 +226,14 @@ public sealed class GameManagementView : UserControl
     private Task Save()
     {
         var minutes = _interval.IsChecked == true ? ReadMinutes() : Service().Options.IntervalMinutes;
-        Service().Save(new GameManagementOptions
+        var saved = Service().Options;
+        var path = _exe.Text?.Trim() ?? "";
+        Service().Save(saved with
         {
             RestartOnFailure = _failure.IsChecked == true, RestartOnMemory = _memory.IsChecked == true,
             RestartOnInterval = _interval.IsChecked == true, IntervalMinutes = minutes,
-            ExePath = _exe.Text?.Trim() ?? "", AccountName = _account.Text?.Trim() ?? "",
+            ExePath = path, UseBundledBox = string.IsNullOrWhiteSpace(path) || string.Equals(path, Service().BundledExePath, StringComparison.OrdinalIgnoreCase),
+            AccountName = _account.Text?.Trim() ?? "",
             RoleName = _role.Text?.Trim() ?? "", SaveSlot = _slot.SelectedIndex + 1
         });
         ShowSavedPolicy(Service().Options);

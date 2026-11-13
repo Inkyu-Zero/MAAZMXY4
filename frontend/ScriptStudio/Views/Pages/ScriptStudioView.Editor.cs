@@ -95,6 +95,7 @@ public sealed partial class ScriptStudioView
         extras.Flyout = menu; toolbar.Children.Add(extras);
         foreach (var control in toolbar.Children) control.Margin = new Thickness(0, 0, 4, 0);
         var bar = new Border { Child = toolbar, Background = new SolidColorBrush(Color.Parse("#202733")), CornerRadius = new CornerRadius(7), Padding = new Thickness(6) };
+        bar.Name = "TourScriptToolbar";
         Grid.SetRow(bar, 1); layout.Children.Add(bar);
         _editorShell = new Grid { ColumnDefinitions = new ColumnDefinitions("200,8,*") };
         _editorLibraryHost = Card(BuildLibraryPane(_editorLibrary, _editorSearch, true));

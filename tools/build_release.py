@@ -204,13 +204,16 @@ def validate_client_resources(root):
     return checked
 
 
-def validate_client(root):
+def validate_client(root, *, require_box=False):
     """Check the extracted client, direct launcher and bundled Python runtime."""
     root = Path(root)
     validate_launcher(root / LAUNCHER_NAME)
     require_paths(root, FRONTEND_REQUIRED + ('agent/main.py',), '完整客户端')
     validate_mouse_guard(root / NATIVE_FOLDER)
     require_paths(root / 'runtimes/python', PYTHON_REQUIRED, '内嵌 Python')
+    if require_box or (root / 'bundled-box.json').exists():
+        from bundled_box import verify
+        verify(root)
     return validate_client_resources(root)
 
 
@@ -281,7 +284,7 @@ def client_files(root, frontend, python_runtime, launcher, mouse_guard=None):
 
 
 def build_client(root, frontend, python_runtime, destination, launcher, *, client_version=None,
-                 repository='Inkyu-Zero/MAAZMXY4', channel='stable', manifest_urls=None, mouse_guard=None):
+                 repository='Inkyu-Zero/MAAZMXY4', channel='stable', manifest_urls=None, mouse_guard=None, box_zip=None):
     """Create a verified full client ZIP without overwriting any existing output."""
     import tempfile
     files = client_files(root, frontend, python_runtime, launcher, mouse_guard)
@@ -290,8 +293,10 @@ def build_client(root, frontend, python_runtime, destination, launcher, *, clien
     destination = Path(destination)
     destination.parent.mkdir(parents=True, exist_ok=True)
     # Validate the exact assembled resources, not root's optional runtime copy.
-    with tempfile.TemporaryDirectory() as temporary:
+    with tempfile.TemporaryDirectory(prefix='client-stage-', dir=destination.parent) as temporary:
         stage = Path(temporary)
+        from bundled_box import assemble
+        files += assemble(box_zip, stage)
         import shutil
         for source, relative in files:
             if relative == 'interface.json' or relative.startswith('resource/'):
@@ -299,11 +304,11 @@ def build_client(root, frontend, python_runtime, destination, launcher, *, clien
                 target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(source, target)
         validate_client_resources(stage)
-    with zipfile.ZipFile(destination, 'x', zipfile.ZIP_DEFLATED) as archive:
-        for source, relative in files:
-            archive.write(source, relative)
-        # MaaFramework requires the optional plugin directory to exist.
-        archive.writestr('runtimes/win-x64/native/plugins/', b'')
+        with zipfile.ZipFile(destination, 'x', zipfile.ZIP_DEFLATED) as archive:
+            for source, relative in files:
+                archive.write(source, relative)
+            # MaaFramework requires the optional plugin directory to exist.
+            archive.writestr('runtimes/win-x64/native/plugins/', b'')
     return destination
 
 # (仓库内源路径, 包内路径)
@@ -455,6 +460,7 @@ def main() -> int:
     ap.add_argument("--python-runtime", default="runtimes/python", help="已准备好的内嵌 Python 目录")
     ap.add_argument("--launcher", help="build_launcher.ps1 生成的启动器，旁边须有 launcher-build.json")
     ap.add_argument("--mouse-guard", help="build_mouse_guard.ps1 的输出目录；默认取前端 native 目录")
+    ap.add_argument("--box-zip", help="固定官方造梦盒子 x64 ZIP（完整客户端必需，包含 AIR）")
     ap.add_argument("--repository", default="Inkyu-Zero/MAAZMXY4", help="完整客户端更新仓库；fork 候选必须显式指定 fork")
     ap.add_argument("--channel", choices=('stable', 'preview'), default='stable')
     ap.add_argument("--manifest-url", action='append', help="此渠道实际版本清单地址，可多次指定")
@@ -462,7 +468,7 @@ def main() -> int:
     args = ap.parse_args()
 
     if args.verify_client:
-        checked = validate_client(args.verify_client)
+        checked = validate_client(args.verify_client, require_box=True)
         print(f'完整客户端入口与依赖齐备，已验证 {len(checked)} 个任务的录制返回确认流程。')
         return 0
 
@@ -476,7 +482,8 @@ def main() -> int:
         destination = root / args.out / f'MAAZMXY4-v{version}-win-x64.zip'
         print(build_client(root, root/args.frontend, root/args.python_runtime, destination, root/args.launcher,
                            client_version=version, repository=args.repository, channel=args.channel,
-                           manifest_urls=args.manifest_url, mouse_guard=root/args.mouse_guard if args.mouse_guard else None))
+                           manifest_urls=args.manifest_url, mouse_guard=root/args.mouse_guard if args.mouse_guard else None,
+                           box_zip=root/args.box_zip if args.box_zip else None))
         return 0
 
     version = args.version

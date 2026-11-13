@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Collections.Generic;
 
 namespace MFAAvalonia.Services;
@@ -18,11 +19,19 @@ public sealed record GameManagementOptions
     public bool RestartOnInterval { get; init; }
     public int IntervalMinutes { get; init; } = 60;
     public string ExePath { get; init; } = "";
+    public bool UseBundledBox { get; init; }
     public string AccountName { get; init; } = "";
     public int SaveSlot { get; init; } = 1;
     public string RoleName { get; init; } = "";
+    [JsonExtensionData] public Dictionary<string, JsonElement>? Extra { get; init; }
+    [JsonIgnore] public bool HasLogin => !string.IsNullOrWhiteSpace(AccountName) && AccountName.Length <= 100
+        && !string.IsNullOrWhiteSpace(RoleName) && RoleName.Length <= 100;
     public bool Enabled => RestartOnFailure || RestartOnMemory || RestartOnInterval;
     public const long MemoryLimitBytes = 1_800_000_000; // 1.8 GB, decimal bytes.
+
+    public static string BundledExePath(string root) => Path.GetFullPath(Path.Combine(root, "造梦盒子", "zmBox.exe"));
+    public GameManagementOptions WithBundledDefault(string root) => UseBundledBox || string.IsNullOrWhiteSpace(ExePath)
+        ? this with { ExePath = BundledExePath(root), UseBundledBox = true } : this;
 
     public void Validate(bool requireTarget = false, bool requireLogin = true)
     {

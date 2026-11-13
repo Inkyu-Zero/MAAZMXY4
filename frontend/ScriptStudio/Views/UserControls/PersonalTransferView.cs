@@ -31,7 +31,9 @@ public sealed class PersonalTransferView : UserControl
         panel.Children.Add(new TextBlock { Text = "将已保存的设置、任务次数与勾选、录制脚本、绑定和布局导出为一个 ZIP 备份。升级后，在新助手中导入即可迁移。导出前请先保存脚本并停止任务和录制。", TextWrapping = Avalonia.Media.TextWrapping.Wrap });
         _actions.Children.Add(new TextBlock { Text = "ZIP 压缩与解压已内置，无需安装或选择任何压缩工具。备份包含个人设置与路径，请妥善保存。", TextWrapping = Avalonia.Media.TextWrapping.Wrap, Opacity = .75 });
         var buttons = new WrapPanel { Orientation = Orientation.Horizontal };
-        buttons.Children.Add(Button("导出 ZIP…", PickExportAsync)); buttons.Children.Add(Button("导入 ZIP…", PickImportAsync));
+        var export = Button("导出 ZIP…", PickExportAsync); export.Name = "TourExportBackup";
+        var import = Button("导入 ZIP…", PickImportAsync); import.Name = "TourImportBackup";
+        buttons.Children.Add(export); buttons.Children.Add(import);
         _actions.Children.Add(buttons); _actions.Children.Add(_confirm); _actions.Children.Add(_cancel);
         _confirm.Click += async (_, _) => await RunAsync(ConfirmImportAsync);
         _cancel.Click += async (_, _) => await RunAsync(() => { _transfer.CancelPending(); ResetPreview(); Refresh(); return Task.CompletedTask; });
