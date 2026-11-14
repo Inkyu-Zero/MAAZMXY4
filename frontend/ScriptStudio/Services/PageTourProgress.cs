@@ -73,6 +73,21 @@ public sealed class PageTourProgress
         catch (Exception error) { _log("引导进度未保存：" + error.Message); }
     }
 
+    public static string ResetPages(string? json, IEnumerable<string> pages)
+    {
+        JsonObject state;
+        try { state = JsonNode.Parse(json ?? "{}") as JsonObject ?? new JsonObject(); }
+        catch { state = new JsonObject(); }
+        state["version"] = 1; state["automatic"] = true;
+        if (state["pages"] is not JsonObject records) { records = new JsonObject(); state["pages"] = records; }
+        foreach (var page in pages)
+        {
+            if (records[page] is not JsonObject record) { records.Remove(page); continue; }
+            record["version"] = 1; record["status"] = "reading"; record["step"] = "";
+        }
+        return state.ToJsonString();
+    }
+
     public static bool IsFreshConfiguration(string directory, string globalFile)
     {
         try { return !File.Exists(globalFile) && (!Directory.Exists(directory) || !Directory.EnumerateFiles(directory, "*.json", SearchOption.AllDirectories).Any()); }

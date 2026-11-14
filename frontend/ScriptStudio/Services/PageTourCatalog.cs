@@ -25,7 +25,7 @@ public static class PageTourCatalog
                 Step("connection", "连接游戏窗口", "选择你正在使用的造梦盒子窗口，然后连接。连接后核对预览画面，并保持游戏窗口非最小化。"),
                 Step("task_list", "选择任务", "勾选任务决定运行哪些内容；点击任务名称查看设置。“＋”可以添加更多可用任务。", TipPlacement.Right),
                 Step("task_settings", "调整任务设置", "在这里设置轮数、挂机等选项，并展开“使用说明”查看准备要求。需要战斗脚本的任务，请先到“脚本工具”录制并绑定。", TipPlacement.Left),
-                Step("game_management", "管理游戏", "这里可以“启动并连接盒子”、重启或关闭盒子。展开高级设置可更改盒子绑定与自动重启；挂机与自动重启分别设置。", TipPlacement.Left),
+                Step("game_management", "管理游戏", "这里可以“启动并连接盒子”、重启或关闭盒子，并设置三项自动维护。展开高级设置可更改盒子绑定；挂机在任务设置中调整。", TipPlacement.Left),
                 Step("run_stop", "开始与停止", "准备好后，从这里启动任务队列。需要中止运行时，再点击停止。"),
                 Step("logs", "查看运行情况", "这里显示任务进展和停止原因。遇到问题时，先查看最近的提示，也可以导出日志帮助排查。", TipPlacement.Top)
             },

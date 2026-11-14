@@ -15,6 +15,7 @@
     <Compile Include="../../ScriptStudio/Services/PageTourConfiguration.cs" Link="PageTourConfiguration.cs" />
     <Compile Include="../../ScriptStudio/Services/PageTourCatalog.cs" Link="PageTourCatalog.cs" />
     <Compile Include="../../ScriptStudio/Services/PageTourHost.cs" Link="PageTourHost.cs" />
+    <Compile Include="../../ScriptStudio/Views/UserControls/PageTourResetView.cs" Link="PageTourResetView.cs" />
     <Compile Include="../../ScriptStudio/Views/UserControls/TeachingTipOverlay.axaml.cs" Link="TeachingTipOverlay.axaml.cs" />
     <AvaloniaResource Include="../../ScriptStudio/Views/UserControls/TeachingTipOverlay.axaml" Link="TeachingTipOverlay.axaml" />
   </ItemGroup>

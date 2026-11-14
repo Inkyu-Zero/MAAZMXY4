@@ -125,7 +125,8 @@ public sealed partial class ScriptStudioView
 
     private Control BuildLibraryRow(JsonNode item, bool compact)
     {
-        var row = new Grid { ColumnDefinitions = new ColumnDefinitions(compact ? "*" : "*,160,Auto,Auto"), ColumnSpacing = 8,
+        var row = new Grid { Name = "LibraryScriptRow", Background = Brushes.Transparent,
+            ColumnDefinitions = new ColumnDefinitions(compact ? "*" : "*,160,Auto,Auto"), ColumnSpacing = 8,
             Margin = new Thickness(item["folder_id"] != null ? 25 : 5, 6, 5, 6), MinHeight = 42 };
         var info = new StackPanel { Spacing = 3, VerticalAlignment = VerticalAlignment.Center };
         info.Children.Add(new TextBlock { Text = item["name"]?.GetValue<string>(), FontWeight = FontWeight.SemiBold, TextTrimming = TextTrimming.CharacterEllipsis });
@@ -134,7 +135,7 @@ public sealed partial class ScriptStudioView
         var error = item["error"]?.GetValue<string>();
         ToolTip.SetTip(info, string.IsNullOrEmpty(error) ? item["description"]?.GetValue<string>() : error);
         row.Children.Add(info);
-        WireScriptDrag(info, item, compact);
+        WireScriptDrag(row, item, compact);
         if (compact) return row;
         var associations = item["bindings"]?.AsArray() ?? new JsonArray();
         var bind = Button(associations.Count == 0 ? "绑定任务…" : associations.Count == 1 ? associations[0]!["label"]!.GetValue<string>() : $"已绑定 {associations.Count} 个任务", () => Task.CompletedTask);

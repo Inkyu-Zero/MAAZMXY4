@@ -25,7 +25,9 @@ internal static class Program
         AppBuilder.Configure<TestApplication>().UseSkia().UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
         var failed = 0;
         var tests = new Action[] { FirstOpenDuringTask, RefreshAndMutationGuard, RetryFailedInitialization, RecordingUsesCurrentTaskController, NoImplicitRecordingTarget, RenameCancelCollisionAndSave, RenameOtherFileKeepsEditorState, DurationTextApplies, DurationTextSavesWithoutExtraApply, TimelineBoxSelectMoveAndCancel, TimelineDocumentChangeCancelsGesture, EditorBatchRequestsAndTaskGuard, DiscardRecordingStatesAndRestart, DiscardStoppedDraftAndProtectSavedScript, DiscardFailureCanRetry, DiscardIgnoresLateStatusAndSaveRequest, TerminalPollLocksUntilDraftIsReady, RecordingActionLayout, RecordingDiscardClickModes, RecordingDoubleClickCancellationAndRetry };
-        tests=tests.Concat([TimelineClipboardShortcuts, DialogThemeAndDismissal, FolderListDragAndDelete, FolderCreateAndRename, GuideTargetsAndDirtyReplay]).ToArray();
+        tests=tests.Concat([TimelineClipboardShortcuts, DialogThemeAndDismissal, FolderListDragAndDelete, FolderCreateAndRename, GuideTargetsAndDirtyReplay, LibraryRowDragHitRegion, FolderDragPreviewAndCancellation]).ToArray();
+        if (Environment.GetEnvironmentVariable("STUDIO_TEST_FILTER") is { } filter)
+            tests = tests.Where(test => test.Method.Name.Contains(filter, StringComparison.Ordinal)).ToArray();
         foreach (var test in tests)
         {
             try { test(); Console.WriteLine("PASS " + test.Method.Name); }
@@ -570,6 +572,86 @@ internal static class Program
     private static Task InvokeView(ScriptStudioView view, string name, params object?[] args) =>
         (Task)typeof(ScriptStudioView).GetMethod(name, BindingFlags.Instance | BindingFlags.NonPublic)!.Invoke(view, args)!;
 
+    private static void LibraryRowDragHitRegion()
+    {
+        var (window, view, model) = Open(false);
+        try
+        {
+            Draw(window);
+            var list = Field<ListBox>(view, "_library");
+            var binding = list.GetVisualDescendants().OfType<Button>().First(b => b.Name == "ScriptTaskBinding");
+            var row = binding.GetVisualAncestors().OfType<Grid>().First();
+            var info = row.Children.OfType<StackPanel>().First();
+            var point = row.TranslatePoint(new Point(info.Bounds.Right - 12, row.Bounds.Height - 2), window)!.Value;
+            IInputElement? captured = null;
+            window.AddHandler(InputElement.PointerPressedEvent, (_, e) => captured = e.Pointer.Captured, RoutingStrategies.Bubble, true);
+            var calls = model.Client.Calls.Count;
+            window.MouseDown(point, MouseButton.Left);
+            var capturedRow = ReferenceEquals(captured, row);
+            var noEagerLoad = !model.Client.Calls.Skip(calls).Contains("load") && row.GetVisualRoot() != null;
+            window.MouseUp(point, MouseButton.Left); Draw(window);
+            Check(capturedRow, "The entire non-button row must capture a drag, including blank space beyond the title");
+            Check(noEagerLoad, "Pointer down must not load a script or detach the pressed row");
+            view.SelectGuidePage("timeline_editor"); Draw(window);
+            var compact = Field<ListBox>(view, "_editorLibrary");
+            var compactRow = compact.GetVisualDescendants().OfType<Grid>().First(g => g.Name == "LibraryScriptRow");
+            var compactPoint = compactRow.TranslatePoint(new Point(compactRow.Bounds.Width - 3, compactRow.Bounds.Height - 2), window)!.Value;
+            window.MouseDown(compactPoint, MouseButton.Left);
+            Check(ReferenceEquals(captured, compactRow), "The compact editor library uses the same full-row drag region");
+            InvokeView(view, "RefreshLibraryAsync").GetAwaiter().GetResult();
+            var beforeRelease = model.Client.Calls.Count;
+            window.MouseUp(compactPoint, MouseButton.Left); Draw(window);
+            Check(!model.Client.Calls.Skip(beforeRelease).Contains("load"), "A refreshed/detached row cancels its pending click");
+        }
+        finally { Close(window, model); }
+    }
+    private static void FolderDragPreviewAndCancellation()
+    {
+        var (window, view, model) = Open(false);
+        var listing = JsonNode.Parse("""{"items":[{"name":"日常刷关脚本","file":"user.json","revision":"saved","duration_ms":5200,"event_count":12}],"folders":[{"id":"first","name":"关卡脚本","count":0}],"tasks":[],"folder_revision":"groups","binding_revision":"bindings"}""")!;
+        model.Client.Handler = (method, _) => method == "list" ? Task.FromResult(listing.DeepClone()) : null;
+        try
+        {
+            InvokeView(view, "RefreshLibraryAsync").GetAwaiter().GetResult(); Draw(window);
+            var list = Field<ListBox>(view, "_library");
+            var row = list.GetVisualDescendants().OfType<Grid>().Single(g => g.Name == "LibraryScriptRow");
+            var target = list.GetVisualDescendants().OfType<Grid>().Single(g => Equals(g.Tag, "first"));
+            var headers = list.GetVisualDescendants().OfType<Grid>().Where(g => g.Name == "LibraryFolderRow").ToArray();
+            Check(headers.All(h => h.Children.OfType<Button>().First().BorderThickness == new Thickness(0)), "Folder headers are flat rows, not large outlined buttons");
+            Check(!list.GetVisualDescendants().OfType<TextBlock>().Any(t => t.Text?.Contains("拖到此处") == true), "Root header has no persistent instruction text");
+            var calls = model.Client.Calls.Count;
+            var bind = row.Children.OfType<Button>().Single(b => b.Name == "ScriptTaskBinding");
+            IInputElement? captured = null;
+            window.AddHandler(InputElement.PointerPressedEvent, (_, e) => captured = e.Pointer.Captured, RoutingStrategies.Bubble, true);
+            var buttonPoint = bind.TranslatePoint(new Point(20, 15), window)!.Value;
+            window.MouseDown(buttonPoint, MouseButton.Left);
+            Check(!ReferenceEquals(captured, row), "Binding buttons retain their own pointer handling");
+            window.MouseUp(new Point(1, 1), MouseButton.Left); Draw(window);
+            void Begin() => typeof(ScriptStudioView).GetMethod("BeginScriptDragVisual", BindingFlags.Instance | BindingFlags.NonPublic)!
+                .Invoke(view, [row, listing["items"]![0]!, new Point(100, 100)]);
+            void Clear() => typeof(ScriptStudioView).GetMethod("ClearScriptDragVisual", BindingFlags.Instance | BindingFlags.NonPublic)!.Invoke(view, null);
+            Begin(); Draw(window);
+            var preview = Field<Canvas>(view, "_scriptDragVisual");
+            var card = Field<Border>(view, "_scriptDragCard"); var oldX = Canvas.GetLeft(card);
+            Check(!preview.IsHitTestVisible && row.Opacity < 1, "Drag preview passes through pointer input and dims the original row");
+            var format = (DataFormat<string>)typeof(ScriptStudioView).GetField("ScriptDragFormat", BindingFlags.Static | BindingFlags.NonPublic)!.GetValue(null)!;
+            var transfer = new DataTransfer(); transfer.Add(DataTransferItem.Create(format, Field<string>(view, "_dragOwner") + "\nuser.json"));
+            var point = target.TranslatePoint(new Point(target.Bounds.Width / 2, 18), window)!.Value;
+            window.DragDrop(point, Avalonia.Input.Raw.RawDragEventType.DragEnter, transfer, DragDropEffects.Move);
+            window.DragDrop(point, Avalonia.Input.Raw.RawDragEventType.DragOver, transfer, DragDropEffects.Move);
+            Draw(window, "folder-drag-preview.png");
+            Check(Canvas.GetLeft(card) != oldX && Field<TextBlock>(view, "_scriptDragHint").Text!.Contains("关卡脚本"), "Native drag-over updates the preview position and destination");
+            Check(target.Children.OfType<Border>().Single().BorderBrush is ISolidColorBrush brush && brush.Color.B > brush.Color.R, "The destination has an accent outline");
+            Check(!model.Client.Calls.Skip(calls).Contains("load") && !model.Client.Calls.Skip(calls).Contains("move_to_folder"), "Previewing never opens or moves a script");
+            window.DragDrop(point, Avalonia.Input.Raw.RawDragEventType.DragLeave, transfer, DragDropEffects.None);
+            Clear(); Draw(window);
+            Check(Field<Canvas?>(view, "_scriptDragVisual") == null && row.Opacity == 1, "Cancellation clears preview and restores the source row");
+            window.Width = 520; Draw(window, "folder-rows-narrow.png");
+            Begin(); window.Content = null; Draw(window);
+            Check(Field<Canvas?>(view, "_scriptDragVisual") == null && row.Opacity == 1, "Unloading the page also releases drag visuals");
+        }
+        finally { Close(window, model); }
+    }
     private static void FolderListDragAndDelete()
     {
         var (window, view, model) = Open(false);
@@ -612,7 +694,9 @@ internal static class Program
                 transfer.Add(DataTransferItem.Create(format, Field<string>(view, "_dragOwner") + "\nuser.json"));
                 var over = new DragEventArgs(DragDrop.DragOverEvent, transfer, target, default, KeyModifiers.None);
                 target.RaiseEvent(over);
-                Check(over.DragEffects == DragDropEffects.Move && target.Background != null, "Valid drop targets visibly highlight");
+                Check(over.DragEffects == DragDropEffects.Move &&
+                    target.Children.OfType<Border>().Single().BorderBrush is ISolidColorBrush brush && brush.Color.B > brush.Color.R,
+                    "Valid drop targets visibly highlight");
                 target.RaiseEvent(new DragEventArgs(DragDrop.DropEvent, transfer, target, default, KeyModifiers.None));
                 Dispatcher.UIThread.RunJobs();
             }

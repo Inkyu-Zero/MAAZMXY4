@@ -5,6 +5,9 @@ using Avalonia.Interactivity;
 using Avalonia.Themes.Fluent;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using Avalonia.Media;
+using Avalonia.Markup.Xaml.MarkupExtensions;
+using System.Reflection;
 using MFAAvalonia.Services;
 using MFAAvalonia.ViewModels.Pages;
 using MFAAvalonia.Views.UserControls;
@@ -26,12 +29,25 @@ internal static class Program
         var first = new TaskQueueViewModel(); var second = new TaskQueueViewModel();
         var control = new GameManagementView { DataContext = first };
         var window = new Window { Width = 430, Height = 940, Content = control };
+        if (Environment.GetEnvironmentVariable("GAME_MANAGEMENT_THEME_DIR") != null)
+        {
+            window.Bind(Window.BackgroundProperty, new DynamicResourceExtension("SukiCardBackground"));
+            window.Bind(Window.ForegroundProperty, new DynamicResourceExtension("SukiText"));
+        }
         window.Show(); Dispatcher.UIThread.RunJobs();
         var advanced = control.GetVisualDescendants().OfType<Expander>().Single(e => Equals(e.Header, "高级设置"));
         Require(!advanced.IsExpanded, "Advanced settings start collapsed");
         var actions = new[] { "启动并连接盒子", "重启盒子", "关闭盒子" }
             .Select(label => control.GetVisualDescendants().OfType<Button>().Single(b => Equals(b.Content, label))).ToArray();
         Require(actions.All(b => b.IsEffectivelyVisible), "All three actions are available before expanding settings");
+        var visiblePolicies = control.GetVisualDescendants().OfType<CheckBox>().ToArray();
+        Require(visiblePolicies.Length == 3 && visiblePolicies.All(c => c.IsEffectivelyVisible && !c.GetVisualAncestors().Contains(advanced)),
+            "All three automatic maintenance options remain outside advanced settings");
+        Require(actions[0].Background is ISolidColorBrush blue && blue.Color.B > blue.Color.R &&
+            actions[0].Foreground is ISolidColorBrush white && white.Color == Colors.White, "Start and connect is blue with white text");
+        Require(!control.GetVisualDescendants().OfType<TextBlock>().Any(t => t.IsEffectivelyVisible &&
+            (t.Text?.StartsWith("当前绑定：") == true || t.Text?.StartsWith("当前生效：") == true ||
+             t.Text?.StartsWith("设置已保存") == true || t.Text?.StartsWith("首次使用可直接") == true)), "Removed explanatory banners stay absent");
         advanced.IsExpanded = true; Dispatcher.UIThread.RunJobs();
         var rows = new AfkOptionControls();
         var count = new NumericUpDown { Value = 37 };
@@ -133,9 +149,27 @@ internal static class Program
     private static void Pump()
     {
         var frame = new DispatcherFrame();
-        var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(80) };
+        var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(400) };
         timer.Tick += (_, _) => { timer.Stop(); frame.Continue=false; };
         timer.Start(); Dispatcher.UIThread.PushFrame(frame);
     }
 }
-internal sealed class TestApp : Application { public override void Initialize() => Styles.Add(new FluentTheme()); }
+internal sealed class TestApp : Application
+{
+    public override void Initialize()
+    {
+        Styles.Add(new FluentTheme());
+        if (Environment.GetEnvironmentVariable("GAME_MANAGEMENT_THEME_DIR") is not { } directory) return;
+        AppDomain.CurrentDomain.AssemblyResolve += (_, args) =>
+        {
+            var path = Path.Combine(directory, new AssemblyName(args.Name).Name + ".dll");
+            return File.Exists(path) ? Assembly.LoadFrom(path) : null;
+        };
+        foreach (var entry in new[] { ("FluentAvalonia", "FluentAvalonia.Styling.FluentAvaloniaTheme"), ("SukiUI", "SukiUI.SukiTheme") })
+        {
+            var style = (Avalonia.Styling.IStyle)Activator.CreateInstance(Assembly.LoadFrom(Path.Combine(directory, entry.Item1 + ".dll")).GetType(entry.Item2)!)!;
+            if (style.GetType().GetProperty("ThemeColor") is { } color) color.SetValue(style, Enum.Parse(color.PropertyType, "Blue"));
+            Styles.Add(style);
+        }
+    }
+}

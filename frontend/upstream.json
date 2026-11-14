@@ -95,6 +95,8 @@
     "frontend/patches/79-native-speed-task-session.json",
     "frontend/patches/80-speed-switch-preview-description.json",
     "frontend/patches/81-box-startup.json",
-    "frontend/patches/82-page-tour-startup.json"
+    "frontend/patches/82-page-tour-startup.json",
+    "frontend/patches/83-page-tour-reset-settings.json",
+    "frontend/patches/84-page-tour-reset-namespace.json"
   ]
 }

@@ -24,7 +24,7 @@ internal static class Program
         catch (Exception error) { Console.WriteLine("FAIL headless setup: " + error); return 1; }
         Action[] tests = [ProgressCompatibility, StableResumeAndUnknownFields, MalformedRecordsAndWriteFailure, FreshInstallEvidence,
             ConfigScopeFence, PageLifecycleAndInstanceScope, BusyVisitAndMidTour, StepButtonsAreExplanations,
-            MissingTargetsAndNarrowLayout, PointerAndKeyboardPassThrough, PendingReplayAndUnload, ReplayOnlySelectedPage, BusyBeforeDeferredFocus, UserNavigationCancelsReplay, ThemeAndScaledTargets];
+            MissingTargetsAndNarrowLayout, PointerAndKeyboardPassThrough, PendingReplayAndUnload, ReplayOnlySelectedPage, BusyBeforeDeferredFocus, UserNavigationCancelsReplay, ThemeAndScaledTargets, ResetWaitsForRestart];
         var failures = 0;
         foreach (var test in tests)
             try { test(); Console.WriteLine("PASS " + test.Method.Name); }
@@ -111,6 +111,40 @@ internal static class Program
         ConfigurationManager.Current = new ConfigurationFixture();
         newUser.Record("task_page", "one", "completed");
         Check((string)config.Config[PageTourProgress.Key] == saved, "An old scope cannot write after switching configurations");
+    }
+
+    private static void ResetWaitsForRestart()
+    {
+        var config = new ConfigurationFixture { FileName = "reset-fixture" };
+        ConfigurationManager.Current = config;
+        config.Config[PageTourProgress.Key] = """{"version":1,"automatic":false,"extra":9,"pages":{"task_page":{"version":1,"status":"completed","step":"logs","future":7},"script_library":{"version":1,"status":"skipped","step":"binding"}}}""";
+        config.Config[ConfigurationKeys.HasCompletedFirstUseTutorial] = true;
+        config.Config["business"] = "keep";
+        var original = (string)config.Config[PageTourProgress.Key];
+        PageTourConfiguration.Current();
+        var view = new PageTourResetView();
+        var window = new Window { Content = view, Width = 400, Height = 220 }; window.Show(); Draw(window);
+        try
+        {
+            var button = ((StackPanel)view.Content!).Children.OfType<Button>().Single();
+            button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Check(PageTourConfiguration.IsResetPending, "Reset button records a next-start request");
+            Check((string)config.Config[PageTourProgress.Key] == original && !PageTourConfiguration.Current().Automatic,
+                "Clicking reset and revisiting pages must not change this session's tutorial state");
+            // Simulate a new process while retaining exactly the saved configuration.
+            ((HashSet<string>)typeof(PageTourConfiguration).GetField("OpenedScopes", BindingFlags.NonPublic | BindingFlags.Static)!.GetValue(null)!).Clear();
+            var restarted = PageTourConfiguration.Current();
+            Check(!PageTourConfiguration.IsResetPending && restarted.Automatic, "Next startup consumes the request once");
+            foreach (var page in PageTourCatalog.Pages)
+                Check(restarted.StartIndex(page.Id, PageTourCatalog.Steps(page.Id, _ => null).Select(s => s.Id).ToArray(), false) == 0,
+                    "Every known page starts over after restarting");
+            var state = JsonNode.Parse((string)config.Config[PageTourProgress.Key])!;
+            Check((int)state["extra"]! == 9 && (int)state["pages"]!["task_page"]!["future"]! == 7 &&
+                (string)config.Config["business"] == "keep" && (bool)config.Config[ConfigurationKeys.HasCompletedFirstUseTutorial], "Reset preserves unknown fields, business values and the legacy marker");
+            restarted.Record("task_page", "task_list", "reading");
+            Check(PageTourConfiguration.Current().StartIndex("task_page", ["connection", "task_list"], false) == 1, "A consumed reset does not run again");
+        }
+        finally { window.Close(); Dispatcher.UIThread.RunJobs(); }
     }
 
     private sealed class Fixture : IDisposable
