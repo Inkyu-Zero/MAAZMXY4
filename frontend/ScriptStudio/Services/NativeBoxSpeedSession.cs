@@ -60,7 +60,7 @@ public sealed class NativeBoxSpeedSession
         if (_client != null)
         {
             // Keep the owner channel alive when a user cancels, so cleanup can
-            // still request/confirm 1x instead of disposing it mid-response.
+            // still request 1x instead of disposing it mid-response.
             var status = await _client.CallAsync("box_speed_status");
             token.ThrowIfCancellationRequested();
             if (status["state"]?.GetValue<string>() == "ready")
@@ -96,13 +96,13 @@ public sealed class NativeBoxSpeedSession
                     || status["pid"]?.GetValue<int>() != selected.Process.Pid
                     || status["started_utc_ticks"]?.GetValue<long>() != selected.Process.StartedUtcTicks
                     || status["speed"]?.GetValue<int>() != _speed || status["sha256"]?.GetValue<string>() != revision)
-                    throw new InvalidDataException("盒子倍速确认与当前任务不一致。");
+                    throw new InvalidDataException("盒子倍速会话与当前任务不一致。");
                 _proof = status.DeepClone().AsObject();
-                processor.AddLog("盒子 2 倍速已确认，脚本时序同步为 2 倍；任务结束后恢复 1 倍。");
+                processor.AddLog("已发送两次盒子 2 倍速操作，脚本时序同步为 2 倍；任务结束后发送两次 1 倍速操作。");
                 return _proof.DeepClone().AsObject();
             }
             if (state != "starting")
-                throw new InvalidOperationException(status["error"]?.GetValue<string>() is { Length: > 0 } error ? error : "盒子未确认进入倍速。");
+                throw new InvalidOperationException(status["error"]?.GetValue<string>() is { Length: > 0 } error ? error : "盒子倍速操作未完成。");
             await Task.Delay(50, token);
         }
         throw new TimeoutException("盒子倍速准备超时，本次未播放脚本。");
@@ -131,7 +131,7 @@ public sealed class NativeBoxSpeedSession
         if (client == null) return;
         try
         {
-            if (client.IsDisconnected) throw new IOException("倍速服务已断开，无法确认恢复 1 倍速；请在盒子按数字行 1。");
+            if (client.IsDisconnected) throw new IOException("倍速服务已断开，无法发送恢复操作；请在盒子按数字行 1。");
             var status = await client.CallAsync("box_speed_stop");
             var deadline = DateTime.UtcNow.AddSeconds(8);
             while (status["state"]?.GetValue<string>() == "stopping" && DateTime.UtcNow < deadline)
@@ -142,7 +142,7 @@ public sealed class NativeBoxSpeedSession
             if (status["state"]?.GetValue<string>() is not ("stopped" or "lost" or "idle")
                 && !(status["state"]?.GetValue<string>() == "failed" && status["restored"]?.GetValue<bool>() == true))
                 throw new InvalidOperationException(status["error"]?.GetValue<string>() is { Length: > 0 } error
-                    ? error : "尚未确认盒子恢复 1 倍速，已停止后续任务。");
+                    ? error : "恢复 1 倍速操作未完成，已停止后续任务。");
         }
         finally { client.Dispose(); _client = null; _proof = null; _target = null; }
     }

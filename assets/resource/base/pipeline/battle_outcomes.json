@@ -738,9 +738,9 @@
         ],
         "roi": [
           200,
-          170,
+          210,
           800,
-          390
+          210
         ]
       }
     },
@@ -756,23 +756,7 @@
       "param": {
         "any_of": [
           "Nav_CommonConfirm",
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": [
-                  "navigation/outcomes/revive-normal-caption.png",
-                  "navigation/outcomes/revive-vip-caption.png"
-                ],
-                "roi": [
-                  200,
-                  170,
-                  800,
-                  390
-                ]
-              }
-            }
-          }
+          "Result_ReviveEvidence"
         ]
       }
     },

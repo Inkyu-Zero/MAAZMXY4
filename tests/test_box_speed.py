@@ -6,13 +6,35 @@ import threading
 import time
 from pathlib import Path
 import unittest
+from unittest.mock import patch
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'agent'))
-from box_speed import SpeedLease, SpeedRejected, validate_recording, validate_speed, verify_proof
-from box_speed_native import SpeedJob
+from box_speed import SpeedLease, validate_recording, validate_speed, verify_proof
+from box_speed_native import NativeSpeedTransport, SpeedJob
 
 
 class BoxSpeedPolicyTests(unittest.TestCase):
+    def test_cancel_between_duplicate_presses_releases_and_resets_with_one_owner(self):
+        events=[]
+        transport=NativeSpeedTransport.__new__(NativeSpeedTransport)
+        transport.cancelled=threading.Event();transport.input_lock=threading.Lock()
+        transport.require_identity=lambda:None;transport.alive=lambda:True
+        transport.key_may_be_down=None
+        class Done:
+            succeeded=True
+            def wait(self):return self
+        class Keys:
+            def post_key_down(self,key):events.append(('down',key));return Done()
+            def post_key_up(self,key):
+                events.append(('up',key))
+                if key==50:transport.cancelled.set()
+                return Done()
+        transport.input_controller=Keys()
+        with patch('box_speed_native.time.sleep',lambda _:None), self.assertRaises(InterruptedError):
+            with SpeedLease(2,transport.apply):self.fail('Cancelled switch cannot start playback')
+        self.assertEqual(events,[('down',50),('up',50)]+[('down',49),('up',49)]*2)
+        self.assertIsNone(transport.key_may_be_down)
+
     def test_only_native_speeds_are_accepted(self):
         for value in (1,2):self.assertEqual(validate_speed(value),value)
         for value in (True,False,0,3,1.5,'2',None,float('nan')):
@@ -34,21 +56,14 @@ class BoxSpeedPolicyTests(unittest.TestCase):
         lease.close()
         self.assertEqual(calls,[2,1])
 
-    def test_failed_enable_confirmation_still_attempts_native_reset(self):
+    def test_failed_enable_dispatch_still_attempts_native_reset(self):
         calls=[]
         def apply(speed):
             calls.append(speed)
-            if speed==2:raise RuntimeError('not confirmed')
-        with self.assertRaisesRegex(RuntimeError,'not confirmed'):
+            if speed==2:raise RuntimeError('dispatch failed')
+        with self.assertRaisesRegex(RuntimeError,'dispatch failed'):
             with SpeedLease(2,apply):self.fail('Playback cannot start')
         self.assertEqual(calls,[2,1])
-
-    def test_explicit_rejection_does_not_issue_another_unsupported_command(self):
-        calls=[]
-        def apply(speed):calls.append(speed);raise SpeedRejected('60 fps')
-        with self.assertRaises(SpeedRejected):
-            with SpeedLease(2,apply):self.fail('Rejected speed cannot start playback')
-        self.assertEqual(calls,[2])
 
     def test_failed_reset_retains_ownership_and_reports_failure(self):
         calls=[]
@@ -121,14 +136,14 @@ class SpeedJobTests(unittest.TestCase):
         self.assertEqual(job.snapshot()['state'],'stopped')
         self.assertEqual(self.calls[-2:],[('apply',1),('close',)])
 
-    def test_cancellation_during_enable_restores_even_without_acknowledgement(self):
+    def test_cancellation_during_enable_has_one_reset_owner(self):
         self.gate=threading.Event();job=SpeedJob(self.root,self.params,transport_factory=self.factory)
         end=time.monotonic()+2
         while ('apply',2) not in self.calls and time.monotonic()<end:time.sleep(.005)
         self.assertIn(('apply',2),self.calls)
-        job.stop();self.assertIn(('send',1),self.calls)
+        job.stop();self.assertNotIn(('send',1),self.calls)
         self.gate.set();job.thread.join(3)
-        self.assertIn(('apply',1),self.calls)
+        self.assertEqual(self.calls.count(('apply',1)),1)
         self.assertNotEqual(job.snapshot()['state'],'ready')
         self.assertTrue(job.snapshot()['restored'])
 

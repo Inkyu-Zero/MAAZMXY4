@@ -1,0 +1,6 @@
+{
+  "description": "Declare log-cleanup view namespace on the XAML root for the compiled generator.",
+  "path": "MFAAvalonia/Views/UserControls/Settings/PerformanceUserControl.axaml",
+  "find": "    xmlns:settings=\"clr-namespace:MFAAvalonia.ViewModels.UsersControls.Settings\"",
+  "replace": "    xmlns:settings=\"clr-namespace:MFAAvalonia.ViewModels.UsersControls.Settings\"\n    xmlns:maintenance=\"clr-namespace:MFAAvalonia.Views.UserControls\""
+}

@@ -29,6 +29,7 @@ from navigation.catalog import task_routine
 from navigation import NavigationError
 from navigation.runtime import Navigator
 from navigation.stage_view import restore_stage_view, wait_stage_ready, has_standard_view
+from task_control import stopping
 
 ROOT = Path(__file__).resolve().parents[1]
 RECORDINGS = ROOT / 'recordings'
@@ -65,8 +66,8 @@ def _key(argv):
     return value
 
 
-def _check(context):
-    if context.tasker.stopping:
+def _check(context, *, force=True):
+    if stopping(context, refresh=force):
         raise Cancelled('任务已取消。')
 
 
@@ -307,7 +308,7 @@ def begin_round(context, parameters, state, *, frame=None):
 def _navigator(context, state, *, targets=None, frame=None):
     routine = task_routine(context, state['parameters'], targets=targets)
     return Navigator(context, routine, capture=lambda: capture(context),
-        check=lambda: _check(context), frame=frame,
+        check=lambda: _check(context, force=False), input_check=lambda: _check(context), frame=frame,
         log=lambda message: print('[navigation] ' + message, flush=True))
 
 

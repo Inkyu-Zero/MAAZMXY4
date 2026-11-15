@@ -7,7 +7,7 @@ import time
 from types import SimpleNamespace
 
 from . import NavigationError
-from .recognition import modal_present
+from .recognition import modal_present, clear_cache
 from background_mouse_guard import hold_background_mouse, MouseGuardError
 
 
@@ -20,9 +20,10 @@ def _move_cursor_off_target(controller):
 
 
 class Navigator:
-    def __init__(self, context, routine, *, capture, check, log=print, wait=time.sleep, clock=time.monotonic, frame=None):
+    def __init__(self, context, routine, *, capture, check, input_check=None, log=print, wait=time.sleep, clock=time.monotonic, frame=None):
         self.context, self.routine = context, routine
         self.capture, self.check, self.log = capture, check, log
+        self.input_check = input_check or check
         self.wait, self.clock = wait, clock
         self.deadline = None
         self.steps, self.attempts = 0, {}
@@ -49,6 +50,7 @@ class Navigator:
     def invalidate(self):
         self._frame = None
         self._recognized.clear()
+        clear_cache()
 
     def recognize(self, name):
         self._check()
@@ -83,18 +85,18 @@ class Navigator:
         try:
             options = {'pipeline_override': pipeline_override} if pipeline_override else {}
             with hold_background_mouse(getattr(self.context.tasker, 'controller', None)):
-                self._check()
+                self._check(force=True)
                 result = self.context.run_action(name, box=box, **options)
         except MouseGuardError as error:
             # Cancellation still wins, but an expired navigation deadline must
             # not turn an ownership failure back into a restartable timeout.
-            self.check()
+            self.input_check()
             self.log(str(error))
             raise NavigationError(str(error), reason='input_guard_failed') from error
         except Exception as error:
-            self._check()
+            self._check(force=True)
             raise NavigationError('原生导航操作未确认：' + name + '；' + str(error), reason='transition_failed') from error
-        self._check()
+        self._check(force=True)
         kind = getattr(result, 'action', None)
         kind = getattr(kind, 'name', kind)
         if result is not None and result.success and kind in ('Click', 'LongPress', 'Swipe', 'MultiSwipe', 'Scroll', 'TouchUp'):
@@ -104,9 +106,11 @@ class Navigator:
                 raise NavigationError('鼠标操作后的悬停未移开：' + str(detail), reason='transition_failed')
         return result is not None and bool(result.success)
 
-    def _check(self):
-        self.check()
+    def _check(self, *, force=False):
+        (self.input_check if force else self.check)()
         if self.deadline is not None and self.clock() >= self.deadline:
+            if not force:
+                self.input_check()  # Cancellation wins over a recovery timeout.
             raise TimeoutError('界面导航超过运行时限，已停止。')
 
     def _settle(self, milliseconds=None):
@@ -272,6 +276,7 @@ class Navigator:
         # fails. Never retain a box or image from before this operation.
         self.invalidate()
         try:
+            self._check(force=True)
             moved, detail = _move_cursor_off_target(self.context.tasker.controller)
         except Exception as error:
             self._check()

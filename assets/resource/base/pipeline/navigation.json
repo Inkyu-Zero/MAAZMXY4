@@ -6083,6 +6083,22 @@
       }
     }
   },
+  "Nav_StageOverlay": {
+    "recognition": {
+      "type": "Or",
+      "param": {
+        "any_of": [
+          "Nav_Probe_hub_world_entry",
+          "Nav_ModalPresent"
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0
+  },
   "Nav_MapSurface": {
     "action": {
       "type": "DoNothing"
@@ -6266,17 +6282,37 @@
     "next": [],
     "post_delay": 0,
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "Or",
       "param": {
-        "template": [
-          "navigation/hubs/town1-0.png",
-          "navigation/hubs/town1-1.png"
-        ],
-        "roi": [
-          120,
-          135,
-          920,
-          465
+        "any_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/hubs/town1-0.png",
+                "roi": [
+                  120,
+                  135,
+                  920,
+                  465
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/hubs/town1-1.png",
+                "roi": [
+                  120,
+                  135,
+                  920,
+                  465
+                ]
+              }
+            }
+          }
         ]
       }
     }
@@ -6288,17 +6324,37 @@
     "next": [],
     "post_delay": 0,
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "Or",
       "param": {
-        "template": [
-          "navigation/hubs/town2-0.png",
-          "navigation/hubs/town2-1.png"
-        ],
-        "roi": [
-          120,
-          135,
-          920,
-          465
+        "any_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/hubs/town2-0.png",
+                "roi": [
+                  120,
+                  135,
+                  920,
+                  465
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/hubs/town2-1.png",
+                "roi": [
+                  120,
+                  135,
+                  920,
+                  465
+                ]
+              }
+            }
+          }
         ]
       }
     }
@@ -6310,17 +6366,37 @@
     "next": [],
     "post_delay": 0,
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "Or",
       "param": {
-        "template": [
-          "navigation/hubs/town3-0.png",
-          "navigation/hubs/town3-1.png"
-        ],
-        "roi": [
-          120,
-          135,
-          920,
-          465
+        "any_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/hubs/town3-0.png",
+                "roi": [
+                  120,
+                  135,
+                  920,
+                  465
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/hubs/town3-1.png",
+                "roi": [
+                  120,
+                  135,
+                  920,
+                  465
+                ]
+              }
+            }
+          }
         ]
       }
     }
@@ -6332,17 +6408,37 @@
     "next": [],
     "post_delay": 0,
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "Or",
       "param": {
-        "template": [
-          "navigation/hubs/town4-0.png",
-          "navigation/hubs/town4-1.png"
-        ],
-        "roi": [
-          120,
-          135,
-          920,
-          465
+        "any_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/hubs/town4-0.png",
+                "roi": [
+                  120,
+                  135,
+                  920,
+                  465
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/hubs/town4-1.png",
+                "roi": [
+                  120,
+                  135,
+                  920,
+                  465
+                ]
+              }
+            }
+          }
         ]
       }
     }
@@ -6354,21 +6450,93 @@
     "next": [],
     "post_delay": 0,
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "Or",
       "param": {
-        "template": [
-          "navigation/scroll/town5-00.png",
-          "navigation/scroll/town5-01.png",
-          "navigation/scroll/town5-02.png",
-          "navigation/scroll/town5-03.png",
-          "navigation/scroll/town5-04.png",
-          "navigation/scroll/town5-05.png"
-        ],
-        "roi": [
-          50,
-          120,
-          990,
-          480
+        "any_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town5-00.png",
+                "roi": [
+                  50,
+                  120,
+                  990,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town5-01.png",
+                "roi": [
+                  50,
+                  120,
+                  990,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town5-02.png",
+                "roi": [
+                  50,
+                  120,
+                  990,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town5-03.png",
+                "roi": [
+                  50,
+                  120,
+                  990,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town5-04.png",
+                "roi": [
+                  50,
+                  120,
+                  990,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town5-05.png",
+                "roi": [
+                  50,
+                  120,
+                  990,
+                  480
+                ]
+              }
+            }
+          }
         ]
       }
     }
@@ -6380,41 +6548,373 @@
     "next": [],
     "post_delay": 0,
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "Or",
       "param": {
-        "template": [
-          "navigation/scroll/town6-00.png",
-          "navigation/scroll/town6-01.png",
-          "navigation/scroll/town6-02.png",
-          "navigation/scroll/town6-03.png",
-          "navigation/scroll/town6-04.png",
-          "navigation/scroll/town6-05.png",
-          "navigation/scroll/town6-06.png",
-          "navigation/scroll/town6-07.png",
-          "navigation/scroll/town6-08.png",
-          "navigation/scroll/town6-09.png",
-          "navigation/scroll/town6-10.png",
-          "navigation/scroll/town6-11.png",
-          "navigation/scroll/town6-12.png",
-          "navigation/scroll/town6-13.png",
-          "navigation/scroll/town6-14.png",
-          "navigation/scroll/town6-15.png",
-          "navigation/scroll/town6-16.png",
-          "navigation/scroll/town6-17.png",
-          "navigation/scroll/town6-18.png",
-          "navigation/scroll/town6-19.png",
-          "navigation/scroll/town6-20.png",
-          "navigation/scroll/town6-21.png",
-          "navigation/scroll/town6-22.png",
-          "navigation/scroll/town6-23.png",
-          "navigation/scroll/town6-24.png",
-          "navigation/scroll/town6-25.png"
-        ],
-        "roi": [
-          50,
-          120,
-          990,
-          480
+        "any_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town6-23.png",
+                "roi": [
+                  50,
+                  120,
+                  990,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town6-03.png",
+                "roi": [
+                  50,
+                  120,
+                  990,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town6-13.png",
+                "roi": [
+                  50,
+                  120,
+                  990,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town6-08.png",
+                "roi": [
+                  50,
+                  120,
+                  990,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town6-18.png",
+                "roi": [
+                  50,
+                  120,
+                  990,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town6-00.png",
+                "roi": [
+                  50,
+                  120,
+                  990,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town6-01.png",
+                "roi": [
+                  50,
+                  120,
+                  990,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town6-02.png",
+                "roi": [
+                  50,
+                  120,
+                  990,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town6-04.png",
+                "roi": [
+                  50,
+                  120,
+                  990,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town6-05.png",
+                "roi": [
+                  50,
+                  120,
+                  990,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town6-06.png",
+                "roi": [
+                  50,
+                  120,
+                  990,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town6-07.png",
+                "roi": [
+                  50,
+                  120,
+                  990,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town6-09.png",
+                "roi": [
+                  50,
+                  120,
+                  990,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town6-10.png",
+                "roi": [
+                  50,
+                  120,
+                  990,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town6-11.png",
+                "roi": [
+                  50,
+                  120,
+                  990,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town6-12.png",
+                "roi": [
+                  50,
+                  120,
+                  990,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town6-14.png",
+                "roi": [
+                  50,
+                  120,
+                  990,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town6-15.png",
+                "roi": [
+                  50,
+                  120,
+                  990,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town6-16.png",
+                "roi": [
+                  50,
+                  120,
+                  990,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town6-17.png",
+                "roi": [
+                  50,
+                  120,
+                  990,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town6-19.png",
+                "roi": [
+                  50,
+                  120,
+                  990,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town6-20.png",
+                "roi": [
+                  50,
+                  120,
+                  990,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town6-21.png",
+                "roi": [
+                  50,
+                  120,
+                  990,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town6-22.png",
+                "roi": [
+                  50,
+                  120,
+                  990,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town6-24.png",
+                "roi": [
+                  50,
+                  120,
+                  990,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town6-25.png",
+                "roi": [
+                  50,
+                  120,
+                  990,
+                  480
+                ]
+              }
+            }
+          }
         ]
       }
     }

@@ -97,6 +97,16 @@
     "frontend/patches/81-box-startup.json",
     "frontend/patches/82-page-tour-startup.json",
     "frontend/patches/83-page-tour-reset-settings.json",
-    "frontend/patches/84-page-tour-reset-namespace.json"
+    "frontend/patches/84-page-tour-reset-namespace.json",
+    "frontend/patches/85-idle-native-history.json",
+    "frontend/patches/86-stop-history-owner.json",
+    "frontend/patches/87-detached-history-owner.json",
+    "frontend/patches/88-log-cleanup-settings.json",
+    "frontend/patches/89-log-cleanup-settings-card.json",
+    "frontend/patches/90-log-cleanup-settings-namespace.json",
+    "frontend/patches/91-log-retention-start.json",
+    "frontend/patches/92-log-retention-stop.json",
+    "frontend/patches/93-log-retention-blocks.json",
+    "frontend/patches/94-log-retention-global-setting.json"
   ]
 }

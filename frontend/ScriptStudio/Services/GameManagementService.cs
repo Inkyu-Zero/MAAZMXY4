@@ -248,13 +248,22 @@ public sealed class GameManagementService : IDisposable
     {
         token.ThrowIfCancellationRequested();
         var tasker = await _processor.GetTaskerAsync(token) ?? throw new IOException("盒子连接失败。");
-        var job = tasker.AppendTask(entry!, patch ?? "{}");
-        using var cancellation = token.Register(() =>
+        void ClearHistory() => NativeTaskHistory.ClearIfIdle(tasker,
+            () => !tasker.IsRunning && !tasker.IsStopping, tasker.ClearCache,
+            message => LoggerHelper.Warning(message));
+        ClearHistory();
+        try
         {
-            try { tasker.Stop(); }
-            catch (ObjectDisposedException) { }
-        });
-        return await Task.Run(() => job.Wait(), token);
+            using var history = NativeTaskHistory.Acquire(tasker);
+            var job = tasker.AppendTask(entry!, patch ?? "{}");
+            using var cancellation = token.Register(() =>
+            {
+                try { NativeTaskHistory.Use(tasker, () => tasker.Stop()); }
+                catch (ObjectDisposedException) { }
+            });
+            return await Task.Run(() => job.Wait(), token);
+        }
+        finally { ClearHistory(); }
     }
 
     private async Task OperateAsync(string operation, bool insideTask, CancellationToken token,
@@ -389,7 +398,7 @@ public sealed class GameManagementService : IDisposable
                 catch (IOException) { return false; }
             }
             var observed = await TaskRecoveryPolicy.ObserveExecutionAsync(execute(entry, pipeline.ToJsonString(), token),
-                Interrupted, () => _processor.MaaTasker?.Stop(), token);
+                Interrupted, () => { if (_processor.MaaTasker is { } active) NativeTaskHistory.Use(active, () => active.Stop()); }, token);
             var status = observed.TargetLost ? MaaJobStatus.Failed : observed.Result;
             token.ThrowIfCancellationRequested();
             var checkpoint = File.Exists(path) && new FileInfo(path).Length <= 65536

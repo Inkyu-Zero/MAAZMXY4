@@ -1,6 +1,6 @@
 """Share one modal decision for identical pixels across native guard callers."""
 import json
-from navigation.recognition import _probe, modal_present, clear_cache
+from navigation.recognition import FrameRecognition, clear_cache
 from maa.custom_recognition import CustomRecognition
 
 
@@ -15,23 +15,25 @@ class NoRevivePrompt(CustomRecognition):
         # small adapter for negation; native Maa still performs the matching.
         mode = getattr(argv, 'custom_recognition_param', '')
         try:
+            observation = FrameRecognition(context, argv.image)
             if isinstance(mode, str) and mode.startswith('"'):
                 mode = json.loads(mode)
             if mode == 'present':
                 return (CustomRecognition.AnalyzeResult(box=(0, 0, 1, 1), detail={'modal': True})
-                        if modal_present(context, argv.image) else None)
+                        if observation.probe('Nav_ModalPresent').hit else None)
             if mode == 'revive':
-                if not modal_present(context, argv.image):
+                if not observation.probe('Nav_ModalPresent').hit:
                     return None
-                result = _probe(context, argv.image, 'Result_ReviveEvidence')
+                result = observation.probe('Result_ReviveEvidence')
                 return (CustomRecognition.AnalyzeResult(box=result.box, detail={'revival_prompt': True})
                         if result.hit else None)
-            if mode == 'stage' and _probe(context, argv.image, 'Nav_Probe_hub_world_entry').hit:
-                return None  # Town and battle share the bottom settings icon.
-            if mode in ('map', 'hub'):
-                if _probe(context, argv.image, 'Nav_MapOverlay' if mode == 'map' else 'Nav_HubOverlay').hit:
+            if mode == 'stage':
+                if observation.any_of('Nav_StageOverlay', ('Nav_Probe_hub_world_entry', 'Nav_ModalPresent')):
+                    return None  # Town and battle share the bottom settings icon.
+            elif mode in ('map', 'hub'):
+                if observation.probe('Nav_MapOverlay' if mode == 'map' else 'Nav_HubOverlay').hit:
                     return None
-            elif modal_present(context, argv.image):
+            elif observation.probe('Nav_ModalPresent').hit:
                 return None
             return CustomRecognition.AnalyzeResult(box=(0, 0, 1, 1), detail={'clear': True})
         except Exception as error:

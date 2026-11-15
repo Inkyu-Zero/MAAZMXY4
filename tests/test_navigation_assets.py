@@ -54,6 +54,29 @@ class NavigationAssetsTests(unittest.TestCase):
             self.assertEqual(self.nodes[screen['detector']]['action']['type'],'DoNothing')
         self.assertFalse(any('bounty_board' in a['verify'] for a in self.routines['actions'].values()))
 
+    def test_boolean_province_compilation_retains_all_landmarks_and_matching_parameters(self):
+        bank = read(ROOT/'tools/navigation_library.json')
+        compiled = compile_library(bank)
+        for name in bank['boolean_template_nodes']:
+            params = bank['nodes'][name]['recognition']['param']
+            alternatives = compiled[name]['recognition']['param']['any_of']
+            self.assertEqual([part['recognition']['param']['template'] for part in alternatives], params['template'])
+            for part in alternatives:
+                self.assertEqual(part['recognition']['type'], 'TemplateMatch')
+                self.assertEqual({k:v for k,v in part['recognition']['param'].items() if k != 'template'},
+                                 {k:v for k,v in params.items() if k != 'template'})
+        # Province landmarks must never replace the current stage-icon box.
+        for name, node in self.nodes.items():
+            if name.startswith('Mainline_') and name.endswith('_Target'):
+                self.assertEqual(node['recognition']['param'].get('box_index', 0), 0)
+                self.assertIsInstance(node['recognition']['param']['all_of'][0], dict)
+
+    def test_compiler_rejects_short_circuit_for_input_targets(self):
+        bank = read(ROOT/'tools/navigation_library.json')
+        bank['nodes'][bank['boolean_template_nodes'][0]]['action']['type'] = 'Click'
+        with self.assertRaisesRegex(ValueError, 'ranked input target'):
+            compile_library(bank)
+
     def test_each_public_task_binds_its_existing_native_target(self):
         class Context:
             def get_node_data(_self,name):return self.nodes[name]
@@ -92,6 +115,7 @@ class NavigationAssetsTests(unittest.TestCase):
         files={relative:Path(source) for source,relative in builder.collect(str(ROOT))}
         self.assertIn('agent/navigation/runtime.py',files)
         self.assertIn('agent/battle_outcomes.py',files)
+        self.assertIn('agent/task_control.py',files)
         self.assertIn('agent/data/navigation/routines.json',files)
         self.assertIn('resource/base/pipeline/navigation.json',files)
         self.assertIn('resource/base/pipeline/battle_outcomes.json',files)

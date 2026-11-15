@@ -72,9 +72,21 @@ def generate(source, root=ROOT):
         bank['nodes']['Nav_Province_'+town]=dict(deepcopy(bank['templates']['read']),
             recognition=dict(type='TemplateMatch',param=dict(template=templates,roi=[120,135,920,465])))
     scroll=json.loads((root/'assets/resource/base/pipeline/game_management_scroll.json').read_text(encoding='utf8'))
+    terrain_assets=json.loads((root/'agent/data/navigation/stage-scroll.json').read_text(encoding='utf8'))['assets']
     for town in ['town5','town6']:
         recognition=deepcopy(scroll['GameManagement_'+town+'_Terrain']['recognition'])
+        # Dragging may intentionally use only one safe terrain strip. Province
+        # identity needs the complete authored landmark set across all views.
+        recognition['param']['template']=sorted(a['path'] for a in terrain_assets
+            if a['path'].startswith('navigation/scroll/'+town+'-'))
         recognition['param']['roi']=[50,120,990,480]
+        if town == 'town6':
+            # Mainline 63-65 starts at y=2124: landmark 23 is visible there.
+            # Then cover upper/middle bands before the remaining full set.
+            templates = recognition['param']['template']
+            first = [23, 3, 13, 8, 18]
+            recognition['param']['template'] = [templates[i] for i in first] + [
+                path for i, path in enumerate(templates) if i not in first]
         bank['nodes']['Nav_Province_'+town]=dict(deepcopy(bank['templates']['read']),recognition=recognition)
     # Existing redacted-world crops have exact source rectangles and hashes in
     # library.json. These rectangles restrict search, not an unverified click.

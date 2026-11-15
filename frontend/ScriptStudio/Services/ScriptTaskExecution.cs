@@ -19,13 +19,18 @@ public static class ScriptTaskExecution
         try
         {
             overrides = TaskScriptPlan.NormalizeRepeatLimits(overrides ?? "{}", entry);
-            using var library = new ScriptStudioClient(AppPaths.DataRoot, releaseCaptureOnDisconnect: false);
-            var plan = (await library.CallAsync("execution_plan", new JsonObject
+            JsonObject plan;
+            // The returned plan owns managed JSON; its read-only worker has no
+            // role during navigation, playback, retry, or recovery.
+            using (var library = new ScriptStudioClient(AppPaths.DataRoot, releaseCaptureOnDisconnect: false))
             {
-                ["name"] = name, ["entry"] = entry,
-                ["overrides"] = TaskRecoveryPolicy.MergePipelineOverrides(overrides),
-                ["report_unbound"] = true
-            }, token)).AsObject();
+                plan = (await library.CallAsync("execution_plan", new JsonObject
+                {
+                    ["name"] = name, ["entry"] = entry,
+                    ["overrides"] = TaskRecoveryPolicy.MergePipelineOverrides(overrides),
+                    ["report_unbound"] = true
+                }, token)).AsObject();
+            }
             token.ThrowIfCancellationRequested();
             TaskScriptPlan.StopIfUnbound(plan, message => processor.AddLog(message), token);
             if (speedSession != null)

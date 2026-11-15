@@ -6,7 +6,7 @@ import os
 import unittest
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'agent'))
-from navigation.recognition import _probe, clear_cache, modal_present
+from navigation.recognition import FrameRecognition, _pixels, _probe, clear_cache, modal_present
 
 
 class Frame:
@@ -40,6 +40,39 @@ class SharedRecognitionTests(unittest.TestCase):
     def test_resource_registration_invalidates_previous_results(self):
         modal_present(self.context,Frame());clear_cache();modal_present(self.context,Frame())
         self.assertEqual(len(self.calls),2)
+
+    def test_executed_compound_children_reuse_decisions_without_fetching_images(self):
+        def match(name, frame):
+            self.calls.append(name)
+            return SimpleNamespace(hit=False, box=None, raw_detail=[
+                dict(name='Nav_Probe_hub_world_entry', algorithm='TemplateMatch', box=None),
+                dict(name='Nav_ModalPresent', algorithm='Or', box=None, detail=[
+                    dict(name='Result_ReviveEvidence', algorithm='TemplateMatch', box=None)]),
+                dict(name='unrelated', algorithm='TemplateMatch', box=[1,2,3,4])])
+        self.context.run_recognition = match
+        observation = FrameRecognition(self.context, Frame())
+        self.assertFalse(observation.any_of('Nav_StageOverlay', ('Nav_Probe_hub_world_entry', 'Nav_ModalPresent')))
+        self.assertFalse(observation.probe('Nav_ModalPresent').hit)
+        self.assertFalse(observation.probe('Result_ReviveEvidence').hit)
+        self.assertEqual(self.calls, ['Nav_StageOverlay'])
+        observation.probe('unrelated')
+        self.assertEqual(self.calls[-1], 'unrelated')
+
+    def test_short_circuit_does_not_invent_unexecuted_child_results(self):
+        self.context.run_recognition = lambda name, frame: (
+            self.calls.append(name) or SimpleNamespace(hit=True, box=[1,2,3,4], raw_detail=[
+                dict(name='Nav_CommonConfirm', algorithm='And', box=[1,2,3,4])]))
+        observation = FrameRecognition(self.context, Frame())
+        observation.probe('Nav_ModalPresent')
+        observation.probe('Result_ReviveEvidence')
+        self.assertEqual(self.calls, ['Nav_ModalPresent', 'Result_ReviveEvidence'])
+
+    def test_contiguous_pixels_hash_without_allocating_a_bytes_copy(self):
+        import numpy as np
+        frame = np.arange(36, dtype=np.uint8).reshape(3,4,3)
+        self.assertIsInstance(_pixels(frame), memoryview)
+        self.assertEqual(bytes(_pixels(frame)), frame.tobytes())
+        self.assertEqual(bytes(_pixels(frame[:,::2])), frame[:,::2].tobytes())
 
 
 @unittest.skipUnless(os.environ.get('NAVIGATION_NATIVE_TESTS')=='1','opt-in native same-frame accounting')
@@ -83,12 +116,14 @@ class NativeSharedRecognitionTests(unittest.TestCase):
                         })
                         assert result and result.status.succeeded
                         assert calls.count('Nav_ModalPresent')==1,(index,calls)
-                        assert calls.count('Result_ReviveEvidence')==index,(index,calls)
+                        # With its lower frame erased, the modal is identified
+                        # by its caption; that executed child is already cached.
+                        assert calls.count('Result_ReviveEvidence')==0,(index,calls)
                     return True
                 except Exception:
                     import traceback
                     errors.append(traceback.format_exc());return False
-        Tasker.set_log_dir(root/'.runtime-cache/native-modal-cache')
+        Tasker.set_log_dir(Path(os.environ.get('MAA_MODAL_TEST_LOG', str(root/'.runtime-cache/native-modal-cache'))))
         resource,tasker=Resource(),Tasker()
         resource.register_custom_recognition('battle_no_revive',Guard())
         self.assertTrue(controller.post_connection().wait().succeeded)

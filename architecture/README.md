@@ -35,7 +35,7 @@ MAAZMXY4/
 │  ├─ recording_playback.py       共享时间线与输入清理
 │  ├─ script_playback.py          通用纯输入回放
 │  ├─ battle_outcomes.py          战斗结果/浮窗监测
-│  ├─ box_speed_native.py         倍速切换、确认和恢复的服务端
+│  ├─ box_speed_native.py         倍速切换与恢复的纯输入服务端
 │  ├─ jzld/                      炼丹棋盘识别及决策
 │  ├─ data/                      运行时导航、答题与百科等数据
 │  └─ recordings/                经许可分发的默认模板及清单
@@ -96,8 +96,10 @@ flowchart TB
 | 导航 | [catalog.py](../agent/navigation/catalog.py)、[runtime.py](../agent/navigation/runtime.py)、[stage_view.py](../agent/navigation/stage_view.py) | 目标/短流程优先、相关候选、有界返回/中转；操作后帧失效，不做全库轮扫或最短路径搜索 |
 | 保护识别 | [recognition.py](../agent/navigation/recognition.py)、[battle_ui.py](../agent/battle_ui.py)、[battle_outcomes.py](../agent/battle_outcomes.py) | 同帧浮窗判定、付费/复活/结果处理及歧义停止 |
 | 回放 | [battle_player.py](../agent/battle_player.py)、[recording_playback.py](../agent/recording_playback.py) | 接入 Maa 动作、按绝对时间调度，停止和失败时释放持有的输入 |
+| 停止查询 | [task_control.py](../agent/task_control.py) | 当前动作/上下文内复用远端停止状态，等待时最短间隔 50ms；输入、结束和异常交接边界强制刷新，已取消则保持取消 |
 | 通用播放 | [GenericScriptPlayback.cs](../frontend/ScriptStudio/Services/GenericScriptPlayback.cs)、[script_playback.py](../agent/script_playback.py) | 宿主拥有重复次数；播放阶段纯输入，不另做识图/导航/自动重启 |
-| 倍速 | [NativeBoxSpeedSession.cs](../frontend/ScriptStudio/Services/NativeBoxSpeedSession.cs)、[box_speed_native.py](../agent/box_speed_native.py) | 每队列任务持有倍率会话，切换时确认，回放时同步时钟，完成清理后恢复 |
+| 倍速 | [NativeBoxSpeedSession.cs](../frontend/ScriptStudio/Services/NativeBoxSpeedSession.cs)、[box_speed_native.py](../agent/box_speed_native.py) | 每队列任务持有纯输入倍率会话，切换/恢复各发两次按键；不截图或 OCR 验证，回放时同步时钟 |
+| 原生历史 | [NativeTaskHistory.cs](../frontend/ScriptStudio/Services/NativeTaskHistory.cs) | 按 Tasker 保护任务/停止的完整等待区间；空闲且结果已消费时调用现有 ClearCache，活动任务内不清空 |
 | 游戏管理 | [GameManagementService.cs](../frontend/ScriptStudio/Services/GameManagementService.cs)、[GameManagementPolicy.cs](../frontend/ScriptStudio/Services/GameManagementPolicy.cs) | 按实例管理明确目标进程、失败/内存/定时维护；在允许的任务边界恢复 |
 | 恢复 | [TaskRecovery.cs](../frontend/ScriptStudio/Services/TaskRecovery.cs)、[game_management_login.py](../agent/game_management_login.py) | 预算、身份、窗口重绑、登录/已有存档核对及原轮继续，不递归重启 |
 | 工作台 | [Views/Pages](../frontend/ScriptStudio/Views/Pages)、[ViewModels/Pages](../frontend/ScriptStudio/ViewModels/Pages)、[ScriptTimeline.cs](../frontend/ScriptStudio/Controls/ScriptTimeline.cs) | 脚本库、录制、时间轴和交互；页面不拥有第二个游戏任务调度器 |
@@ -107,6 +109,8 @@ flowchart TB
 | 专项任务 | [adventure.py](../agent/adventure.py)、[adventure_logic.py](../agent/adventure_logic.py)、[jzld_action.py](../agent/jzld_action.py)、[jzld](../agent/jzld) | 大冒险读题/决策、炼丹识图/决策；复用已有控制器和资源 |
 | 百科/说明 | [GameDatabaseCatalog.cs](../frontend/ScriptStudio/Services/GameDatabaseCatalog.cs)、[PageTourHost.cs](../frontend/ScriptStudio/Services/PageTourHost.cs) | 离线知识数据及页面说明，不借展示行为连接游戏或启动任务 |
 | 窗口/输入 | [window_geometry.py](../agent/window_geometry.py)、[mouse_input.py](../agent/mouse_input.py)、[background_mouse_guard](../native/background_mouse_guard) | 窗口身份/坐标租约、后台输入与所有者释放 |
+| 日志清理 | [LogCleanup.cs](../frontend/ScriptStudio/Services/LogCleanup.cs)、[LogCleanupView.cs](../frontend/ScriptStudio/Views/UserControls/LogCleanupView.cs) | 性能设置中的手动清理；预览后确认，仅处理固定日志目录中的普通 `.log` 文件，保留占用/变化文件及用户数据 |
+| 日志窗口 | [LogRetention.cs](../frontend/ScriptStudio/Services/LogRetention.cs)、[GlobalConfiguration.LogRetention.cs](../frontend/ScriptStudio/Configuration/GlobalConfiguration.LogRetention.cs)、[rolling_log.py](../agent/rolling_log.py) | 全局设置默认开启，可即时切换并持久化；宿主维护 `debug` / `logs` 合计 64 MiB 目标，文件通知增量计量、最旧关闭块优先回收；前端/Python 以 4 MiB 分块，Maa 保留原生分块 |
 
 ## 5. 任务、录制与恢复链路
 
@@ -123,6 +127,7 @@ sequenceDiagram
     Q->>P: 当前任务、实例参数和取消令牌
     P->>S: execution_plan
     S-->>P: 能力、绑定、录制修订和恢复配置
+    P->>S: 关闭只读计划服务
     alt 未绑定
         P-->>Q: 正常停止，不计成功
     else 绑定有效
@@ -134,6 +139,7 @@ sequenceDiagram
         M-->>A: 识别/动作结果
         A-->>M: 单轮状态、返回或失败路线
         M-->>P: 任务结果
+        Note over P,M: 状态已复制且 Tasker 空闲后清理历史；活动等待仍持有保护
         P-->>Q: 交回结果，由所属流程计次/清理
     end
 ```
@@ -187,15 +193,36 @@ flowchart TD
 | --- | --- | --- |
 | 宿主任务队列与重复 | MFAAvalonia 的任务执行层 | 普通原生任务与通用播放的计次归属由执行模式决定，避免双重计次 |
 | Maa 自定义回调 | Resource 绑定的 Agent 通道 | 正向回调和反向 context/controller 请求保持配对；共享请求覆盖等待/读取的完整串行区间 |
-| 脚本服务进程 | 创建该 ScriptStudioClient 的页面或任务服务 | 退出只清理自己创建的服务；编辑草稿与倍速恢复必须先完成对应处理 |
+| 脚本服务进程 | 创建该 ScriptStudioClient 的页面或任务服务 | 只读计划返回后立即退出；编辑、播放、倍速服务保留各自草稿/输入/恢复所有权，不批量关闭同名进程 |
 | 游戏进程/窗口 | 明确选择或已保存身份验证的管理会话 | 不取枚举首项；重启后核对新 PID、路径、窗口、账号及存档 |
 | 输入权 | 当前回放/任务及其租约 | 录制仅采样；监测不夺输入权；取消/异常仍补释放按键和鼠标 |
 | 当前帧与点击框 | 一次观察及控制器会话 | 当前帧内复用；输入、移动、重连后失效；使用新帧的目标框 |
 | 预览 | 宿主截图控制器及显示订阅 | Win32 共享控制器；旧连接代次的帧不可回填；暂停显示不等于暂停任务 |
-| 倍速 | NativeBoxSpeedSession | 跨任务重复持有，清理确认后才发布完成；输入与短时截图资源分开 |
+| 倍速 | NativeBoxSpeedSession | 同一任务的多轮复用；恢复操作完成后发布完成；仅持有后台输入控制器，不加载截图资源或 OCR 模型 |
+| Maa 查询历史 | NativeTaskHistory 与 Tasker 所有者 | 任务/停止从派发到 Wait 完成持有租约；清理与新租约互斥，取消仍在运行时跳过，下一空闲边界再处理 |
 | 库文件/绑定/分组 | 库锁、修订哈希、原子发布实现 | 保存保留未知字段；同名和并发变化不能覆盖；坏索引诊断而非重置 |
 
 ## 7. 数据、生成与运行副本
+
+日志由宿主 `LoggerHelper` 根据全局 `appsettings.json` 的 `LogRetention.Enabled` 启停一个保留服务，缺项默认开启，所有实例与 Agent 共用该数据目录预算。设置在日志器启动时读取，早于普通实例配置初始化；关闭时不创建监听器或回收任务，运行中关闭则取消并等待旧所有者完成，重新开启先核算积累的日志。设置保存复用宿主写锁、保留未知字段并原子替换，旧内容留唯一备份；设置读取只发生在启动，切换更新内存状态，不进入日志追加路径。手动清空与基础写入、分块仍独立可用。
+
+启用时，每次文件变更进入去重队列，200ms 内合并更新；启动、目录结构变化或通知溢出时才重建全量索引。无日志变化且没有超限占用块待重试时，服务不轮询磁盘。当前未封块文件不强行截断，权限或占用导致无法回收时允许超过目标。
+
+```mermaid
+flowchart LR
+    Writers["前端 / Agent / Maa 日志"] --> Files["debug 与 logs 的 .log 文件"]
+    Setting["全局开关：默认开启，持久保存"] --> Enabled{"启用滚动刷新？"}
+    Enabled -->|是| Events["文件变更通知"]
+    Enabled -->|否| Off["停止自动监听与回收"]
+    Files --> Enabled
+    Events --> Queue["路径归一化与去重队列"]
+    Queue --> Index["增量更新总字节与时间索引"]
+    Index --> Budget{"超过 64 MiB？"}
+    Budget -->|否| Wait["等待下一次变更"]
+    Budget -->|是| Oldest["最旧已关闭块优先"]
+    Oldest --> Safe["同一文件句柄核验与删除"]
+    Safe --> Index
+```
 
 ```mermaid
 flowchart LR

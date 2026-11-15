@@ -321,15 +321,12 @@ class BattlePlayerStudioTests(unittest.TestCase):
 
     def test_stop_just_before_dispatch_does_not_send_a_provisional_press_or_release(self):
         self.write([dict(t=0,op="keydown",key=74),dict(t=10,op="keyup",key=74)])
-        class StoppingTasker:
-            controller=self.controller
-            reads=0
-            @property
-            def stopping(self):
-                self.reads+=1
-                return self.reads>=4
-        self.context.tasker=StoppingTasker()
-        self.assertFalse(self.run_recording())
+        def cancel_after_wait(target, stopping=None, clock=None):
+            self.assertFalse(stopping())  # The cached poll is still clear.
+            self.tasker.stopping=True
+            return True  # Cancellation arrives after the wait, before input.
+        with patch.object(player,'_sleep_until',cancel_after_wait):
+            self.assertFalse(self.run_recording())
         self.assertEqual(self.controller.calls,[])
 
     def test_invalid_speed_fails_without_input(self):

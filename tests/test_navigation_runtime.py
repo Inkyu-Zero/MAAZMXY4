@@ -82,6 +82,19 @@ class NavigationRuntimeTests(unittest.TestCase):
         self.assertIsNone(nav._frame)
         self.assertEqual(nav._recognized,{})
 
+    def test_input_boundary_refreshes_cancel_even_when_poll_check_is_cached(self):
+        nav=self.nav();hit=nav.recognize('Go')
+        def cancelled(): raise InterruptedError('cancelled before dispatch')
+        nav.input_check=cancelled
+        with self.assertRaises(InterruptedError):nav.perform('Go',hit)
+        self.assertEqual(self.context.inputs,[])
+
+    def test_cancel_refresh_has_priority_over_navigation_timeout(self):
+        nav=self.nav();nav.deadline=-1
+        def cancelled(): raise InterruptedError('cancelled')
+        nav.input_check=cancelled
+        with self.assertRaises(InterruptedError):nav.locate()
+
     def test_guard_covers_native_action_and_releases_on_action_exception(self):
         events=[]
         @contextmanager

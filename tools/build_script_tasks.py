@@ -129,7 +129,7 @@ def configure_box_speed(root=ROOT):
             '脚本任务设置':dict(action=dict(param=dict(custom_action_param=dict(box_speed=speed)))),
             'GenericScriptPlayback':dict(attach=dict(box_speed=speed))}))
     interface['option']['盒子与脚本倍速']=dict(type='select',label='盒子与脚本倍速',default_case='1 倍（默认）',cases=cases,
-        description='默认 1 倍保持现有行为。2 倍会同步启用盒子原生倍速与脚本倍速，结束或停止后恢复 1 倍。\n进入造梦 4 并关闭盒子高帧率后使用；联机副本不适用。只在切换倍速时截图核验。录制内不能包含数字行 1/2 倍速快捷键。')
+        description='默认 1 倍保持现有行为。2 倍会同步启用盒子原生倍速与脚本倍速，结束或停止后恢复 1 倍。\n进入造梦 4 并关闭盒子高帧率后使用；联机副本不适用。每次开启或恢复倍率均发送两次按键，不截图核验切换结果。录制内不能包含数字行 1/2 倍速快捷键。')
     for task in interface['task']:
         if task['entry'] not in supported:continue
         options=[name for name in task.get('option',[]) if name!='盒子与脚本倍速']
@@ -137,7 +137,9 @@ def configure_box_speed(root=ROOT):
         task['option']=options
         if task['entry']=='GenericScriptPlayback':
             task['description']=task['description'].replace('全程不截图、不识别，实时预览暂停',
-                '回放期间不截图、不识别，实时预览暂停；选择 2 倍时仅在切换阶段截图核验')
+                '回放期间不截图、不识别，实时预览暂停；倍速切换仅发送两次按键，不截图核验')
+            task['description']=task['description'].replace('选择 2 倍时仅在切换阶段截图核验',
+                '倍速切换仅发送两次按键，不截图核验')
     write(path,interface)
 
 if __name__=='__main__':

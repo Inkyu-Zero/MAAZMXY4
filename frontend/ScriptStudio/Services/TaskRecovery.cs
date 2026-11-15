@@ -214,7 +214,7 @@ public static class TaskRecovery
                 if (options.Enabled)
                 {
                     var observed = await TaskRecoveryPolicy.ObserveExecutionAsync(execution, IsLostTarget,
-                        () => { processor.AddLog("游戏管理：目标窗口已丢失，停止旧任务后重新建立连接。"); processor.MaaTasker?.Stop(); }, token);
+                        () => { processor.AddLog("游戏管理：目标窗口已丢失，停止旧任务后重新建立连接。"); if (processor.MaaTasker is { } active) NativeTaskHistory.Use(active, () => active.Stop()); }, token);
                     token.ThrowIfCancellationRequested();
                     if (observed.TargetLost && !File.Exists(statusPath))
                         return resume ? TaskAttempt.Fatal("重启恢复期间目标窗口丢失。")

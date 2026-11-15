@@ -99,12 +99,17 @@ def generate(source,root=ROOT):
                 (30,150,430,161),scale_first=True))
     path=root/'assets/resource/base/pipeline/battle_outcomes.json'
     nodes=json.loads(path.read_text(encoding='utf8'))
-    caption=dict(type='TemplateMatch',param=dict(template=captions,roi=[200,170,800,390]))
+    # Centered revival layouts place the phrase near y=284..361 at height 720.
+    # Keep generous vertical margins and the existing horizontal coverage.
+    caption=dict(type='TemplateMatch',param=dict(template=captions,roi=[200,210,800,210]))
     def reference(name):
         return dict(type='And',param=dict(all_of=[name]))
     # Keep identity cached for the current frame. Once the template and panel
     # layout agree, native Click uses the panel-relative cancel point directly.
     nodes['Result_ReviveEvidence']=dict(recognition=caption,
+        action=dict(type='DoNothing'),next=[],post_delay=0)
+    nodes['Nav_ModalPresent']=dict(recognition=dict(type='Or',param=dict(
+        any_of=['Nav_CommonConfirm','Result_ReviveEvidence'])),
         action=dict(type='DoNothing'),next=[],post_delay=0)
     nodes['Result_RevivePrompt']=dict(recognition=dict(type='Custom',param=dict(
         custom_recognition='battle_no_revive',custom_recognition_param='revive')),

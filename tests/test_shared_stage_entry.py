@@ -61,8 +61,9 @@ class SharedStageNativeTests(unittest.TestCase):
                     for name in ('Nav_InStage','Mainline_034_Play','Mainline_046_Play','Bounty_Play',
                                  '伽岚（万世冥阁）-识别场景1'):
                         self.assertTrue(context.run_recognition(name,frame).hit,name)
-                self.assertEqual(calls.count('Nav_ModalPresent'),1)
-                self.assertEqual(calls.count('Nav_Probe_hub_world_entry'),1)
+                self.assertEqual(calls.count('Nav_StageOverlay'),1)
+                self.assertEqual(calls.count('Nav_ModalPresent'),0)
+                self.assertEqual(calls.count('Nav_Probe_hub_world_entry'),0)
             no_button=actual.copy();no_button[580:720,:180]=35
             self.assertFalse(context.run_recognition('Nav_InStage',no_button).hit,'gear alone is insufficient')
             for folder,name in [('navigation','task-map-real'),('navigation','world'),

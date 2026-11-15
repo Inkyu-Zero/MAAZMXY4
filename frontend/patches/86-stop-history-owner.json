@@ -1,0 +1,6 @@
+{
+  "description": "Keep stop job IDs alive until the stop wait has consumed its status.",
+  "path": "MFAAvalonia/Extensions/MaaFW/MaaProcessor.cs",
+  "find": "        var status = tasker.Stop().Wait();",
+  "replace": "        var status = MFAAvalonia.Services.NativeTaskHistory.Use(tasker, () => tasker.Stop().Wait());"
+}

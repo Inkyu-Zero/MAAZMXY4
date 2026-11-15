@@ -1,0 +1,6 @@
+{
+  "description": "Allow the log retention preference to share the host global configuration path and write lock.",
+  "path": "MFAAvalonia/Configuration/GlobalConfiguration.cs",
+  "find": "public static class GlobalConfiguration",
+  "replace": "public static partial class GlobalConfiguration"
+}
