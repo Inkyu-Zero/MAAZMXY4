@@ -1,0 +1,25 @@
+{
+  "source": {
+    "name": "town4",
+    "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/ui/town4_20230508_1.swf",
+    "file": "town4_20230508_1.swf",
+    "sha256": "a8c8bd45d78368734c985dca10a499453350dc0b004e4806987c30d28c6d4d39",
+    "bytes": 760020,
+    "referer": "https://www.4399.com/flash/zmhj.htm?g=4"
+  },
+  "source_xml_sha256": "a904496cf13e3b6db74eb46264318d2e468fb71e5b7bf12f56bb2203af79b0e1",
+  "source_frame_sha256": "70ed6cb8cf4afba5e07cd3b57e0dc64feab56f723209f088bdb51ec32491b802",
+  "renderer": "tests/test_mainline_native.py::map_frame (stage 45, frame 1, normal mode)",
+  "privacy": "Offline public SWF artwork; no screenshots, accounts, characters or personal data.",
+  "viewport": [
+    1147,
+    720
+  ],
+  "stage_bounds": [
+    536.9491525423729,
+    208.67796610169492,
+    669.9661016949152,
+    351.45762711864404
+  ],
+  "sha256": "84288025f0955b94f45d04ab0107b1fae63bd60fea443571006769cb84b4091f"
+}
