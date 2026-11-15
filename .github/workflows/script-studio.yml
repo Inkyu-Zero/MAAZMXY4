@@ -139,7 +139,7 @@ jobs:
           NAVIGATION_SCROLL_TEST_LOG: '${{ runner.temp }}/navigation-native/scroll'
           OMP_NUM_THREADS: '2'
         run: python -m unittest discover -s tests -p "test_game_management_scroll.py" -v
-      - name: Native speed confirmation on synthetic pixels
+      - name: Input-only native speed switching without screenshots
         env:
           NAVIGATION_NATIVE_TESTS: '1'
           MAAFW_BINARY_PATH: '${{ github.workspace }}/dist/script-studio/runtimes/win-x64/native'
@@ -168,6 +168,12 @@ jobs:
       - name: Built ZIP migration page and early startup restore contract (headless)
         shell: pwsh
         run: dotnet run --project frontend/tests/PersonalTransferUi/PersonalTransferUi.csproj -c Release -- "${{ runner.temp }}/personal-transfer-renders"
+      - name: Idle native task history ownership
+        run: dotnet run --project frontend/tests/TaskHistory/TaskHistory.csproj -c Release
+      - name: Shared log budget, persistence and disabled startup
+        run: dotnet run --project frontend/tests/LogRetention/LogRetention.csproj -c Release -- "${{ runner.temp }}/retention-fixtures"
+      - name: Manual log cleanup and settings lifecycle (headless)
+        run: dotnet run --project frontend/tests/LogCleanup/LogCleanup.csproj -c Release -- "${{ runner.temp }}/log-cleanup-fixtures"
       - name: Build the manual-install project launcher
         shell: pwsh
         run: ./tools/build_launcher.ps1
