@@ -1,8 +1,10 @@
 # 造梦西游4 · MAA 自动化项目（MAAZMXY4）
 
-基于 MaaFramework 的《造梦西游4》日常自动化项目，适配「造梦盒子」客户端。提供后台截图与输入、14 个常用任务，以及录制、脚本库和时间轴编辑工作台。开发分支另有 62 个可通过“＋”添加的普通主线关卡任务。
+基于 MaaFramework 的《造梦西游4》日常自动化项目，适配「造梦盒子」客户端。提供后台截图与输入、14 个常用任务，以及录制、脚本库和时间轴编辑工作台。开发分支另有 65 个可通过“＋”添加的普通主线关卡任务，以及竞技场任务。
 
 **下载与说明：** [正式版本](https://github.com/Inkyu-Zero/MAAZMXY4/releases) · [2.5.1 候选更新说明](docs/zh_cn/2026-11-12更新日志.md) · [2.5.0 更新日志](docs/zh_cn/2026-11-07更新日志.md) · [脚本工具](docs/zh_cn/脚本工具-使用说明.md) · [个人配置 ZIP 迁移](docs/zh_cn/个人配置备份与迁移.md)
+
+**维护者入口：** [项目结构与执行链路（Markdown + Mermaid）](https://github.com/Algreenses/MAAZMXY4/blob/main/architecture/README.md)。源码位于根目录 `architecture/`；目录、职责、协议、资源生成或构建入口变化时，与实现同步维护。
 
 ## 版本状态
 
