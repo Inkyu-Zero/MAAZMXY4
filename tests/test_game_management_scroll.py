@@ -152,10 +152,10 @@ class StageScrollTests(unittest.TestCase):
         self.assertFalse(restore_stage_view(context, navigator, target))
         self.assertEqual(actions, [])
         def cancelled(): raise InterruptedError('cancelled')
-        navigator._check = cancelled
+        navigator.check = navigator.input_check = cancelled
         with self.assertRaises(InterruptedError): restore_stage_view(context, navigator, target)
         self.assertEqual(actions, [])
-        navigator._check = lambda: None
+        navigator.check = navigator.input_check = lambda: None
         navigator.invalidate()
         context.run_recognition = lambda name, _: SimpleNamespace(hit=name == recipe['drag_node'],box=(10,20,30,40))
         self.assertFalse(restore_stage_view(context, navigator, target))
