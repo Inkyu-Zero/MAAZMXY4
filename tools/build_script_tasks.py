@@ -77,6 +77,8 @@ def build(root=ROOT):
     from task_catalog import task_key
     build_bounties(root)
     profiles=json.loads((root/'tools/script_task_profiles.json').read_text(encoding='utf8'))
+    from mainline_tasks import LEGACY_STAGES, stages, target_recognition
+    mainline = {stage['id']:stage for stage in stages(root)}
     folder=root/'assets/resource/base/pipeline'
     for name,profile in profiles.items():
         entry,play,target,scene,repeat=(profile[k] for k in ('entry','playback_node','target_node','scene_node','repeat_node'))
@@ -101,6 +103,8 @@ def build(root=ROOT):
             set_roi(icon)
         target_definition['recognition']=dict(type='And',param=dict(
             all_of=['Nav_ClearMap',icon],box_index=1))
+        if name in LEGACY_STAGES:
+            target_definition['recognition'] = target_recognition(mainline[LEGACY_STAGES[name]])
         # Preserve legacy node identifiers as aliases, without scene landmarks.
         scene_rec=shared_stage()
         graph={entry:round_node(entry,params,True),
@@ -109,6 +113,8 @@ def build(root=ROOT):
         write(folder/(name+'.json'),graph)
     from mainline_tasks import build as build_mainline
     build_mainline(root)
+    from arena_tasks import build as build_arena
+    build_arena(root)
     configure_box_speed(root)
 
 
@@ -123,7 +129,7 @@ def configure_box_speed(root=ROOT):
             '脚本任务设置':dict(action=dict(param=dict(custom_action_param=dict(box_speed=speed)))),
             'GenericScriptPlayback':dict(attach=dict(box_speed=speed))}))
     interface['option']['盒子与脚本倍速']=dict(type='select',label='盒子与脚本倍速',default_case='1 倍（默认）',cases=cases,
-        description='默认 1 倍保持现有行为。2 倍会同步启用盒子原生倍速与脚本倍速，结束或停止后恢复 1 倍。\n进入造梦 4 并关闭盒子高帧率后使用；联机副本不适用。只在切换倍速时截图核验。录制内不能包含数字行 1/2 倍速快捷键。')
+        description='默认 1 倍保持现有行为。2 倍会同步启用盒子原生倍速与脚本倍速，结束或停止后恢复 1 倍。\n进入造梦 4 并关闭盒子高帧率后使用；联机副本不适用。每次开启或恢复倍率均发送两次按键，不截图核验切换结果。录制内不能包含数字行 1/2 倍速快捷键。')
     for task in interface['task']:
         if task['entry'] not in supported:continue
         options=[name for name in task.get('option',[]) if name!='盒子与脚本倍速']
@@ -131,7 +137,9 @@ def configure_box_speed(root=ROOT):
         task['option']=options
         if task['entry']=='GenericScriptPlayback':
             task['description']=task['description'].replace('全程不截图、不识别，实时预览暂停',
-                '回放期间不截图、不识别，实时预览暂停；选择 2 倍时仅在切换阶段截图核验')
+                '回放期间不截图、不识别，实时预览暂停；倍速切换仅发送两次按键，不截图核验')
+            task['description']=task['description'].replace('选择 2 倍时仅在切换阶段截图核验',
+                '倍速切换仅发送两次按键，不截图核验')
     write(path,interface)
 
 if __name__=='__main__':

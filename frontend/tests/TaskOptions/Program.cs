@@ -122,8 +122,34 @@ internal static class Program
         Check(failed.Run(CancellationToken.None).GetAwaiter().GetResult().Status==MFATask.MFATaskStatus.FAILED && iterations==1,
             "A failed playback is not counted or retried as success");
         VerifySpeedTaskLifecycle(source,panel,item,generator,window,root);
+        VerifyIdleGameMonitoring();
         window.Close();
         Console.WriteLine("PASS actual built task options: one count label, AFK dependencies, saved values, legacy migration; no app/controllers/processes created.");
+    }
+
+    private static void VerifyIdleGameMonitoring()
+    {
+        // No constructor, process or controller: dependencies after the idle
+        // gate remain deliberately unset, so touching them would fault the loop.
+        var service=Empty<GameManagementService>();
+        using var lifetime=new CancellationTokenSource();
+        var schedule=new GameRestartSchedule();
+        var options=new GameManagementOptions {RestartOnMemory=true};
+        schedule.Observe(options,2_000_000_000,1,DateTimeOffset.UnixEpoch,true);
+        schedule.Observe(options,2_000_000_000,1,DateTimeOffset.UnixEpoch.AddSeconds(5),true);
+        Set(service,"_processor",Empty<MaaProcessor>()); Set(service,"_sync",new object());
+        Set(service,"_schedule",schedule); Set(service,"_lifetime",lifetime);
+        Set(service,"_identity",new TaskProcessIdentity(-1,1,"unused.exe"));
+        var method=typeof(GameManagementService).GetMethod("MonitorAsync",BindingFlags.Instance|BindingFlags.NonPublic)!;
+        var monitor=Task.Run(()=>(Task)method.Invoke(service,null)!);
+        try
+        {
+            Task.Delay(5500).GetAwaiter().GetResult();
+            Check(!monitor.IsCompleted,"Idle monitor skips all process and operation dependencies");
+            Check(schedule.PendingReason==null,"Idle monitor clears an old memory request");
+        }
+        finally {lifetime.Cancel();monitor.GetAwaiter().GetResult();}
+        Console.WriteLine("PASS actual idle monitoring: no process sampling or restart dispatch.");
     }
 
     private static void VerifySpeedTaskLifecycle(MaaInterface source,StackPanel panel,DragItemViewModel item,
@@ -221,15 +247,15 @@ internal static class Program
         var actualRows=((List<DragItemViewModel>,List<DragItemViewModel>))sync.Invoke(actual,actualArgs)!;
         Check(actualRows.Item1.All(row=>row.InterfaceItem?.DefaultAdd!=false),"Real mainline definitions never populate fresh queues");
         var mainline=definitions.Where(task=>task.Entry?.StartsWith("Mainline_")==true).ToList();
-        Check(mainline.Count==62 && mainline.All(task=>task.DefaultAdd==false),"All 62 stages are explicitly add-only");
+        Check(mainline.Count==65 && mainline.All(task=>task.DefaultAdd==false),"All 65 stages are explicitly add-only");
         using var addDialog=new AddTaskDialogViewModel(null!,definitions.Select(task=>new DragItemViewModel(task.Clone())).ToList(),vm);
-        Check(addDialog.Sources.Count(item=>item.Source?.InterfaceItem?.Entry?.StartsWith("Mainline_")==true)==62,
+        Check(addDialog.Sources.Count(item=>item.Source?.InterfaceItem?.Entry?.StartsWith("Mainline_")==true)==65,
             "The real + dialog offers every mainline task");
-        Check(mainline.SelectMany(task=>task.Group??[]).Distinct().Count()==5,"Mainline tasks use five native map groups");
-        var selected=mainline.Select(task=>new DragItemViewModel(task.Clone()){OwnerViewModel=vm}).ToList();
+        Check(mainline.SelectMany(task=>task.Group??[]).Distinct().Count()==6,"Mainline tasks use six native map groups");
+        var selected=definitions.Where(task=>task.DefaultAdd==false).Select(task=>new DragItemViewModel(task.Clone()){OwnerViewModel=vm}).ToList();
         actualArgs=[selected.Select(row=>row.InterfaceItem!.Name+"<|||>"+row.InterfaceItem.Entry).ToList(),selected,definitions];
         var restoredActual=((List<DragItemViewModel>,List<DragItemViewModel>))sync.Invoke(actual,actualArgs)!;
-        Check(selected.All(row=>restoredActual.Item1.Contains(row)),"Every explicitly added stage survives reload");
+        Check(selected.All(row=>restoredActual.Item1.Contains(row)),"Mainline, legacy presets and arena selections survive reload");
         Console.WriteLine("PASS actual task loader: legacy auto-add, manual-only fresh queues, explicit additions and deleted-task history.");
     }
 }

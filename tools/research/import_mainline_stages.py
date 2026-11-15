@@ -1,4 +1,4 @@
-"""Extract four-province/blood-sea entry ROIs from the offline SWF asset cache.
+"""Extract mainline entry ROIs for all six maps from the offline SWF asset cache.
 
 Only development-time Pillow/numpy are used. Runtime matching remains native
 Maa TemplateMatch on a current screenshot; no placement coordinate is clicked.
@@ -16,7 +16,7 @@ from import_stage_variants import opaque_rectangle, write_json
 ROOT = Path(__file__).resolve().parents[2]
 PROVINCES = [('town1', '南瞻部洲', 122, 1, 16), ('town2', '东胜神洲', 94, 17, 29),
              ('town3', '北俱芦洲', 78, 30, 39), ('town4', '西牛贺洲', 57, 40, 46),
-             ('town5', '幽冥血海', 448, 47, 62)]
+             ('town5', '幽冥血海', 448, 47, 62), ('town6', '六欲魔天', 35, 63, 65)]
 VIEWPORT = (round(940*SCALE), 720)
 
 
@@ -102,6 +102,7 @@ def generate(source, root=ROOT):
             sx, sy = (float(matrix.get(key,'1'))*SCALE for key in ('scaleX','scaleY'))
             world_box = transform(bounds(sprite), matrix)
             offset = 560 if town == 'town5' and (world_box[0]+world_box[2])/2 > 750 else 0
+            offset_y = round(bounds(str(container_id))[3] - 590) if town == 'town6' else 0
             folder = sprite_folder(source, town, sprite)
             variants, seen, boxes = [], set(), []
             for state in (1,2,3):
@@ -110,12 +111,12 @@ def generate(source, root=ROOT):
                     image = original.convert('RGBA').resize(
                         (round(original.width*sx),round(original.height*sy)),Image.Resampling.LANCZOS)
                 try:
-                    origin=(round((world_box[0]-offset)*SCALE),round(world_box[1]*SCALE))
+                    origin=(round((world_box[0]-offset)*SCALE),round((world_box[1]-offset_y)*SCALE))
                     crop,(x,y,w,h),masked = icon_patch(image,origin)
                 except ValueError as error:
                     raise ValueError(f'Unusable icon: stage {ident}, state {state}, sprite {sprite}') from error
                 digest = hashlib.sha256(crop.tobytes()).hexdigest()
-                px,py = round((world_box[0]-offset)*SCALE)+x,round(world_box[1]*SCALE)+y
+                px,py = round((world_box[0]-offset)*SCALE)+x,round((world_box[1]-offset_y)*SCALE)+y
                 if px < 0 or py < 0 or px+w > VIEWPORT[0] or py+h > VIEWPORT[1]:
                     raise ValueError('Icon cannot fit its chosen endpoint: '+str(ident))
                 boxes.append([px,py,w,h])
@@ -144,9 +145,11 @@ def generate(source, root=ROOT):
                 scene_layout=dict(width=int(record['width']),height=int(record['height']),
                     screen_width=int(record['screenWidth']),birth_point=[float(v) for v in record['birthPoint'].split(',')],
                     class_type=record.get('classType') or '',cartoons=record.get('manhua') or ''),
-                endpoint=('right' if offset else 'left') if town=='town5' else None,
+                endpoint=('right' if offset else 'left') if town=='town5' else ('bottom' if town=='town6' else None),
                 offset=offset, roi=roi, variants=variants,
                 recognition=recognition))
+            if offset_y:
+                metadata['stages'][-1]['offset_y'] = offset_y
     write_json(root/'agent/data/navigation/mainline-stages.json',metadata)
     print('Extracted',len(metadata['stages']),'mainline stage entries; largest ROI fraction:',
           max(s['roi'][2]*s['roi'][3] for s in metadata['stages'])/(VIEWPORT[0]*VIEWPORT[1]))

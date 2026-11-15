@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>PageTours.Tests</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia.Headless" Version="11.3.12" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.12" />
+    <PackageReference Include="Avalonia.Skia" Version="11.3.12" />
+    <PackageReference Include="SkiaSharp" Version="3.119.1" />
+    <Compile Include="../../ScriptStudio/Services/PageTourProgress.cs" Link="PageTourProgress.cs" />
+    <Compile Include="../../ScriptStudio/Services/PageTourConfiguration.cs" Link="PageTourConfiguration.cs" />
+    <Compile Include="../../ScriptStudio/Services/PageTourCatalog.cs" Link="PageTourCatalog.cs" />
+    <Compile Include="../../ScriptStudio/Services/PageTourHost.cs" Link="PageTourHost.cs" />
+    <Compile Include="../../ScriptStudio/Views/UserControls/PageTourResetView.cs" Link="PageTourResetView.cs" />
+    <Compile Include="../../ScriptStudio/Views/UserControls/TeachingTipOverlay.axaml.cs" Link="TeachingTipOverlay.axaml.cs" />
+    <AvaloniaResource Include="../../ScriptStudio/Views/UserControls/TeachingTipOverlay.axaml" Link="TeachingTipOverlay.axaml" />
+  </ItemGroup>
+</Project>

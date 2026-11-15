@@ -1,0 +1,131 @@
+{
+  "Arena": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "begin",
+          "file": "@task:task-3b19b799ecc71f6bf11bd48dd9dffa3a",
+          "task_binding_id": "task-3b19b799ecc71f6bf11bd48dd9dffa3a",
+          "playback_node": "Arena_Play",
+          "navigation": {
+            "kind": "arena",
+            "target_node": "Arena_Target",
+            "label": "竞技场",
+            "screen": "arena"
+          },
+          "settings_node": "脚本任务设置",
+          "exit_mode": "battle_only",
+          "failure_retry": {
+            "enabled": false,
+            "max_retries": 3
+          },
+          "round_flow": {
+            "scene_node": "Nav_InStage",
+            "load_timeout_ms": 15000,
+            "repeat_node": "Arena_Repeat",
+            "require_victory": true
+          },
+          "result_guard": {
+            "failed_next": [
+              "Result_Failed"
+            ],
+            "succeeded_next": [
+              "Result_Succeeded"
+            ],
+            "revive_next": [
+              "Result_RevivePrompt"
+            ],
+            "error_next": [
+              "Result_MonitorStopped"
+            ]
+          }
+        }
+      }
+    },
+    "next": [
+      "Arena",
+      "停止运行"
+    ],
+    "post_delay": 0,
+    "max_hit": 1,
+    "pre_delay": 0
+  },
+  "Arena_Repeat": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "loop_count",
+        "custom_action_param": {
+          "label": "竞技场"
+        }
+      }
+    },
+    "next": [],
+    "post_delay": 0,
+    "max_hit": 1,
+    "pre_delay": 0
+  },
+  "Arena_Target": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          "Nav_See_arena",
+          "Result_NoRevivePrompt"
+        ]
+      }
+    },
+    "action": {
+      "type": "LongPress",
+      "param": {
+        "duration": 100,
+        "target": [
+          1022,
+          273,
+          1,
+          1
+        ]
+      }
+    },
+    "next": [],
+    "post_delay": 1000,
+    "pre_delay": 0
+  },
+  "Arena_Play": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          "Nav_InStage"
+        ]
+      }
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "battle_play",
+        "custom_action_param": {
+          "script_binding": {
+            "recorded_return_next": [
+              "Round_PlayDone"
+            ]
+          },
+          "file": "@task:task-3b19b799ecc71f6bf11bd48dd9dffa3a"
+        }
+      }
+    },
+    "next": [
+      "Round_PlayDone"
+    ],
+    "post_delay": 0,
+    "pre_delay": 0
+  }
+}

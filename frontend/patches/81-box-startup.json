@@ -1,0 +1,6 @@
+{
+  "description": "Attempt one advisory box launch after loading the selected instance, independent of task execution.",
+  "path": "MFAAvalonia/Extensions/MaaFW/MaaProcessorManager.cs",
+  "find": "    public void LoadInstanceConfig()\n    {",
+  "replace": "    public void LoadInstanceConfig()\n    {\n        LoadInstanceConfigCore();\n        MFAAvalonia.Services.GameManagementService.TryAutoStartOnce(Current);\n    }\n\n    private void LoadInstanceConfigCore()\n    {"
+}

@@ -2,6 +2,7 @@
 import hashlib
 import json
 import os
+import sys
 from pathlib import Path
 import tempfile
 from uuid import uuid4
@@ -178,6 +179,17 @@ def duplicate_recording(directory, filename, name, expected_revision):
     return dict(file=destination.name)
 
 
+def _folder_updates(directory, **changes):
+    # Folder diagnostics must not turn an existing script operation into a new
+    # failure path. A damaged grouping index stays untouched for repair.
+    from recording_folders import membership_update
+    try:
+        return membership_update(directory, **changes)
+    except (OSError, ValueError) as error:
+        print('[script_library] 文件夹信息未更新：' + str(error), flush=True, file=sys.stderr)
+        return []
+
+
 def rename_recording(directory, filename, name, expected_revision):
     """Rename the saved document and every library-owned reference under one lock.
 
@@ -203,7 +215,7 @@ def rename_recording(directory, filename, name, expected_revision):
         selected_path = _index_path(directory, '.selected.json')
         selected_raw = _read(selected_path)
         selected = _json(selected_raw) if selected_raw is not None else None
-        updates = []
+        updates = _folder_updates(directory, renamed=(filename, destination.name))
         if any(item['file'] == filename for item in bindings.values()):
             for item in bindings.values():
                 if item['file'] == filename: item['file'] = destination.name
@@ -245,33 +257,49 @@ def delete_recording(directory, filename, expected_revision):
     """Remove a file and its bindings together; retain its bytes in a private trash."""
     directory = Path(directory).resolve()
     with _binding_lock(directory):
-        path, raw = _revision_file(directory, filename, expected_revision)
-        bindings, binding_raw = _bindings_state(directory)
-        registry, default_raw = _defaults(directory)
-        affected = [key for key, value in bindings.items() if value['file'] == filename]
-        for key in affected: del bindings[key]
-        for entry in registry['items'].values():
-            if entry['file'] == filename: entry['state'] = 'deleted'
-        trash = directory / '.trash'
-        if trash.resolve() != directory / '.trash': raise ValueError('脚本回收目录不能使用符号链接。')
-        trash.mkdir(exist_ok=True)
-        archive = trash / (uuid4().hex + '-' + filename)
-        updates = []
-        if affected:
-            updates.append((_index_path(directory), binding_raw, _encoded(dict(version=2, tasks=bindings))))
-        if default_raw is not None and _json(default_raw) != registry:
-            updates.append((_index_path(directory, DEFAULT_INDEX), default_raw, _encoded(registry)))
-        published = []
-        try:
-            for index, before, after in updates:
-                _publish(index, after, before)
-                published.append((index, before, after))
-            _revision_file(directory, filename, expected_revision)
-            os.replace(path, archive)
-        except Exception:
-            for index, before, after in reversed(published):
-                if _read(index) == after:
-                    if before is None: index.unlink()
-                    else: _publish(index, before, after)
-            raise
-    return dict(deleted=filename, unbound_tasks=affected, recovery_file=str(archive))
+        result = _delete_recordings_locked(directory, {filename: expected_revision})
+    return dict(deleted=filename, unbound_tasks=result['unbound_tasks'],
+                recovery_file=result['recovery_files'][filename])
+
+
+def _delete_recordings_locked(directory, revisions, *, folder_updates=None):
+    """Delete a confirmed group under the existing library lock, rolling back together."""
+    originals = {name: _revision_file(directory, name, revision) for name, revision in revisions.items()}
+    bindings, binding_raw = _bindings_state(directory)
+    registry, default_raw = _defaults(directory)
+    affected = [key for key, value in bindings.items() if value['file'] in originals]
+    for entry in registry['items'].values():
+        if entry['file'] in originals: entry['state'] = 'deleted'
+    trash = directory / '.trash'
+    if trash.resolve() != directory / '.trash': raise ValueError('脚本回收目录不能使用符号链接。')
+    trash.mkdir(exist_ok=True)
+    archives = {name: trash / (uuid4().hex + '-' + name) for name in originals}
+    updates = _folder_updates(directory, removed=originals) if folder_updates is None else list(folder_updates)
+    if affected:
+        binding_document = _json(binding_raw)
+        for key in affected: del binding_document['tasks'][key]
+        updates.append((_index_path(directory), binding_raw, _encoded(binding_document)))
+    if default_raw is not None and _json(default_raw) != registry:
+        updates.append((_index_path(directory, DEFAULT_INDEX), default_raw, _encoded(registry)))
+    published, moved = [], []
+    try:
+        for index, before, after in updates:
+            _publish(index, after, before)
+            published.append((index, before, after))
+        for name, (path, _) in originals.items():
+            _revision_file(directory, name, revisions[name])
+            os.replace(path, archives[name])
+            moved.append(name)
+    except Exception:
+        for name in reversed(moved):
+            path, raw = originals[name]
+            if not path.exists() and _read(archives[name]) == raw:
+                publish_new_file(archives[name], path)
+                archives[name].unlink(missing_ok=True)
+        for index, before, after in reversed(published):
+            if _read(index) == after:
+                if before is None: index.unlink()
+                else: _publish(index, before, after)
+        raise
+    return dict(deleted=list(originals), unbound_tasks=affected,
+                recovery_files={name: str(path) for name, path in archives.items()})

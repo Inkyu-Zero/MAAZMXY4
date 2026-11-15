@@ -1,0 +1,6 @@
+{
+  "description": "Use 4 MiB frontend blocks governed by the shared 64 MiB window.",
+  "path": "MFAAvalonia/Helper/LoggerHelper.cs",
+  "find": "                retainedFileCountLimit: 14,\n                fileSizeLimitBytes: 10 * 1024 * 1024,",
+  "replace": "                retainedFileCountLimit: null,\n                fileSizeLimitBytes: MFAAvalonia.Services.LogRetention.BlockBytes,"
+}

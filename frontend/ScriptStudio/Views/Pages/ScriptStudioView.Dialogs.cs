@@ -35,15 +35,19 @@ public sealed partial class ScriptStudioView
         return true;
     }
 
-    private async Task<string?> AskNameAsync(string title, string suggestion, string? currentFile = null)
+    private Task<string?> AskNameAsync(string title, string suggestion, string? currentFile = null) =>
+        AskLibraryNameAsync(title, suggestion, currentFile, false);
+
+    private async Task<string?> AskLibraryNameAsync(string title, string suggestion, string? currentFile, bool folder)
     {
         if (TopLevel.GetTopLevel(this) is not Window owner) return null;
         var dialog = new Window { Title = title, Width = 430, CanResize = false, SizeToContent = SizeToContent.Height,
             WindowStartupLocation = WindowStartupLocation.CenterOwner, ShowInTaskbar = false };
         var content = new StackPanel { Spacing = 14, Margin = new Thickness(22) };
         content.Children.Add(new TextBlock { Text = title, FontSize = 20, FontWeight = FontWeight.SemiBold });
-        var name = new TextBox { Text = suggestion, Watermark = "脚本名称" };
-        content.Children.Add(Field("脚本名称", name));
+        var label = folder ? "文件夹名称" : "脚本名称";
+        var name = new TextBox { Text = suggestion, Watermark = label };
+        content.Children.Add(Field(label, name));
         var error = new TextBlock { Foreground = Brushes.IndianRed, TextWrapping = TextWrapping.Wrap, FontSize = 12 };
         content.Children.Add(error);
         var save = new Button { Content = "保存", IsDefault = true, Padding = new Thickness(18, 8) };
@@ -51,6 +55,14 @@ public sealed partial class ScriptStudioView
         void Submit()
         {
             var value = name.Text?.Trim() ?? "";
+            if (folder)
+            {
+                if (value.Length == 0) { error.Text = "请输入文件夹名称。"; return; }
+                if (_folders.Any(item => item?["id"]?.GetValue<string>() != currentFile &&
+                    string.Equals(item?["name"]?.GetValue<string>(), value, StringComparison.CurrentCultureIgnoreCase)))
+                { error.Text = "同名文件夹已存在，请换一个名称。"; return; }
+                dialog.Close(value); return;
+            }
             if (value.Length == 0 || value.StartsWith('.') || value.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
             { error.Text = "请输入有效名称，不能包含 / \\ : * ? 等文件名符号。"; return; }
             if (value.EndsWith(".json", StringComparison.OrdinalIgnoreCase)) value = value[..^5].Trim();
@@ -70,7 +82,7 @@ public sealed partial class ScriptStudioView
     private async Task<bool> ConfirmDeleteAsync(string message)
     {
         if (TopLevel.GetTopLevel(this) is not Window owner) return false;
-        var dialog = new Window { Title = "删除脚本", Width = 440, CanResize = false, SizeToContent = SizeToContent.Height,
+        var dialog = new Window { Title = "确认删除", Width = 440, CanResize = false, SizeToContent = SizeToContent.Height,
             WindowStartupLocation = WindowStartupLocation.CenterOwner, ShowInTaskbar = false };
         var content = new StackPanel { Spacing = 18, Margin = new Thickness(22) };
         content.Children.Add(new TextBlock { Text = message, TextWrapping = TextWrapping.Wrap });

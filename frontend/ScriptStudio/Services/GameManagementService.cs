@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -20,6 +21,8 @@ public sealed class GameManagementService : IDisposable
 {
     private const string SettingsKey = "GameManagement.Options";
     private static readonly ConditionalWeakTable<MaaProcessor, GameManagementService> Instances = new();
+    private static readonly BoxStartupAttempt StartupAttempt = new();
+    private static readonly SemaphoreSlim LaunchGate = new(1, 1);
     private readonly MaaProcessor _processor;
     private readonly CancellationTokenSource _lifetime = new();
     private readonly SemaphoreSlim _operation = new(1, 1);
@@ -31,10 +34,13 @@ public sealed class GameManagementService : IDisposable
     private int _managedRuns;
     private int _reconnecting;
     private bool _disposed;
+    private bool _invalidSettings;
+    private TaskProcessIdentity? _launchedProcess;
     private string? _attentionRequired;
     private readonly long _clockOrigin = Stopwatch.GetTimestamp();
     private DateTimeOffset Clock => DateTimeOffset.UnixEpoch + Stopwatch.GetElapsedTime(_clockOrigin);
     public GameManagementOptions Options { get; private set; }
+    public string BundledExePath => GameManagementOptions.BundledExePath(AppContext.BaseDirectory);
     public bool IsArmed { get { lock (_sync) return _identity != null; } }
     public static GameManagementService For(MaaProcessor processor) => Instances.GetValue(processor, p => new(p));
     public static bool IsReconnecting(MaaProcessor processor) => Instances.TryGetValue(processor, out var service)
@@ -77,13 +83,51 @@ public sealed class GameManagementService : IDisposable
     private GameManagementService(MaaProcessor processor)
     {
         _processor = processor;
-        try { Options = GameManagementOptions.Parse(processor.InstanceConfiguration.GetValue(SettingsKey, "{}")); }
+        try { Options = GameManagementOptions.Parse(processor.InstanceConfiguration.GetValue(SettingsKey, "{}")).WithBundledDefault(AppContext.BaseDirectory); }
         catch (Exception error) when (error is JsonException or InvalidDataException)
         {
             Options = new();
+            _invalidSettings = true;
             Log("设置无效，自动托管暂时关闭；原设置未覆盖，请在游戏管理中重新保存。" + error.Message);
         }
         _ = MonitorAsync();
+    }
+
+    public static void TryAutoStartOnce(MaaProcessor processor)
+    {
+        // Called after the host loads its selected instance, never by task-start validation.
+        var service = For(processor);
+        _ = Task.Run(async () =>
+        {
+            await LaunchGate.WaitAsync();
+            try
+            {
+                if (service._disposed || service._invalidSettings) return;
+                StartupAttempt.Try(() =>
+                {
+                    var path = service.Options.ExePath;
+                    VerifyBox(path);
+                    using var started = Process.Start(new ProcessStartInfo(path)
+                    {
+                        WorkingDirectory = Path.GetDirectoryName(path)!, UseShellExecute = false,
+                        WindowStyle = ProcessWindowStyle.Normal
+                    }) ?? throw new IOException("盒子程序未启动。");
+                    service._launchedProcess = ReadIdentity(started);
+                }, () =>
+                {
+                    var names = new[] { "zmBox", "造梦盒子", Path.GetFileNameWithoutExtension(service.Options.ExePath) }.Distinct(StringComparer.OrdinalIgnoreCase);
+                    foreach (var name in names)
+                    {
+                        var processes = Process.GetProcessesByName(name);
+                        try { if (processes.Any(p => !p.HasExited)) return true; }
+                        finally { foreach (var process in processes) process.Dispose(); }
+                    }
+                    return false;
+                }, service.Log);
+            }
+            catch (Exception error) { service.Log("自动启动盒子未完成：" + error.Message); }
+            finally { LaunchGate.Release(); }
+        });
     }
 
     public void Save(GameManagementOptions options)
@@ -92,9 +136,11 @@ public sealed class GameManagementService : IDisposable
         {
             if (_processor.IsTaskRunActive || _operation.CurrentCount == 0)
                 throw new InvalidOperationException("请先停止当前任务或等待盒子操作完成，再修改游戏管理设置。");
+            options = options.WithBundledDefault(AppContext.BaseDirectory);
             options.Validate();
             _processor.InstanceConfiguration.SetValue(SettingsKey, JsonSerializer.Serialize(options));
             Options = options;
+            _invalidSettings = false;
             lock (_sync) { _schedule.Reset(); _identity = null; _verifiedTarget = null; _manualRestart = false; _attentionRequired = null; }
         }
         Log("设置已保存到当前实例；开启选项后从任务或“启动并连接”开始托管。");
@@ -109,11 +155,11 @@ public sealed class GameManagementService : IDisposable
         return process.MainModule?.FileName ?? throw new InvalidOperationException("无法读取所选窗口的程序路径。");
     }
 
-    public void Arm()
+    public void Arm(bool requireLogin = true)
     {
         if (_attentionRequired != null) throw new InvalidOperationException(_attentionRequired);
         var options = Options;
-        options.Validate(requireTarget: true);
+        options.Validate(requireTarget: true, requireLogin: requireLogin);
         VerifyBox(options.ExePath);
         var verified = TaskRecovery.CaptureManagedTarget(_processor, options.ExePath);
         var identity = verified.Process;
@@ -122,32 +168,56 @@ public sealed class GameManagementService : IDisposable
             var changed = _identity?.StartedUtcTicks != identity.StartedUtcTicks;
             _identity = identity;
             _verifiedTarget = verified;
-            if (changed) _schedule.Observe(options, 0, identity.StartedUtcTicks, Clock);
+            if (changed) _schedule.Observe(options, 0, identity.StartedUtcTicks, Clock, _processor.IsTaskRunActive);
         }
     }
 
     public async Task StartAsync()
     {
+        await LaunchGate.WaitAsync(_lifetime.Token);
+        try { await StartSelectedAsync(); }
+        finally { LaunchGate.Release(); }
+    }
+
+    private async Task StartSelectedAsync()
+    {
         _attentionRequired = null;
-        Options.Validate(requireTarget: true); VerifyBox(Options.ExePath);
+        Options.Validate(requireTarget: true, requireLogin: false); VerifyBox(Options.ExePath);
         if (_processor.ViewModel?.CurrentDevice is DesktopWindowInfo window && WindowPid(window.Handle) != 0)
         {
-            Arm();
+            Arm(requireLogin: false);
             await OperateAsync("connect", false, _lifetime.Token);
             return;
         }
-        // An unselected running copy must not be silently adopted or duplicated.
+        if (OwnedLaunch() != null)
+        {
+            await OperateAsync("connect", false, _lifetime.Token);
+            return;
+        }
+        // This explicit button uses the saved program path. Reuse only a unique
+        // matching process; window identity/readiness still belongs to TaskRecovery.
+        var matches = new List<TaskProcessIdentity>();
         foreach (var process in Process.GetProcessesByName(Path.GetFileNameWithoutExtension(Options.ExePath)))
         {
             using (process)
             {
                 try
                 {
-                    if (string.Equals(process.MainModule?.FileName, Options.ExePath, StringComparison.OrdinalIgnoreCase))
-                        throw new InvalidOperationException("造梦盒子已运行，请先明确选择它的窗口再连接。");
+                    var candidate = ReadIdentity(process);
+                    candidate.RequireConfiguredPath(Options.ExePath);
+                    matches.Add(candidate);
                 }
                 catch (System.ComponentModel.Win32Exception) { }
+                catch (InvalidOperationException) { }
             }
+        }
+        if (matches.Count > 1) throw new InvalidOperationException("造梦盒子已运行多个副本，请先明确选择它的窗口再连接。");
+        if (matches.Count == 1)
+        {
+            _launchedProcess = matches[0];
+            Log("复用与已保存绑定路径一致的唯一盒子进程。");
+            await OperateAsync("connect", false, _lifetime.Token);
+            return;
         }
         await OperateAsync("start", false, _lifetime.Token);
     }
@@ -163,7 +233,8 @@ public sealed class GameManagementService : IDisposable
             return;
         }
         _attentionRequired = null;
-        Arm();
+        if (OwnedLaunch() == null || _processor.ViewModel?.CurrentDevice is DesktopWindowInfo selected && WindowPid(selected.Handle) != 0)
+            Arm(requireLogin: false);
         await OperateAsync("restart", false, _lifetime.Token);
     }
 
@@ -177,13 +248,22 @@ public sealed class GameManagementService : IDisposable
     {
         token.ThrowIfCancellationRequested();
         var tasker = await _processor.GetTaskerAsync(token) ?? throw new IOException("盒子连接失败。");
-        var job = tasker.AppendTask(entry!, patch ?? "{}");
-        using var cancellation = token.Register(() =>
+        void ClearHistory() => NativeTaskHistory.ClearIfIdle(tasker,
+            () => !tasker.IsRunning && !tasker.IsStopping, tasker.ClearCache,
+            message => LoggerHelper.Warning(message));
+        ClearHistory();
+        try
         {
-            try { tasker.Stop(); }
-            catch (ObjectDisposedException) { }
-        });
-        return await Task.Run(() => job.Wait(), token);
+            using var history = NativeTaskHistory.Acquire(tasker);
+            var job = tasker.AppendTask(entry!, patch ?? "{}");
+            using var cancellation = token.Register(() =>
+            {
+                try { NativeTaskHistory.Use(tasker, () => tasker.Stop()); }
+                catch (ObjectDisposedException) { }
+            });
+            return await Task.Run(() => job.Wait(), token);
+        }
+        finally { ClearHistory(); }
     }
 
     private async Task OperateAsync(string operation, bool insideTask, CancellationToken token,
@@ -201,14 +281,17 @@ public sealed class GameManagementService : IDisposable
                 ScriptStudioGuard.GameManagementOperations++;
                 ownsGuard = true;
             }
-            Options.Validate(requireTarget: true, requireLogin: operation != "close"); VerifyBox(Options.ExePath);
+            Options.Validate(requireTarget: true, requireLogin: operation != "close" && Options.HasLogin); VerifyBox(Options.ExePath);
             Log(operation == "close" ? "正在关闭已核验的造梦盒子。" : "正在重建盒子会话，停止旧输入并重新核验窗口。");
-            var result = await TaskRecovery.ManageAsync(_processor, Options, operation, execute ?? ExecuteAsync, token);
+            var selected = _processor.ViewModel?.CurrentDevice as DesktopWindowInfo;
+            var owned = selected == null || WindowPid(selected.Handle) == 0 ? OwnedLaunch() : null;
+            var result = await TaskRecovery.ManageAsync(_processor, Options, operation, execute ?? ExecuteAsync, token, owned);
             if (result.Status != TaskAttemptStatus.Ready)
                 throw new IOException("恢复未完成：" + result.Reason + "；请处理登录或存档问题后重试。");
             lock (_sync) { _schedule.CompleteRestart(Clock); _manualRestart = false; }
-            if (operation != "close") Arm();
-            Log(operation == "close" ? "盒子已关闭，自动监测已停止。" : "盒子已就绪，账号、存档及地图检查完成。");
+            if (operation != "close") Arm(requireLogin: Options.HasLogin);
+            Log(operation == "close" ? "盒子已关闭，自动监测已停止。" : Options.HasLogin
+                ? "盒子已就绪，账号、存档及地图检查完成。" : "已连接盒子窗口，请在盒子内完成登录；自动续跑资料可稍后填写。");
         }
         catch
         {
@@ -222,6 +305,21 @@ public sealed class GameManagementService : IDisposable
         }
     }
 
+    private TaskProcessIdentity? OwnedLaunch()
+    {
+        var owned = _launchedProcess;
+        if (owned == null) return null;
+        try
+        {
+            owned.RequireConfiguredPath(Options.ExePath);
+            using var process = Process.GetProcessById(owned.Pid);
+            owned.RequireSame(ReadIdentity(process));
+            return owned;
+        }
+        catch (Exception error) when (error is ArgumentException or InvalidOperationException or System.ComponentModel.Win32Exception)
+        { return null; }
+    }
+
     private async Task MonitorAsync()
     {
         try
@@ -229,6 +327,11 @@ public sealed class GameManagementService : IDisposable
             using var timer = new PeriodicTimer(TimeSpan.FromSeconds(5));
             while (await timer.WaitForNextTickAsync(_lifetime.Token))
             {
+                if (!_processor.IsTaskRunActive)
+                {
+                    lock (_sync) _schedule.SuspendMemory();
+                    continue;
+                }
                 if (_processor.IsInputOnlyPlayback) continue;
                 TaskProcessIdentity? identity;
                 lock (_sync) identity = _identity;
@@ -240,17 +343,13 @@ public sealed class GameManagementService : IDisposable
                     process.Refresh();
                     bool requested;
                     lock (_sync) requested = _schedule.Observe(Options, process.PrivateMemorySize64,
-                        identity.StartedUtcTicks, Clock);
+                        identity.StartedUtcTicks, Clock, _processor.IsTaskRunActive);
                     if (_schedule.MemoryRecoveryExhausted)
                     {
                         _attentionRequired = "十分钟内三次重启后内存仍超限，自动托管已暂停；检查盒子后重新保存设置或手动启动。";
                         throw new InvalidOperationException(_attentionRequired);
                     }
-                    if (requested) Log("已达到内存或定时重启条件；任务运行时将在本轮结束后重启。");
-                    bool pending;
-                    lock (_sync) pending = _schedule.PendingReason != null || _manualRestart;
-                    if (pending && !_processor.IsTaskRunActive)
-                        await OperateAsync("restart", false, _lifetime.Token);
+                    if (requested) Log("已达到内存或定时重启条件；将在本轮结束后重启。");
                 }
                 catch (OperationCanceledException) when (_lifetime.IsCancellationRequested) { break; }
                 catch (Exception error)
@@ -299,7 +398,7 @@ public sealed class GameManagementService : IDisposable
                 catch (IOException) { return false; }
             }
             var observed = await TaskRecoveryPolicy.ObserveExecutionAsync(execute(entry, pipeline.ToJsonString(), token),
-                Interrupted, () => _processor.MaaTasker?.Stop(), token);
+                Interrupted, () => { if (_processor.MaaTasker is { } active) NativeTaskHistory.Use(active, () => active.Stop()); }, token);
             var status = observed.TargetLost ? MaaJobStatus.Failed : observed.Result;
             token.ThrowIfCancellationRequested();
             var checkpoint = File.Exists(path) && new FileInfo(path).Length <= 65536
@@ -320,7 +419,7 @@ public sealed class GameManagementService : IDisposable
         }
         finally
         {
-            Interlocked.Decrement(ref _managedRuns);
+            if (Interlocked.Decrement(ref _managedRuns) == 0) lock (_sync) _schedule.SuspendMemory();
             if (!confirmed) lock (_sync) { _identity = null; _manualRestart = false; _schedule.Reset(); }
         }
     }
@@ -373,7 +472,7 @@ public sealed class GameManagementService : IDisposable
         }
         finally
         {
-            Interlocked.Decrement(ref _managedRuns);
+            if (Interlocked.Decrement(ref _managedRuns) == 0) lock (_sync) _schedule.SuspendMemory();
             if (!completedNormally) lock (_sync) { _identity = null; _manualRestart = false; _schedule.Reset(); }
         }
     }

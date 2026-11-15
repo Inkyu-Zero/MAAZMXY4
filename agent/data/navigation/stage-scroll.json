@@ -361,7 +361,9 @@
           705,
           2460
         ]
-      ]
+      ],
+      "end_y": 20,
+      "view": "bottom"
     },
     {
       "task": "无冥（孤魂岭）",
@@ -683,6 +685,36 @@
       "drag_node": "GameManagement_town5_Drag",
       "end_x": 20,
       "view": "right"
+    },
+    {
+      "task": "主线（天禄金山）",
+      "target": "Mainline_063_Target",
+      "town": "town6",
+      "axis": "y",
+      "max_steps": 12,
+      "drag_node": "GameManagement_town6_Drag",
+      "end_y": 20,
+      "view": "bottom"
+    },
+    {
+      "task": "主线（伏龙宝树）",
+      "target": "Mainline_064_Target",
+      "town": "town6",
+      "axis": "y",
+      "max_steps": 12,
+      "drag_node": "GameManagement_town6_Drag",
+      "end_y": 20,
+      "view": "bottom"
+    },
+    {
+      "task": "主线（金蟾宝宫）",
+      "target": "Mainline_065_Target",
+      "town": "town6",
+      "axis": "y",
+      "max_steps": 12,
+      "drag_node": "GameManagement_town6_Drag",
+      "end_y": 20,
+      "view": "bottom"
     }
   ],
   "assets": [

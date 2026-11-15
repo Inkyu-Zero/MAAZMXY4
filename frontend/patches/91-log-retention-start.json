@@ -1,0 +1,6 @@
+{
+  "description": "Start one incremental shared log budget after the host logger is ready.",
+  "path": "MFAAvalonia/Helper/LoggerHelper.cs",
+  "find": "        FlushCache();",
+  "replace": "        FlushCache();\n        MFAAvalonia.Services.LogRetention.Start(AppPaths.DataRoot);"
+}

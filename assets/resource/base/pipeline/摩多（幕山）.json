@@ -76,47 +76,31 @@
       "type": "And",
       "param": {
         "all_of": [
-          "Nav_ClearMap",
           {
             "recognition": {
-              "type": "Or",
+              "type": "TemplateMatch",
               "param": {
-                "any_of": [
-                  {
-                    "recognition": {
-                      "type": "TemplateMatch",
-                      "param": {
-                        "template": [
-                          "幕山.png"
-                        ]
-                      }
-                    }
-                  },
-                  {
-                    "recognition": {
-                      "type": "TemplateMatch",
-                      "param": {
-                        "template": [
-                          "navigation/stages/s45-frame1.png",
-                          "navigation/stages/s45-frame2.png",
-                          "navigation/stages/s45-frame3.png"
-                        ],
-                        "roi": [
-                          0,
-                          115,
-                          1045,
-                          500
-                        ],
-                        "method": 5
-                      }
-                    }
-                  }
-                ]
+                "template": [
+                  "navigation/mainline/s045-f1.png",
+                  "navigation/mainline/s045-f2.png",
+                  "navigation/mainline/s045-f3.png"
+                ],
+                "roi": [
+                  565,
+                  219,
+                  116,
+                  126
+                ],
+                "method": 5,
+                "green_mask": false
               }
             }
-          }
+          },
+          "Nav_Province_town4",
+          "GameManagement_NormalMap",
+          "Nav_ClearMap"
         ],
-        "box_index": 1
+        "box_index": 0
       }
     },
     "pre_delay": 0,

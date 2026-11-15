@@ -24,6 +24,7 @@ on:
       - 'tools/navigation_privacy_masks.json'
       - 'tools/sync_task_assets.py'
       - 'tools/build_release.py'
+      - 'tools/bundled_box.py'
       - 'tools/build_sfx.py'
       - 'tools/build_installer.py'
       - 'tools/installer/**'
@@ -47,8 +48,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Install development-only catalogue parser dependencies
-        run: python -m pip install beautifulsoup4==4.15.0 requests==2.34.2
+      - name: Install offline test parser and pixel-buffer dependencies
+        run: python -m pip install beautifulsoup4==4.15.0 requests==2.34.2 numpy==2.2.6
       - name: Offline recording, import, editing and playback tests
         run: python -m unittest discover -s tests -p "test_*.py" -v
       - uses: actions/setup-dotnet@v4
@@ -86,6 +87,11 @@ jobs:
       - name: Build native MFAAvalonia page
         shell: pwsh
         run: ./tools/build_frontend.ps1
+      - name: Page explanations, progress and headless lifecycle with the built theme
+        shell: pwsh
+        env:
+          PAGE_TOUR_THEME_DIR: '${{ github.workspace }}/dist/script-studio/libs'
+        run: dotnet run --project frontend/tests/PageTours/PageTours.csproj -c Release
       - name: Build and verify scoped background mouse guard
         shell: pwsh
         run: |
@@ -133,7 +139,7 @@ jobs:
           NAVIGATION_SCROLL_TEST_LOG: '${{ runner.temp }}/navigation-native/scroll'
           OMP_NUM_THREADS: '2'
         run: python -m unittest discover -s tests -p "test_game_management_scroll.py" -v
-      - name: Native speed confirmation on synthetic pixels
+      - name: Input-only native speed switching without screenshots
         env:
           NAVIGATION_NATIVE_TESTS: '1'
           MAAFW_BINARY_PATH: '${{ github.workspace }}/dist/script-studio/runtimes/win-x64/native'
@@ -162,6 +168,12 @@ jobs:
       - name: Built ZIP migration page and early startup restore contract (headless)
         shell: pwsh
         run: dotnet run --project frontend/tests/PersonalTransferUi/PersonalTransferUi.csproj -c Release -- "${{ runner.temp }}/personal-transfer-renders"
+      - name: Idle native task history ownership
+        run: dotnet run --project frontend/tests/TaskHistory/TaskHistory.csproj -c Release
+      - name: Shared log budget, persistence and disabled startup
+        run: dotnet run --project frontend/tests/LogRetention/LogRetention.csproj -c Release -- "${{ runner.temp }}/retention-fixtures"
+      - name: Manual log cleanup and settings lifecycle (headless)
+        run: dotnet run --project frontend/tests/LogCleanup/LogCleanup.csproj -c Release -- "${{ runner.temp }}/log-cleanup-fixtures"
       - name: Build the manual-install project launcher
         shell: pwsh
         run: ./tools/build_launcher.ps1

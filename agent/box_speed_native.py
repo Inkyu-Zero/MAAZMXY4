@@ -1,7 +1,7 @@
-"""Bounded native-box speed handshake on one explicitly selected Windows HWND.
+"""Input-only native-box speed lease on one explicitly selected Windows HWND.
 
-Only number-row 1/2 messages are sent. OCR belongs to speed switching; this
-module never navigates, clicks, changes box settings, or changes script files.
+Send number-row 1/2 twice per switch. Never capture or recognize an outcome.
+Window/process identity and input release remain owned by this session.
 """
 import ctypes
 from ctypes import wintypes
@@ -11,7 +11,7 @@ import threading
 import time
 import xml.etree.ElementTree as ET
 
-from box_speed import SPEED_KEYS, SpeedLease, SpeedRejected, validate_speed, validate_recording, verify_proof
+from box_speed import SPEED_KEYS, SpeedLease, validate_speed, validate_recording, verify_proof
 
 
 def initialize_runtime(root):
@@ -27,7 +27,7 @@ def initialize_runtime(root):
 
 def verify_playback_proof(proof,hwnd,sha256):
     if not isinstance(proof,dict) or proof.get('state')!='ready' or proof.get('speed')!=2:
-        raise ValueError('盒子 2 倍速尚未确认，未加速脚本。')
+        raise ValueError('盒子 2 倍速操作尚未准备完成，未加速脚本。')
     # Identity-only construction performs no capture, connection, or input.
     target=NativeSpeedTransport(Path('.'),hwnd,threading.Event())
     try:return verify_proof(proof,hwnd,sha256,target.identity,target.exe_path)
@@ -44,7 +44,7 @@ class NativeSpeedTransport:
         self.identity=self.geometry.inspect(hwnd)
         self.input_lock=threading.Lock()
         self.process=None
-        self.controller=self.resource=self.tasker=self.input_controller=None
+        self.input_controller=None
         self.key_may_be_down=None
         kernel=self.geometry.kernel
         kernel.QueryFullProcessImageNameW.argtypes=[wintypes.HANDLE,wintypes.DWORD,wintypes.LPWSTR,ctypes.POINTER(wintypes.DWORD)]
@@ -107,111 +107,31 @@ class NativeSpeedTransport:
     def prepare(self):
         from maa.controller import Win32Controller
         from maa.define import MaaWin32InputMethodEnum
-        from maa.resource import Resource
-        from maa.custom_action import CustomAction
         self.require_identity()
-        # Reuse Maa's background key transport, separately from capture so a
-        # slow screenshot cannot queue the emergency reset behind itself.
+        # No Resource, Tasker, FramePool or OCR model belongs to this worker.
         self.input_controller=Win32Controller(self.hwnd,screencap_method=0,mouse_method=0,
             keyboard_method=MaaWin32InputMethodEnum.SendMessage)
-        if not self.input_controller.post_connection().wait().succeeded:raise RuntimeError('无法准备盒子后台倍速输入。')
-        self.resource=Resource()
-        bundle=self.root/'resource/base'
-        if not bundle.is_dir():bundle=self.root/'assets/resource/base'
-        if not self.resource.post_bundle(bundle).wait().succeeded:raise RuntimeError('倍速核验资源加载失败。')
-        transport=self
-        class Probe(CustomAction):
-            def run(self,context,argv):
-                try:return transport._verify(context)
-                except Exception as error:
-                    transport.probe_error=str(error)
-                    transport.probe_exception=error
-                    return False
-        self.resource.register_custom_action('__box_speed_probe',Probe())
-        if not self.resource.override_pipeline({'__BoxSpeedProbe':dict(pre_delay=0,post_delay=0,next=[],
-                action=dict(type='Custom',param=dict(custom_action='__box_speed_probe')))}):
-            raise RuntimeError('无法建立倍速核验流程。')
-        self.prepare_capture()
-
-    def prepare_capture(self):
-        from maa.controller import Win32Controller
-        from maa.define import MaaWin32ScreencapMethodEnum
-        from maa.tasker import Tasker
-        self.require_identity()
-        self.controller=Win32Controller(self.hwnd,screencap_method=MaaWin32ScreencapMethodEnum.FramePool,
-                                        mouse_method=0,keyboard_method=0)
-        if not self.controller.post_connection().wait().succeeded:raise RuntimeError('无法准备盒子倍速核验截图。')
-        self.tasker=Tasker()
-        if not self.tasker.bind(self.resource,self.controller):raise RuntimeError('无法绑定倍速核验控制器。')
-        # Warm resources/capture before emitting the box's short-lived toast.
-        if not self.controller.post_screencap().wait().succeeded:raise RuntimeError('盒子截图不可用，未开启倍速。')
-
-    def suspend_capture(self):
-        # A live FramePool captures continuously even when nobody requests a
-        # screenshot. Destroy its owner between switches, retain only OCR data
-        # and the input-only controller while the task is playing.
-        self.tasker=self.controller=None
-
-    def _verify(self,context):
-        expected=f'^设置\\s*{self.requested}\\s*倍速$'
-        for attempt in range(3):
-            self.require_identity()
-            if self.requested==2 and self.cancelled.is_set():return False
-            if attempt and not self.controller.post_screencap().wait().succeeded:
-                continue
-            frame=self.controller.cached_image
-            if frame is None:continue
-            height,width=frame.shape[:2]
-            cx,cy=width//2,height//2
-            roi=[max(0,cx-220),max(0,cy-25),min(440,width),min(90,height-cy+25)]
-            def recognize(name,patterns):
-                return context.run_recognition(name,frame,{name:dict(recognition=dict(type='OCR',param=dict(
-                    expected=patterns,roi=roi,threshold=.8)),action=dict(type='DoNothing'),next=[])})
-            result=recognize('__BoxSpeedAck',[expected])
-            if result and result.hit:
-                # Older box toasts move upward; do not accept an old 1x toast
-                # left above a newer 2x toast after an ignored reset key.
-                _,y,_,h=result.box
-                if cy-14<=y+h/2<=cy+55:return True
-            blocked=recognize('__BoxSpeedUnsupported',['60帧不支持倍速调整','进入游戏后生效'])
-            if blocked and blocked.hit:
-                raise SpeedRejected('盒子拒绝倍速：请进入造梦 4，并关闭盒子“高帧率”后重试。')
-            if attempt<2:time.sleep(.15)
-        raise RuntimeError(f'未确认盒子已切换为 {self.requested} 倍速；请关闭输入框或弹窗后重试。')
+        if not self.input_controller.post_connection().wait().succeeded:
+            raise RuntimeError('无法准备盒子后台倍速输入。')
 
     def apply(self,speed):
         if speed==1 and not self.alive():return
-        if self.controller is None:
-            if speed==1:self.send_speed(1)  # Restore before a potentially slow capture warm-up.
-            self.prepare_capture()
-        try:self._apply_and_confirm(speed)
-        finally:self.suspend_capture()
-
-    def _apply_and_confirm(self,speed):
-        self.send_speed(speed)
-        sent=time.monotonic()
-        # Source AlertBox takes 300ms to appear; old toasts shift out of the
-        # center. This wait exists only at speed switches, never in navigation.
-        time.sleep(.35)
-        self.requested,self.probe_error,self.probe_exception=speed,'',None
-        if not self.controller.post_screencap().wait().succeeded:
-            raise RuntimeError('倍速切换后截图失败，无法确认盒子状态。')
-        if not self.tasker.post_task('__BoxSpeedProbe').wait().succeeded:
-            if isinstance(self.probe_exception,SpeedRejected):raise self.probe_exception
-            raise RuntimeError(self.probe_error or '盒子倍速核验失败。')
-        # AlertBox is interactive and occupies the map center for 1500ms,
-        # then fades for 600ms. Let that native overlay leave before ordinary
-        # navigation/the next task receives input. No extra capture is needed.
-        remaining=max(0,sent+2.2-time.monotonic())
+        # Each press has its own identity/cancellation fence and guaranteed up.
+        # No toast or screenshot is used to claim that the box accepted it.
+        for attempt in range(2):
+            self.send_speed(speed)
+            if attempt==0:time.sleep(.05)
+        # Existing AlertBox overlay can intercept map clicks for 2.1 seconds.
+        # This bounded settling wait is not a success check or a per-round wait.
         if speed==2:
-            if self.cancelled.wait(remaining):raise InterruptedError('倍速准备已取消。')
-        elif remaining:time.sleep(remaining)
+            if self.cancelled.wait(2.2):raise InterruptedError('倍速准备已取消。')
+        else:time.sleep(2.2)
 
     def close(self):
         if self.key_may_be_down is not None and self.alive():
             self._key(self.key_may_be_down,False)
             self.key_may_be_down=None
-        self.tasker=self.resource=self.controller=self.input_controller=None
+        self.input_controller=None
         if self.process:
             self.geometry.kernel.CloseHandle(self.process)
             self.process=None
@@ -258,7 +178,7 @@ class SpeedJob:
             try:
                 if self.lease:self.lease.close()
             except Exception as error:
-                self.error,self.state='无法确认恢复 1 倍速：'+str(error),'failed'
+                self.error,self.state='恢复 1 倍速操作未完成：'+str(error),'failed'
             finally:
                 try:
                     if self.transport:self.transport.close()
@@ -276,13 +196,11 @@ class SpeedJob:
                     self.error=str(error);state='failed';self.cancel.set()
         if self.cancel.is_set() and self.thread.is_alive():state='stopping'
         return dict(state=state,error=self.error,restored=self.lease is None or not self.lease.may_be_enabled,
-            capture_active=self.transport is not None and getattr(self.transport,'controller',None) is not None,**self.proof)
+            capture_active=False,**self.proof)
 
     def stop(self):
         self.cancel.set()
-        # Restore promptly even if the capture callback is still unwinding.
-        # The adapter input lock/cancellation fence prevents a later 2x key.
-        if self.state=='starting' and self.transport and self.lease and self.lease.may_be_enabled:
-            self.transport.send_speed(1)
+        # The input-only worker observes cancellation between both presses and
+        # during toast settling, then its one lease owner restores exactly once.
         self.thread.join(.1)
         return self.snapshot()

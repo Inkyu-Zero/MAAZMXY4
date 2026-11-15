@@ -55,10 +55,10 @@
               "param": {
                 "template": "navigation/templates/daily-expanded/menu-arhat.png",
                 "roi": [
-                  297,
-                  292,
-                  58,
-                  47
+                  290,
+                  175,
+                  135,
+                  170
                 ]
               }
             }
@@ -69,10 +69,10 @@
               "param": {
                 "template": "navigation/templates/daily-expanded/menu-arena.png",
                 "roi": [
-                  378,
-                  378,
-                  64,
-                  48
+                  370,
+                  175,
+                  480,
+                  255
                 ]
               }
             }
@@ -85,35 +85,69 @@
       "param": {
         "template": "navigation/templates/daily-expanded/menu-arhat.png",
         "roi": [
-          297,
-          292,
-          58,
-          47
+          290,
+          175,
+          135,
+          170
         ],
         "method": 5
       }
     },
     "Nav_Probe_daily_expanded_arhat_Color": {
-      "type": "ColorMatch",
+      "type": "Or",
       "param": {
-        "roi": [
-          301,
-          317,
-          2,
-          2
-        ],
-        "method": 4,
-        "lower": [
-          228,
-          194,
-          104
-        ],
-        "upper": [
-          255,
-          248,
-          211
-        ],
-        "count": 4
+        "any_of": [
+          {
+            "recognition": {
+              "type": "ColorMatch",
+              "param": {
+                "roi": [
+                  301,
+                  317,
+                  2,
+                  2
+                ],
+                "method": 4,
+                "lower": [
+                  228,
+                  194,
+                  104
+                ],
+                "upper": [
+                  255,
+                  248,
+                  211
+                ],
+                "count": 4
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "ColorMatch",
+              "param": {
+                "roi": [
+                  363,
+                  208,
+                  2,
+                  2
+                ],
+                "method": 4,
+                "lower": [
+                  228,
+                  194,
+                  104
+                ],
+                "upper": [
+                  255,
+                  248,
+                  211
+                ],
+                "count": 4
+              }
+            }
+          }
+        ]
       }
     },
     "Nav_Probe_daily_expanded_arena": {
@@ -121,35 +155,69 @@
       "param": {
         "template": "navigation/templates/daily-expanded/menu-arena.png",
         "roi": [
-          378,
-          378,
-          64,
-          48
+          370,
+          175,
+          480,
+          255
         ],
         "method": 5
       }
     },
     "Nav_Probe_daily_expanded_arena_Color": {
-      "type": "ColorMatch",
+      "type": "Or",
       "param": {
-        "roi": [
-          428,
-          399,
-          2,
-          2
-        ],
-        "method": 4,
-        "lower": [
-          232,
-          0,
-          0
-        ],
-        "upper": [
-          255,
-          32,
-          18
-        ],
-        "count": 4
+        "any_of": [
+          {
+            "recognition": {
+              "type": "ColorMatch",
+              "param": {
+                "roi": [
+                  428,
+                  399,
+                  2,
+                  2
+                ],
+                "method": 4,
+                "lower": [
+                  232,
+                  0,
+                  0
+                ],
+                "upper": [
+                  255,
+                  32,
+                  18
+                ],
+                "count": 4
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "ColorMatch",
+              "param": {
+                "roi": [
+                  827,
+                  205,
+                  2,
+                  2
+                ],
+                "method": 4,
+                "lower": [
+                  232,
+                  0,
+                  0
+                ],
+                "upper": [
+                  255,
+                  32,
+                  18
+                ],
+                "count": 4
+              }
+            }
+          }
+        ]
       }
     },
     "Nav_Probe_login_logo": {
@@ -2492,35 +2560,69 @@
       "param": {
         "template": "navigation/templates/daily-expanded/menu-arena.png",
         "roi": [
-          378,
-          378,
-          64,
-          48
+          370,
+          175,
+          480,
+          255
         ],
         "method": 5
       }
     },
     "Nav_Probe_daily_arena_entry_Color": {
-      "type": "ColorMatch",
+      "type": "Or",
       "param": {
-        "roi": [
-          428,
-          399,
-          2,
-          2
-        ],
-        "method": 4,
-        "lower": [
-          232,
-          0,
-          0
-        ],
-        "upper": [
-          255,
-          32,
-          18
-        ],
-        "count": 4
+        "any_of": [
+          {
+            "recognition": {
+              "type": "ColorMatch",
+              "param": {
+                "roi": [
+                  428,
+                  399,
+                  2,
+                  2
+                ],
+                "method": 4,
+                "lower": [
+                  232,
+                  0,
+                  0
+                ],
+                "upper": [
+                  255,
+                  32,
+                  18
+                ],
+                "count": 4
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "ColorMatch",
+              "param": {
+                "roi": [
+                  827,
+                  205,
+                  2,
+                  2
+                ],
+                "method": 4,
+                "lower": [
+                  232,
+                  0,
+                  0
+                ],
+                "upper": [
+                  255,
+                  32,
+                  18
+                ],
+                "count": 4
+              }
+            }
+          }
+        ]
       }
     },
     "Nav_Probe_daily_theme_entry": {
@@ -5235,7 +5337,31 @@
   "public_recognizers": [
     "Nav_Probe_hub_world_entry"
   ],
+  "boolean_template_nodes": [
+    "Nav_Province_town1",
+    "Nav_Province_town2",
+    "Nav_Province_town3",
+    "Nav_Province_town4",
+    "Nav_Province_town5",
+    "Nav_Province_town6"
+  ],
   "nodes": {
+    "Nav_StageOverlay": {
+      "recognition": {
+        "type": "Or",
+        "param": {
+          "any_of": [
+            "Nav_Probe_hub_world_entry",
+            "Nav_ModalPresent"
+          ]
+        }
+      },
+      "action": {
+        "type": "DoNothing"
+      },
+      "next": [],
+      "post_delay": 0
+    },
     "Nav_MapSurface": {
       "action": {
         "type": "DoNothing"
@@ -5536,30 +5662,30 @@
         "type": "TemplateMatch",
         "param": {
           "template": [
+            "navigation/scroll/town6-23.png",
+            "navigation/scroll/town6-03.png",
+            "navigation/scroll/town6-13.png",
+            "navigation/scroll/town6-08.png",
+            "navigation/scroll/town6-18.png",
             "navigation/scroll/town6-00.png",
             "navigation/scroll/town6-01.png",
             "navigation/scroll/town6-02.png",
-            "navigation/scroll/town6-03.png",
             "navigation/scroll/town6-04.png",
             "navigation/scroll/town6-05.png",
             "navigation/scroll/town6-06.png",
             "navigation/scroll/town6-07.png",
-            "navigation/scroll/town6-08.png",
             "navigation/scroll/town6-09.png",
             "navigation/scroll/town6-10.png",
             "navigation/scroll/town6-11.png",
             "navigation/scroll/town6-12.png",
-            "navigation/scroll/town6-13.png",
             "navigation/scroll/town6-14.png",
             "navigation/scroll/town6-15.png",
             "navigation/scroll/town6-16.png",
             "navigation/scroll/town6-17.png",
-            "navigation/scroll/town6-18.png",
             "navigation/scroll/town6-19.png",
             "navigation/scroll/town6-20.png",
             "navigation/scroll/town6-21.png",
             "navigation/scroll/town6-22.png",
-            "navigation/scroll/town6-23.png",
             "navigation/scroll/town6-24.png",
             "navigation/scroll/town6-25.png"
           ],
@@ -6770,6 +6896,11 @@
       ],
       "stage": [
         "quest_panel"
+      ],
+      "arena": [
+        "arena",
+        "daily_menu",
+        "sumeru"
       ]
     },
     "fallback": [

@@ -61,7 +61,9 @@ def generate(source,root=ROOT):
     node=dict(recognition=dict(type='And',param=dict(all_of=[
         # WarnBar centers the panel; its left corner stays in the left half.
         # Include wide dialogs without searching unrelated right-hand controls.
-        dict(sub_name='panel_corner',recognition=match(left,roi=[0,70,575,530])),
+        # The upper-left patch of a vertically centered panel is above its
+        # center; retain a margin through y=410, not unrelated lower HUD pixels.
+        dict(sub_name='panel_corner',recognition=match(left,roi=[0,70,575,340])),
         dict(recognition=match(right,roi='panel_corner',roi_offset=[200,-8,650,16])),
         dict(recognition=match(bottom,roi='panel_corner',roi_offset=[-8,100,16,400])),
     ],box_index=0)),action=dict(type='DoNothing'),next=[],post_delay=0)

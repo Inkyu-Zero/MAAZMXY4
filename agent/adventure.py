@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import json
 import os
+from rolling_log import append_log
 import re
 import sys
 import threading
@@ -150,9 +151,7 @@ def _log(msg: str) -> None:
     line = f"[{time.strftime('%H:%M:%S')}] {msg}"
     print(msg, flush=True)
     try:
-        _ensure_dirs()
-        with open(LOG_PATH, "a", encoding="utf-8") as f:
-            f.write(line + "\n")
+        append_log(LOG_PATH, line + "\n")
     except Exception:
         pass
 

@@ -23,7 +23,7 @@ def map_frame(stage, state=1, *, normal=True):
     definitions,bounds,transform=bounds_reader(ET.parse(SOURCE/(stage['town']+'.xml')).getroot())
     directory=SOURCE/stage['town']/'sprites'
     def folder(ident):return next(directory.glob('DefineSprite_'+str(ident)+'_*'),directory/('DefineSprite_'+str(ident)))
-    container=str(province['container']); full=Image.new('RGBA',(1500 if stage['town']=='town5' else 940,590))
+    container=str(province['container']); full=Image.new('RGBA',(1500 if stage['town']=='town5' else 940,2714 if stage['town']=='town6' else 590))
     origin=bounds(container)
     with Image.open(folder(container)/'1.png') as raw:full.alpha_composite(raw.convert('RGBA'),(round(origin[0]),round(origin[1])))
     placement=next(p for p in definitions[container].find('subTags') if p.get('name')=='s'+str(stage['id']))
@@ -33,7 +33,8 @@ def map_frame(stage, state=1, *, normal=True):
             round(raw.height*float(matrix.get('scaleY','1')))),Image.Resampling.BICUBIC)
         full.alpha_composite(sprite,(round(box[0]),round(box[1])))
     offset=stage['offset']
-    frame=full.crop((offset,0,offset+940,590)).resize((1147,720),Image.Resampling.BICUBIC).convert('RGB')
+    offset_y=stage.get('offset_y',0)
+    frame=full.crop((offset,offset_y,offset+940,offset_y+590)).resize((1147,720),Image.Resampling.BICUBIC).convert('RGB')
     images=ROOT/'assets/resource/base/image'
     with Image.open(images/'任务.png') as task:frame.paste(task.convert('RGB'),(400,630))
     if not normal and stage['town'] not in ('town1', 'town2'):
@@ -89,7 +90,7 @@ class MainlineNativeTests(unittest.TestCase):
                     frame=map_frame(stage);frame[600:]=0
                     result=ctx.run_recognition(target,frame)
                     if result and result.hit:errors.append(('missing_map_guard',stage['id']))
-                scene_frames={stage['id']:cv2.resize(cv2.imread(str(SCENES/f's{stage["id"]:03d}.png')),(1147,720),interpolation=cv2.INTER_CUBIC) for stage in data}
+                scene_frames={stage['id']:cv2.resize(cv2.imread(str(SCENES/f's{min(stage["id"],62):03d}.png')),(1147,720),interpolation=cv2.INTER_CUBIC) for stage in data}
                 for stage in data:
                     recognizer=f'Mainline_{stage["id"]:03d}_Play'
                     # Background identity is intentionally irrelevant. Both a
@@ -113,7 +114,7 @@ class MainlineNativeTests(unittest.TestCase):
             resource.override_pipeline({'__MainlineInspect':{'action':{'type':'Custom','param':{'custom_action':'__mainline_inspect'}}}})
             self.assertTrue(tasker.bind(resource,controller))
             self.assertTrue(tasker.post_task('__MainlineInspect').wait().succeeded)
-            self.assertEqual(len(evidence),186)
+            self.assertEqual(len(evidence),195)
             self.assertEqual(errors,[])
 
 

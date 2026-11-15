@@ -51,7 +51,6 @@
     "frontend/patches/35-game-database-registration.json",
     "frontend/patches/36-game-management-card.json",
     "frontend/patches/37-task-description-in-settings.json",
-    "frontend/patches/38-disable-first-use-tutorial.json",
     "frontend/patches/39-game-management-lifetime.json",
     "frontend/patches/40-game-reconnect-preview.json",
     "frontend/patches/41-liveview-target-change.json",
@@ -94,6 +93,20 @@
     "frontend/patches/77-task-owned-cleanup.json",
     "frontend/patches/78-task-success-after-cleanup.json",
     "frontend/patches/79-native-speed-task-session.json",
-    "frontend/patches/80-speed-switch-preview-description.json"
+    "frontend/patches/80-speed-switch-preview-description.json",
+    "frontend/patches/81-box-startup.json",
+    "frontend/patches/82-page-tour-startup.json",
+    "frontend/patches/83-page-tour-reset-settings.json",
+    "frontend/patches/84-page-tour-reset-namespace.json",
+    "frontend/patches/85-idle-native-history.json",
+    "frontend/patches/86-stop-history-owner.json",
+    "frontend/patches/87-detached-history-owner.json",
+    "frontend/patches/88-log-cleanup-settings.json",
+    "frontend/patches/89-log-cleanup-settings-card.json",
+    "frontend/patches/90-log-cleanup-settings-namespace.json",
+    "frontend/patches/91-log-retention-start.json",
+    "frontend/patches/92-log-retention-stop.json",
+    "frontend/patches/93-log-retention-blocks.json",
+    "frontend/patches/94-log-retention-global-setting.json"
   ]
 }

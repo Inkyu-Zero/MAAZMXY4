@@ -79,7 +79,7 @@ class PlaybackTests(unittest.TestCase):
         self.params['speed']=2
         result=self.finish(self.job())
         self.assertEqual(result['state'],'failed',result)
-        self.assertIn('尚未确认',result['error'])
+        self.assertIn('尚未准备完成',result['error'])
         self.assertEqual(self.ctrl.calls,[])
         self.assertEqual(self.geometry.changes,[])
 

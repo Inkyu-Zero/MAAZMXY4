@@ -8869,5 +8869,432 @@
     ],
     "post_delay": 0,
     "pre_delay": 0
+  },
+  "Mainline_063": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "begin",
+          "file": "@task:task-1487c9bee828b775662d6bea3f2e5485",
+          "task_binding_id": "task-1487c9bee828b775662d6bea3f2e5485",
+          "playback_node": "Mainline_063_Play",
+          "navigation": {
+            "kind": "stage",
+            "target_node": "Mainline_063_Target",
+            "label": "主线（天禄金山）"
+          },
+          "settings_node": "脚本任务设置",
+          "exit_mode": "battle_only",
+          "failure_retry": {
+            "enabled": false,
+            "max_retries": 3
+          },
+          "round_flow": {
+            "scene_node": "Nav_InStage",
+            "load_timeout_ms": 15000,
+            "repeat_node": "Mainline_063_Repeat"
+          },
+          "result_guard": {
+            "failed_next": [
+              "Result_Failed"
+            ],
+            "succeeded_next": [
+              "Result_Succeeded"
+            ],
+            "revive_next": [
+              "Result_RevivePrompt"
+            ],
+            "error_next": [
+              "Result_MonitorStopped"
+            ]
+          }
+        }
+      }
+    },
+    "next": [
+      "Mainline_063",
+      "停止运行"
+    ],
+    "post_delay": 0,
+    "max_hit": 1,
+    "pre_delay": 0
+  },
+  "Mainline_063_Repeat": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "loop_count",
+        "custom_action_param": {
+          "label": "主线（天禄金山）"
+        }
+      }
+    },
+    "next": [],
+    "post_delay": 0,
+    "max_hit": 1,
+    "pre_delay": 0
+  },
+  "Mainline_063_Target": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": [
+                  "navigation/mainline/s063-f1.png",
+                  "navigation/mainline/s063-f3.png"
+                ],
+                "roi": [
+                  814,
+                  518,
+                  160,
+                  132
+                ],
+                "method": 5,
+                "green_mask": false
+              }
+            }
+          },
+          "Nav_Province_town6",
+          "GameManagement_NormalMap",
+          "Nav_ClearMap"
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "LongPress",
+      "param": {
+        "duration": 100
+      }
+    },
+    "next": [],
+    "post_delay": 1000,
+    "pre_delay": 0
+  },
+  "Mainline_063_Play": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          "Nav_InStage"
+        ]
+      }
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "battle_play",
+        "custom_action_param": {
+          "script_binding": {
+            "recorded_return_next": [
+              "Round_PlayDone"
+            ]
+          },
+          "file": "@task:task-1487c9bee828b775662d6bea3f2e5485"
+        }
+      }
+    },
+    "next": [
+      "Round_PlayDone"
+    ],
+    "post_delay": 0,
+    "pre_delay": 0
+  },
+  "Mainline_064": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "begin",
+          "file": "@task:task-989875af9124637b26d9aebe9bca03ec",
+          "task_binding_id": "task-989875af9124637b26d9aebe9bca03ec",
+          "playback_node": "Mainline_064_Play",
+          "navigation": {
+            "kind": "stage",
+            "target_node": "Mainline_064_Target",
+            "label": "主线（伏龙宝树）"
+          },
+          "settings_node": "脚本任务设置",
+          "exit_mode": "battle_only",
+          "failure_retry": {
+            "enabled": false,
+            "max_retries": 3
+          },
+          "round_flow": {
+            "scene_node": "Nav_InStage",
+            "load_timeout_ms": 15000,
+            "repeat_node": "Mainline_064_Repeat"
+          },
+          "result_guard": {
+            "failed_next": [
+              "Result_Failed"
+            ],
+            "succeeded_next": [
+              "Result_Succeeded"
+            ],
+            "revive_next": [
+              "Result_RevivePrompt"
+            ],
+            "error_next": [
+              "Result_MonitorStopped"
+            ]
+          }
+        }
+      }
+    },
+    "next": [
+      "Mainline_064",
+      "停止运行"
+    ],
+    "post_delay": 0,
+    "max_hit": 1,
+    "pre_delay": 0
+  },
+  "Mainline_064_Repeat": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "loop_count",
+        "custom_action_param": {
+          "label": "主线（伏龙宝树）"
+        }
+      }
+    },
+    "next": [],
+    "post_delay": 0,
+    "max_hit": 1,
+    "pre_delay": 0
+  },
+  "Mainline_064_Target": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": [
+                  "navigation/mainline/s064-f1.png",
+                  "navigation/mainline/s064-f3.png"
+                ],
+                "roi": [
+                  542,
+                  348,
+                  156,
+                  128
+                ],
+                "method": 5,
+                "green_mask": false
+              }
+            }
+          },
+          "Nav_Province_town6",
+          "GameManagement_NormalMap",
+          "Nav_ClearMap"
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "LongPress",
+      "param": {
+        "duration": 100
+      }
+    },
+    "next": [],
+    "post_delay": 1000,
+    "pre_delay": 0
+  },
+  "Mainline_064_Play": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          "Nav_InStage"
+        ]
+      }
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "battle_play",
+        "custom_action_param": {
+          "script_binding": {
+            "recorded_return_next": [
+              "Round_PlayDone"
+            ]
+          },
+          "file": "@task:task-989875af9124637b26d9aebe9bca03ec"
+        }
+      }
+    },
+    "next": [
+      "Round_PlayDone"
+    ],
+    "post_delay": 0,
+    "pre_delay": 0
+  },
+  "Mainline_065": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "begin",
+          "file": "@task:task-94d3df15c361a94823b11e371ec79098",
+          "task_binding_id": "task-94d3df15c361a94823b11e371ec79098",
+          "playback_node": "Mainline_065_Play",
+          "navigation": {
+            "kind": "stage",
+            "target_node": "Mainline_065_Target",
+            "label": "主线（金蟾宝宫）"
+          },
+          "settings_node": "脚本任务设置",
+          "exit_mode": "battle_only",
+          "failure_retry": {
+            "enabled": false,
+            "max_retries": 3
+          },
+          "round_flow": {
+            "scene_node": "Nav_InStage",
+            "load_timeout_ms": 15000,
+            "repeat_node": "Mainline_065_Repeat"
+          },
+          "result_guard": {
+            "failed_next": [
+              "Result_Failed"
+            ],
+            "succeeded_next": [
+              "Result_Succeeded"
+            ],
+            "revive_next": [
+              "Result_RevivePrompt"
+            ],
+            "error_next": [
+              "Result_MonitorStopped"
+            ]
+          }
+        }
+      }
+    },
+    "next": [
+      "Mainline_065",
+      "停止运行"
+    ],
+    "post_delay": 0,
+    "max_hit": 1,
+    "pre_delay": 0
+  },
+  "Mainline_065_Repeat": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "loop_count",
+        "custom_action_param": {
+          "label": "主线（金蟾宝宫）"
+        }
+      }
+    },
+    "next": [],
+    "post_delay": 0,
+    "max_hit": 1,
+    "pre_delay": 0
+  },
+  "Mainline_065_Target": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": [
+                  "navigation/mainline/s065-f1.png",
+                  "navigation/mainline/s065-f2.png",
+                  "navigation/mainline/s065-f3.png"
+                ],
+                "roi": [
+                  193,
+                  369,
+                  156,
+                  169
+                ],
+                "method": 5,
+                "green_mask": false
+              }
+            }
+          },
+          "Nav_Province_town6",
+          "GameManagement_NormalMap",
+          "Nav_ClearMap"
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "LongPress",
+      "param": {
+        "duration": 100
+      }
+    },
+    "next": [],
+    "post_delay": 1000,
+    "pre_delay": 0
+  },
+  "Mainline_065_Play": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          "Nav_InStage"
+        ]
+      }
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "battle_play",
+        "custom_action_param": {
+          "script_binding": {
+            "recorded_return_next": [
+              "Round_PlayDone"
+            ]
+          },
+          "file": "@task:task-94d3df15c361a94823b11e371ec79098"
+        }
+      }
+    },
+    "next": [
+      "Round_PlayDone"
+    ],
+    "post_delay": 0,
+    "pre_delay": 0
   }
 }

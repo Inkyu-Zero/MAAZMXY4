@@ -38,9 +38,9 @@ class Box:
     def require_identity(self):pass
     def apply(self,factor):
         record(['apply',factor])
-        if mode=='enable_failure' and factor==2:raise RuntimeError('native hint missing')
-        if mode=='reset_failure' and factor==1:raise RuntimeError('reset hint missing')
-        if mode=='slow_reset' and factor==1:time.sleep(2.4);record(['reset_confirmed'])
+        if mode=='enable_failure' and factor==2:raise RuntimeError('input dispatch failed')
+        if mode=='reset_failure' and factor==1:raise RuntimeError('reset dispatch failed')
+        if mode=='slow_reset' and factor==1:time.sleep(2.4);record(['reset_dispatched'])
     def send_speed(self,factor):record(['send',factor])
     def close(self):record(['close'])
 original=speed.SpeedJob
@@ -94,8 +94,8 @@ service.main()
     def test_eof_restores_one_task_owned_speed(self):self.run_case('success')
     def test_eof_waits_for_native_toast_expiry_before_terminating_worker(self):
         _,events=self.run_case('slow_reset')
-        self.assertIn(['reset_confirmed'],events)
-    def test_missing_enable_hint_never_returns_a_ready_proof(self):self.run_case('enable_failure')
+        self.assertIn(['reset_dispatched'],events)
+    def test_enable_dispatch_failure_never_returns_a_ready_session(self):self.run_case('enable_failure')
     def test_reset_failure_crosses_jsonl_as_failure(self):self.run_case('reset_failure')
 
 

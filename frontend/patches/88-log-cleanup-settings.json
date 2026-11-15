@@ -1,0 +1,6 @@
+{
+  "description": "Add explicit log cleanup under performance settings without changing inference options.",
+  "path": "MFAAvalonia/Views/UserControls/Settings/PerformanceUserControl.axaml",
+  "find": "    <suki:GlassCard Margin=\"0,15,0,0\" Padding=\"25,10,25,10\">",
+  "replace": "    <StackPanel Spacing=\"15\">\n    <suki:GlassCard Margin=\"0,15,0,0\" Padding=\"25,10,25,10\">"
+}

@@ -1,5 +1,6 @@
 """Endpoint reuse and ignored clicks over real Agent IPC, with memory-only input."""
 import json
+import hashlib
 import os
 from pathlib import Path
 import subprocess
@@ -26,7 +27,8 @@ def native_case(name,deadline_probe=False):
     maximum=round((1500-940)*720/590)
     image_root=ROOT/'assets/resource/base/image'
     terrain=read_png_bgr(ROOT/'tests/fixtures/game-management/scroll/town5.png') if blood else None
-    ordinary=read_png_bgr(ROOT/'tests/fixtures/navigation/stage-states/s45-f1.png')
+    ordinary=read_png_bgr(ROOT/'tests/fixtures/navigation/stage-states/mushan-map.png')
+    ordinary_info=json.loads((ROOT/'tests/fixtures/navigation/stage-states/mushan-map.json').read_text(encoding='utf8'))
     task=read_png_bgr(image_root/'任务.png')
     mode=read_png_bgr(image_root/'navigation/scroll/normal-mode.png')
     scene=np.zeros((720,1147,3),dtype=np.uint8)
@@ -71,6 +73,9 @@ def native_case(name,deadline_probe=False):
                 if blood:
                     sx,sy=(self.start[0]+self.offset)*590/720,self.start[1]*590/720
                     a,b,c,d=bounds[name];assert a<=sx<=c and b<=sy<=d,('stale click',sx,sy)
+                else:
+                    a,b,c,d=ordinary_info['stage_bounds']
+                    assert a<=self.start[0]<=c and b<=self.start[1]<=d,('off-target click',self.start)
                 self.actions.append((self.round,'ignored' if self.ignore else 'entry',self.start,time.monotonic()))
                 if not self.ignore:self.scene='stage'
                 self.ignore=max(0,self.ignore-1)
@@ -159,6 +164,16 @@ AgentServer.start_up(sys.argv[1]);AgentServer.join();AgentServer.shut_down()
         results=[json.loads(line[13:]) for line in content.splitlines() if line.startswith('ENTRY_RESULT ')]
         assert success and len(results)==1,content[-5000:]
         print('RESULT '+json.dumps(dict(rounds=results[0],captures=controller.captures,actions=controller.actions)))
+
+
+class StageEntryFixtureTests(unittest.TestCase):
+    def test_full_map_fixture_has_public_provenance(self):
+        folder=ROOT/'tests/fixtures/navigation/stage-states'
+        data=json.loads((folder/'mushan-map.json').read_text(encoding='utf8'))
+        self.assertEqual(hashlib.sha256((folder/'mushan-map.png').read_bytes()).hexdigest(),data['sha256'])
+        self.assertTrue(data['source']['url'].startswith('https://sda.4399.com/'))
+        self.assertEqual(len(data['source']['sha256']),64)
+        self.assertEqual(data['viewport'],[1147,720])
 
 
 @unittest.skipUnless(os.environ.get('MAA_AGENT_NATIVE_TESTS')=='1','opt-in memory-only Agent IPC')

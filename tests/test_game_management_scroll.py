@@ -122,6 +122,20 @@ class StageScrollTests(unittest.TestCase):
         self.assertFalse(restore_stage_view(context,nav,recipe['target']))
         self.assertEqual(len(actions),1)
 
+    def test_vertical_endpoint_keeps_current_terrain_x_and_refreshes_each_step(self):
+        recipe=next(r for r in json.loads(DATA.read_text(encoding='utf8'))['maps'] if r['town']=='town6')
+        frames=iter(['top','middle','bottom']);actions=[]
+        def recognize(name,frame):
+            return SimpleNamespace(hit=name==recipe['drag_node'] or frame=='bottom',
+                box=(500 if frame=='top' else 650,400,40,40))
+        context=SimpleNamespace(run_recognition=recognize,
+            run_action=lambda name,box,**kw:actions.append(kw['pipeline_override'][name]['action']['param']) or SimpleNamespace(success=True))
+        nav=self.navigator(context,capture=lambda:next(frames))
+        nav.locate=lambda:'task_destination' if nav.recognize(recipe['target']).hit else 'map'
+        self.assertTrue(restore_stage_view(context,nav,recipe['target']))
+        self.assertEqual([action['begin'] for action in actions],[[520,420,1,1],[670,420,1,1]])
+        self.assertEqual([action['end'] for action in actions],[[520,20,1,1],[670,20,1,1]])
+
     def test_no_drag_on_unknown_map_missing_guard_or_cancellation_and_bounded_failure(self):
         recipe = json.loads(DATA.read_text(encoding='utf8'))['maps'][0]
         target = recipe['target']
@@ -138,10 +152,10 @@ class StageScrollTests(unittest.TestCase):
         self.assertFalse(restore_stage_view(context, navigator, target))
         self.assertEqual(actions, [])
         def cancelled(): raise InterruptedError('cancelled')
-        navigator._check = cancelled
+        navigator.check = navigator.input_check = cancelled
         with self.assertRaises(InterruptedError): restore_stage_view(context, navigator, target)
         self.assertEqual(actions, [])
-        navigator._check = lambda: None
+        navigator.check = navigator.input_check = lambda: None
         navigator.invalidate()
         context.run_recognition = lambda name, _: SimpleNamespace(hit=name == recipe['drag_node'],box=(10,20,30,40))
         self.assertFalse(restore_stage_view(context, navigator, target))
@@ -202,15 +216,17 @@ class StageScrollNativeTests(unittest.TestCase):
                     assert x1 <= x <= x2 and y1 <= y <= y2, ('stale stage click',self.recipe['task'],self.offset,self.start)
                     self.entries.append((self.offset,self.start))
                     return True
-                if self.recipe['axis']=='x':
+                if self.recipe['axis'] in ('x','y'):
                     # The source MovieClipButton has no drag-distance filter.
                     # Check the press and the complete clamped gesture against
                     # independently extracted clickable stage bounds.
-                    maximum=round((1500-940)*720/590)
+                    axis=0 if self.recipe['axis']=='x' else 1
+                    maximum=round(((1500-940) if axis==0 else (2714-590))*720/590)
                     for fraction in (i/100 for i in range(101)):
-                        x=self.start[0]+(self.end[0]-self.start[0])*fraction
-                        offset=min(maximum,max(0,self.offset+self.start[0]-x))
-                        sx,sy=(x+offset)*590/720,self.start[1]*590/720
+                        point=[self.start[i]+(self.end[i]-self.start[i])*fraction for i in (0,1)]
+                        offset=min(maximum,max(0,self.offset+self.start[axis]-point[axis]))
+                        point[axis]+=offset
+                        sx,sy=[v*590/720 for v in point]
                         assert not any(a<=sx<=c and b<=sy<=d
                             for a,b,c,d in self.recipe['excluded_stage_bounds']), ('unsafe drag',sx,sy)
                 self.gestures.append((self.start, self.end))
@@ -298,10 +314,7 @@ class StageScrollNativeTests(unittest.TestCase):
                             finally:
                                 controller.entering = False
                         assert len(controller.entries) == 3
-                        if recipe['axis']=='x':
-                            assert all(entry[0]==initial_offset for entry in controller.entries)
-                        else:
-                            assert controller.entries[0][0] != controller.entries[-1][0], controller.entries
+                        assert all(entry[0]==initial_offset for entry in controller.entries)
                     return True
                 except Exception as error:
                     import traceback

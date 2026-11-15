@@ -1,6 +1,7 @@
 [CmdletBinding()]
 param(
     [string]$DotnetPath,
+    [string]$CacheDirectory,
     [string]$OutputDirectory,
     [string]$InstallDirectory,
     [switch]$PrepareOnly,
@@ -61,8 +62,13 @@ function Assert-FrontendStopped {
 if ($PrepareOnly -and $Install) { throw '-PrepareOnly cannot be combined with -Install.' }
 if ($Install) { Assert-FrontendStopped }
 
-$cacheRoot = Get-ContainedPath $projectRoot '.runtime-cache'
-$sourceRoot = Get-ContainedPath $projectRoot $manifest.cache_directory
+if ($CacheDirectory) {
+    $cacheRoot = [IO.Path]::GetFullPath($CacheDirectory)
+    $sourceRoot = Get-ContainedPath $cacheRoot (Split-Path $manifest.cache_directory -Leaf)
+} else {
+    $cacheRoot = Get-ContainedPath $projectRoot '.runtime-cache'
+    $sourceRoot = Get-ContainedPath $projectRoot $manifest.cache_directory
+}
 $archivePath = Get-ContainedPath $cacheRoot 'mfa-source-1080d3e.zip'
 New-Item -ItemType Directory -Path $cacheRoot -Force | Out-Null
 

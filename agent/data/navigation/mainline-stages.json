@@ -87,6 +87,22 @@
       },
       "xml_sha256": "40bf688af9df5e7bdfd5be116b269a34a46cdeb6507b2a28795ee54aac0b7d81",
       "container": 448
+    },
+    {
+      "id": "town6",
+      "label": "六欲魔天",
+      "first": 63,
+      "last": 65,
+      "source": {
+        "name": "town6",
+        "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/ui/town6_20260803_1.swf",
+        "file": "town6_20260803_1.swf",
+        "sha256": "f0d1b11d210ad3183ee1274dfd63908e4656b5058fb5090d23b3443617487fec",
+        "bytes": 590585,
+        "referer": "https://www.4399.com/flash/zmhj.htm?g=4"
+      },
+      "xml_sha256": "80b3aa1dc4097ccdcc37e629fece2bb181baf1165c3e7fc000a22f20fe050388",
+      "container": 35
     }
   ],
   "stages": [
@@ -6107,6 +6123,299 @@
           "green_mask": false
         }
       }
+    },
+    {
+      "id": 63,
+      "name": "天禄金山",
+      "town": "town6",
+      "province": "六欲魔天",
+      "map_url": "liuyu101_tianlujinshan_V572",
+      "source_sprite": 13,
+      "source_bounds": [
+        572.0,
+        2478.0,
+        851.0,
+        2632.0
+      ],
+      "scene_layout": {
+        "width": 2400,
+        "height": 1800,
+        "screen_width": 2400,
+        "birth_point": [
+          100.0,
+          1550.0
+        ],
+        "class_type": "Tianlujinshan",
+        "cartoons": "63,liuyvmotian-c1,liuyvmotian-c2V1,liuyvmotian-c3,liuyvmotian-c4,liuyvmotian-c5,liuyvmotian-c6,liuyvmotian-c7"
+      },
+      "endpoint": "bottom",
+      "offset": 0,
+      "roi": [
+        814,
+        518,
+        160,
+        132
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s063-f1.png",
+          "crop": [
+            144,
+            122,
+            100,
+            68
+          ],
+          "green_mask": false,
+          "box": [
+            842,
+            554,
+            100,
+            68
+          ],
+          "sha256": "053e10a29aa302e5b906473ab056e09eb52164c57ea7cde55c0ceea12c043ef2",
+          "source_frame_sha256": "464ad4a39a5f02cedb22372ad48d487fc50afa71b8f49c25483481a566447d31"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s063-f3.png",
+          "crop": [
+            148,
+            114,
+            100,
+            76
+          ],
+          "green_mask": false,
+          "box": [
+            846,
+            546,
+            100,
+            76
+          ],
+          "sha256": "93fcf239a2052007066b1dfc9dbd9422e354fde80d9bb287e3ad7a837a4394f9",
+          "source_frame_sha256": "07b5028aac71364b623fafde383dea39bc1a5663712d2d74bbd7b43a0b975886"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s063-f1.png",
+            "navigation/mainline/s063-f3.png"
+          ],
+          "roi": [
+            814,
+            518,
+            160,
+            132
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      },
+      "offset_y": 2124
+    },
+    {
+      "id": 64,
+      "name": "伏龙宝树",
+      "town": "town6",
+      "province": "六欲魔天",
+      "map_url": "liuyu102_fulongbaoshu",
+      "source_sprite": 22,
+      "source_bounds": [
+        381.0,
+        2385.0,
+        581.0,
+        2557.0
+      ],
+      "scene_layout": {
+        "width": 3600,
+        "height": 1200,
+        "screen_width": 1200,
+        "birth_point": [
+          90.0,
+          380.0
+        ],
+        "class_type": "",
+        "cartoons": ""
+      },
+      "endpoint": "bottom",
+      "offset": 0,
+      "roi": [
+        542,
+        348,
+        156,
+        128
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s064-f1.png",
+          "crop": [
+            105,
+            64,
+            100,
+            53
+          ],
+          "green_mask": false,
+          "box": [
+            570,
+            383,
+            100,
+            53
+          ],
+          "sha256": "eab6df8ef34c337996b26139a484bf4a370c0b98e001e8600d1ad407fbd31374",
+          "source_frame_sha256": "b2ebd817364f8d878fc534a645b3adb4e915f47c21961d36cca04c9519dbc83e"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s064-f3.png",
+          "crop": [
+            105,
+            57,
+            100,
+            72
+          ],
+          "green_mask": false,
+          "box": [
+            570,
+            376,
+            100,
+            72
+          ],
+          "sha256": "819bc00d91c9cbe7376d7f3c79188c91e102f1065e659db37ff85fc1121f1d31",
+          "source_frame_sha256": "cdb8fdee05896cc8e6c4967263e940c3ae7288291f568ba0727ecc55ccf776b0"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s064-f1.png",
+            "navigation/mainline/s064-f3.png"
+          ],
+          "roi": [
+            542,
+            348,
+            156,
+            128
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      },
+      "offset_y": 2124
+    },
+    {
+      "id": 65,
+      "name": "金蟾宝宫",
+      "town": "town6",
+      "province": "六欲魔天",
+      "map_url": "liuyu103_jinchanbaogong_V582",
+      "source_sprite": 34,
+      "source_bounds": [
+        71.0,
+        2352.0,
+        346.0,
+        2560.0
+      ],
+      "scene_layout": {
+        "width": 4800,
+        "height": 600,
+        "screen_width": 4800,
+        "birth_point": [
+          90.0,
+          380.0
+        ],
+        "class_type": "",
+        "cartoons": ""
+      },
+      "endpoint": "bottom",
+      "offset": 0,
+      "roi": [
+        193,
+        369,
+        156,
+        169
+      ],
+      "variants": [
+        {
+          "frame": 1,
+          "template": "navigation/mainline/s065-f1.png",
+          "crop": [
+            134,
+            147,
+            100,
+            85
+          ],
+          "green_mask": false,
+          "box": [
+            221,
+            425,
+            100,
+            85
+          ],
+          "sha256": "ba7eea9fa5983a3ee6ad4360194dfc31a28685e190d7e09a3cdfe9973e9d7c3d",
+          "source_frame_sha256": "6f8f0f3c1f1093e7d64e21139de4c0db681fb2250d1ad32ab0ee33ae226d2407"
+        },
+        {
+          "frame": 2,
+          "template": "navigation/mainline/s065-f2.png",
+          "crop": [
+            134,
+            147,
+            100,
+            85
+          ],
+          "green_mask": false,
+          "box": [
+            221,
+            425,
+            100,
+            85
+          ],
+          "sha256": "65ecb1d8abdfef5ce0362ff0f0b367679a730633ff58a4556655f8db0fd45b6f",
+          "source_frame_sha256": "f7cf50ae5bb217a50fe1c89079a24e357fea5b11066725edc5c7bf68c9bb30ea"
+        },
+        {
+          "frame": 3,
+          "template": "navigation/mainline/s065-f3.png",
+          "crop": [
+            134,
+            119,
+            100,
+            90
+          ],
+          "green_mask": false,
+          "box": [
+            221,
+            397,
+            100,
+            90
+          ],
+          "sha256": "b9b66a3721c83e233a9560f52d31188f24928e07401a5816258a29707709b56b",
+          "source_frame_sha256": "c723c5fcc04ac0b3eab7f6b96fec59dabfc1a4e08e9b7f8e2d2ab8e4b94b17c9"
+        }
+      ],
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/mainline/s065-f1.png",
+            "navigation/mainline/s065-f2.png",
+            "navigation/mainline/s065-f3.png"
+          ],
+          "roi": [
+            193,
+            369,
+            156,
+            169
+          ],
+          "method": 5,
+          "green_mask": false
+        }
+      },
+      "offset_y": 2124
     }
   ]
 }

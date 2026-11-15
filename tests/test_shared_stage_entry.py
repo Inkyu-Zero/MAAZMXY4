@@ -29,7 +29,7 @@ class SharedStageAssetsTests(unittest.TestCase):
             self.assertEqual(params['round_flow']['scene_node'],'Nav_InStage')
             self.assertEqual(nodes[params['playback_node']]['recognition'],
                              {'type':'And','param':{'all_of':['Nav_InStage']}})
-        self.assertEqual(len(rounds),73)
+        self.assertEqual(len(rounds),77)
         self.assertEqual(nodes['Nav_InStage']['recognition']['param']['all_of'][0],'Nav_Wushuang')
         self.assertEqual(len(nodes['Nav_Wushuang']['recognition']['param']['template']),2)
         for asset in json.loads((ROOT/'agent/data/navigation/stage-ui.json').read_text(encoding='utf8'))['assets']:
@@ -61,8 +61,9 @@ class SharedStageNativeTests(unittest.TestCase):
                     for name in ('Nav_InStage','Mainline_034_Play','Mainline_046_Play','Bounty_Play',
                                  '伽岚（万世冥阁）-识别场景1'):
                         self.assertTrue(context.run_recognition(name,frame).hit,name)
-                self.assertEqual(calls.count('Nav_ModalPresent'),1)
-                self.assertEqual(calls.count('Nav_Probe_hub_world_entry'),1)
+                self.assertEqual(calls.count('Nav_StageOverlay'),1)
+                self.assertEqual(calls.count('Nav_ModalPresent'),0)
+                self.assertEqual(calls.count('Nav_Probe_hub_world_entry'),0)
             no_button=actual.copy();no_button[580:720,:180]=35
             self.assertFalse(context.run_recognition('Nav_InStage',no_button).hit,'gear alone is insufficient')
             for folder,name in [('navigation','task-map-real'),('navigation','world'),

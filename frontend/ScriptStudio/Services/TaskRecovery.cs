@@ -79,9 +79,10 @@ public static class TaskRecovery
             .Select(other => other.ViewModel?.CurrentDevice is DesktopWindowInfo device ? WindowPid(device.Handle) : 0));
 
     public static async Task<TaskAttempt> ManageAsync(MaaProcessor processor, GameManagementOptions options,
-        string operation, Func<string?, string?, CancellationToken, Task<MaaJobStatus>> execute, CancellationToken token)
+        string operation, Func<string?, string?, CancellationToken, Task<MaaJobStatus>> execute, CancellationToken token,
+        TaskProcessIdentity? launchedProcess = null)
     {
-        options.Validate(requireTarget: true, requireLogin: operation != "close");
+        options.Validate(requireTarget: true, requireLogin: operation != "close" && options.HasLogin);
         if (!OperatingSystem.IsWindows() || processor.ViewModel?.CurrentController != MaaControllerTypes.Win32)
             throw new InvalidOperationException("游戏管理需要先选择 Win32 造梦盒子控制器。");
         using var reconnection = GameManagementService.SuppressReconnection(processor);
@@ -102,14 +103,19 @@ public static class TaskRecovery
             await session.StartSelectedProcessAsync(token);
             await session.BindUniqueWindowAsync(token);
             await session.ReconnectAsync(token);
-            return await session.ResumeAsync(options.SaveSlot, token);
+            return options.HasLogin ? await session.ResumeAsync(options.SaveSlot, token) : new(TaskAttemptStatus.Ready);
         }
-        session.CaptureTarget();
+        if (launchedProcess != null)
+        {
+            session.UseStartedProcess(launchedProcess);
+            await session.BindUniqueWindowAsync(token);
+        }
+        else session.CaptureTarget();
         if (operation == "connect")
         {
             await session.PrepareBoundWindowAsync(token);
             await session.ReconnectAsync(token);
-            return await session.ResumeAsync(options.SaveSlot, token);
+            return options.HasLogin ? await session.ResumeAsync(options.SaveSlot, token) : new(TaskAttemptStatus.Ready);
         }
         if (operation == "close")
         {
@@ -118,6 +124,15 @@ public static class TaskRecovery
             return new(TaskAttemptStatus.Ready);
         }
         if (operation != "restart") throw new InvalidOperationException("未知的盒子管理操作。");
+        if (!options.HasLogin)
+        {
+            await session.StopInputsAndAgentAsync(token);
+            await session.StopSelectedProcessAsync(token);
+            await session.StartSelectedProcessAsync(token);
+            await session.BindUniqueWindowAsync(token);
+            await session.ReconnectAsync(token);
+            return new(TaskAttemptStatus.Ready);
+        }
         return await TaskRecoveryPolicy.RestartAsync(session, options.SaveSlot, token);
     }
 
@@ -142,6 +157,14 @@ public static class TaskRecovery
         public void CaptureTarget()
         {
             UseVerifiedTarget(CaptureManagedTarget(processor, options.ExePath));
+        }
+
+        public void UseStartedProcess(TaskProcessIdentity started)
+        {
+            started.RequireConfiguredPath(options.ExePath);
+            started.RequireSame(Identity(started.Pid));
+            EnsureUnshared(started.Pid);
+            _target = started;
         }
 
         public void UseVerifiedTarget(ManagedGameTarget snapshot)
@@ -191,7 +214,7 @@ public static class TaskRecovery
                 if (options.Enabled)
                 {
                     var observed = await TaskRecoveryPolicy.ObserveExecutionAsync(execution, IsLostTarget,
-                        () => { processor.AddLog("游戏管理：目标窗口已丢失，停止旧任务后重新建立连接。"); processor.MaaTasker?.Stop(); }, token);
+                        () => { processor.AddLog("游戏管理：目标窗口已丢失，停止旧任务后重新建立连接。"); if (processor.MaaTasker is { } active) NativeTaskHistory.Use(active, () => active.Stop()); }, token);
                     token.ThrowIfCancellationRequested();
                     if (observed.TargetLost && !File.Exists(statusPath))
                         return resume ? TaskAttempt.Fatal("重启恢复期间目标窗口丢失。")

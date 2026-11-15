@@ -30,7 +30,7 @@ class RevivalFlowTests(unittest.TestCase):
             if not params.get('round_flow'):continue
             count+=1
             self.assertEqual(params['result_guard']['revive_next'],['Result_RevivePrompt'])
-        self.assertEqual(count,11+62)
+        self.assertEqual(count,12+65)
         self.assertEqual(self.nodes['Result_DeclineRevive']['action']['type'],'Click')
         for name in ('Result_FailedClear','Result_FailedReturn','Result_SucceededReturn'):
             self.assertIn('Result_NoRevivePrompt',self.nodes[name]['recognition']['param']['all_of'])

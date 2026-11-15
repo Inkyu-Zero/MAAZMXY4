@@ -122,7 +122,7 @@ class ReleasePackageTests(unittest.TestCase):
         with zipfile.ZipFile(self.package) as archive: archive.extractall(self.root)
         checked = validate_client_resources(self.root)
         self.assertIn('烛时（钟晷极地）', checked)
-        self.assertEqual(len(checked), 10+62)
+        self.assertEqual(len(checked), 10+65)
         path = self.root/'resource/base/pipeline/烛时（钟晷极地）.json'
         data = json.loads(path.read_text(encoding='utf8'))
         del data['烛时（钟晷极地）-回放战斗']['action']['param']['custom_action_param']['script_binding']
@@ -239,9 +239,12 @@ class ReleasePackageTests(unittest.TestCase):
     def test_full_package_keeps_empty_native_plugin_directory(self):
         frontend, runtime, launcher = self.client_fixture()
         output = self.root/'full.zip'
-        with patch.object(build_release, 'LAUNCHER_SHA256', self.launcher_hash):
+        import bundled_box
+        from test_bundled_box import BoxFixture
+        box = BoxFixture(self.root/'box-source')
+        with patch.object(build_release, 'LAUNCHER_SHA256', self.launcher_hash), patch.object(bundled_box, 'SPEC', box.spec):
             build_release.build_client(ROOT, frontend, runtime, output, launcher,
-                channel='preview', manifest_urls=['https://example.test/client-version.json'])
+                channel='preview', manifest_urls=['https://example.test/client-version.json'], box_zip=box.archive)
         with zipfile.ZipFile(output) as archive:
             name = 'runtimes/win-x64/native/plugins/'
             self.assertIn(name, archive.namelist())
@@ -285,7 +288,7 @@ class ReleasePackageTests(unittest.TestCase):
                 destination = stage/relative
                 destination.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(source, destination)
-            self.assertEqual(len(validate_client(stage)), 10+62)
+            self.assertEqual(len(validate_client(stage)), 10+65)
             (stage/'runtimes/python/pythonw.exe').unlink()
             with self.assertRaisesRegex(ValueError, 'pythonw.exe'):
                 validate_client(stage)

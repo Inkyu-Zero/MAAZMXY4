@@ -35,13 +35,18 @@ class StageVariantAssetsTests(unittest.TestCase):
             pipeline=json.loads((ROOT/'assets/resource/base/pipeline'/(stage['task']+'.json')).read_text(encoding='utf8'))
             node=pipeline[stage['task']+'-关卡入口']
             self.assertEqual(node['recognition']['type'],'And')
-            self.assertEqual(node['recognition']['param']['all_of'][0],'Nav_ClearMap')
-            self.assertEqual(node['recognition']['param']['box_index'],1)
+            parts=node['recognition']['param']['all_of']
+            self.assertIn('Nav_ClearMap',parts)
+            if stage['task']=='伽岚（万世冥阁）':
+                self.assertEqual(node['recognition']['param']['box_index'],1)
+            else:
+                self.assertIn('Nav_Province_'+stage['town'],parts)
+                self.assertEqual(node['recognition']['param']['box_index'],0)
             self.assertEqual(node['action'],{'type':'LongPress','param':{'duration':100}})
             # Retries now re-use this same guarded action, rather than three copies.
             self.assertFalse(any('关卡入口_重试' in name for name in pipeline))
             self.assertEqual(node['next'],[])
-            if stage['town'] == 'town5':
+            if stage['task'] == '伽岚（万世冥阁）':
                 # Both template families share the small endpoint viewport.
                 # A miss restores that viewport instead of a full-map search.
                 alternatives = node['recognition']['param']['all_of'][1]['recognition']['param']['any_of']

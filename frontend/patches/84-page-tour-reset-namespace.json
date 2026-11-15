@@ -1,0 +1,6 @@
+{
+  "description": "Declare the page-tour control namespace on the startup settings root for the XAML generator",
+  "path": "MFAAvalonia/Views/UserControls/Settings/StartSettingsUserControl.axaml",
+  "find": "    xmlns:settings=\"clr-namespace:MFAAvalonia.ViewModels.UsersControls.Settings\"",
+  "replace": "    xmlns:settings=\"clr-namespace:MFAAvalonia.ViewModels.UsersControls.Settings\"\n    xmlns:tutorial=\"clr-namespace:MFAAvalonia.Views.UserControls\""
+}
