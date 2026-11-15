@@ -99,9 +99,9 @@ def generate(source,root=ROOT):
                 (30,150,430,161),scale_first=True))
     path=root/'assets/resource/base/pipeline/battle_outcomes.json'
     nodes=json.loads(path.read_text(encoding='utf8'))
-    # Centered revival layouts place the phrase near y=284..361 at height 720.
-    # Keep generous vertical margins and the existing horizontal coverage.
-    caption=dict(type='TemplateMatch',param=dict(template=captions,roi=[200,210,800,210]))
+    # Keep translated revival panels covered: the +70px layout fixture puts
+    # the free-revival phrase at y=403..431, beyond the narrowed y=420 edge.
+    caption=dict(type='TemplateMatch',param=dict(template=captions,roi=[200,170,800,390]))
     def reference(name):
         return dict(type='And',param=dict(all_of=[name]))
     # Keep identity cached for the current frame. Once the template and panel
