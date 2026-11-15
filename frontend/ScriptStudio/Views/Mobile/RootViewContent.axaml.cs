@@ -32,7 +32,7 @@ public partial class RootViewContent : UserControl
             // Save eligibility even when the first page is busy; restarting must not turn a new user into an upgrade.
             PageTourConfiguration.Current();
             var overlay = this.FindControl<TeachingTipOverlay>("TutorialOverlay")!;
-            _tour = new PageTourHost(this, overlay, CurrentTourPage, TourBusy, PageTourConfiguration.Current);
+            _tour = new PageTourHost(this, overlay, CurrentTourPage, TourBusy, PageTourConfiguration.Current, TourObscured);
         };
         Unloaded += (_, _) => { _replayMenu?.Hide(); _tour?.Dispose(); _tour = null; };
     }
@@ -46,10 +46,17 @@ public partial class RootViewContent : UserControl
     {
         // Read existing memory only. In particular, do not create a processor or game-management service here.
         lock (ScriptStudioGuard.SyncRoot)
-            if (ScriptStudioGuard.IsCapturing || ScriptStudioGuard.GameManagementOperations != 0 ||
+            if (ScriptStudioGuard.IsCapturing ||
                 !string.IsNullOrEmpty(ScriptStudioGuard.UpdateBlockReason)) return true;
-        if (MaaProcessorManager.IsInstanceCreated && MaaProcessorManager.Instance.Instances.Any(p => p.IsTaskRunActive || p.IsConnecting)) return true;
-        return TopLevel.GetTopLevel(this) is Window window && window.OwnedWindows.Any(w => w.IsVisible);
+        return MaaProcessorManager.IsInstanceCreated && MaaProcessorManager.Instance.Instances.Any(p => p.IsTaskRunActive);
+    }
+
+    private bool TourObscured()
+    {
+        lock (ScriptStudioGuard.SyncRoot)
+            if (ScriptStudioGuard.GameManagementOperations != 0) return true;
+        return PageTourHost.HasModalWindow(this) || (MaaProcessorManager.IsInstanceCreated &&
+            MaaProcessorManager.Instance.Instances.Any(p => p.IsConnecting));
     }
 
     private PageTourPage? CurrentTourPage()
@@ -94,7 +101,7 @@ public partial class RootViewContent : UserControl
         var anchor = Named(this, "TutorialCard") ?? this;
         var choices = new StackPanel { Spacing = 8, MaxWidth = 300 };
         choices.Children.Add(new TextBlock { Text = "重看页面介绍", FontWeight = Avalonia.Media.FontWeight.SemiBold });
-        if (TourBusy()) choices.Children.Add(new TextBlock { Text = "请在任务或录制结束后重看。", TextWrapping = Avalonia.Media.TextWrapping.Wrap });
+        if (TourBusy() || TourObscured()) choices.Children.Add(new TextBlock { Text = "请在任务、录制或连接结束后重看。", TextWrapping = Avalonia.Media.TextWrapping.Wrap });
         else foreach (var page in PageTourCatalog.Pages)
         {
             var button = new Button { Content = page.Label, HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch };
@@ -117,12 +124,12 @@ public partial class RootViewContent : UserControl
     {
         var tour = _tour;
         var menu = SideMenu;
-        if (menu == null || TourBusy()) return false;
+        if (menu == null || TourBusy() || TourObscured()) return false;
         var items = menu.Items.OfType<SukiSideMenuItem>().Concat(menu.FooterMenuItems.OfType<SukiSideMenuItem>()).ToArray();
         var script = items.Select(i => i.PageContent).OfType<ScriptStudioView>().FirstOrDefault();
         // The same dirty-document dialog as ordinary editor navigation; cancelling leaves the destination unopened.
         if (script != null && !await script.PrepareGuideNavigationAsync(page)) return false;
-        if (cancellation.IsCancellationRequested || tour == null || !ReferenceEquals(tour, _tour) || TourBusy()) return false;
+        if (cancellation.IsCancellationRequested || tour == null || !ReferenceEquals(tour, _tour) || TourBusy() || TourObscured()) return false;
         var target = items.FirstOrDefault(i => page switch
         {
             "task_page" => i.PageContent is InstanceContainerView,

@@ -22,16 +22,16 @@ def bounty_descriptions():
 def task_routine(context, parameters, *, targets=None):
     config = parameters.get('navigation', {})
     kind = config.get('kind')
-    if kind not in (None, 'stage', 'bounty', 'screen'):
+    if kind not in (None, 'stage', 'bounty', 'arena', 'screen'):
         raise ValueError('未知的任务导航类型。')
     result = deepcopy(library())
     result['kind'] = kind
-    result['targets'] = list(targets or (['task_destination'] if kind in ('stage', 'bounty')
+    result['targets'] = list(targets or (['task_destination'] if kind in ('stage', 'bounty', 'arena')
                                        else [config.get('screen', 'map')]))
     result['target_node'] = config.get('target_node')
     result['destination'] = config.get('screen', 'map')
     definitions = {}
-    if kind in ('stage', 'bounty'):
+    if kind in ('stage', 'bounty', 'arena'):
         name = result['target_node']
         definition = context.get_node_data(name) if isinstance(name, str) else None
         if not isinstance(definition, dict) or not isinstance(definition.get('recognition'), dict):
@@ -46,6 +46,10 @@ def task_routine(context, parameters, *, targets=None):
             result['province'] = result['stages'].get(name)
             result['standard_view'] = has_standard_view(name)
             result['screens']['task_destination']['detector'] = name
+    if kind == 'arena':
+        # The same result actions return to this task's lobby instead of a map.
+        for action in ('Result_FailedReturn', 'Result_SucceededReturn'):
+            result['actions'][action]['verify'] = ['arena']
     if kind == 'bounty':
         aliases = config.get('title_aliases', [])
         if not isinstance(aliases, list):

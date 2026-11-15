@@ -94,7 +94,7 @@ AgentServer.start_up(sys.argv[1]);AgentServer.join();AgentServer.shut_down()
                     controller.scene='map';controller.plays=0;controller.inputs=[];controller.captures=[]
                     controller.ignored=ignored;controller.wrong=wrong
                     controller.frames=dict(map=map_frame(stage),
-                        stage=cv2.resize(cv2.imread(str(SCENES/f's{stage["id"]:03d}.png')),(1147,720)))
+                        stage=cv2.resize(cv2.imread(str(SCENES/f's{min(stage["id"],62):03d}.png')),(1147,720)))
                     if scene_path is not None:
                         from fixture_pixels import read_png_bgr
                         controller.frames['stage']=read_png_bgr(scene_path)
@@ -153,8 +153,8 @@ class MainlineTransportTests(unittest.TestCase):
         line=next((line[7:] for line in run.stdout.splitlines() if line.startswith('RESULT ')),None)
         self.assertIsNotNone(line,run.stdout[-4000:])
         evidence=json.loads(line)
-        self.assertEqual(len(evidence),64)
-        self.assertTrue(all(row['status']=='success' for row in evidence[:63]))
+        self.assertEqual(len(evidence),67)
+        self.assertTrue(all(row['status']=='success' for row in evidence))
         self.assertEqual(evidence[-2]['entry_presses'],2)
         self.assertEqual(evidence[-1]['plays'],1)
         print('MAINLINE_IPC '+line,flush=True)

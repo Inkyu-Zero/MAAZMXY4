@@ -16,6 +16,7 @@ public sealed record GameManagementOptions
 {
     public bool RestartOnFailure { get; init; }
     public bool RestartOnMemory { get; init; }
+    public decimal MemoryLimitGb { get; init; } = DefaultMemoryLimitGb;
     public bool RestartOnInterval { get; init; }
     public int IntervalMinutes { get; init; } = 60;
     public string ExePath { get; init; } = "";
@@ -27,7 +28,10 @@ public sealed record GameManagementOptions
     [JsonIgnore] public bool HasLogin => !string.IsNullOrWhiteSpace(AccountName) && AccountName.Length <= 100
         && !string.IsNullOrWhiteSpace(RoleName) && RoleName.Length <= 100;
     public bool Enabled => RestartOnFailure || RestartOnMemory || RestartOnInterval;
-    public const long MemoryLimitBytes = 1_800_000_000; // 1.8 GB, decimal bytes.
+    public const decimal DefaultMemoryLimitGb = 1.8m;
+    [JsonIgnore] public decimal EffectiveMemoryLimitGb => IsValidMemoryLimit(MemoryLimitGb) ? MemoryLimitGb : DefaultMemoryLimitGb;
+    [JsonIgnore] public long MemoryLimitBytes => Math.Max(1, (long)(EffectiveMemoryLimitGb * 1_000_000_000m));
+    public static bool IsValidMemoryLimit(decimal value) => value > 0 && value <= long.MaxValue / 1_000_000_000m;
 
     public static string BundledExePath(string root) => Path.GetFullPath(Path.Combine(root, "造梦盒子", "zmBox.exe"));
     public GameManagementOptions WithBundledDefault(string root) => UseBundledBox || string.IsNullOrWhiteSpace(ExePath)
@@ -67,8 +71,10 @@ public sealed class GameRestartSchedule
     public string? PendingReason { get; private set; }
     public bool MemoryRecoveryExhausted { get; private set; }
 
-    public bool Observe(GameManagementOptions options, long privateBytes, long processStarted, DateTimeOffset now)
+    public bool Observe(GameManagementOptions options, long privateBytes, long processStarted, DateTimeOffset now, bool taskRunning)
     {
+        if (!taskRunning) { SuspendMemory(); return false; }
+        if (!options.RestartOnMemory) SuspendMemory();
         if (_processStarted != processStarted)
         {
             _processStarted = processStarted;
@@ -77,7 +83,7 @@ public sealed class GameRestartSchedule
             PendingReason = null;
         }
         if (PendingReason != null) return false;
-        _highMemorySamples = options.RestartOnMemory && privateBytes > GameManagementOptions.MemoryLimitBytes
+        _highMemorySamples = taskRunning && options.RestartOnMemory && privateBytes > options.MemoryLimitBytes
             ? _highMemorySamples + 1 : 0;
         while (_memoryRestarts.TryPeek(out var earlier) && now - earlier >= TimeSpan.FromMinutes(10)) _memoryRestarts.Dequeue();
         if (_highMemorySamples >= 2)
@@ -87,6 +93,13 @@ public sealed class GameRestartSchedule
         }
         else if (options.RestartOnInterval && now >= _nextRestart) PendingReason = "restart_interval";
         return PendingReason != null;
+    }
+
+    public void SuspendMemory()
+    {
+        _highMemorySamples = 0;
+        if (PendingReason == "memory_limit") PendingReason = null;
+        MemoryRecoveryExhausted = false;
     }
 
     public void CompleteRestart(DateTimeOffset now)

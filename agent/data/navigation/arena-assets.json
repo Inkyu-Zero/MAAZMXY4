@@ -1,0 +1,49 @@
+{
+  "source": "User-provided arena victory screenshot",
+  "source_sha256": "a079183c02f55e29f031dd8621879719060b4cb4212cb129a3459bb3a0af2734",
+  "client_crop": [
+    1,
+    39,
+    1176,
+    776
+  ],
+  "normalized_size": [
+    1147,
+    720
+  ],
+  "privacy": "Only victory heading and return button retained; no account or opponent information.",
+  "assets": [
+    {
+      "template": "navigation/outcomes/arena-succeeded-title.png",
+      "crop": [
+        380,
+        20,
+        745,
+        105
+      ],
+      "roi": [
+        350,
+        0,
+        460,
+        130
+      ],
+      "sha256": "7cd0503bc6cf809feae68b8f9b134500cd30a68d49eba321351d49d019ab41fc"
+    },
+    {
+      "template": "navigation/outcomes/arena-succeeded-return.png",
+      "crop": [
+        520,
+        570,
+        630,
+        620
+      ],
+      "roi": [
+        480,
+        545,
+        190,
+        90
+      ],
+      "sha256": "42d9939675b237ea1f4f26d20140915bdc5dd1d979376ecb429e9054db9e9f21"
+    }
+  ]
+}

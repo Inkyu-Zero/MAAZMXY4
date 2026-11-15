@@ -175,8 +175,12 @@ class Navigator:
         if (self.routine.get('kind') == 'stage' and 'task_destination' in self.routine['targets']
                 and target and self.recognize(target).hit):
             return 'task_destination'
-        quick = [*self.routine['targets'], *self.expected, 'map']
-        quick += self.routine.get('nearby', {}).get(self.routine.get('kind'), [])
+        nearby = self.routine.get('nearby', {}).get(self.routine.get('kind'), [])
+        # The expanded activity menu still exposes the map HUD. For arena,
+        # prefer its related menu before the underlying map using the same
+        # existing candidates and observation.
+        related = [*nearby, 'map'] if self.routine.get('kind') == 'arena' else ['map', *nearby]
+        quick = [*self.routine['targets'], *self.expected, *related]
         quick += ['world', 'paused_task_map', 'settings_subpanel', 'settings_menu']
         candidates = list(dict.fromkeys([*quick, *self.routine['fallback']]))
         for attempt in range(self.routine.get('locate_attempts', 3)):

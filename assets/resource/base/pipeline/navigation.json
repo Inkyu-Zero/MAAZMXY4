@@ -464,10 +464,10 @@
                       "param": {
                         "template": "navigation/templates/daily-expanded/menu-arhat.png",
                         "roi": [
-                          297,
-                          292,
-                          58,
-                          47
+                          290,
+                          175,
+                          135,
+                          170
                         ]
                       }
                     }
@@ -478,10 +478,10 @@
                       "param": {
                         "template": "navigation/templates/daily-expanded/menu-arena.png",
                         "roi": [
-                          378,
-                          378,
-                          64,
-                          48
+                          370,
+                          175,
+                          480,
+                          255
                         ]
                       }
                     }
@@ -505,70 +505,78 @@
       "param": {
         "all_of": [
           {
-            "sub_name": "Nav_Probe_daily_expanded_arhat_Color",
-            "recognition": {
-              "type": "ColorMatch",
-              "param": {
-                "roi": [
-                  301,
-                  317,
-                  2,
-                  2
-                ],
-                "method": 4,
-                "lower": [
-                  228,
-                  194,
-                  104
-                ],
-                "upper": [
-                  255,
-                  248,
-                  211
-                ],
-                "count": 4
-              }
-            }
-          },
-          {
-            "sub_name": "Nav_Probe_daily_expanded_arena_Color",
-            "recognition": {
-              "type": "ColorMatch",
-              "param": {
-                "roi": [
-                  428,
-                  399,
-                  2,
-                  2
-                ],
-                "method": 4,
-                "lower": [
-                  232,
-                  0,
-                  0
-                ],
-                "upper": [
-                  255,
-                  32,
-                  18
-                ],
-                "count": 4
-              }
-            }
-          },
-          {
             "sub_name": "Nav_Probe_daily_expanded_arhat",
             "recognition": {
               "type": "TemplateMatch",
               "param": {
                 "template": "navigation/templates/daily-expanded/menu-arhat.png",
                 "roi": [
-                  297,
-                  292,
-                  58,
-                  47
+                  290,
+                  175,
+                  135,
+                  170
                 ],
                 "method": 5
+              }
+            }
+          },
+          {
+            "sub_name": "Nav_Probe_daily_expanded_arhat_Color",
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "ColorMatch",
+                      "param": {
+                        "roi": [
+                          301,
+                          317,
+                          2,
+                          2
+                        ],
+                        "method": 4,
+                        "lower": [
+                          228,
+                          194,
+                          104
+                        ],
+                        "upper": [
+                          255,
+                          248,
+                          211
+                        ],
+                        "count": 4
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "ColorMatch",
+                      "param": {
+                        "roi": [
+                          363,
+                          208,
+                          2,
+                          2
+                        ],
+                        "method": 4,
+                        "lower": [
+                          228,
+                          194,
+                          104
+                        ],
+                        "upper": [
+                          255,
+                          248,
+                          211
+                        ],
+                        "count": 4
+                      }
+                    }
+                  }
+                ]
               }
             }
           },
@@ -579,12 +587,72 @@
               "param": {
                 "template": "navigation/templates/daily-expanded/menu-arena.png",
                 "roi": [
-                  378,
-                  378,
-                  64,
-                  48
+                  370,
+                  175,
+                  480,
+                  255
                 ],
                 "method": 5
+              }
+            }
+          },
+          {
+            "sub_name": "Nav_Probe_daily_expanded_arena_Color",
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "ColorMatch",
+                      "param": {
+                        "roi": [
+                          428,
+                          399,
+                          2,
+                          2
+                        ],
+                        "method": 4,
+                        "lower": [
+                          232,
+                          0,
+                          0
+                        ],
+                        "upper": [
+                          255,
+                          32,
+                          18
+                        ],
+                        "count": 4
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "ColorMatch",
+                      "param": {
+                        "roi": [
+                          827,
+                          205,
+                          2,
+                          2
+                        ],
+                        "method": 4,
+                        "lower": [
+                          232,
+                          0,
+                          0
+                        ],
+                        "upper": [
+                          255,
+                          32,
+                          18
+                        ],
+                        "count": 4
+                      }
+                    }
+                  }
+                ]
               }
             }
           },
@@ -3127,26 +3195,60 @@
           {
             "sub_name": "Nav_Probe_daily_arena_entry_Color",
             "recognition": {
-              "type": "ColorMatch",
+              "type": "Or",
               "param": {
-                "roi": [
-                  428,
-                  399,
-                  2,
-                  2
-                ],
-                "method": 4,
-                "lower": [
-                  232,
-                  0,
-                  0
-                ],
-                "upper": [
-                  255,
-                  32,
-                  18
-                ],
-                "count": 4
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "ColorMatch",
+                      "param": {
+                        "roi": [
+                          428,
+                          399,
+                          2,
+                          2
+                        ],
+                        "method": 4,
+                        "lower": [
+                          232,
+                          0,
+                          0
+                        ],
+                        "upper": [
+                          255,
+                          32,
+                          18
+                        ],
+                        "count": 4
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "ColorMatch",
+                      "param": {
+                        "roi": [
+                          827,
+                          205,
+                          2,
+                          2
+                        ],
+                        "method": 4,
+                        "lower": [
+                          232,
+                          0,
+                          0
+                        ],
+                        "upper": [
+                          255,
+                          32,
+                          18
+                        ],
+                        "count": 4
+                      }
+                    }
+                  }
+                ]
               }
             }
           },
@@ -3157,10 +3259,10 @@
               "param": {
                 "template": "navigation/templates/daily-expanded/menu-arena.png",
                 "roi": [
-                  378,
-                  378,
-                  64,
-                  48
+                  370,
+                  175,
+                  480,
+                  255
                 ],
                 "method": 5
               }

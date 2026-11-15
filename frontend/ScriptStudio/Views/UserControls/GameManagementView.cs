@@ -16,7 +16,8 @@ namespace MFAAvalonia.Views.UserControls;
 public sealed class GameManagementView : UserControl
 {
     private readonly CheckBox _failure = new() { Content = "任务无法继续时，重启后续跑" };
-    private readonly CheckBox _memory = new() { Content = "内存超过 1.8 GB 自动重启" };
+    private readonly CheckBox _memory = new() { Content = "内存超过" };
+    private readonly TextBox _memoryLimit = new() { Text = "1.8", Watermark = "1.8", Width = 80, Name = "MemoryLimitGb" };
     private readonly CheckBox _interval = new() { Content = "按间隔自动重启" };
     private readonly TextBox _minutes = new() { Text = "60", Width = 80 };
     private readonly TextBox _exe = new() { Watermark = "现有造梦盒子 EXE 路径" };
@@ -62,7 +63,16 @@ public sealed class GameManagementView : UserControl
             check.IsCheckedChanged += async (_, _) => await SavePolicyChange();
         }
         policies.Children.Add(_failure);
-        policies.Children.Add(_memory);
+        var memory = new WrapPanel { Orientation = Orientation.Horizontal };
+        memory.Children.Add(_memory); memory.Children.Add(_memoryLimit); memory.Children.Add(Text("GB 自动重启", 13));
+        memory.Children.Add(Button("应用阈值", () =>
+        {
+            if (!TryReadMemoryLimit(out var limit)) { Feedback(MemoryLimitHint()); return Task.CompletedTask; }
+            Service().Save(Service().Options with { MemoryLimitGb = limit });
+            ShowDraftHint(); return Task.CompletedTask;
+        }));
+        foreach (var child in memory.Children) child.Margin = new Thickness(0, 0, 8, 6);
+        policies.Children.Add(memory);
         policies.Children.Add(_interval);
         var interval = new WrapPanel { Orientation = Orientation.Horizontal };
         interval.Children.Add(Text("重启间隔", 12)); interval.Children.Add(_minutes); interval.Children.Add(Text("分钟", 12));
@@ -74,7 +84,7 @@ public sealed class GameManagementView : UserControl
         foreach (var child in interval.Children) child.Margin = new Thickness(0, 0, 8, 6);
         policies.Children.Add(interval);
         ToolTip.SetTip(_failure, "失败重试耗尽后才重启续跑，每轮最多 3 次。挂机与战败重试在任务设置中调整。");
-        ToolTip.SetTip(_memory, "内存与定时重启会等待本轮结束，并保留已完成轮数。");
+        ToolTip.SetTip(memory, "内存重启仅在任务执行期间生效，等待本轮结束后重启，并保留已完成轮数。");
         panel.Children.Add(Section(policies));
         var login = new StackPanel { Spacing = 8 };
         login.Children.Add(Title("账号与续跑"));
@@ -105,7 +115,7 @@ public sealed class GameManagementView : UserControl
         advanced.Children.Add(Button("保存设置", Save));
         panel.Children.Add(new Expander { Header = "高级设置", IsExpanded = false, Content = advanced,
             HorizontalAlignment = HorizontalAlignment.Stretch, HorizontalContentAlignment = HorizontalAlignment.Stretch });
-        foreach (var field in new[] { _exe, _account, _role, _minutes })
+        foreach (var field in new[] { _exe, _account, _role, _minutes, _memoryLimit })
             field.TextChanged += (_, _) => ShowDraftHint();
         _slot.SelectionChanged += (_, _) => ShowDraftHint();
         Content = new ScrollViewer { Content = panel, HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled };
@@ -128,6 +138,7 @@ public sealed class GameManagementView : UserControl
     private void ShowSavedPolicy(GameManagementOptions options)
     {
         _minutes.IsEnabled = options.RestartOnInterval;
+        _memoryLimit.IsEnabled = options.RestartOnMemory;
     }
 
     private void Feedback(string message) { _feedback.Text = message; _feedback.IsVisible = !string.IsNullOrEmpty(message); }
@@ -138,8 +149,9 @@ public sealed class GameManagementView : UserControl
         var saved = Service().Options;
         var dirty = _exe.Text?.Trim() != saved.ExePath || _account.Text?.Trim() != saved.AccountName
             || _role.Text?.Trim() != saved.RoleName || _slot.SelectedIndex + 1 != saved.SaveSlot
-            || _minutes.Text != saved.IntervalMinutes.ToString(CultureInfo.InvariantCulture);
-        Feedback(dirty ? "有未保存的设置。连接与存档请点击“保存设置”，重启间隔请点击“应用间隔”。" : "");
+            || _minutes.Text != saved.IntervalMinutes.ToString(CultureInfo.InvariantCulture)
+            || !TryReadMemoryLimit(out var limit) || limit != saved.EffectiveMemoryLimitGb;
+        Feedback(dirty ? "有未保存的设置。连接与存档请点击“保存设置”，内存阈值或重启间隔请点击对应的应用按钮。" : "");
     }
 
     private async Task SavePolicyChange()
@@ -210,6 +222,7 @@ public sealed class GameManagementView : UserControl
             var options = Service().Options;
             _failure.IsChecked = options.RestartOnFailure; _memory.IsChecked = options.RestartOnMemory;
             _interval.IsChecked = options.RestartOnInterval; _minutes.Text = options.IntervalMinutes.ToString(CultureInfo.InvariantCulture);
+            _memoryLimit.Text = options.EffectiveMemoryLimitGb.ToString(CultureInfo.InvariantCulture);
             _exe.Text = options.ExePath; _account.Text = options.AccountName; _role.Text = options.RoleName;
             _slot.SelectedIndex = options.SaveSlot - 1;
             ShowSavedPolicy(options);
@@ -222,19 +235,27 @@ public sealed class GameManagementView : UserControl
     {
         var minutes = _interval.IsChecked == true ? ReadMinutes() : Service().Options.IntervalMinutes;
         var saved = Service().Options;
+        var validMemoryLimit = TryReadMemoryLimit(out var memoryLimit);
         var path = _exe.Text?.Trim() ?? "";
         Service().Save(saved with
         {
             RestartOnFailure = _failure.IsChecked == true, RestartOnMemory = _memory.IsChecked == true,
             RestartOnInterval = _interval.IsChecked == true, IntervalMinutes = minutes,
+            MemoryLimitGb = validMemoryLimit ? memoryLimit : saved.EffectiveMemoryLimitGb,
             ExePath = path, UseBundledBox = string.IsNullOrWhiteSpace(path) || string.Equals(path, Service().BundledExePath, StringComparison.OrdinalIgnoreCase),
             AccountName = _account.Text?.Trim() ?? "",
             RoleName = _role.Text?.Trim() ?? "", SaveSlot = _slot.SelectedIndex + 1
         });
         ShowSavedPolicy(Service().Options);
-        Feedback("");
+        Feedback(validMemoryLimit ? "" : MemoryLimitHint());
         return Task.CompletedTask;
     }
+
+    private bool TryReadMemoryLimit(out decimal value) =>
+        decimal.TryParse(_memoryLimit.Text, NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign | NumberStyles.AllowLeadingWhite | NumberStyles.AllowTrailingWhite,
+            CultureInfo.InvariantCulture, out value) && GameManagementOptions.IsValidMemoryLimit(value);
+
+    private string MemoryLimitHint() => $"内存阈值请输入大于 0 的 GB 数值；继续使用已保存的 {Service().Options.EffectiveMemoryLimitGb.ToString(CultureInfo.InvariantCulture)} GB。";
 
     private int ReadMinutes()
     {

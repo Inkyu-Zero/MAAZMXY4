@@ -25,18 +25,22 @@ public sealed class PageTourHost : IDisposable
     private readonly TeachingTipOverlay _overlay;
     private readonly Func<PageTourPage?> _page;
     private readonly Func<bool> _busy;
+    private readonly Func<bool> _obscured;
     private readonly Func<PageTourProgress> _progress;
     private readonly DispatcherTimer _watch = new() { Interval = TimeSpan.FromMilliseconds(100) };
     private PageTourPage? _entry, _active;
     private PageTourProgress? _activeProgress;
+    private PageTourPage? _pending;
+    private int? _resumeStep;
     private bool _disposed, _queued, _replaying;
     private int _navigationVersion;
     private CancellationTokenSource? _replayCancellation;
 
     public PageTourHost(Control root, TeachingTipOverlay overlay, Func<PageTourPage?> page,
-        Func<bool> busy, Func<PageTourProgress> progress)
+        Func<bool> busy, Func<PageTourProgress> progress, Func<bool>? obscured = null)
     {
         _root = root; _overlay = overlay; _page = page; _busy = busy; _progress = progress;
+        _obscured = obscured ?? (() => false);
         root.LayoutUpdated += LayoutUpdated;
         root.DetachedFromVisualTree += Detached;
         root.AddHandler(InputElement.PointerPressedEvent, OutsidePointer, RoutingStrategies.Tunnel, true);
@@ -62,22 +66,50 @@ public sealed class PageTourHost : IDisposable
         var page = _page();
         if (page?.SameEntry(_entry) == true)
         {
-            if (_overlay.IsRunning && _busy()) _overlay.StopTutorial(TourDismissal.Interrupted);
+            if (_busy()) { CancelPending(); _overlay.StopTutorial(TourDismissal.Interrupted); return; }
+            if (_pending != null && !_obscured())
+            {
+                var index = _resumeStep;
+                CancelPending(); Start(page, replay: false, resumeStep: index);
+            }
+            else if (_overlay.IsRunning && _obscured()) Pause(page);
             return;
         }
+        CancelPending();
         _overlay.StopTutorial(TourDismissal.Interrupted);
         _entry = page;
         // An occupied entry is consumed for this visit, not marked completed. No late popup when work ends.
-        if (page != null && !_replaying && !_busy()) Start(page, replay: false);
+        if (page != null && !_replaying && !_busy())
+        {
+            if (_obscured()) { _pending = page; _watch.Start(); }
+            else Start(page, replay: false);
+        }
     }
 
-    private void Start(PageTourPage page, bool replay)
+    public static bool HasModalWindow(Control root) => TopLevel.GetTopLevel(root) is Window window &&
+        window.OwnedWindows.Any(w => w.IsVisible && w.IsDialog);
+
+    private void CancelPending() { _pending = null; _resumeStep = null; _watch.Stop(); }
+
+    private void Pause(PageTourPage page)
+    {
+        _pending = page; _resumeStep = _overlay.CurrentStep;
+        _overlay.StopTutorial(TourDismissal.Interrupted);
+        _watch.Start();
+    }
+
+    private void Start(PageTourPage page, bool replay, int? resumeStep = null)
     {
         var progress = _progress();
-        var index = progress.StartIndex(page.Id, page.Steps.Select(s => s.Id).ToArray(), replay);
+        var index = resumeStep ?? progress.StartIndex(page.Id, page.Steps.Select(s => s.Id).ToArray(), replay);
         if (index == null) return;
         _active = page; _activeProgress = progress;
-        _overlay.StartTutorial(page.Steps, index.Value, () => !_disposed && page.SameEntry(_page()) && !_busy());
+        _overlay.StartTutorial(page.Steps, index.Value, () =>
+        {
+            if (_disposed || !page.SameEntry(_page()) || _busy()) return false;
+            if (!_obscured()) return true;
+            Pause(page); return false;
+        });
         if (_overlay.IsRunning) _watch.Start();
         else { _active = null; _activeProgress = null; }
     }
@@ -103,17 +135,19 @@ public sealed class PageTourHost : IDisposable
         if (_overlay.OwnsInput(source)) return;
         ++_navigationVersion;
         _replayCancellation?.Cancel();
+        CancelPending();
         _overlay.StopTutorial(TourDismissal.Interrupted);
         // Never handle the input: the business control keeps its original behavior.
     }
 
     public async Task<bool> ReplayAsync(string id, Func<CancellationToken, Task<bool>> navigate)
     {
-        if (_disposed || _replaying || _busy()) return false;
+        if (_disposed || _replaying || _busy() || _obscured()) return false;
         _replaying = true;
         var request = ++_navigationVersion;
         using var cancellation = new CancellationTokenSource();
         _replayCancellation = cancellation;
+        CancelPending();
         _overlay.StopTutorial(TourDismissal.Interrupted);
         try
         {
@@ -124,7 +158,7 @@ public sealed class PageTourHost : IDisposable
                 await Task.Delay(50);
                 if (_disposed || request != _navigationVersion || _busy()) return false;
                 Observe();
-                if (_entry?.Id != id) continue;
+                if (_entry?.Id != id || _obscured()) continue;
                 Start(_entry, replay: true);
                 return _overlay.IsRunning;
             }
@@ -142,6 +176,7 @@ public sealed class PageTourHost : IDisposable
     {
         if (_disposed) return;
         _disposed = true; ++_navigationVersion;
+        CancelPending();
         _replayCancellation?.Cancel();
         _overlay.StopTutorial(TourDismissal.Interrupted);
         _watch.Stop(); _watch.Tick -= Watch;

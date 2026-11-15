@@ -19,7 +19,7 @@ runtime=load_runtime()
 class RoundTests(unittest.TestCase):
     def run_round(self, task, *, results=('map',), mode='recorded_return', retry=False, afk=False,
                   restart=False, entry_scene='stage', return_after=1, cancel=False, changed=False,
-                  observed_failure=False, observed_unknown_dialog=False, box_speed=1, speed_proof=None,
+                  observed_failure=False, observed_success=False, observed_unknown_dialog=False, box_speed=1, speed_proof=None,
                   existing_entry_duration=None, guard_failure=None):
         with tempfile.TemporaryDirectory() as temp:
             root=Path(temp);library=root/'recordings';library.mkdir()
@@ -34,6 +34,8 @@ class RoundTests(unittest.TestCase):
             profile=task['management_profile'];params=deepcopy(profile['parameters'])
             params.update(file=str(recording),exit_mode=mode,run_id=str(uuid4()),game_management=dict(restart_on_failure=restart))
             play=params['playback_node'];target=params['navigation']['target_node'];scene=params['round_flow']['scene_node']
+            arena = params['navigation']['kind'] == 'arena'
+            if arena: context.scene = 'arena'
             if existing_entry_duration is not None:
                 context.nodes[target]['action']['param']['duration']=existing_entry_duration
             context.nodes[play]['action']['param']['custom_action_param']['file']=str(recording)
@@ -45,6 +47,7 @@ class RoundTests(unittest.TestCase):
             def recognition(name,frame):
                 context.recognitions.append((context.scene,name))
                 possible={'map':{'Nav_ClearMap','Nav_TaskMap'},'quest':{'Nav_QuestPanel','Nav_SelectBountyTab'},
+                    'arena':{'Nav_See_arena',target,'Nav_TaskTarget'},
                     'accepted':{'Nav_AcceptedBounties','Nav_ChooseBounty'},'detail':{target,'Nav_TaskTarget'},
                     'stage':{scene,play,'Bounty_OpenSettings'},'settings':{'Nav_SettingsMenu','Nav_SettingsReturn','Bounty_StageSettings'},
                     'paused':{'Bounty_StagePause','Bounty_ResumeStage'},
@@ -68,8 +71,8 @@ class RoundTests(unittest.TestCase):
                     context.return_count+=1
                     if cancel:context.tasker.stopping=True
                     if changed:recording.write_text('{}',encoding='utf8')
-                    if context.return_count>=return_after:context.scene='map'
-                elif name in ('Nav_SettingsReturn','Result_SucceededReturn'):context.scene='map'
+                    if context.return_count>=return_after:context.scene='arena' if arena else 'map'
+                elif name in ('Nav_SettingsReturn','Result_SucceededReturn'):context.scene='arena' if arena else 'map'
                 else:raise AssertionError(name)
                 return SimpleNamespace(success=True)
             context.run_recognition=recognition;context.run_action=action
@@ -88,6 +91,8 @@ class RoundTests(unittest.TestCase):
                     context.scene=results[min(context.play_count-1,len(results)-1)]
                     if observed_failure and context.play_count==1:
                         context.nodes[play]['next']=[dict(name='Result_Failed')]
+                    elif observed_success:
+                        context.nodes[play]['next']=[dict(name='Result_Succeeded')]
                     elif observed_unknown_dialog:
                         context.nodes[play]['next']=[dict(name='Result_MonitorUnrecognizedDialog')]
                     else:context.nodes[play]['next']=[dict(name='Round_PlayDone')]
@@ -109,7 +114,33 @@ class RoundTests(unittest.TestCase):
             return result,status,context
 
     def tasks(self):
-        return [t for t in task_catalog(ROOT,bindings={}) if t['management_profile']]
+        return [t for t in task_catalog(ROOT,bindings={}) if t['management_profile'] and t['entry'] != 'Arena']
+
+    def test_arena_requires_victory_and_never_exits_unfinished_battle(self):
+        task=next(t for t in task_catalog(ROOT,bindings={}) if t['entry']=='Arena')
+        for scene in ('stage','settings','arena','unknown'):
+            with self.subTest(scene=scene):
+                ok,status,ctx=self.run_round(task,results=[scene])
+                self.assertFalse(ok)
+                self.assertEqual((status['status'],status['reason']),('failed','victory_not_observed'))
+                self.assertNotIn('Bounty_OpenSettings',ctx.inputs)
+                self.assertNotIn('Nav_SettingsReturn',ctx.inputs)
+                self.assertNotIn('Result_SucceededReturn',ctx.inputs)
+
+    def test_arena_success_and_observed_monitor_result_return_to_lobby(self):
+        task=next(t for t in task_catalog(ROOT,bindings={}) if t['entry']=='Arena')
+        for scene,observed in [('succeeded',False),('arena',True)]:
+            ok,status,ctx=self.run_round(task,results=[scene],observed_success=observed)
+            self.assertTrue(ok)
+            self.assertEqual(status['status'],'success')
+            self.assertEqual(ctx.scene,'arena')
+
+    def test_arena_defeat_retry_shares_current_round_and_resets_victory(self):
+        task=next(t for t in task_catalog(ROOT,bindings={}) if t['entry']=='Arena')
+        ok,status,ctx=self.run_round(task,results=['failed','succeeded'],retry=True)
+        self.assertTrue(ok)
+        self.assertEqual(ctx.play_count,2)
+        self.assertEqual(status['failure_retries'],1)
 
     def test_guard_failure_never_restarts_even_with_afk_and_recovery_enabled(self):
         for phase in ('navigation','playback'):

@@ -28,7 +28,8 @@ class TaskGenerationTests(unittest.TestCase):
                 shutil.copyfile(ROOT / relative, destination)
             generator.build(output)
             generated = {p.name: p.read_bytes() for p in pipeline.glob('*.json')}
-            self.assertEqual(len(generated), 13)
+            self.assertEqual(len(generated), 14)
+            self.assertIn('arena.json', generated)
             for name, raw in generated.items():
                 with self.subTest(file=name):
                     self.assertEqual(raw, (ROOT / 'assets/resource/base/pipeline' / name).read_bytes())

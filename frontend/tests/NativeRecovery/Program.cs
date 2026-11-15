@@ -567,23 +567,52 @@ Sync("managed memory threshold needs two samples and produces one pending reques
 {
     var options = new GameManagementOptions { RestartOnMemory = true };
     var schedule = new GameRestartSchedule(); var now = DateTimeOffset.UnixEpoch;
-    Require(!schedule.Observe(options, 1_800_000_000, 1, now));
-    Require(!schedule.Observe(options, 1_800_000_001, 1, now.AddSeconds(5)));
-    Require(schedule.Observe(options, 1_800_000_001, 1, now.AddSeconds(10)));
+    Require(!schedule.Observe(options, 1_800_000_000, 1, now, true));
+    Require(!schedule.Observe(options, 1_800_000_001, 1, now.AddSeconds(5), true));
+    Require(schedule.Observe(options, 1_800_000_001, 1, now.AddSeconds(10), true));
     Require(schedule.PendingReason == "memory_limit");
-    Require(!schedule.Observe(options, 2_000_000_000, 1, now.AddSeconds(15)));
+    Require(!schedule.Observe(options, 2_000_000_000, 1, now.AddSeconds(15), true));
+});
+Sync("custom GB limit persists and old settings retain the 1.8 GB default", () =>
+{
+    Require(GameManagementOptions.Parse("{}").MemoryLimitBytes == 1_800_000_000);
+    var options = GameManagementOptions.Parse("{\"MemoryLimitGb\":2.4,\"future\":17}");
+    Require(options.MemoryLimitBytes == 2_400_000_000 && options.Extra!.ContainsKey("future"));
+    Require(GameManagementOptions.Parse(System.Text.Json.JsonSerializer.Serialize(options)).MemoryLimitGb == 2.4m);
+    Require(GameManagementOptions.Parse("{\"MemoryLimitGb\":-1}").MemoryLimitBytes == 1_800_000_000);
+    Require((options with { MemoryLimitGb = decimal.MaxValue }).MemoryLimitBytes == 1_800_000_000);
+    var schedule = new GameRestartSchedule(); var now = DateTimeOffset.UnixEpoch;
+    options = options with { RestartOnMemory = true };
+    Require(!schedule.Observe(options, 2_400_000_000, 1, now, true));
+    Require(!schedule.Observe(options, 2_400_000_001, 1, now.AddSeconds(5), true));
+    Require(schedule.Observe(options, 2_400_000_001, 1, now.AddSeconds(10), true));
+});
+Sync("idle monitoring does not collect pressure or trigger timed maintenance", () =>
+{
+    var options = new GameManagementOptions { RestartOnMemory=true, RestartOnInterval=true, IntervalMinutes=60 };
+    var schedule = new GameRestartSchedule(); var now = DateTimeOffset.UnixEpoch;
+    for (var minute=0; minute<180; minute++)
+        Require(!schedule.Observe(options, 3_000_000_000, 1, now.AddMinutes(minute), false));
+    Require(schedule.PendingReason == null && !schedule.MemoryRecoveryExhausted);
+    Require(!schedule.Observe(options, 3_000_000_000, 1, now.AddHours(3), true));
+    Require(schedule.Observe(options, 3_000_000_000, 1, now.AddHours(3).AddSeconds(5), true));
+    Require(!schedule.Observe(options, 3_000_000_000, 1, now.AddHours(3).AddSeconds(10), false));
+    Require(schedule.PendingReason == null);
+    Require(!schedule.Observe(options, 3_000_000_000, 1, now.AddHours(3).AddSeconds(15), true));
+    schedule.SuspendMemory();
+    Require(!schedule.Observe(options, 3_000_000_000, 1, now.AddHours(3).AddSeconds(20), true));
 });
 Sync("interval is elapsed minutes and a replacement process starts a new interval", () =>
 {
     var options = new GameManagementOptions { RestartOnInterval = true, IntervalMinutes = 60 };
     var schedule = new GameRestartSchedule(); var now = DateTimeOffset.UnixEpoch;
-    Require(!schedule.Observe(options, 0, 1, now));
-    Require(!schedule.Observe(options, 0, 1, now.AddMinutes(59)));
-    Require(schedule.Observe(options, 0, 1, now.AddMinutes(60)));
+    Require(!schedule.Observe(options, 0, 1, now, true));
+    Require(!schedule.Observe(options, 0, 1, now.AddMinutes(59), true));
+    Require(schedule.Observe(options, 0, 1, now.AddMinutes(60), true));
     schedule.CompleteRestart(now.AddMinutes(60));
-    Require(!schedule.Observe(options, 0, 2, now.AddMinutes(61)));
-    Require(!schedule.Observe(options, 0, 2, now.AddMinutes(120)));
-    Require(schedule.Observe(options, 0, 2, now.AddMinutes(121)));
+    Require(!schedule.Observe(options, 0, 2, now.AddMinutes(61), true));
+    Require(!schedule.Observe(options, 0, 2, now.AddMinutes(120), true));
+    Require(schedule.Observe(options, 0, 2, now.AddMinutes(121), true));
 });
 Sync("persistent memory pressure cannot cause an endless restart loop", () =>
 {
@@ -591,12 +620,12 @@ Sync("persistent memory pressure cannot cause an endless restart loop", () =>
     var schedule = new GameRestartSchedule(); var now = DateTimeOffset.UnixEpoch;
     for (var attempt = 1; attempt <= 3; attempt++)
     {
-        Require(!schedule.Observe(options, 2_000_000_000, attempt, now));
-        Require(schedule.Observe(options, 2_000_000_000, attempt, now.AddSeconds(5)));
+        Require(!schedule.Observe(options, 2_000_000_000, attempt, now, true));
+        Require(schedule.Observe(options, 2_000_000_000, attempt, now.AddSeconds(5), true));
         schedule.CompleteRestart(now.AddSeconds(10)); now = now.AddSeconds(30);
     }
-    Require(!schedule.Observe(options, 2_000_000_000, 4, now));
-    Require(!schedule.Observe(options, 2_000_000_000, 4, now.AddSeconds(5)));
+    Require(!schedule.Observe(options, 2_000_000_000, 4, now, true));
+    Require(!schedule.Observe(options, 2_000_000_000, 4, now.AddSeconds(5), true));
     Require(schedule.MemoryRecoveryExhausted && schedule.PendingReason == null);
 });
 Test("managed defeat restarts the same round and completes only after confirmation", async () =>

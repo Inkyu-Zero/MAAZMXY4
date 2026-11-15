@@ -68,12 +68,12 @@ class NavigationAssetsTests(unittest.TestCase):
             self.assertEqual(routine['screens']['map']['detector'],'Nav_ClearMap')
             parts=context.patch['Nav_TaskTarget']['recognition']['param']['all_of']
             self.assertIn(parameters['navigation']['target_node'],parts)
-        self.assertEqual(count,11+62)
+        self.assertEqual(count,12+65)
 
     def test_every_script_task_preserves_binding_and_declares_one_round_boundary(self):
         from task_catalog import task_catalog
         tasks=[t for t in task_catalog(ROOT,bindings={}) if t['management_profile']]
-        self.assertEqual(len(tasks),11+62)
+        self.assertEqual(len(tasks),12+65)
         for task in tasks:
             profile=task['management_profile'];params=profile['parameters']
             self.assertEqual(profile['entry'],profile['success_node'])

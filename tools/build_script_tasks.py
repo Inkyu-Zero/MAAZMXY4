@@ -77,6 +77,8 @@ def build(root=ROOT):
     from task_catalog import task_key
     build_bounties(root)
     profiles=json.loads((root/'tools/script_task_profiles.json').read_text(encoding='utf8'))
+    from mainline_tasks import LEGACY_STAGES, stages, target_recognition
+    mainline = {stage['id']:stage for stage in stages(root)}
     folder=root/'assets/resource/base/pipeline'
     for name,profile in profiles.items():
         entry,play,target,scene,repeat=(profile[k] for k in ('entry','playback_node','target_node','scene_node','repeat_node'))
@@ -101,6 +103,8 @@ def build(root=ROOT):
             set_roi(icon)
         target_definition['recognition']=dict(type='And',param=dict(
             all_of=['Nav_ClearMap',icon],box_index=1))
+        if name in LEGACY_STAGES:
+            target_definition['recognition'] = target_recognition(mainline[LEGACY_STAGES[name]])
         # Preserve legacy node identifiers as aliases, without scene landmarks.
         scene_rec=shared_stage()
         graph={entry:round_node(entry,params,True),
@@ -109,6 +113,8 @@ def build(root=ROOT):
         write(folder/(name+'.json'),graph)
     from mainline_tasks import build as build_mainline
     build_mainline(root)
+    from arena_tasks import build as build_arena
+    build_arena(root)
     configure_box_speed(root)
 
 

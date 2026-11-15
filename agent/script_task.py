@@ -224,7 +224,7 @@ def begin_round(context, parameters, state, *, frame=None):
             raise RecordingChanged('本轮绑定或脚本已修改，自动恢复不会切换到另一份录制。')
     state.update(recording=recording, reference=reference, recording_file=filename,
                  recording_sha256=recording['sha256'], parameters=parameters,
-                 failure_retries=0, battle_failed=False)
+                 failure_retries=0, battle_failed=False, victory_observed=False)
     policy = parameters.get('failure_retry', {})
     afk = parameters.get('afk_mode', False)
     if type(afk) is not bool:
@@ -348,6 +348,8 @@ def navigate_round(context, state, navigator=None):
 
 
 def return_targets(state):
+    if state['parameters'].get('navigation', {}).get('kind') == 'arena':
+        return ['arena', 'task_destination']
     allowed = ['map']
     if state['parameters'].get('navigation', {}).get('kind') == 'stage':
         allowed.append('task_destination')
@@ -555,6 +557,9 @@ def finish_round(context, state, navigator):
         if current in allowed:
             if state.get('revival_observed'):
                 raise NavigationError('曾观察到复活提示但尚未确认战败，未计次。', reason='transition_failed')
+            if (requires_victory(state) and not state.get('victory_observed')
+                    and not state.get('battle_failed')):
+                return missing_victory(state)
             confirm_return(context, state, navigator)
             return True
         if not recover_round_return(state, navigator):
@@ -572,13 +577,18 @@ def recover_round_return(state, navigator):
             return False
         navigator._execute('Result_FailedReturn')
     elif current == 'challenge_succeeded':
+        state['victory_observed'] = True
         navigator._execute('Result_SucceededReturn')
     elif current == 'settings_menu':
+        if requires_victory(state):
+            return missing_victory(state)
         # A recording may have opened this menu but missed its final click.
         # Both exit modes reuse the guarded button and post-click verification.
         navigator._execute('Nav_SettingsReturn')
     elif navigator.recognize('Nav_BlockedDialog').hit:
         raise NavigationError('返回地图被其他提示阻断。', reason='blocked')
+    elif requires_victory(state):
+        return missing_victory(state)
     elif navigator.recognize('Bounty_OpenSettings').hit:
         if navigator.attempts.get('Bounty_OpenSettings', 0) >= 2:
             raise NavigationError('打开设置菜单未确认。', reason='transition_failed')
@@ -588,6 +598,16 @@ def recover_round_return(state, navigator):
     else:
         navigator.refresh_after_wait(200)
     return True
+
+
+def requires_victory(state):
+    return state['parameters'].get('round_flow', {}).get('require_victory', False)
+
+
+def missing_victory(state):
+    write_status(state, 'failed', 'victory_not_observed',
+                 message='脚本播放结束但未确认挑战成功，本轮未计次，保留当前界面。')
+    return False
 
 
 def run_compact_round(context, parameters, state, node_name):
@@ -609,6 +629,7 @@ def run_compact_round(context, parameters, state, node_name):
             raise ValueError('刷取次数无效。')
         _override(context, {node_name: {'max_hit': limit}})
     while True:
+        state['victory_observed'] = False
         navigator.routine['targets'] = ['task_destination']
         navigator.deadline = None
         navigator.attempts.clear()
@@ -640,6 +661,7 @@ def run_compact_round(context, parameters, state, node_name):
             if 'Result_Failed' in branch and not mark_battle_failure(state):
                 return False
             state['revival_observed'] = 'Result_RevivePrompt' in branch
+            state['victory_observed'] = 'Result_Succeeded' in branch
         elif state['status'] != 'running':
             return False
         if not finish_round(context, state, navigator):

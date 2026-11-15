@@ -6,7 +6,19 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 # South/East Province maps have no normal/nightmare switch. A mode-button
 # requirement there blocks a correctly identified, ready-to-enter stage.
-MODE_SWITCH_TOWNS = {'town3', 'town4', 'town5'}
+MODE_SWITCH_TOWNS = {'town3', 'town4', 'town5', 'town6'}
+
+# Keep saved task names, node IDs and script bindings while sharing the same
+# mainline entry definition. These are the original boss-specific presets.
+LEGACY_STAGES = {'贪妄（金蟾宝宫）':65, '无冥（孤魂岭）':47, '摩多（七叶树窟）':43,
+                 '摩多（幕山）':45, '烛时（钟晷极地）':38, '朱电（琉璃宫）':26}
+
+
+def target_recognition(stage):
+    return dict(type='And',param=dict(all_of=[
+        dict(recognition=deepcopy(stage['recognition'])), 'Nav_Province_'+stage['town'],
+        *(['GameManagement_NormalMap'] if stage['town'] in MODE_SWITCH_TOWNS else []),
+        'Nav_ClearMap'],box_index=0))
 
 
 def stages(root=ROOT):
@@ -39,11 +51,7 @@ def build(root=ROOT):
                             kind='stage',repeat=spec['repeat'])
         # Only the requested stage is active. Identity/mode/overlay guards and
         # icon use the same frame, and box_index keeps input on the icon.
-        target = dict(type='And',param=dict(all_of=[
-            dict(recognition=deepcopy(stage['recognition'])),
-            'Nav_Province_'+stage['town'],
-            *(['GameManagement_NormalMap'] if stage['town'] in MODE_SWITCH_TOWNS else []),
-            'Nav_ClearMap'],box_index=0))
+        target = target_recognition(stage)
         graph[spec['entry']] = round_node(spec['entry'],params,True)
         graph[spec['repeat']] = node(action=custom('loop_count',label=spec['name']),max_hit=1)
         graph[spec['target']] = node(target,dict(type='LongPress',param=dict(duration=ENTRY_PRESS_MS)))
@@ -58,6 +66,15 @@ def build(root=ROOT):
             scroll['maps'].append(dict(task=spec['name'],target=spec['target'],town='town5',axis='x',
                 max_steps=2,drag_node='GameManagement_town5_DragBack' if left else 'GameManagement_town5_Drag',
                 end_x=1000 if left else 20,view=stage['endpoint']))
+        elif stage['town'] == 'town6':
+            scroll['maps'].append(dict(task=spec['name'],target=spec['target'],town='town6',axis='y',
+                max_steps=12,drag_node='GameManagement_town6_Drag',end_y=20,view='bottom'))
+    by_id = {stage['id']:stage for stage in stages(root)}
+    for task in interface['task']:
+        if task['name'] in LEGACY_STAGES:
+            stage = by_id[LEGACY_STAGES[task['name']]]
+            task.update(group=[stage['province']], label=stage['province']+' · '+task['name'], default_add=False)
+            task['description'] = '主线关卡预设，沿用原任务绑定；自动导航、进关、回放与计次均使用主线公共流程。\n' + task['description'].split('\n',1)[-1]
     write(root/'assets/resource/base/pipeline/mainline.json',graph)
     write(interface_path,interface)
     write(scroll_path,scroll)

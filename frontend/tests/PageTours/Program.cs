@@ -24,7 +24,8 @@ internal static class Program
         catch (Exception error) { Console.WriteLine("FAIL headless setup: " + error); return 1; }
         Action[] tests = [ProgressCompatibility, StableResumeAndUnknownFields, MalformedRecordsAndWriteFailure, FreshInstallEvidence,
             ConfigScopeFence, PageLifecycleAndInstanceScope, BusyVisitAndMidTour, StepButtonsAreExplanations,
-            MissingTargetsAndNarrowLayout, PointerAndKeyboardPassThrough, PendingReplayAndUnload, ReplayOnlySelectedPage, BusyBeforeDeferredFocus, UserNavigationCancelsReplay, ThemeAndScaledTargets, ResetWaitsForRestart];
+            MissingTargetsAndNarrowLayout, PointerAndKeyboardPassThrough, PendingReplayAndUnload, ReplayOnlySelectedPage, BusyBeforeDeferredFocus, UserNavigationCancelsReplay, ThemeAndScaledTargets, ResetWaitsForRestart, ConnectionCompletionKeepsTutorial,
+            NotificationAndModalLifetime, DeferredConnectionEntryAndCancellation];
         var failures = 0;
         foreach (var test in tests)
             try { test(); Console.WriteLine("PASS " + test.Method.Name); }
@@ -157,17 +158,17 @@ internal static class Program
         public readonly PageTourHost Host;
         public string? PageId = "task_page";
         public object Instance = new(), Scope = new();
-        public bool Busy;
+        public bool Busy, Connecting;
         public string? Json;
         public int Actions;
-        public Fixture(bool busy = false)
+        public Fixture(bool busy = false, bool connecting = false)
         {
-            Busy = busy; Page.Child = Business; Root.Children.Add(Page); Root.Children.Add(Overlay);
+            Busy = busy; Connecting = connecting; Page.Child = Business; Root.Children.Add(Page); Root.Children.Add(Overlay);
             Business.Click += (_, _) => Actions++;
             Window = new Window { Content = Root, Width = 1000, Height = 680 };
             Window.Show(); Draw(Window);
             Host = new PageTourHost(Root, Overlay, () => PageId == null ? null : new PageTourPage(PageId, Page, Instance, Scope, PageTourCatalog.Steps(PageId, _ => Business)),
-                () => Busy, () => Progress(Json, save: s => Json = s));
+                () => Busy, () => Progress(Json, save: s => Json = s), () => Connecting || PageTourHost.HasModalWindow(Root));
             Host.Observe(); Draw(Window);
         }
         public void Click(string name) { Overlay.FindControl<Button>(name)!.RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); Draw(Window); }
@@ -199,6 +200,49 @@ internal static class Program
         f.Click("CloseButton"); f.Visit("timeline_editor");
         f.Click("NextButton"); f.Click("NextButton"); f.Click("NextButton");
         f.Visit(null); f.Visit("timeline_editor"); Check(!f.Overlay.IsRunning, "Completed page stays closed");
+    }
+    private static void ConnectionCompletionKeepsTutorial()
+    {
+        using var f = new Fixture();
+        f.Click("NextButton");
+        f.Connecting = true; f.Host.Observe();
+        Check(!f.Overlay.IsRunning, "A connection temporarily hides the tutorial");
+        f.Connecting = false; f.Host.Observe(); Draw(f.Window);
+        Check(f.Overlay.IsRunning && f.Overlay.CurrentStep == 1, "Connection completion must restore the interrupted explanation on the same page");
+    }
+    private static void NotificationAndModalLifetime()
+    {
+        using var f = new Fixture(); f.Click("NextButton");
+        var notification = new Window { Content = new TextBlock { Text = "连接成功" }, Width = 200, Height = 80, ShowActivated = false };
+        notification.Show(f.Window); Draw(f.Window); f.Host.Observe();
+        try
+        {
+            Check(f.Window.OwnedWindows.Contains(notification) && !PageTourHost.HasModalWindow(f.Root), "A modeless notification is not a modal blocker");
+            Check(f.Overlay.IsRunning && f.Overlay.CurrentStep == 1, "A connection notification must not close or reset the tutorial");
+        }
+        finally { notification.Close(); }
+        var dialog = new Window { Content = new TextBlock { Text = "确认连接" }, Width = 200, Height = 100 };
+        var closed = dialog.ShowDialog(f.Window);
+        f.Host.Observe();
+        Check(!f.Overlay.IsRunning && PageTourHost.HasModalWindow(f.Root), "Real dialogs temporarily obscure the explanation");
+        dialog.Close(); Pump(closed); f.Host.Observe(); Draw(f.Window);
+        Check(f.Overlay.IsRunning && f.Overlay.CurrentStep == 1, "Closing a dialog resumes the same step");
+        f.Click("CloseButton"); f.Connecting = true; f.Host.Observe(); f.Connecting = false; f.Host.Observe();
+        Check(!f.Overlay.IsRunning, "Connection changes cannot revive a skipped tutorial");
+    }
+    private static void DeferredConnectionEntryAndCancellation()
+    {
+        using var f = new Fixture(connecting: true);
+        Check(!f.Overlay.IsRunning && f.Json == null, "Entering during connection defers the first explanation");
+        f.Connecting = false; f.Host.Observe(); Draw(f.Window);
+        Check(f.Overlay.IsRunning && f.Overlay.CurrentStep == 0, "First explanation appears after connection on the same page");
+        f.Connecting = true; f.Host.Observe(); f.Busy = true; f.Host.Observe();
+        f.Connecting = f.Busy = false; f.Host.Observe();
+        Check(!f.Overlay.IsRunning, "A real task/capture cancels the pending explanation without a late popup");
+        f.Visit(null); f.Connecting = true; f.Visit("script_library"); f.Visit(null);
+        f.Connecting = false; f.Host.Observe(); Check(!f.Overlay.IsRunning, "Page exit cancels deferred entry");
+        f.Connecting = true; f.Visit("task_page"); f.Host.Dispose(); f.Connecting = false;
+        f.Host.Observe(); Draw(f.Window); Check(!f.Overlay.IsRunning, "Disposal cancels connection callbacks");
     }
     private static void BusyVisitAndMidTour()
     {

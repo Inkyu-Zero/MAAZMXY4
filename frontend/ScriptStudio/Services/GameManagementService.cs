@@ -168,7 +168,7 @@ public sealed class GameManagementService : IDisposable
             var changed = _identity?.StartedUtcTicks != identity.StartedUtcTicks;
             _identity = identity;
             _verifiedTarget = verified;
-            if (changed) _schedule.Observe(options, 0, identity.StartedUtcTicks, Clock);
+            if (changed) _schedule.Observe(options, 0, identity.StartedUtcTicks, Clock, _processor.IsTaskRunActive);
         }
     }
 
@@ -318,6 +318,11 @@ public sealed class GameManagementService : IDisposable
             using var timer = new PeriodicTimer(TimeSpan.FromSeconds(5));
             while (await timer.WaitForNextTickAsync(_lifetime.Token))
             {
+                if (!_processor.IsTaskRunActive)
+                {
+                    lock (_sync) _schedule.SuspendMemory();
+                    continue;
+                }
                 if (_processor.IsInputOnlyPlayback) continue;
                 TaskProcessIdentity? identity;
                 lock (_sync) identity = _identity;
@@ -329,17 +334,13 @@ public sealed class GameManagementService : IDisposable
                     process.Refresh();
                     bool requested;
                     lock (_sync) requested = _schedule.Observe(Options, process.PrivateMemorySize64,
-                        identity.StartedUtcTicks, Clock);
+                        identity.StartedUtcTicks, Clock, _processor.IsTaskRunActive);
                     if (_schedule.MemoryRecoveryExhausted)
                     {
                         _attentionRequired = "十分钟内三次重启后内存仍超限，自动托管已暂停；检查盒子后重新保存设置或手动启动。";
                         throw new InvalidOperationException(_attentionRequired);
                     }
-                    if (requested) Log("已达到内存或定时重启条件；任务运行时将在本轮结束后重启。");
-                    bool pending;
-                    lock (_sync) pending = _schedule.PendingReason != null || _manualRestart;
-                    if (pending && !_processor.IsTaskRunActive)
-                        await OperateAsync("restart", false, _lifetime.Token);
+                    if (requested) Log("已达到内存或定时重启条件；将在本轮结束后重启。");
                 }
                 catch (OperationCanceledException) when (_lifetime.IsCancellationRequested) { break; }
                 catch (Exception error)
@@ -409,7 +410,7 @@ public sealed class GameManagementService : IDisposable
         }
         finally
         {
-            Interlocked.Decrement(ref _managedRuns);
+            if (Interlocked.Decrement(ref _managedRuns) == 0) lock (_sync) _schedule.SuspendMemory();
             if (!confirmed) lock (_sync) { _identity = null; _manualRestart = false; _schedule.Reset(); }
         }
     }
@@ -462,7 +463,7 @@ public sealed class GameManagementService : IDisposable
         }
         finally
         {
-            Interlocked.Decrement(ref _managedRuns);
+            if (Interlocked.Decrement(ref _managedRuns) == 0) lock (_sync) _schedule.SuspendMemory();
             if (!completedNormally) lock (_sync) { _identity = null; _manualRestart = false; _schedule.Reset(); }
         }
     }

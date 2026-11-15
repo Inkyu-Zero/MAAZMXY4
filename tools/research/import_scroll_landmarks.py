@@ -56,6 +56,12 @@ def standard_views(nodes, metadata):
         template=['navigation/scroll/town5-02.png'],roi=[20,410,1020,120])
     nodes.pop('GameManagement_town5_TerrainBack',None)
     for recipe in metadata['maps']:
+        if recipe['town'] == 'town6':
+            recipe.update(end_y=20,view='bottom')
+            node=nodes[recipe['drag_node']]
+            node['pre_delay']=0
+            node['action']['param'].update(end_offset=[0,0,0,0],duration=900,end_hold=200)
+            continue
         if recipe['town'] != 'town5': continue
         left=recipe['task']=='无冥（孤魂岭）'
         recipe.update(max_steps=2,end_x=1000 if left else 20,view='left' if left else 'right')

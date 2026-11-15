@@ -8,7 +8,7 @@ import unittest
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'agent'))
 sys.path.insert(0,str(ROOT/'tools'))
-from mainline_tasks import names
+from mainline_tasks import names, LEGACY_STAGES, target_recognition
 from task_catalog import task_catalog, task_key
 
 
@@ -23,21 +23,28 @@ class MainlineTasksTests(unittest.TestCase):
         cls.interface=read('assets/interface.json')
         cls.nodes=read('assets/resource/base/pipeline/mainline.json')
 
-    def test_all_five_maps_have_exact_complete_add_only_inventory(self):
-        self.assertEqual([s['id'] for s in self.stages],list(range(1,63)))
-        self.assertEqual([sum(s['town']==f'town{i}' for s in self.stages) for i in range(1,6)],[16,13,10,7,16])
+    def test_all_six_maps_have_exact_complete_add_only_inventory(self):
+        self.assertEqual([s['id'] for s in self.stages],list(range(1,66)))
+        self.assertEqual([sum(s['town']==f'town{i}' for s in self.stages) for i in range(1,7)],[16,13,10,7,16,3])
         tasks=[t for t in self.interface['task'] if t['entry'].startswith('Mainline_')]
-        self.assertEqual(len(tasks),62)
+        self.assertEqual(len(tasks),65)
         for stage,task in zip(self.stages,tasks):
             self.assertEqual(task['entry'],names(stage)['entry'])
             self.assertIs(task['default_add'],False)
             self.assertEqual(task['group'],[stage['province']])
             self.assertEqual(task['option'],['挂机模式','盒子与脚本倍速','刷取次数','战斗录制内容','失败自动重试'])
-        self.assertTrue(all('default_add' not in t for t in self.interface['task'] if not t['entry'].startswith('Mainline_')))
+        for task in self.interface['task']:
+            if task['name'] in LEGACY_STAGES:
+                stage=next(s for s in self.stages if s['id']==LEGACY_STAGES[task['name']])
+                self.assertEqual(task['group'],[stage['province']])
+                profile=read('tools/script_task_profiles.json')[task['name']]
+                node=read('assets/resource/base/pipeline/'+task['name']+'.json')[profile['target_node']]
+                self.assertEqual(node['recognition'],target_recognition(stage))
+                self.assertEqual(task['entry'],profile['entry'])
 
     def test_each_stage_reuses_one_round_and_stable_independent_binding(self):
         catalog={task['entry']:task for task in task_catalog(ROOT,bindings={})}
-        self.assertEqual(len(self.nodes),62*4)
+        self.assertEqual(len(self.nodes),65*4)
         for stage in self.stages:
             spec=names(stage);task=catalog[spec['entry']]
             self.assertEqual(task['id'],task_key(spec['name'],spec['entry']))
@@ -82,6 +89,11 @@ class MainlineTasksTests(unittest.TestCase):
         scroll={item['target']:item for item in read('agent/data/navigation/stage-scroll.json')['maps']}
         for stage in self.stages:
             target=names(stage)['target']
+            if stage['town']=='town6':
+                recipe=scroll[target]
+                self.assertEqual((recipe['axis'],recipe['end_y'],recipe['max_steps']),('y',20,12))
+                self.assertEqual(stage['offset_y'],2124)
+                continue
             if stage['town']!='town5':self.assertNotIn(target,scroll);continue
             recipe=scroll[target];left=stage['endpoint']=='left'
             self.assertEqual(recipe['max_steps'],2)

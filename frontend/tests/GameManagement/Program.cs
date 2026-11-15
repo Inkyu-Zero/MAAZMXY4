@@ -61,7 +61,9 @@ internal static class Program
         var checks = control.GetVisualDescendants().OfType<CheckBox>().ToArray();
         Require(checks.Length == 3 && checks.All(c => c.IsChecked != true), "All three policies default off");
         var texts = control.GetVisualDescendants().OfType<TextBox>().ToArray();
-        var minutes = texts.Single(t => t.Width == 80);
+        var minutes = texts.Single(t => t.Width == 80 && t.Name != "MemoryLimitGb");
+        var memoryLimit = texts.Single(t => t.Name == "MemoryLimitGb");
+        Require(memoryLimit.Text == "1.8", "Memory limit defaults to 1.8 GB");
         var exe = texts.Single(t => t.Watermark?.Contains("EXE") == true);
         var account = texts.Single(t => t.Watermark?.Contains("账号") == true);
         var role = texts.Single(t => t.Watermark?.Contains("角色") == true);
@@ -74,6 +76,18 @@ internal static class Program
         checks[1].IsChecked = true; checks[2].IsChecked = true; Dispatcher.UIThread.RunJobs();
         Require(GameManagementService.For(first.Processor).Options.RestartOnMemory
             && GameManagementService.For(first.Processor).Options.RestartOnInterval, "Restart switches save immediately");
+        var applyMemory = control.GetVisualDescendants().OfType<Button>().Single(b => Equals(b.Content,"应用阈值"));
+        memoryLimit.Text = "2.4";
+        applyMemory.RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); Dispatcher.UIThread.RunJobs();
+        Require(GameManagementService.For(first.Processor).Options.MemoryLimitGb == 2.4m, "Custom memory limit is saved");
+        foreach (var invalid in new[] { "", "0", "-1", "abc" })
+        {
+            memoryLimit.Text = invalid;
+            applyMemory.RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); Dispatcher.UIThread.RunJobs();
+            Require(GameManagementService.For(first.Processor).Options.MemoryLimitGb == 2.4m && checks[1].IsChecked == true,
+                "Invalid memory drafts only show a hint and preserve the saved policy");
+        }
+        memoryLimit.Text = "2.4";
         checks[0].IsChecked = true; Dispatcher.UIThread.RunJobs();
         Require(GameManagementService.For(first.Processor).Options.RestartOnFailure, "Failure restart enabled immediately");
         checks[0].IsChecked = false; Dispatcher.UIThread.RunJobs();
@@ -104,8 +118,10 @@ internal static class Program
         role.Text = "角色甲"; minutes.Text = "60"; checks[2].IsChecked = true; Dispatcher.UIThread.RunJobs();
         control.DataContext = second; Dispatcher.UIThread.RunJobs();
         Require(checks.All(c => c.IsChecked != true), "Another instance does not inherit policy");
+        Require(memoryLimit.Text == "1.8", "Another instance keeps its own default memory limit");
         control.DataContext = first; Dispatcher.UIThread.RunJobs();
         Require(checks[1].IsChecked == true && checks[2].IsChecked == true && minutes.Text == "60", "Saved instance restores its options");
+        Require(memoryLimit.Text == "2.4", "Saved instance restores its memory limit");
         if (render != null)
         {
             advanced.IsExpanded = false;

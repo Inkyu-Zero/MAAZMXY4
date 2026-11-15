@@ -96,14 +96,37 @@
   },
   "Result_Succeeded": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "Or",
       "param": {
-        "template": "navigation/outcomes/succeeded-title.png",
-        "roi": [
-          200,
-          120,
-          780,
-          380
+        "any_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/outcomes/succeeded-title.png",
+                "roi": [
+                  200,
+                  120,
+                  780,
+                  380
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/outcomes/arena-succeeded-title.png",
+                "roi": [
+                  350,
+                  0,
+                  460,
+                  130
+                ]
+              }
+            }
+          }
         ]
       }
     },
@@ -155,25 +178,26 @@
                         "green_mask": true
                       }
                     }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "navigation/outcomes/arena-succeeded-return.png",
+                        "roi": [
+                          480,
+                          545,
+                          190,
+                          90
+                        ]
+                      }
+                    }
                   }
                 ]
               }
             }
           },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/outcomes/succeeded-title.png",
-                "roi": [
-                  200,
-                  120,
-                  780,
-                  380
-                ]
-              }
-            }
-          },
+          "Result_Succeeded",
           "Result_NoRevivePrompt"
         ],
         "box_index": 0
