@@ -1,0 +1,6 @@
+{
+  "description": "Add an explicit next-start tutorial reset to startup settings",
+  "path": "MFAAvalonia/Views/UserControls/Settings/StartSettingsUserControl.axaml",
+  "find": "    </StackPanel>\n</UserControl>",
+  "replace": "        <suki:GlassCard Padding=\"25\">\n            <tutorial:PageTourResetView />\n        </suki:GlassCard>\n    </StackPanel>\n</UserControl>"
+}

@@ -62,7 +62,7 @@ def build(client_zip, compiler, cache, out, work, *, download=False):
     verify_binary(compiler, dict(sha256=lock['compiler']['iscc_sha256'], publisher=lock['compiler']['publisher']))
     cache = dependencies(cache, lock, download)
     work.mkdir(parents=True); stage = work/'client'; stage.mkdir()
-    extract_client(client_zip, stage); validate_client(stage)
+    extract_client(client_zip, stage); validate_client(stage, require_box=True)
     runtime = json.loads((stage/'MFAAvalonia.runtimeconfig.json').read_text('utf8'))['runtimeOptions']['framework']
     if runtime != {'name':'Microsoft.NETCore.App', 'version':'10.0.0'}:
         raise ValueError('前端运行时要求已改变，须先更新安装器依赖清单。')

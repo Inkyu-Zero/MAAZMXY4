@@ -8,8 +8,8 @@ pipeline 里只放一个节点：
 """
 from __future__ import annotations
 
-import io
 import os
+from rolling_log import append_log, archive_log
 import time
 
 import numpy as np
@@ -175,9 +175,7 @@ def _write_file(msg: str) -> None:
     """只写 run.log（给事后排查用）。"""
     line = "[%s] %s" % (time.strftime("%H:%M:%S"), msg)
     try:
-        os.makedirs(os.path.dirname(_LOG_PATH), exist_ok=True)
-        with io.open(_LOG_PATH, "a", encoding="utf-8", newline="\n") as fh:
-            fh.write(line + "\n")
+        append_log(_LOG_PATH, line + "\n")
     except Exception:  # noqa: BLE001
         pass
 
@@ -383,9 +381,8 @@ def _log(msg: str) -> None:
 def _hist(msg: str) -> None:
     """把每局的最终成绩追加到 history.log，用于事后统计局数/分数分布。"""
     try:
-        with io.open(os.path.join(os.path.dirname(_SCORE_PATH), "history.log"),
-                     "a", encoding="utf-8", newline="\n") as f:
-            f.write("%s  %s\n" % (time.strftime("%m-%d %H:%M:%S"), msg))
+        append_log(os.path.join(os.path.dirname(_SCORE_PATH), "history.log"),
+                   "%s  %s\n" % (time.strftime("%m-%d %H:%M:%S"), msg))
     except Exception:
         pass
 
@@ -401,9 +398,7 @@ def _say(msg: str) -> None:
     line = "[%s] %s" % (time.strftime("%H:%M:%S"), msg)
     print("[jzld] %s" % line, flush=True)
     try:
-        os.makedirs(os.path.dirname(_SCORE_PATH), exist_ok=True)
-        with io.open(_SCORE_PATH, "a", encoding="utf-8", newline="\n") as fh:
-            fh.write(line + "\n")
+        append_log(_SCORE_PATH, line + "\n")
     except Exception:  # noqa: BLE001
         pass
 
@@ -687,16 +682,11 @@ class JzldRun(CustomAction):
             _RES_SET[0] = False
 
     def _run_impl(self, context: Context, argv: CustomAction.RunArg) -> bool:
-        # 先归档上一局，再清空本局。顺序不能反：之前是「先 open(..., "w") 清空
-        # 再归档」，于是归档到 run_prev.log 的永远是刚创建出来的空文件，
-        # 上一局的盘面/候选全丢（真实踩过：一局只打两万，日志却查不到）。
+        # Retire the previous round before writing the new header. The shared
+        # budget owns old blocks; never truncate first or overwrite *_prev.log.
         for _p in (_SCORE_PATH, _LOG_PATH):
             try:
-                if os.path.isfile(_p) and os.path.getsize(_p) > 0:
-                    _arch = os.path.splitext(_p)[0] + "_prev" + os.path.splitext(_p)[1]
-                    if os.path.isfile(_arch):
-                        os.remove(_arch)
-                    os.rename(_p, _arch)
+                archive_log(_p)
             except Exception:  # noqa: BLE001
                 pass
         try:

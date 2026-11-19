@@ -15,18 +15,21 @@ from navigation.runtime import Navigator
 
 class StageScrollTests(unittest.TestCase):
     def navigator(self, context, *, capture=lambda:object(), check=lambda:None):
+        # Real Maa Context always owns a tasker. These viewport tests have no
+        # window controller, so the AIR input lease must remain a no-op.
+        context.tasker = SimpleNamespace(controller=None)
         nav=Navigator(context,{},capture=capture,check=check,log=lambda _:None)
         nav.locate=lambda:'map'
         nav._settle=lambda:None
         return nav
 
-    def test_horizontal_targets_share_one_safe_landmark_and_one_endpoint_gesture(self):
+    def test_horizontal_targets_share_safe_landmark_and_bounded_held_endpoint_gesture(self):
         data = json.loads(DATA.read_text(encoding='utf8'))
         nodes = json.loads((ROOT / 'assets/resource/base/pipeline/game_management_scroll.json').read_text(encoding='utf8'))
         recipes = {item['task']: item for item in data['maps']}
         self.assertNotIn('GameManagement_town5_TerrainBack',nodes)
         for task, end_x in [('伽岚（万世冥阁）', 20), ('无冥（孤魂岭）', 1000)]:
-            self.assertEqual(recipes[task]['max_steps'],1)
+            self.assertEqual(recipes[task]['max_steps'],2)
             self.assertEqual(recipes[task]['end_x'],end_x)
             node = nodes[recipes[task]['drag_node']]
             guard = node['recognition']['param']
@@ -37,6 +40,8 @@ class StageScrollTests(unittest.TestCase):
             self.assertIs(action['begin'], True)
             self.assertIs(action['end'], True)
             self.assertEqual(action['end_offset'], [0, 0, 0, 0])
+            self.assertEqual(action['duration'],900)
+            self.assertEqual(action['end_hold'],200)
             self.assertEqual(guard['all_of'][2],'GameManagement_town5_Terrain')
             terrain=nodes[guard['all_of'][2]]['recognition']['param']
             self.assertEqual(terrain['template'],['navigation/scroll/town5-02.png'])
@@ -85,9 +90,51 @@ class StageScrollTests(unittest.TestCase):
             self.assertEqual(len(asset['source_sha256']), 64)
         for recipe in data['maps']:
             self.assertLessEqual(recipe['max_steps'], 12)
+            if 'crops' not in recipe:
+                recipe=next(base for base in data['maps'] if base['drag_node']==recipe['drag_node'] and 'crops' in base)
             for crop in recipe['crops']:
                 self.assertFalse(any(crop[0] < b[2] and crop[2] > b[0] and crop[1] < b[3] and crop[3] > b[1]
                                      for b in recipe['excluded_stage_bounds']))
+
+    def test_partial_horizontal_gesture_relocalizes_before_one_correction(self):
+        for recipe in json.loads(DATA.read_text(encoding='utf8'))['maps']:
+            if recipe['town']!='town5':continue
+            frames=iter(['start','partial','endpoint']);actions=[]
+            def recognize(name,frame):
+                return SimpleNamespace(hit=name==recipe['drag_node'] or frame=='endpoint',
+                    box=(100 if frame=='start' else 300,420,40,40))
+            context=SimpleNamespace(run_recognition=recognize,tasker=SimpleNamespace(controller=SimpleNamespace(info={})),
+                run_action=lambda name,box,**kwargs:actions.append(kwargs) or SimpleNamespace(success=True))
+            nav=self.navigator(context,capture=lambda:next(frames))
+            nav.locate=lambda:'task_destination' if nav.recognize(recipe['target']).hit else 'map'
+            self.assertTrue(restore_stage_view(context,nav,recipe['target']))
+            self.assertEqual(len(actions),2)
+            starts=[a['pipeline_override'][recipe['drag_node']]['action']['param']['begin'][0] for a in actions]
+            self.assertEqual(starts,[120,320])
+
+    def test_partial_drag_that_enters_a_stage_never_sends_a_second_gesture(self):
+        recipe=next(r for r in json.loads(DATA.read_text(encoding='utf8'))['maps'] if r['town']=='town5')
+        actions=[]
+        context=SimpleNamespace(run_recognition=lambda name,frame:SimpleNamespace(hit=name==recipe['drag_node'],box=(100,420,40,40)),
+            run_action=lambda name,box,**kwargs:actions.append(name) or SimpleNamespace(success=True))
+        nav=self.navigator(context)
+        nav.locate=lambda:'map' if not actions else 'settings_menu'
+        self.assertFalse(restore_stage_view(context,nav,recipe['target']))
+        self.assertEqual(len(actions),1)
+
+    def test_vertical_endpoint_keeps_current_terrain_x_and_refreshes_each_step(self):
+        recipe=next(r for r in json.loads(DATA.read_text(encoding='utf8'))['maps'] if r['town']=='town6')
+        frames=iter(['top','middle','bottom']);actions=[]
+        def recognize(name,frame):
+            return SimpleNamespace(hit=name==recipe['drag_node'] or frame=='bottom',
+                box=(500 if frame=='top' else 650,400,40,40))
+        context=SimpleNamespace(run_recognition=recognize,
+            run_action=lambda name,box,**kw:actions.append(kw['pipeline_override'][name]['action']['param']) or SimpleNamespace(success=True))
+        nav=self.navigator(context,capture=lambda:next(frames))
+        nav.locate=lambda:'task_destination' if nav.recognize(recipe['target']).hit else 'map'
+        self.assertTrue(restore_stage_view(context,nav,recipe['target']))
+        self.assertEqual([action['begin'] for action in actions],[[520,420,1,1],[670,420,1,1]])
+        self.assertEqual([action['end'] for action in actions],[[520,20,1,1],[670,20,1,1]])
 
     def test_no_drag_on_unknown_map_missing_guard_or_cancellation_and_bounded_failure(self):
         recipe = json.loads(DATA.read_text(encoding='utf8'))['maps'][0]
@@ -105,10 +152,10 @@ class StageScrollTests(unittest.TestCase):
         self.assertFalse(restore_stage_view(context, navigator, target))
         self.assertEqual(actions, [])
         def cancelled(): raise InterruptedError('cancelled')
-        navigator._check = cancelled
+        navigator.check = navigator.input_check = cancelled
         with self.assertRaises(InterruptedError): restore_stage_view(context, navigator, target)
         self.assertEqual(actions, [])
-        navigator._check = lambda: None
+        navigator.check = navigator.input_check = lambda: None
         navigator.invalidate()
         context.run_recognition = lambda name, _: SimpleNamespace(hit=name == recipe['drag_node'],box=(10,20,30,40))
         self.assertFalse(restore_stage_view(context, navigator, target))
@@ -129,7 +176,7 @@ class StageScrollNativeTests(unittest.TestCase):
         from navigation.catalog import task_routine
         from navigation.runtime import Navigator
         fixtures = ROOT / 'tests/fixtures/game-management/scroll'
-        recipes = json.loads(DATA.read_text(encoding='utf8'))['maps']
+        recipes = [r for r in json.loads(DATA.read_text(encoding='utf8'))['maps'] if 'fixture' in r]
         maps = {r['town']: read_png_bgr(fixtures / r['fixture']) for r in recipes}
         mode = read_png_bgr(ROOT / 'assets/resource/base/image/navigation/scroll/normal-mode.png')
         task = read_png_bgr(ROOT / 'assets/resource/base/image/任务.png')
@@ -169,15 +216,17 @@ class StageScrollNativeTests(unittest.TestCase):
                     assert x1 <= x <= x2 and y1 <= y <= y2, ('stale stage click',self.recipe['task'],self.offset,self.start)
                     self.entries.append((self.offset,self.start))
                     return True
-                if self.recipe['axis']=='x':
+                if self.recipe['axis'] in ('x','y'):
                     # The source MovieClipButton has no drag-distance filter.
                     # Check the press and the complete clamped gesture against
                     # independently extracted clickable stage bounds.
-                    maximum=round((1500-940)*720/590)
+                    axis=0 if self.recipe['axis']=='x' else 1
+                    maximum=round(((1500-940) if axis==0 else (2714-590))*720/590)
                     for fraction in (i/100 for i in range(101)):
-                        x=self.start[0]+(self.end[0]-self.start[0])*fraction
-                        offset=min(maximum,max(0,self.offset+self.start[0]-x))
-                        sx,sy=(x+offset)*590/720,self.start[1]*590/720
+                        point=[self.start[i]+(self.end[i]-self.start[i])*fraction for i in (0,1)]
+                        offset=min(maximum,max(0,self.offset+self.start[axis]-point[axis]))
+                        point[axis]+=offset
+                        sx,sy=[v*590/720 for v in point]
                         assert not any(a<=sx<=c and b<=sy<=d
                             for a,b,c,d in self.recipe['excluded_stage_bounds']), ('unsafe drag',sx,sy)
                 self.gestures.append((self.start, self.end))
@@ -265,10 +314,7 @@ class StageScrollNativeTests(unittest.TestCase):
                             finally:
                                 controller.entering = False
                         assert len(controller.entries) == 3
-                        if recipe['axis']=='x':
-                            assert all(entry[0]==initial_offset for entry in controller.entries)
-                        else:
-                            assert controller.entries[0][0] != controller.entries[-1][0], controller.entries
+                        assert all(entry[0]==initial_offset for entry in controller.entries)
                     return True
                 except Exception as error:
                     import traceback

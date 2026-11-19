@@ -33,6 +33,29 @@ def compile_library(bank):
         if 'post_delay' in action:
             nodes[name]['post_delay'] = action['post_delay']
     nodes.update(deepcopy(bank.get('nodes', {})))
+    # Province landmarks are boolean guards, never input coordinates. Or stops
+    # after the first matching landmark while retaining every source template,
+    # ROI and per-template threshold. Do not apply this to ranked click targets.
+    for name in bank.get('boolean_template_nodes', []):
+        node = nodes[name]
+        recognition = node['recognition']
+        params = recognition.get('param', {})
+        templates = params.get('template')
+        if (recognition.get('type') != 'TemplateMatch' or not isinstance(templates, list)
+                or not templates or params.get('index', 0) != 0
+                or node.get('action', {}).get('type') != 'DoNothing'):
+            raise ValueError('Boolean template guard must not select a ranked input target: ' + name)
+        alternatives = []
+        for index, template in enumerate(templates):
+            part = deepcopy(params)
+            part['template'] = template
+            thresholds = part.get('threshold')
+            if isinstance(thresholds, list):
+                if not thresholds:
+                    raise ValueError('Empty template thresholds: ' + name)
+                part['threshold'] = thresholds[min(index, len(thresholds) - 1)]
+            alternatives.append(dict(recognition=dict(type='TemplateMatch', param=part)))
+        node['recognition'] = dict(type='Or', param=dict(any_of=alternatives))
     # Unused source probes stay in the source bank, not in the loaded pipeline.
     used = set(bank.get('public_recognizers', []))
     used.update('Nav_See_' + ident for ident in bank['screens'])
@@ -75,6 +98,8 @@ def compile_library(bank):
 
 def build(root=ROOT):
     bank = json.loads((root / 'tools/navigation_library.json').read_text(encoding='utf8'))
+    from mainline_tasks import stages, names
+    bank['routines']['stages'].update({names(stage)['target']:stage['town'] for stage in stages(root)})
     nodes = compile_library(bank)
     write(root / 'assets/resource/base/pipeline/navigation.json', nodes)
     write(root / 'agent/data/navigation/routines.json', bank['routines'])

@@ -180,6 +180,6 @@ public static class TaskScriptPlan
         if (recording == null) throw new InvalidDataException("缺少已校验的任务脚本。");
         return new JsonObject { ["file"] = recording["path"]!.DeepClone(),
             ["expected_sha256"] = recording["sha256"]!.DeepClone(), ["strict_task"] = true,
-            ["expected_short_side"] = 720, ["speed"] = 1.0 };
+            ["expected_short_side"] = 720, ["speed"] = 1.0, ["box_speed_proof"] = null };
     }
 }

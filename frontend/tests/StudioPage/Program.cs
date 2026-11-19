@@ -5,6 +5,7 @@ using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Interactivity;
 using Avalonia.Input;
+using Avalonia.Input.Platform;
 using Avalonia.Media.Imaging;
 using Avalonia.Media;
 using Avalonia.Themes.Fluent;
@@ -24,6 +25,9 @@ internal static class Program
         AppBuilder.Configure<TestApplication>().UseSkia().UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
         var failed = 0;
         var tests = new Action[] { FirstOpenDuringTask, RefreshAndMutationGuard, RetryFailedInitialization, RecordingUsesCurrentTaskController, NoImplicitRecordingTarget, RenameCancelCollisionAndSave, RenameOtherFileKeepsEditorState, DurationTextApplies, DurationTextSavesWithoutExtraApply, TimelineBoxSelectMoveAndCancel, TimelineDocumentChangeCancelsGesture, EditorBatchRequestsAndTaskGuard, DiscardRecordingStatesAndRestart, DiscardStoppedDraftAndProtectSavedScript, DiscardFailureCanRetry, DiscardIgnoresLateStatusAndSaveRequest, TerminalPollLocksUntilDraftIsReady, RecordingActionLayout, RecordingDiscardClickModes, RecordingDoubleClickCancellationAndRetry };
+        tests=tests.Concat([TimelineClipboardShortcuts, DialogThemeAndDismissal, FolderListDragAndDelete, FolderCreateAndRename, GuideTargetsAndDirtyReplay, LibraryRowDragHitRegion, FolderDragPreviewAndCancellation]).ToArray();
+        if (Environment.GetEnvironmentVariable("STUDIO_TEST_FILTER") is { } filter)
+            tests = tests.Where(test => test.Method.Name.Contains(filter, StringComparison.Ordinal)).ToArray();
         foreach (var test in tests)
         {
             try { test(); Console.WriteLine("PASS " + test.Method.Name); }
@@ -39,7 +43,7 @@ internal static class Program
     private static void Draw(Window window, string? filename = null)
     {
         Dispatcher.UIThread.RunJobs(); window.UpdateLayout();
-        using var image = new RenderTargetBitmap(new PixelSize((int)window.Width, (int)window.Height), new Vector(96, 96));
+        using var image = new RenderTargetBitmap(new PixelSize((int)Math.Ceiling(window.ClientSize.Width), (int)Math.Ceiling(window.ClientSize.Height)), new Vector(96, 96));
         image.Render(window);
         if (filename != null && Environment.GetEnvironmentVariable("STUDIO_RENDER_DIR") is { } folder)
         { Directory.CreateDirectory(folder); image.Save(Path.Combine(folder, filename)); }
@@ -155,6 +159,56 @@ internal static class Program
         }
         finally { Close(window,model); }
     }
+    private static void TimelineClipboardShortcuts()
+    {
+        var (window,view,model)=Open(false);
+        try
+        {
+            var source=new JsonObject { ["file"]="clipboard.json",["name"]="Clipboard",["duration_ms"]=10000.0,["dirty"]=false,
+                ["operations"]=new JsonArray(Operation("a",65,1000,1000).Data,Operation("b",66,1600,600).Data) };
+            model.Apply(source);
+            Field<TabControl>(view,"_tabs").SelectedIndex=1;
+            var timeline=Field<ScriptTimeline>(view,"_timeline");Draw(window);timeline.Focus();
+            window.KeyPressQwerty(PhysicalKey.A,RawInputModifiers.Control);Dispatcher.UIThread.RunJobs();
+            JsonObject? request=null;
+            model.Client.Handler=(method,args)=>
+            {
+                if (method=="copy_many")
+                {
+                    Check(args?["ids"]?.AsArray().Count==2,"Ctrl+C includes both selected tracks");
+                    return Task.FromResult<JsonNode>(new JsonObject { ["format"]="maazmxy4.timeline",["version"]=1,["recording"]=new JsonObject() });
+                }
+                if (method!="paste_many") return null;
+                request=args!.DeepClone().AsObject();
+                var result=source.DeepClone().AsObject();
+                result["operations"]!.AsArray().Add(Operation("pasted-a",65,4000,1000).Data);
+                result["operations"]!.AsArray().Add(Operation("pasted-b",66,4600,600).Data);
+                result["selected_ids"]=new JsonArray("pasted-a","pasted-b");result["dirty"]=true;
+                return Task.FromResult<JsonNode>(result);
+            };
+            window.KeyPressQwerty(PhysicalKey.C,RawInputModifiers.Control);Dispatcher.UIThread.RunJobs();
+            Check(window.Clipboard!.TryGetTextAsync().GetAwaiter().GetResult()?.Contains("maazmxy4.timeline")==true,"Copy uses the headless window clipboard");
+            Field<NumericUpDown>(view,"_cursor").Value=4;timeline.Focus();
+            window.KeyPressQwerty(PhysicalKey.V,RawInputModifiers.Control);Dispatcher.UIThread.RunJobs();
+            Check(request?["at_ms"]?.GetValue<long>()==4000,"Paste uses the playhead, not the selected block or mouse location");
+            Check(timeline.SelectedIds.Order().SequenceEqual(new[]{"pasted-a","pasted-b"}),"Paste selects all newly created operations");
+            var calls=model.Client.Calls.Count;
+            window.Clipboard.SetTextAsync("ordinary text").GetAwaiter().GetResult();
+            window.KeyPressQwerty(PhysicalKey.V,RawInputModifiers.Control);Dispatcher.UIThread.RunJobs();
+            Check(model.Client.Calls.Count==calls && model.Operations.Count==4,"Invalid clipboard preserves the document");
+            Draw(window);
+            var input=Field<NumericUpDown>(view,"_cursor").GetVisualDescendants().OfType<TextBox>().First();
+            input.Focus();window.KeyPressQwerty(PhysicalKey.C,RawInputModifiers.Control);Dispatcher.UIThread.RunJobs();
+            Check(model.Client.Calls.Count==calls,"Editing text keeps native Ctrl+C instead of copying timeline blocks");
+            timeline.Focus();MaaProcessor.Processors[0].IsTaskRunActive=true;
+            window.KeyPressQwerty(PhysicalKey.V,RawInputModifiers.Control);Dispatcher.UIThread.RunJobs();
+            Check(model.Client.Calls.Count==calls,"Running task blocks paste");
+            MaaProcessor.Processors[0].IsTaskRunActive=false;
+            Draw(window,"editor-clipboard.png");
+        }
+        finally { Close(window,model); }
+    }
+
     private static void DurationTextApplies()
     {
         var (window, view, model) = Open(false);
@@ -515,6 +569,222 @@ internal static class Program
     private static void Check(bool condition, string message) { if (!condition) throw new Exception(message); }
     private static void Click(Button button) { button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); Dispatcher.UIThread.RunJobs(); }
     private static Button Find(Window window, string name) => window.GetVisualDescendants().OfType<Button>().First(b => Equals(b.Content, name));
+    private static Task InvokeView(ScriptStudioView view, string name, params object?[] args) =>
+        (Task)typeof(ScriptStudioView).GetMethod(name, BindingFlags.Instance | BindingFlags.NonPublic)!.Invoke(view, args)!;
+
+    private static void LibraryRowDragHitRegion()
+    {
+        var (window, view, model) = Open(false);
+        try
+        {
+            Draw(window);
+            var list = Field<ListBox>(view, "_library");
+            var binding = list.GetVisualDescendants().OfType<Button>().First(b => b.Name == "ScriptTaskBinding");
+            var row = binding.GetVisualAncestors().OfType<Grid>().First();
+            var info = row.Children.OfType<StackPanel>().First();
+            var point = row.TranslatePoint(new Point(info.Bounds.Right - 12, row.Bounds.Height - 2), window)!.Value;
+            IInputElement? captured = null;
+            window.AddHandler(InputElement.PointerPressedEvent, (_, e) => captured = e.Pointer.Captured, RoutingStrategies.Bubble, true);
+            var calls = model.Client.Calls.Count;
+            window.MouseDown(point, MouseButton.Left);
+            var capturedRow = ReferenceEquals(captured, row);
+            var noEagerLoad = !model.Client.Calls.Skip(calls).Contains("load") && row.GetVisualRoot() != null;
+            window.MouseUp(point, MouseButton.Left); Draw(window);
+            Check(capturedRow, "The entire non-button row must capture a drag, including blank space beyond the title");
+            Check(noEagerLoad, "Pointer down must not load a script or detach the pressed row");
+            view.SelectGuidePage("timeline_editor"); Draw(window);
+            var compact = Field<ListBox>(view, "_editorLibrary");
+            var compactRow = compact.GetVisualDescendants().OfType<Grid>().First(g => g.Name == "LibraryScriptRow");
+            var compactPoint = compactRow.TranslatePoint(new Point(compactRow.Bounds.Width - 3, compactRow.Bounds.Height - 2), window)!.Value;
+            window.MouseDown(compactPoint, MouseButton.Left);
+            Check(ReferenceEquals(captured, compactRow), "The compact editor library uses the same full-row drag region");
+            InvokeView(view, "RefreshLibraryAsync").GetAwaiter().GetResult();
+            var beforeRelease = model.Client.Calls.Count;
+            window.MouseUp(compactPoint, MouseButton.Left); Draw(window);
+            Check(!model.Client.Calls.Skip(beforeRelease).Contains("load"), "A refreshed/detached row cancels its pending click");
+        }
+        finally { Close(window, model); }
+    }
+    private static void FolderDragPreviewAndCancellation()
+    {
+        var (window, view, model) = Open(false);
+        var listing = JsonNode.Parse("""{"items":[{"name":"日常刷关脚本","file":"user.json","revision":"saved","duration_ms":5200,"event_count":12}],"folders":[{"id":"first","name":"关卡脚本","count":0}],"tasks":[],"folder_revision":"groups","binding_revision":"bindings"}""")!;
+        model.Client.Handler = (method, _) => method == "list" ? Task.FromResult(listing.DeepClone()) : null;
+        try
+        {
+            InvokeView(view, "RefreshLibraryAsync").GetAwaiter().GetResult(); Draw(window);
+            var list = Field<ListBox>(view, "_library");
+            var row = list.GetVisualDescendants().OfType<Grid>().Single(g => g.Name == "LibraryScriptRow");
+            var target = list.GetVisualDescendants().OfType<Grid>().Single(g => Equals(g.Tag, "first"));
+            var headers = list.GetVisualDescendants().OfType<Grid>().Where(g => g.Name == "LibraryFolderRow").ToArray();
+            Check(headers.All(h => h.Children.OfType<Button>().First().BorderThickness == new Thickness(0)), "Folder headers are flat rows, not large outlined buttons");
+            Check(!list.GetVisualDescendants().OfType<TextBlock>().Any(t => t.Text?.Contains("拖到此处") == true), "Root header has no persistent instruction text");
+            var calls = model.Client.Calls.Count;
+            var bind = row.Children.OfType<Button>().Single(b => b.Name == "ScriptTaskBinding");
+            IInputElement? captured = null;
+            window.AddHandler(InputElement.PointerPressedEvent, (_, e) => captured = e.Pointer.Captured, RoutingStrategies.Bubble, true);
+            var buttonPoint = bind.TranslatePoint(new Point(20, 15), window)!.Value;
+            window.MouseDown(buttonPoint, MouseButton.Left);
+            Check(!ReferenceEquals(captured, row), "Binding buttons retain their own pointer handling");
+            window.MouseUp(new Point(1, 1), MouseButton.Left); Draw(window);
+            void Begin() => typeof(ScriptStudioView).GetMethod("BeginScriptDragVisual", BindingFlags.Instance | BindingFlags.NonPublic)!
+                .Invoke(view, [row, listing["items"]![0]!, new Point(100, 100)]);
+            void Clear() => typeof(ScriptStudioView).GetMethod("ClearScriptDragVisual", BindingFlags.Instance | BindingFlags.NonPublic)!.Invoke(view, null);
+            Begin(); Draw(window);
+            var preview = Field<Canvas>(view, "_scriptDragVisual");
+            var card = Field<Border>(view, "_scriptDragCard"); var oldX = Canvas.GetLeft(card);
+            Check(!preview.IsHitTestVisible && row.Opacity < 1, "Drag preview passes through pointer input and dims the original row");
+            var format = (DataFormat<string>)typeof(ScriptStudioView).GetField("ScriptDragFormat", BindingFlags.Static | BindingFlags.NonPublic)!.GetValue(null)!;
+            var transfer = new DataTransfer(); transfer.Add(DataTransferItem.Create(format, Field<string>(view, "_dragOwner") + "\nuser.json"));
+            var point = target.TranslatePoint(new Point(target.Bounds.Width / 2, 18), window)!.Value;
+            window.DragDrop(point, Avalonia.Input.Raw.RawDragEventType.DragEnter, transfer, DragDropEffects.Move);
+            window.DragDrop(point, Avalonia.Input.Raw.RawDragEventType.DragOver, transfer, DragDropEffects.Move);
+            Draw(window, "folder-drag-preview.png");
+            Check(Canvas.GetLeft(card) != oldX && Field<TextBlock>(view, "_scriptDragHint").Text!.Contains("关卡脚本"), "Native drag-over updates the preview position and destination");
+            Check(target.Children.OfType<Border>().Single().BorderBrush is ISolidColorBrush brush && brush.Color.B > brush.Color.R, "The destination has an accent outline");
+            Check(!model.Client.Calls.Skip(calls).Contains("load") && !model.Client.Calls.Skip(calls).Contains("move_to_folder"), "Previewing never opens or moves a script");
+            window.DragDrop(point, Avalonia.Input.Raw.RawDragEventType.DragLeave, transfer, DragDropEffects.None);
+            Clear(); Draw(window);
+            Check(Field<Canvas?>(view, "_scriptDragVisual") == null && row.Opacity == 1, "Cancellation clears preview and restores the source row");
+            window.Width = 520; Draw(window, "folder-rows-narrow.png");
+            Begin(); window.Content = null; Draw(window);
+            Check(Field<Canvas?>(view, "_scriptDragVisual") == null && row.Opacity == 1, "Unloading the page also releases drag visuals");
+        }
+        finally { Close(window, model); }
+    }
+    private static void FolderListDragAndDelete()
+    {
+        var (window, view, model) = Open(false);
+        var listing = JsonNode.Parse("""{"items":[{"name":"Folder script","file":"user.json","folder_id":"first","revision":"saved","duration_ms":1000,"event_count":2,"bindings":[{"id":"stage","label":"关卡"}]},{"name":"Root script","file":"other.json","revision":"other","duration_ms":1000,"event_count":2}],"folders":[{"id":"first","name":"关卡脚本","count":1}],"tasks":[],"folder_revision":"groups","binding_revision":"bindings"}""")!;
+        JsonObject? moved = null, deleted = null;
+        model.Client.Handler = (method, parameters) =>
+        {
+            if (method == "list") return Task.FromResult(listing.DeepClone());
+            if (method == "move_to_folder")
+            {
+                moved = parameters!.DeepClone().AsObject();
+                listing["items"]!.AsArray().First(n => n!["file"]!.GetValue<string>() == parameters["file"]!.GetValue<string>())!["folder_id"] = parameters["folder_id"]?.DeepClone();
+                return Task.FromResult<JsonNode>(new JsonObject());
+            }
+            if (method == "delete_folder")
+            {
+                deleted = parameters!.DeepClone().AsObject();
+                var items = listing["items"]!.AsArray();
+                foreach (var item in items.Where(n => n?["folder_id"]?.GetValue<string>() == "first").ToArray()) items.Remove(item);
+                listing["folders"] = new JsonArray();
+                return Task.FromResult<JsonNode>(new JsonObject { ["document"] = new JsonObject { ["empty"] = true } });
+            }
+            return null;
+        };
+        try
+        {
+            InvokeView(view, "RefreshLibraryAsync").GetAwaiter().GetResult(); Draw(window);
+            var list = Field<ListBox>(view, "_library");
+            Check(list.Items.Count == 3, "Collapsed folders retain root scripts in the list");
+            var folderRow = list.GetVisualDescendants().OfType<Grid>().Single(g => Equals(g.Tag, "first"));
+            Click(folderRow.Children.OfType<Button>().First()); Draw(window);
+            Check(list.Items.Count == 4 && !model.Client.Calls.Contains("load"), "Expanding a folder does not load a script or change the editor");
+            Draw(window, "script-folders-expanded.png");
+            var format = (DataFormat<string>)typeof(ScriptStudioView).GetField("ScriptDragFormat", BindingFlags.Static | BindingFlags.NonPublic)!.GetValue(null)!;
+            void Drop(string? folder)
+            {
+                Draw(window);
+                var target = list.GetVisualDescendants().OfType<Grid>().Single(g => Equals(g.Tag, folder ?? ""));
+                var transfer = new DataTransfer();
+                transfer.Add(DataTransferItem.Create(format, Field<string>(view, "_dragOwner") + "\nuser.json"));
+                var over = new DragEventArgs(DragDrop.DragOverEvent, transfer, target, default, KeyModifiers.None);
+                target.RaiseEvent(over);
+                Check(over.DragEffects == DragDropEffects.Move &&
+                    target.Children.OfType<Border>().Single().BorderBrush is ISolidColorBrush brush && brush.Color.B > brush.Color.R,
+                    "Valid drop targets visibly highlight");
+                target.RaiseEvent(new DragEventArgs(DragDrop.DropEvent, transfer, target, default, KeyModifiers.None));
+                Dispatcher.UIThread.RunJobs();
+            }
+            Drop(null);
+            Check(moved?["file"]?.GetValue<string>() == "user.json" && moved["folder_id"] == null, "Dropping on root moves out of the folder");
+            Drop("first");
+            Check(moved?["folder_id"]?.GetValue<string>() == "first", "Folder drop sends the selected stable ID");
+            window.Width = 520; Draw(window);
+            var settled = DateTime.UtcNow.AddMilliseconds(350);
+            while (DateTime.UtcNow < settled) { Dispatcher.UIThread.RunJobs(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); Thread.Sleep(10); }
+            Draw(window, "script-folders-narrow.png");
+            Check(list.Bounds.Width < 520, "Folder list fits the narrow page");
+            model.Apply(new JsonObject { ["file"] = "user.json", ["name"] = "Folder script", ["duration_ms"] = 1000.0, ["operations"] = new JsonArray(), ["dirty"] = false });
+            var deletion = InvokeView(view, "DeleteFolderAsync", listing["folders"]![0]!.DeepClone());
+            Dispatcher.UIThread.RunJobs();
+            var dialog = window.OwnedWindows.Single();
+            Check(dialog.GetVisualDescendants().OfType<TextBlock>().Any(t => t.Text?.Contains("全部 1 个脚本") == true), "Confirmation states the complete folder deletion count");
+            Click(Find(dialog, "取消"));
+            Check(deletion.IsCompletedSuccessfully && deleted == null, "Cancel preserves every folder member");
+            deletion = InvokeView(view, "DeleteFolderAsync", listing["folders"]![0]!.DeepClone());
+            Dispatcher.UIThread.RunJobs(); Click(Find(window.OwnedWindows.Single(), "删除"));
+            Check(deletion.IsCompletedSuccessfully && deleted?["revisions"]?["user.json"]?.GetValue<string>() == "saved", "Delete uses exactly the confirmed member revisions");
+            Check(model.Document == null && Field<JsonArray>(view, "_folders").Count == 0, "Deleted current member cannot remain as a stale editor document");
+        }
+        finally { foreach (var dialog in window.OwnedWindows.ToArray()) dialog.Close(); Close(window, model); }
+    }
+
+    private static void FolderCreateAndRename()
+    {
+        var (window, view, model) = Open(false);
+        var groups = new JsonArray(); var writes = 0;
+        model.Client.Handler = (method, parameters) =>
+        {
+            if (method == "list") return Task.FromResult<JsonNode>(new JsonObject { ["items"] = new JsonArray(), ["folders"] = groups.DeepClone(), ["folder_revision"] = "groups" });
+            if (method == "create_folder")
+            {
+                writes++; groups.Add(new JsonObject { ["id"] = "created", ["name"] = parameters!["name"]!.DeepClone(), ["count"] = 0 });
+                return Task.FromResult<JsonNode>(new JsonObject { ["folder_id"] = "created" });
+            }
+            if (method == "rename_folder")
+            {
+                writes++; groups[0]!["name"] = parameters!["name"]!.DeepClone();
+                return Task.FromResult<JsonNode>(new JsonObject { ["folder_id"] = "created" });
+            }
+            return null;
+        };
+        try
+        {
+            InvokeView(view, "RefreshLibraryAsync").GetAwaiter().GetResult();
+            Click(Find(window, "新建文件夹"));
+            var dialog = window.OwnedWindows.Single(); Click(Find(dialog, "取消"));
+            Check(writes == 0, "Cancelling folder creation does not write metadata");
+            Click(Find(window, "新建文件夹")); dialog = window.OwnedWindows.Single();
+            dialog.GetVisualDescendants().OfType<TextBox>().Single().Text = "日常脚本";
+            Click(Find(dialog, "保存"));
+            Check(writes == 1 && groups[0]!["name"]!.GetValue<string>() == "日常脚本", "Folder is created through the normal name dialog");
+            var rename = InvokeView(view, "RenameFolderAsync", groups[0]!.DeepClone()); Dispatcher.UIThread.RunJobs();
+            dialog = window.OwnedWindows.Single(); dialog.GetVisualDescendants().OfType<TextBox>().Single().Text = "刷关脚本";
+            Click(Find(dialog, "保存"));
+            Check(rename.IsCompletedSuccessfully && groups[0]!["id"]!.GetValue<string>() == "created" && groups[0]!["name"]!.GetValue<string>() == "刷关脚本", "Folder rename preserves its stable identity");
+        }
+        finally { foreach (var dialog in window.OwnedWindows.ToArray()) dialog.Close(); Close(window, model); }
+    }
+    private static void GuideTargetsAndDirtyReplay()
+    {
+        var (window, view, model) = Open(false);
+        try
+        {
+            Draw(window);
+            var before = model.Client.Calls.Count;
+            bool Visible(Control control) => control.IsEffectivelyVisible && control.Bounds.Width > 0 && control.Bounds.Height > 0;
+            Check(view.GuidePageId == "script_library" && view.FindGuideTarget("library", Visible) != null, "Library entry has a stable guide region");
+            Check(view.FindGuideTarget("binding", Visible)?.Name == "ScriptTaskBinding", "Visible binding row can be explained without binding it");
+            view.SelectGuidePage("timeline_editor"); Draw(window);
+            Check(view.GuidePageId == "timeline_editor" && view.FindGuideTarget("timeline", Visible) != null && view.FindGuideTarget("save_undo", Visible) != null,
+                "Empty editor has stable timeline and toolbar regions");
+            Check(model.Client.Calls.Count == before && model.Document == null, "Looking up targets and switching tabs do not create or load a script");
+            model.Apply(JsonNode.Parse("""{"file":"user.json","name":"Unsaved","duration_ms":1000,"operations":[],"dirty":true}""")!);
+            var navigation = view.PrepareGuideNavigationAsync("task_page"); Dispatcher.UIThread.RunJobs();
+            Check(!navigation.IsCompleted && window.OwnedWindows.Count() == 1, "Replay leaving the editor uses its dirty-document dialog");
+            Click(Find(window.OwnedWindows.Single(), "取消")); Dispatcher.UIThread.RunJobs();
+            Check(navigation.IsCompletedSuccessfully && !navigation.Result && model.Dirty && view.GuidePageId == "timeline_editor", "Cancelling replay keeps the draft and page");
+            model.Capturing = true;
+            Check(view.PrepareGuideNavigationAsync("timeline_editor").Result == false, "Active or paused capture rejects only the replay, without stopping capture");
+            Check(model.Capturing && !model.Client.Calls.Contains("capture_stop"), "Replay never stops a recording");
+        }
+        finally { foreach (var dialog in window.OwnedWindows.ToArray()) dialog.Close(); Close(window, model); }
+    }
     private static (Window Window, ScriptStudioView View, ScriptStudioViewModel Model) Open(bool active, int failures = 0)
     {
         MaaProcessor.Processors.Clear(); MaaProcessor.Processors.Add(new() { IsTaskRunActive = active });
@@ -530,6 +800,79 @@ internal static class Program
     {
         MaaProcessor.Processors.Clear(); model.Capturing = false; ScriptStudioGuard.EndCapture();
         model.Apply(new JsonObject { ["empty"] = true }); window.Close(); Dispatcher.UIThread.RunJobs();
+    }
+    private static void DialogThemeAndDismissal()
+    {
+        var (window, view, model) = Open(false);
+        var app = Application.Current!;
+        try
+        {
+            window.Width = 800;
+            var result = (Task<string?>)typeof(ScriptStudioView).GetMethod("AskNameAsync", BindingFlags.Instance | BindingFlags.NonPublic)!
+                .Invoke(view, ["另存为", "Sample", null])!;
+            Dispatcher.UIThread.RunJobs();
+            var dialog = window.OwnedWindows.Single();
+            var input = dialog.GetVisualDescendants().OfType<TextBox>().Single();
+            Check(input.IsFocused && input.SelectionEnd - input.SelectionStart == input.Text!.Length,
+                "Name dialog must focus and select the suggested name");
+            foreach (var theme in new[] { Avalonia.Styling.ThemeVariant.Dark, Avalonia.Styling.ThemeVariant.Light, Avalonia.Styling.ThemeVariant.Dark })
+            {
+                app.RequestedThemeVariant = theme;
+                // Suki buttons animate foreground changes for 100 ms; inspect the settled frame.
+                var settled = DateTime.UtcNow.AddMilliseconds(250);
+                while (DateTime.UtcNow < settled)
+                { Dispatcher.UIThread.RunJobs(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); Thread.Sleep(10); }
+                Draw(dialog, $"name-dialog-{theme}.png");
+                var background = ((ISolidColorBrush)dialog.Background!).Color;
+                var foreground = ((ISolidColorBrush)dialog.Foreground!).Color;
+                var expected = theme == Avalonia.Styling.ThemeVariant.Dark ? Color.Parse("#323232") : Colors.White;
+                Console.WriteLine($"TRACE dialog theme={theme} background={background} foreground={foreground} button={Find(dialog, "取消").Foreground}");
+                Check(background == expected, "Dialog background must follow the host card theme, including while open");
+                Check(Contrast(background, ((ISolidColorBrush)Find(dialog, "取消").Foreground!).Color) >= 4.5,
+                    "Dialog buttons must remain readable against the background");
+                Check(Contrast(background, foreground) >= 4.5, "Dialog text must remain readable");
+            }
+            dialog.KeyPressQwerty(PhysicalKey.Escape, RawInputModifiers.None);
+            Dispatcher.UIThread.RunJobs();
+            Check(result.IsCompletedSuccessfully && result.Result == null && view.IsFocused,
+                "Escape cancels the name dialog and restores page focus");
+
+            result = (Task<string?>)typeof(ScriptStudioView).GetMethod("AskNameAsync", BindingFlags.Instance | BindingFlags.NonPublic)!
+                .Invoke(view, ["保存脚本", "Keyboard saved", null])!;
+            Dispatcher.UIThread.RunJobs();
+            dialog = window.OwnedWindows.Single();
+            dialog.KeyPressQwerty(PhysicalKey.Enter, RawInputModifiers.None);
+            Dispatcher.UIThread.RunJobs();
+            Check(result.IsCompletedSuccessfully && result.Result == "Keyboard saved", "Enter must submit the existing name dialog");
+
+            var deletion = (Task<bool>)typeof(ScriptStudioView).GetMethod("ConfirmDeleteAsync", BindingFlags.Instance | BindingFlags.NonPublic)!
+                .Invoke(view, ["删除此脚本？这是一段用于验证自动换行的较长确认说明。"])!;
+            Dispatcher.UIThread.RunJobs();
+            dialog = window.OwnedWindows.Single();
+            Draw(dialog, "delete-dialog-Dark.png");
+            Check(((ISolidColorBrush)dialog.Background!).Color == Color.Parse("#323232"), "Delete confirmation must share the host theme");
+            dialog.Close(); Dispatcher.UIThread.RunJobs();
+            Check(deletion.IsCompletedSuccessfully && !deletion.Result, "Closing the delete dialog must cancel deletion");
+
+            deletion = (Task<bool>)typeof(ScriptStudioView).GetMethod("ConfirmDeleteAsync", BindingFlags.Instance | BindingFlags.NonPublic)!
+                .Invoke(view, ["删除此脚本？"])!;
+            Dispatcher.UIThread.RunJobs();
+            Click(Find(window.OwnedWindows.Single(), "删除"));
+            Check(deletion.IsCompletedSuccessfully && deletion.Result, "Delete confirmation must return true only when selected");
+        }
+        finally
+        {
+            foreach (var dialog in window.OwnedWindows.ToArray()) dialog.Close();
+            app.RequestedThemeVariant = Avalonia.Styling.ThemeVariant.Light;
+            Close(window, model);
+        }
+    }
+    private static double Contrast(Color a, Color b)
+    {
+        static double Linear(byte value) { var c = value / 255d; return c <= .04045 ? c / 12.92 : Math.Pow((c + .055) / 1.055, 2.4); }
+        static double Luminance(Color c) => .2126 * Linear(c.R) + .7152 * Linear(c.G) + .0722 * Linear(c.B);
+        var x = Luminance(a); var y = Luminance(b);
+        return (Math.Max(x, y) + .05) / (Math.Min(x, y) + .05);
     }
     private static void RenameCancelCollisionAndSave()
     {
@@ -647,7 +990,28 @@ internal static class Program
 
 internal sealed class TestApplication : Application
 {
-    public override void Initialize() { Styles.Add(new FluentTheme()); Resources["SukiCardBackground"] = Brushes.White; }
+    public override void Initialize()
+    {
+        Styles.Add(new FluentTheme());
+        // Optionally load the same theme assemblies as the built host, without starting its app or services.
+        if (Environment.GetEnvironmentVariable("STUDIO_MFA_THEME_DIR") is { } directory)
+        {
+            System.Runtime.Loader.AssemblyLoadContext.Default.Resolving += (_, name) =>
+            {
+                var path = Path.Combine(directory, name.Name + ".dll");
+                return File.Exists(path) ? Assembly.LoadFrom(path) : null;
+            };
+            foreach (var entry in new[] { ("FluentAvalonia", "FluentAvalonia.Styling.FluentAvaloniaTheme"), ("SukiUI", "SukiUI.SukiTheme") })
+                Styles.Add((Avalonia.Styling.IStyle)Activator.CreateInstance(Assembly.LoadFrom(Path.Combine(directory, entry.Item1 + ".dll")).GetType(entry.Item2)!)!);
+        }
+        else
+        {
+            Resources.ThemeDictionaries[Avalonia.Styling.ThemeVariant.Light] = new ResourceDictionary
+                { ["SukiCardBackground"] = Colors.White, ["SukiText"] = Color.Parse("#222222") };
+            Resources.ThemeDictionaries[Avalonia.Styling.ThemeVariant.Dark] = new ResourceDictionary
+                { ["SukiCardBackground"] = Color.Parse("#323232"), ["SukiText"] = Color.Parse("#edffffff") };
+        }
+    }
 }
 
 // Only the host/task state, OS discovery and service transport are faked. The production

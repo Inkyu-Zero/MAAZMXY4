@@ -14,6 +14,13 @@ def read(path):
 
 
 class NavigationUICoverageTests(unittest.TestCase):
+    def test_small_window_menu_regression_fixture_has_provenance(self):
+        base=ROOT/'tests/fixtures/navigation/regressions/settings-small-window'
+        data=json.loads(base.with_suffix('.json').read_text(encoding='utf8'))
+        self.assertEqual(hashlib.sha256(base.with_suffix('.png').read_bytes()).hexdigest(),data['sha256'])
+        self.assertEqual(len(data['source_sha256']),64)
+        self.assertEqual(data['retained_roi'],[400,110,370,535])
+
     def test_new_sources_and_fixtures_have_exact_provenance(self):
         for name in ('common-ui', 'settings-ui'):
             data = read('agent/data/navigation/' + name + '.json')
@@ -52,8 +59,9 @@ class NavigationUICoverageTests(unittest.TestCase):
             for name, node in json.loads(path.read_text(encoding='utf8')).items():
                 if name.endswith('-关卡入口'):
                     stage_count += 1
-                    self.assertEqual(node['recognition']['param']['all_of'][0], 'Nav_ClearMap')
-                    self.assertEqual(node['recognition']['param']['box_index'], 1)
+                    self.assertIn('Nav_ClearMap', node['recognition']['param']['all_of'])
+                    index=node['recognition']['param']['box_index']
+                    self.assertIsInstance(node['recognition']['param']['all_of'][index],dict)
                 if name.endswith('-点击设置') or name=='Bounty_OpenSettings':
                     settings_count += 1
                     self.assertIn('Result_NoRevivePrompt', node['recognition']['param']['all_of'])
@@ -74,7 +82,7 @@ class NavigationUICoverageTests(unittest.TestCase):
     def test_all_profiles_use_the_same_guarded_return_actions(self):
         from task_catalog import task_catalog
         profiles=[t['management_profile'] for t in task_catalog(ROOT,bindings={}) if t['management_profile']]
-        self.assertEqual(len(profiles),11)
+        self.assertEqual(len(profiles),12+65)
         for profile in profiles:
             self.assertIn('round_flow',profile['parameters'])
         nodes=read('assets/resource/base/pipeline/navigation_settings.json')

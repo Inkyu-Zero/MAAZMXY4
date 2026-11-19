@@ -26,7 +26,7 @@ class CandleTaskEntryTests(unittest.TestCase):
     def test_uses_the_shared_quest_panel_route(self):
         params=custom_parameters(self.nodes[PREFIX+'初始化'])
         self.assertEqual(self.nodes[PREFIX+'初始化']['next'],[])
-        self.assertEqual(params['round_flow']['scene_node'],'Bounty_Play')
+        self.assertEqual(params['round_flow']['scene_node'],'Nav_InStage')
         self.assertEqual(params['navigation']['target_node'],'Bounty_Target')
         self.assertEqual(params['task_binding_id'],'bounty-candle')
         self.assertEqual(params['execution']['resume_entry'],'GameManagement_Resume')
@@ -37,7 +37,7 @@ class CandleTaskEntryTests(unittest.TestCase):
         self.assertEqual(nodes['Bounty_StageSettings']['recognition']['type'],'And')
         self.assertEqual(nodes['Bounty_StagePause']['recognition']['type'],'Or')
         self.assertEqual(nodes['Bounty_ResumeStage']['action']['type'],'Click')
-        self.assertIn('Result_NoRevivePrompt',nodes['Bounty_Play']['recognition']['param']['all_of'])
+        self.assertEqual(nodes['Bounty_Play']['recognition']['param']['all_of'],['Nav_InStage'])
 
     def test_existing_install_keeps_binding_and_options_when_the_route_is_replaced(self):
         interface = json.loads((ROOT / 'assets/interface.json').read_text(encoding='utf8'))
@@ -72,7 +72,8 @@ class CandleTaskEntryTests(unittest.TestCase):
             self.assertEqual(saved['TaskItems'][0]['repeat_count'], 9)
             self.assertTrue(saved['TaskItems'][0]['default_check'])
             self.assertEqual(saved['TaskItems'][0]['option'],
-                         [instance['TaskItems'][0]['option'][0],{'name':'挂机模式','index':0},{'name':'失败自动重试','index':0}])
+                 [instance['TaskItems'][0]['option'][0],{'name':'挂机模式','index':0},
+                  {'name':'盒子与脚本倍速','index':0},{'name':'失败自动重试','index':0}])
             archived=json.loads((target/result['backup']/'config/instances/default.json').read_text(encoding='utf8'))
             self.assertEqual(archived,instance)  # Retired restart settings remain recoverable in the migration backup.
             self.assertEqual(json.loads((target / 'interface.json').read_text(encoding='utf8'))['controller'],

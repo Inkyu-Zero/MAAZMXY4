@@ -1,5 +1,6 @@
 """Candidate activation, verification and failure bounds without device input."""
 from copy import deepcopy
+from contextlib import contextmanager
 import json
 from pathlib import Path
 from types import SimpleNamespace
@@ -80,6 +81,57 @@ class NavigationRuntimeTests(unittest.TestCase):
         self.assertFalse(nav.perform('Go'))
         self.assertIsNone(nav._frame)
         self.assertEqual(nav._recognized,{})
+
+    def test_input_boundary_refreshes_cancel_even_when_poll_check_is_cached(self):
+        nav=self.nav();hit=nav.recognize('Go')
+        def cancelled(): raise InterruptedError('cancelled before dispatch')
+        nav.input_check=cancelled
+        with self.assertRaises(InterruptedError):nav.perform('Go',hit)
+        self.assertEqual(self.context.inputs,[])
+
+    def test_cancel_refresh_has_priority_over_navigation_timeout(self):
+        nav=self.nav();nav.deadline=-1
+        def cancelled(): raise InterruptedError('cancelled')
+        nav.input_check=cancelled
+        with self.assertRaises(InterruptedError):nav.locate()
+
+    def test_guard_covers_native_action_and_releases_on_action_exception(self):
+        events=[]
+        @contextmanager
+        def guard(controller):
+            events.append('begin')
+            try: yield
+            finally: events.append('end')
+        def action(*args, **kwargs):
+            events.append('input')
+            raise RuntimeError('input failed')
+        self.context.run_action=action
+        nav=self.nav();nav.locate()
+        with patch('navigation.runtime.hold_background_mouse',guard), self.assertRaises(NavigationError):
+            nav.perform('Go')
+        self.assertEqual(events,['begin','input','end'])
+
+    def test_guard_start_failure_prevents_navigation_input(self):
+        nav=self.nav();nav.locate()
+        with patch('navigation.runtime.hold_background_mouse',side_effect=RuntimeError('guard unavailable')), \
+             self.assertRaisesRegex(NavigationError,'guard unavailable'):
+            nav.perform('Go')
+        self.assertFalse(self.context.inputs)
+
+    def test_guard_cleanup_failure_has_a_nonrecoverable_reason(self):
+        from background_mouse_guard import MouseGuardError
+        @contextmanager
+        def guard(_):
+            yield
+            self.now=2  # Cleanup may cross the ordinary navigation deadline.
+            raise MouseGuardError('cleanup timeout 1460')
+        nav=self.nav()
+        nav.deadline=1
+        with patch('navigation.runtime.hold_background_mouse',guard), self.assertRaises(NavigationError) as error:
+            nav.perform('Go')
+        self.assertEqual(error.exception.reason,'input_guard_failed')
+        self.assertEqual(len(self.context.inputs),1)
+        self.assertIsNone(nav._frame)
     def test_seed_frame_does_not_request_another_capture(self):
         nav=Navigator(self.context,self.routine,capture=self.context.capture,check=lambda:None,
                       frame=frozenset({'goal'}),log=lambda _:None)
@@ -106,6 +158,20 @@ class NavigationRuntimeTests(unittest.TestCase):
         with self.assertRaises(NavigationError) as error:self.nav().run()
         self.assertEqual(error.exception.reason,'unrecognized_dialog')
         self.assertIn('Nav_BlockedDialog',self.context.calls)
+        self.assertFalse(self.context.inputs)
+        self.assertEqual(len(self.context.frames), 3)
+    def test_unready_revive_rechecks_and_uses_the_new_frame(self):
+        self.context.hits = {'modal'}
+        capture = self.context.capture
+        def settle():
+            if self.context.frames:
+                self.context.hits = {'modal', 'Result_RevivePrompt'}
+            return capture()
+        self.context.capture = settle
+        nav = self.nav()
+        self.assertEqual(nav.locate(), 'revive_prompt')
+        self.assertEqual(len(self.context.frames), 2)
+        self.assertEqual(nav.recognize('Result_RevivePrompt').box, (2, 0, 1, 1))
         self.assertFalse(self.context.inputs)
     def test_known_blocked_modal_still_stops_without_input(self):
         self.context.hits={'goal','modal','Nav_BlockedDialog'}

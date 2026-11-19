@@ -1,0 +1,6 @@
+{
+  "description": "Stop retention notifications when the owning logger is disposed.",
+  "path": "MFAAvalonia/Helper/LoggerHelper.cs",
+  "find": "        _logger?.Dispose();",
+  "replace": "        MFAAvalonia.Services.LogRetention.Stop();\n        _logger?.Dispose();"
+}

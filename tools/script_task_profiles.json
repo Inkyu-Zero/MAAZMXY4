@@ -48,7 +48,6 @@
                             "navigation/stages/s61-frame1.png",
                             "navigation/stages/s61-frame3.png"
                           ],
-                          "threshold": 0.82,
                           "method": 5
                         }
                       }
@@ -67,16 +66,6 @@
       "timeout": 10000,
       "action": {
         "type": "Click"
-      }
-    },
-    "scene": {
-      "recognition": {
-        "type": "TemplateMatch",
-        "param": {
-          "template": [
-            "万世冥阁场景.png"
-          ]
-        }
       }
     },
     "view_roi": [
@@ -135,7 +124,6 @@
                             "navigation/stages/s65-frame2.png",
                             "navigation/stages/s65-frame3.png"
                           ],
-                          "threshold": 0.82,
                           "roi": [
                             0,
                             115,
@@ -161,16 +149,6 @@
       },
       "post_delay": 500,
       "timeout": 10000
-    },
-    "scene": {
-      "recognition": {
-        "type": "TemplateMatch",
-        "param": {
-          "template": [
-            "金蟾宝宫场景.png"
-          ]
-        }
-      }
     }
   },
   "无冥（孤魂岭）": {
@@ -221,7 +199,6 @@
                             "navigation/stages/s47-frame1.png",
                             "navigation/stages/s47-frame3.png"
                           ],
-                          "threshold": 0.82,
                           "method": 5
                         }
                       }
@@ -241,16 +218,6 @@
       },
       "post_delay": 500,
       "timeout": 10000
-    },
-    "scene": {
-      "recognition": {
-        "type": "TemplateMatch",
-        "param": {
-          "template": [
-            "孤魂岭场景.png"
-          ]
-        }
-      }
     },
     "view_roi": [
       240,
@@ -307,7 +274,6 @@
                             "navigation/stages/s43-frame1.png",
                             "navigation/stages/s43-frame3.png"
                           ],
-                          "threshold": 0.82,
                           "roi": [
                             0,
                             115,
@@ -333,16 +299,6 @@
       },
       "post_delay": 500,
       "timeout": 10000
-    },
-    "scene": {
-      "recognition": {
-        "type": "TemplateMatch",
-        "param": {
-          "template": [
-            "七叶树窟场景.png"
-          ]
-        }
-      }
     }
   },
   "摩多（幕山）": {
@@ -394,7 +350,6 @@
                             "navigation/stages/s45-frame2.png",
                             "navigation/stages/s45-frame3.png"
                           ],
-                          "threshold": 0.82,
                           "roi": [
                             0,
                             115,
@@ -420,16 +375,6 @@
       },
       "post_delay": 500,
       "timeout": 10000
-    },
-    "scene": {
-      "recognition": {
-        "type": "TemplateMatch",
-        "param": {
-          "template": [
-            "幕山场景.png"
-          ]
-        }
-      }
     }
   },
   "烛时（钟晷极地）": {
@@ -480,7 +425,6 @@
                             "navigation/stages/s38-frame1.png",
                             "navigation/stages/s38-frame3.png"
                           ],
-                          "threshold": 0.82,
                           "roi": [
                             0,
                             115,
@@ -506,16 +450,6 @@
       },
       "post_delay": 500,
       "timeout": 10000
-    },
-    "scene": {
-      "recognition": {
-        "type": "TemplateMatch",
-        "param": {
-          "template": [
-            "钟晷极地场景.png"
-          ]
-        }
-      }
     }
   },
   "朱电（琉璃宫）": {
@@ -567,7 +501,6 @@
                             "navigation/stages/s26-frame2.png",
                             "navigation/stages/s26-frame3.png"
                           ],
-                          "threshold": 0.82,
                           "roi": [
                             0,
                             115,
@@ -593,16 +526,6 @@
       },
       "post_delay": 500,
       "timeout": 10000
-    },
-    "scene": {
-      "recognition": {
-        "type": "TemplateMatch",
-        "param": {
-          "template": [
-            "琉璃宫场景.png"
-          ]
-        }
-      }
     }
   }
 }

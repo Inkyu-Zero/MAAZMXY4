@@ -1,5 +1,6 @@
 """Endpoint reuse and ignored clicks over real Agent IPC, with memory-only input."""
 import json
+import hashlib
 import os
 from pathlib import Path
 import subprocess
@@ -11,7 +12,7 @@ import unittest
 ROOT=Path(__file__).resolve().parents[1]
 
 
-def native_case(name):
+def native_case(name,deadline_probe=False):
     import numpy as np
     from maa.agent_client import AgentClient
     from maa.controller import CustomController
@@ -26,13 +27,13 @@ def native_case(name):
     maximum=round((1500-940)*720/590)
     image_root=ROOT/'assets/resource/base/image'
     terrain=read_png_bgr(ROOT/'tests/fixtures/game-management/scroll/town5.png') if blood else None
-    ordinary=read_png_bgr(ROOT/'tests/fixtures/navigation/stage-states/s45-f1.png')
+    ordinary=read_png_bgr(ROOT/'tests/fixtures/navigation/stage-states/mushan-map.png')
+    ordinary_info=json.loads((ROOT/'tests/fixtures/navigation/stage-states/mushan-map.json').read_text(encoding='utf8'))
     task=read_png_bgr(image_root/'任务.png')
     mode=read_png_bgr(image_root/'navigation/scroll/normal-mode.png')
     scene=np.zeros((720,1147,3),dtype=np.uint8)
-    template=profile['scene']['recognition']['param']['template'][0]
-    patch=read_png_bgr(image_root/template)
-    scene[50:50+patch.shape[0],200:200+patch.shape[1]]=patch
+    from test_shared_stage_entry import with_stage_controls
+    scene=with_stage_controls(scene)
     bounds={'伽岚（万世冥阁）':(1099.8,342.95,1202.8,426.95),
             '无冥（孤魂岭）':(211,66,361,216)}
 
@@ -72,16 +73,19 @@ def native_case(name):
                 if blood:
                     sx,sy=(self.start[0]+self.offset)*590/720,self.start[1]*590/720
                     a,b,c,d=bounds[name];assert a<=sx<=c and b<=sy<=d,('stale click',sx,sy)
+                else:
+                    a,b,c,d=ordinary_info['stage_bounds']
+                    assert a<=self.start[0]<=c and b<=self.start[1]<=d,('off-target click',self.start)
                 self.actions.append((self.round,'ignored' if self.ignore else 'entry',self.start,time.monotonic()))
                 if not self.ignore:self.scene='stage'
-                self.ignore=False
+                self.ignore=max(0,self.ignore-1)
             return True
         def key_down(self,key):
-            assert key in (250,251),'Only test scene-reset signals are allowed'
-            self.round+=1;self.scene='map';self.ignore=key==251
+            assert key in (250,251,252),'Only test scene-reset signals are allowed'
+            self.round+=1;self.scene='map';self.ignore=max(0,key-250)
             if blood and key==251:self.offset=round(maximum/2)
             return True
-        def key_up(self,key):assert key in (250,251);return True
+        def key_up(self,key):assert key in (250,251,252);return True
         def forbidden(self,*args):raise AssertionError('Unexpected physical input')
         click=swipe=input_text=start_app=stop_app=forbidden
 
@@ -110,13 +114,15 @@ class Probe(CustomAction):
         state=dict(parameters=params,reference='fixture.json',recording=script_task.inspect_recording('fixture.json'))
         results=[]
         class TracedContext:
-            def __init__(self):self.calls=[]
+            def __init__(self):self.calls=[];self.clock=None
             def __getattr__(self,key):return getattr(context,key)
             def run_recognition(self,name,image,*args,**kwargs):
                 self.calls.append(name)
-                return context.run_recognition(name,image,*args,**kwargs)
+                result=context.run_recognition(name,image,*args,**kwargs)
+                if self.clock is not None and name=='Nav_BlockedDialog':self.clock[0]+=.31
+                return result
         traced=TracedContext()
-        for iteration in range(3):
+        for iteration in range(4 if params.get('deadline_probe') else 3):
             if iteration:
                 key=249+iteration
                 assert context.tasker.controller.post_key_down(key).wait().succeeded
@@ -124,6 +130,11 @@ class Probe(CustomAction):
             traced.calls=[]
             frame=context.tasker.controller.cached_image if iteration==0 else None
             nav=script_task._navigator(traced,state,frame=frame)
+            if iteration==3:
+                params['round_flow']['load_timeout_ms']=150
+                traced.clock=[0.0]
+                nav.clock=lambda:traced.clock[0]
+                nav.wait=lambda delay:traced.clock.__setitem__(0,traced.clock[0]+delay)
             start=time.monotonic()
             assert script_task.enter_stage(traced,state,nav)
             results.append(dict(elapsed=time.monotonic()-start,calls=traced.calls))
@@ -137,7 +148,8 @@ AgentServer.start_up(sys.argv[1]);AgentServer.join();AgentServer.shut_down()
         assert resource.post_bundle(ROOT/'assets/resource/base').wait().succeeded
         assert tasker.bind(resource,controller)
         params=dict(navigation=dict(kind='stage',target_node=profile['target_node']),
-                    round_flow=dict(scene_node=profile['scene_node'],load_timeout_ms=15000))
+                    round_flow=dict(scene_node=profile['scene_node'],load_timeout_ms=15000),
+                    deadline_probe=deadline_probe)
         resource.override_pipeline({'__StageEntryProbe':dict(pre_delay=0,post_delay=0,
             action=dict(type='Custom',param=dict(custom_action='stage_entry_probe',custom_action_param=params)))})
         client=AgentClient();client.set_timeout(30000);assert client.bind(resource)
@@ -154,8 +166,29 @@ AgentServer.start_up(sys.argv[1]);AgentServer.join();AgentServer.shut_down()
         print('RESULT '+json.dumps(dict(rounds=results[0],captures=controller.captures,actions=controller.actions)))
 
 
+class StageEntryFixtureTests(unittest.TestCase):
+    def test_full_map_fixture_has_public_provenance(self):
+        folder=ROOT/'tests/fixtures/navigation/stage-states'
+        data=json.loads((folder/'mushan-map.json').read_text(encoding='utf8'))
+        self.assertEqual(hashlib.sha256((folder/'mushan-map.png').read_bytes()).hexdigest(),data['sha256'])
+        self.assertTrue(data['source']['url'].startswith('https://sda.4399.com/'))
+        self.assertEqual(len(data['source']['sha256']),64)
+        self.assertEqual(data['viewport'],[1147,720])
+
+
 @unittest.skipUnless(os.environ.get('MAA_AGENT_NATIVE_TESTS')=='1','opt-in memory-only Agent IPC')
 class StageEntryTransportTests(unittest.TestCase):
+    def test_last_retry_survives_recognition_crossing_deadline_over_real_ipc(self):
+        with tempfile.TemporaryDirectory(prefix='stage-deadline-logs-') as logs:
+            env=dict(os.environ,STAGE_ENTRY_TEST_LOG=os.environ.get('STAGE_ENTRY_TEST_LOG',logs))
+            run=subprocess.run([sys.executable,'-B','-E','-s','-X','utf8',str(Path(__file__).resolve()),
+                '--case','摩多（幕山）','--deadline'],capture_output=True,text=True,encoding='utf8',
+                errors='replace',timeout=150,env=env)
+            self.assertEqual(run.returncode,0,run.stdout[-1500:]+run.stderr[-4000:])
+            result=json.loads(next(line[7:] for line in run.stdout.splitlines() if line.startswith('RESULT ')))
+            self.assertEqual([a[1] for a in result['actions'] if a[0]==3],['ignored','ignored','entry'])
+            print('DEADLINE IPC',json.dumps(result,ensure_ascii=False),flush=True)
+
     def test_endpoint_reuse_and_ignored_clicks_on_blood_sea_and_ordinary_stage(self):
         for name in ('无冥（孤魂岭）','伽岚（万世冥阁）','摩多（幕山）'):
             with self.subTest(task=name),tempfile.TemporaryDirectory(prefix='stage-entry-logs-') as logs:
@@ -177,5 +210,5 @@ class StageEntryTransportTests(unittest.TestCase):
 
 
 if __name__=='__main__':
-    if len(sys.argv)>2 and sys.argv[1]=='--case':native_case(sys.argv[2])
+    if len(sys.argv)>2 and sys.argv[1]=='--case':native_case(sys.argv[2],'--deadline' in sys.argv[3:])
     else:unittest.main()

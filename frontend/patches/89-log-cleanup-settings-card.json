@@ -1,0 +1,6 @@
+{
+  "description": "Append the self-contained cleanup card and close the performance layout.",
+  "path": "MFAAvalonia/Views/UserControls/Settings/PerformanceUserControl.axaml",
+  "find": "    </suki:GlassCard>\n</UserControl>",
+  "replace": "    </suki:GlassCard>\n    <suki:GlassCard Padding=\"25\">\n        <maintenance:LogCleanupView />\n    </suki:GlassCard>\n    </StackPanel>\n</UserControl>"
+}

@@ -26,10 +26,13 @@ def native_case(mode):
     from fixture_pixels import read_png_bgr
 
     failed_frame = read_png_bgr(ROOT / 'tests/fixtures/navigation/challenge-failed.png')
-    is_revive = mode in ('revive', 'revive_live')
-    revive_fixture = ('revival-live/vip-p1-countdown10.png' if mode=='revive_live'
+    is_revive = mode in ('revive', 'revive_live', 'revive_settling')
+    revive_fixture = ('revival-live/vip-p1-countdown10.png' if mode in ('revive_live', 'revive_settling')
                       else 'revival/normal-p1-up.png')
     revive_frame = read_png_bgr(ROOT / 'tests/fixtures/navigation' / revive_fixture) if is_revive else None
+    if mode == 'revive_settling':
+        unready_frame = revive_frame.copy()
+        unready_frame[310:350, 424:852] = (170, 120, 50)
     blocked_frame = read_png_bgr(ROOT / 'tests/fixtures/navigation/profile-sell.png') if mode=='blocked' else None
 
     class MemoryController(CustomController):
@@ -39,6 +42,7 @@ def native_case(mode):
             self.inputs = []
             self.input_times = []
             self.declined = False
+            self.transient_seen = self.settled_seen = False
 
         def connect(self): return True
         def request_uuid(self): return 'isolated-playback-transport'
@@ -49,6 +53,11 @@ def native_case(mode):
             if mode=='blocked' and self.inputs==[('down',68)]:return blocked_frame.copy()
             if mode=='return':return failed_frame.copy()
             if is_revive and any(op=='down' for op,_ in self.inputs):
+                if mode == 'revive_settling' and not self.declined:
+                    if ('up', 68) not in self.inputs:
+                        self.transient_seen = True
+                        return unready_frame.copy()
+                    self.settled_seen = True
                 return failed_frame.copy() if self.declined else revive_frame.copy()
             if mode == 'defeat' and any(op == 'down' for op, _ in self.inputs):
                 return failed_frame.copy()
@@ -89,8 +98,11 @@ def native_case(mode):
         definitions = json.loads((ROOT / 'assets/resource/base/pipeline/battle_outcomes.json').read_text(encoding='utf8'))
         pipeline = {name: definitions[name] for name in ('Result_Failed', 'Result_Succeeded',
             'Result_RevivePrompt','Result_ReviveWindow','Result_ReviveLayoutP1','Result_ReviveLayoutP2',
-            'Result_DeclineRevive','Result_NoRevivePrompt','Result_FailedReturn','Nav_ModalPresent','Result_ReviveEvidence','Nav_CachedModal')}
+            'Result_DeclineRevive','Result_NoRevivePrompt','Result_FailedReturn','Nav_ModalPresent',
+            'Result_ReviveEvidence','Nav_CachedModal','Nav_BlockedDialog')}
         pipeline.update(json.loads((ROOT / 'assets/resource/base/pipeline/navigation_common_ui.json').read_text(encoding='utf8')))
+        navigation = json.loads((ROOT / 'assets/resource/base/pipeline/navigation.json').read_text(encoding='utf8'))
+        pipeline['Nav_See_profile_sell'] = navigation['Nav_See_profile_sell']
         def templates(value):
             if isinstance(value,dict):
                 for key,child in value.items():
@@ -102,7 +114,7 @@ def native_case(mode):
             target = directory / 'image' / path
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(ROOT / 'assets/resource/base/image' / path, target)
-        if mode=='revive_live':
+        if mode in ('revive_live', 'revive_settling', 'blocked'):
             shutil.copytree(ROOT / 'assets/resource/base/model/ocr', directory / 'model/ocr')
         recording = directory / 'synthetic.json'
         actions = [
@@ -151,12 +163,21 @@ def native_case(mode):
         server.write_text('''\
 import sys
 sys.path.insert(0, sys.argv[2])
+assert sys.flags.utf8_mode, 'Agent fixture requires explicit UTF-8 when using -E'
 from maa.agent.agent_server import AgentServer
 from maa.custom_action import CustomAction
 import battle_player
 import script_task
 from pathlib import Path
 from unittest.mock import patch
+if sys.argv[3] == 'guard_failure':
+    from contextlib import contextmanager
+    @contextmanager
+    def failing_guard(_controller):
+        yield
+        print('GUARD_FAILURE_INJECTED', flush=True)
+        raise battle_player.MouseGuardError('synthetic guard cleanup timeout')
+    battle_player.hold_background_mouse = failing_guard
 script_task.ROOT=Path.cwd()
 script_task.RECORDINGS=Path.cwd()
 script_task.STATUS_DIRECTORY=Path.cwd()/'debug/task-runs'
@@ -191,8 +212,8 @@ AgentServer.shut_down()
         client.set_timeout(6000)
         assert client.bind(resource)
         with (directory / 'server.log').open('wb') as output:
-            process = subprocess.Popen([sys.executable, '-B', '-E', '-s', '-u', str(server),
-                client.identifier, str(ROOT / 'agent')], cwd=directory, stdout=output,
+            process = subprocess.Popen([sys.executable, '-B', '-E', '-s', '-u', '-X', 'utf8', str(server),
+                client.identifier, str(ROOT / 'agent'), mode], cwd=directory, stdout=output,
                 stderr=output, creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
             result = {}
             try:
@@ -209,10 +230,14 @@ AgentServer.shut_down()
                 report = dict(stalled=waiter.is_alive(), succeeded=result.get('succeeded', False),
                               playback_captures=server_output.count('PLAYBACK_CAPTURE'),
                               frames=controller.frames, inputs=controller.inputs, branches=branches,
+                              transient_seen=controller.transient_seen, settled_seen=controller.settled_seen,
+                              guard_failure_injected='GUARD_FAILURE_INJECTED' in server_output,
+                              callback_exception='Exception ignored on calling ctypes callback function' in server_output,
                               input_times_ms=[round((t - controller.input_times[0]) * 1000, 1)
                                               for t in controller.input_times])
                 print('RESULT ' + json.dumps(report), flush=True)
-                if report['stalled'] or not report['succeeded']:
+                if (report['stalled'] or not report['succeeded'] or report['callback_exception']
+                        or mode == 'guard_failure' and not report['guard_failure_injected']):
                     print(server_output[-4000:], flush=True)
             finally:
                 process.terminate()
@@ -226,7 +251,7 @@ AgentServer.shut_down()
 
 @unittest.skipUnless(os.environ.get('MAA_AGENT_NATIVE_TESTS') == '1', 'opt-in Agent IPC memory test')
 class PlaybackTransportTests(unittest.TestCase):
-    def run_case(self, mode):
+    def run_case(self, mode, *, succeeds=True):
         env = dict(os.environ)
         env.setdefault('MAAFW_BINARY_PATH', str(ROOT / 'runtimes/win-x64/native'))
         result = subprocess.run([sys.executable, '-B', '-X', 'utf8', str(Path(__file__).resolve()), '--native-case', mode],
@@ -236,8 +261,15 @@ class PlaybackTransportTests(unittest.TestCase):
         self.assertEqual(len(lines), 1, result.stdout[-4000:])
         report = json.loads(lines[0])
         self.assertFalse(report['stalled'], result.stdout[-4000:])
-        self.assertTrue(report['succeeded'], result.stdout[-4000:])
+        self.assertEqual(report['succeeded'], succeeds, result.stdout[-4000:])
         return report
+
+    def test_guard_failure_returns_failed_action_over_agent_ipc(self):
+        report = self.run_case('guard_failure', succeeds=False)
+        self.assertTrue(report['guard_failure_injected'])
+        self.assertFalse(report['callback_exception'])
+        self.assertEqual(report['branches'], [])
+        self.assertEqual(report['inputs'], [['down', 68], ['up', 68], ['down', 75], ['up', 75]])
 
     def test_playback_and_outcome_monitor_share_agent_without_stalling(self):
         report = self.run_case('normal')
@@ -269,11 +301,18 @@ class PlaybackTransportTests(unittest.TestCase):
         self.assertEqual([op for op,_ in report['inputs']],['down','up','cancel_down','cancel_up'])
         self.assertEqual(report['branches'],['Failure'])
 
-    def test_captured_free_revive_uses_ocr_over_agent_ipc_before_safe_cancel(self):
+    def test_captured_free_revive_uses_template_over_agent_ipc_before_cancel(self):
         report=self.run_case('revive_live')
         self.assertEqual(report['inputs'][:2],[['down',68],['up',68]])
         self.assertEqual([op for op,_ in report['inputs']],['down','up','cancel_down','cancel_up'])
         self.assertEqual(report['branches'],['Failure'])
+
+    def test_unready_revive_releases_input_before_rechecking_over_agent_ipc(self):
+        report = self.run_case('revive_settling')
+        self.assertTrue(report['transient_seen'], report)
+        self.assertTrue(report['settled_seen'], report)
+        self.assertEqual([op for op, _ in report['inputs']], ['down', 'up', 'cancel_down', 'cancel_up'])
+        self.assertEqual(report['branches'], ['Failure'])
 
     def test_return_absence_guard_can_reenter_native_matching_over_agent_ipc(self):
         report=self.run_case('return')

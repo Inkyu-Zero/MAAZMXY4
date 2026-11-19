@@ -585,6 +585,10 @@ public sealed partial class ScriptStudioView : UserControl
             await Run(() => MoveSelectionAsync(_selection.ToArray(), Math.Max(delta, -earliest))); return;
         }
         if (!e.KeyModifiers.HasFlag(KeyModifiers.Control)) return;
+        if (!typing && _tabs.SelectedIndex == 1 && e.Key is Key.C or Key.V
+            && e.Source is not SelectableTextBlock
+            && !(e.Source is Control text && text.GetVisualAncestors().OfType<SelectableTextBlock>().Any()))
+        { e.Handled = true; await Run(e.Key == Key.C ? CopySelectionAsync : PasteSelectionAsync); return; }
         if (e.Key == Key.N) { e.Handled = true; await Run(NewScriptAsync); return; }
         if (!typing && _tabs.SelectedIndex == 1 && e.Key == Key.D) { e.Handled = true; await Run(DuplicateOperationAsync); return; }
         if (e.Key == Key.S) { e.Handled = true; await Run(e.KeyModifiers.HasFlag(KeyModifiers.Shift) ? SaveAsAsync : SaveAsync); }

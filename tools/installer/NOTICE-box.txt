@@ -1,0 +1,33 @@
+造梦盒子 v1.9 — Duskeye
+官方项目：https://gitee.com/duskeye/zmBox
+官方发行版：https://gitee.com/duskeye/zmBox/releases/tag/v1.9
+
+本目录来自官方 zmBox_x64.zip。程序、SWF、AIR 描述及运行文件内容保持原样；
+启动 EXE 统一命名为 zmBox.exe，便于小助手使用随安装目录解析的默认绑定。
+随包 AIR 运行时及 META-INF/AIR/license.txt 保留原样，第三方运行时适用其原许可。
+AIR 官方信息：https://airsdk.harman.com/
+原始 ZIP 及包内文件摘要见安装根目录 bundled-box.json。
+
+造梦盒子项目许可证：
+
+MIT License
+
+Copyright (c) 2025 duskeye
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

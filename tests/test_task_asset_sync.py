@@ -21,6 +21,13 @@ OLD_ENTRY = 'OldEntry'
 PIPELINE_FILE = 'test.json'
 
 class TaskAssetSyncTests(unittest.TestCase):
+    def test_native_recognition_defaults_travel_with_task_resources(self):
+        defaults=dict(TemplateMatch=dict(recognition=dict(type='TemplateMatch',param=dict(threshold=.83))))
+        self.write(self.source/'assets/resource/base/default_pipeline.json',defaults)
+        sync.sync_task_assets(self.source,self.target,dry_run=False)
+        self.assertEqual(self.read(self.target/'resource/base/default_pipeline.json'),defaults)
+        self.assertEqual(sync.sync_task_assets(self.source,self.target)['changes'],[])
+
     def test_runtime_navigation_dependencies_and_library_are_installed_atomically(self):
         path = self.source/('assets/resource/base/pipeline/'+PIPELINE_FILE)
         pipeline = self.read(path)

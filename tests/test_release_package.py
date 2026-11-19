@@ -2,6 +2,7 @@
 import hashlib
 import json
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import sys
@@ -121,7 +122,7 @@ class ReleasePackageTests(unittest.TestCase):
         with zipfile.ZipFile(self.package) as archive: archive.extractall(self.root)
         checked = validate_client_resources(self.root)
         self.assertIn('烛时（钟晷极地）', checked)
-        self.assertEqual(len(checked), 10)
+        self.assertEqual(len(checked), 10+65)
         path = self.root/'resource/base/pipeline/烛时（钟晷极地）.json'
         data = json.loads(path.read_text(encoding='utf8'))
         del data['烛时（钟晷极地）-回放战斗']['action']['param']['custom_action_param']['script_binding']
@@ -140,6 +141,13 @@ class ReleasePackageTests(unittest.TestCase):
         built['binary_sha256']={name:hashlib.sha256((frontend/name).read_bytes()).hexdigest()
                                for name in ('MFAAvalonia.dll','libs/MFAAvalonia.Core.dll')}
         self.write('frontend/script-studio-build.json',json.dumps(built).encode('utf8'))
+        guard = 'frontend/' + build_release.NATIVE_FOLDER + '/'
+        self.write(guard+'MaaBackgroundMouseGuard.dll', b'fixture mouse guard; never executed')
+        receipt = dict(schema=1, protocol=1, architecture='x64',
+            sha256=hashlib.sha256((self.root/guard/'MaaBackgroundMouseGuard.dll').read_bytes()).hexdigest(),
+            source_sha256=hashlib.sha256((ROOT/'native/background_mouse_guard/guard.cpp').read_bytes()).hexdigest(),
+            builder_sha256=hashlib.sha256((ROOT/'tools/build_mouse_guard.ps1').read_bytes()).hexdigest())
+        self.write(guard+'mouse-guard-build.json', json.dumps(receipt).encode('utf8'))
         for name in build_release.PYTHON_REQUIRED:
             if name in ('DLLs', 'Lib/site-packages/MaaAgentBinary'):
                 (self.root/'python'/name).mkdir(parents=True, exist_ok=True)
@@ -150,6 +158,24 @@ class ReleasePackageTests(unittest.TestCase):
         self.write(build_release.LAUNCHER_NAME, b'fixture launcher; never executed')
         self.launcher_hash = hashlib.sha256(launcher.read_bytes()).hexdigest()
         return frontend, self.root/'python', launcher
+
+    def test_full_client_requires_current_mouse_guard_and_detects_tampering(self):
+        frontend, runtime, launcher = self.client_fixture()
+        folder = frontend / build_release.NATIVE_FOLDER
+        receipt = folder / 'mouse-guard-build.json'
+        original = receipt.read_bytes()
+        with patch.object(build_release, 'LAUNCHER_SHA256', self.launcher_hash):
+            receipt.unlink()
+            with self.assertRaisesRegex(ValueError, '后台鼠标保护模块缺少'):
+                client_files(ROOT, frontend, runtime, launcher)
+            data = json.loads(original); data['source_sha256'] = '0'*64
+            receipt.write_text(json.dumps(data), encoding='utf8')
+            with self.assertRaisesRegex(ValueError, '不是当前源码构建'):
+                client_files(ROOT, frontend, runtime, launcher)
+            receipt.write_bytes(original)
+            (folder/'MaaBackgroundMouseGuard.dll').write_bytes(b'changed')
+            with self.assertRaisesRegex(ValueError, '与构建记录不一致'):
+                client_files(ROOT, frontend, runtime, launcher)
 
     def test_full_client_rejects_old_frontend_even_with_current_resource_version(self):
         frontend,runtime,launcher=self.client_fixture()
@@ -193,6 +219,12 @@ class ReleasePackageTests(unittest.TestCase):
             files = dict((relative,Path(source)) for source,relative in client_files(ROOT,frontend,runtime,launcher))
         self.assertIn('MAA造梦西游4.exe', files)
         self.assertIn('runtimes/python/pythonw.exe', files)
+        self.assertEqual(files['docs/zh_cn/2026-11-07更新日志.md'], ROOT/'docs/zh_cn/2026-11-07更新日志.md')
+        for link in re.findall(r'\]\(([^)]+)\)', files['README.md'].read_text(encoding='utf8')):
+            if link.startswith(('https://', 'http://', '#')):
+                continue
+            with self.subTest(readme_link=link):
+                self.assertTrue(link.split('#', 1)[0] in files, 'Missing packaged README link: ' + link)
         self.assertEqual(files['interface.json'],ROOT/'assets/interface.json')
         self.assertEqual(files['resource/base/pipeline/烛时（钟晷极地）.json'],ROOT/'assets/resource/base/pipeline/烛时（钟晷极地）.json')
         self.assertFalse(any(name.startswith(('recordings/','config/','logs/')) or '__pycache__' in name for name in files))
@@ -207,9 +239,12 @@ class ReleasePackageTests(unittest.TestCase):
     def test_full_package_keeps_empty_native_plugin_directory(self):
         frontend, runtime, launcher = self.client_fixture()
         output = self.root/'full.zip'
-        with patch.object(build_release, 'LAUNCHER_SHA256', self.launcher_hash):
+        import bundled_box
+        from test_bundled_box import BoxFixture
+        box = BoxFixture(self.root/'box-source')
+        with patch.object(build_release, 'LAUNCHER_SHA256', self.launcher_hash), patch.object(bundled_box, 'SPEC', box.spec):
             build_release.build_client(ROOT, frontend, runtime, output, launcher,
-                channel='preview', manifest_urls=['https://example.test/client-version.json'])
+                channel='preview', manifest_urls=['https://example.test/client-version.json'], box_zip=box.archive)
         with zipfile.ZipFile(output) as archive:
             name = 'runtimes/win-x64/native/plugins/'
             self.assertIn(name, archive.namelist())
@@ -253,7 +288,7 @@ class ReleasePackageTests(unittest.TestCase):
                 destination = stage/relative
                 destination.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(source, destination)
-            self.assertEqual(len(validate_client(stage)), 10)
+            self.assertEqual(len(validate_client(stage)), 10+65)
             (stage/'runtimes/python/pythonw.exe').unlink()
             with self.assertRaisesRegex(ValueError, 'pythonw.exe'):
                 validate_client(stage)

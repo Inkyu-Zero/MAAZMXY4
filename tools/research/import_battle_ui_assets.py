@@ -5,7 +5,6 @@ the mutually exclusive mc_vip/mc_normal and mc_p1/mc_p2 placements, as the
 game's ResurrectionMediator does. No game code is executed.
 """
 import argparse
-from copy import deepcopy
 import hashlib
 import json
 from pathlib import Path
@@ -79,9 +78,14 @@ def generate(source,root=ROOT):
         return relative
 
     captions=[]
-    for mode,box in [('normal',(250,47,378,72)),('vip',(128,76,422,99))]:
+    # Use the distinctive revival phrase, not the complete sentence: combat
+    # numbers can overlap either end of the free-revival caption. Button text
+    # and countdowns are deliberately absent from both identity templates.
+    for mode,box in [('normal',(250,47,378,72)),('vip',(188,76,275,99))]:
         file=source/f'revive-{mode}-p1/DefineSprite_42_mc_fh/1.png'
-        captions.append(crop(file,f'revive-{mode}-caption.png',box))
+        # Resize the complete rendering first so the glyphs retain Flash's
+        # pixel phase. Resizing a small crop shifts the anti-aliased edges.
+        captions.append(crop(file,f'revive-{mode}-caption.png',box,scale_first=True))
     layouts={}
     for players in ('p1','p2'):
         layouts[players]=[]
@@ -95,35 +99,30 @@ def generate(source,root=ROOT):
                 (30,150,430,161),scale_first=True))
     path=root/'assets/resource/base/pipeline/battle_outcomes.json'
     nodes=json.loads(path.read_text(encoding='utf8'))
-    caption=dict(type='TemplateMatch',param=dict(template=captions,roi=[200,170,800,390],threshold=.84))
+    # Keep translated revival panels covered: the +70px layout fixture puts
+    # the free-revival phrase at y=403..431, beyond the narrowed y=420 edge.
+    caption=dict(type='TemplateMatch',param=dict(template=captions,roi=[200,170,800,390]))
     def reference(name):
         return dict(type='And',param=dict(all_of=[name]))
-    # Flash text rasterization can miss the SWF caption template even at the
-    # correct scale. Read this exact free-revival sentence only inside a matched
-    # confirmation panel. Ordinary combat frames never invoke OCR. This only
-    # interrupts playback; the existing panel dimensions and button layout must
-    # still agree before Result_DeclineRevive permits a cancel click.
-    free_caption=dict(type='And',param=dict(all_of=[
-        dict(sub_name='confirm_frame',recognition=reference('Nav_CommonConfirm')),
-        dict(recognition=dict(type='OCR',param=dict(roi='confirm_frame',
-            roi_offset=[120,63,390,-5],only_rec=True,
-            expected=[r'^你确定免费复活[，,]?\s*继续进行挑战[？?]?$']))),
-    ],box_index=1))
-    nodes['Result_RevivePrompt']=dict(recognition=dict(type='Or',param=dict(any_of=[
-        dict(recognition=deepcopy(caption)),dict(recognition=free_caption),
-    ])),action=dict(type='DoNothing'),next=[],post_delay=0)
+    # Keep identity cached for the current frame. Once the template and panel
+    # layout agree, native Click uses the panel-relative cancel point directly.
+    nodes['Result_ReviveEvidence']=dict(recognition=caption,
+        action=dict(type='DoNothing'),next=[],post_delay=0)
+    nodes['Nav_ModalPresent']=dict(recognition=dict(type='Or',param=dict(
+        any_of=['Nav_CommonConfirm','Result_ReviveEvidence'])),
+        action=dict(type='DoNothing'),next=[],post_delay=0)
+    nodes['Result_RevivePrompt']=dict(recognition=dict(type='Custom',param=dict(
+        custom_recognition='battle_no_revive',custom_recognition_param='revive')),
+        action=dict(type='DoNothing'),next=[],post_delay=0)
     nodes['Result_NoRevivePrompt']=dict(recognition=dict(type='Custom',param=dict(custom_recognition='battle_no_revive')),
         action=dict(type='DoNothing'),next=[],post_delay=0)
     readonly=dict(action=dict(type='DoNothing'),next=[],post_delay=0)
     nodes['Result_ReviveWindow']=dict(recognition=dict(type='And',param=dict(all_of=[
-        dict(sub_name='frame_corner',recognition=reference('Nav_CommonConfirm')),
+        dict(sub_name='frame_corner',recognition=dict(type='And',param=dict(
+            all_of=['Nav_CachedModal','Nav_CommonConfirm'],box_index=1))),
         'Result_RevivePrompt',
-        # The offset is valid only for this fixed-size resurrection panel,
-        # not for a resized generic confirmation with the same border skin.
-        dict(recognition=dict(type='TemplateMatch',param=dict(template='navigation/dialogs/confirm-right.png',
-            roi='frame_corner',roi_offset=[491,-6,20,12],threshold=.9))),
-        dict(recognition=dict(type='TemplateMatch',param=dict(template='navigation/dialogs/confirm-bottom.png',
-            roi='frame_corner',roi_offset=[-6,197,12,-9],threshold=.9))),
+        # CommonConfirm already checks three panel corners. The button-row
+        # template below establishes the cancel layout; do not repeat edges.
     ],box_index=0)),**readonly)
     geometry=[]
     # FFDec's complete mc_fh rendering places the shared 38x43 corner patch
@@ -138,16 +137,16 @@ def generate(source,root=ROOT):
         nodes[name]=dict(recognition=dict(type='And',param=dict(all_of=[
             dict(sub_name='revive_window',recognition=reference('Result_ReviveWindow')),
             dict(recognition=dict(type='TemplateMatch',param=dict(template=layouts[players],
-                roi='revive_window',roi_offset=[10,155,472,-8],threshold=.9))),
+                roi='revive_window',roi_offset=[10,155,472,-8]))),
             dict(recognition=dict(type='DirectHit',param=dict(roi='revive_window',
                 roi_offset=[dx,dy,-37,-42]))),
         ],box_index=2)),**readonly)
         geometry.append(dict(layout=players,anchor='Nav_CommonConfirm upper-left patch',
             anchor_size=[38,43],source_anchor_720=anchor_origin,cancel_offset=[dx,dy],target_size=[1,1],
             source_cancel_box=source_box))
-    nodes['Result_DeclineRevive']=dict(recognition=dict(type='And',param=dict(all_of=[
-        dict(recognition=dict(type='Or',param=dict(any_of=['Result_ReviveLayoutP1','Result_ReviveLayoutP2']))),
-    ],box_index=0)),action=dict(type='Click',param=dict(target=True)),next=[],timeout=15000,pre_delay=0,post_delay=250)
+    nodes['Result_DeclineRevive']=dict(recognition=dict(type='Or',param=dict(
+        any_of=['Result_ReviveLayoutP1','Result_ReviveLayoutP2'])),
+        action=dict(type='Click',param=dict(target=True)),next=[],timeout=15000,pre_delay=0,post_delay=250)
     metadata['revive_geometry']=geometry
     for kind,character in [('Failed',95),('Succeeded',50)]:
         variants=[]
@@ -159,7 +158,7 @@ def generate(source,root=ROOT):
         if original['type']=='Or':original=original['param']['any_of'][0]['recognition']
         all_of[0]=dict(recognition=dict(type='Or',param=dict(any_of=[dict(recognition=original),
             dict(recognition=dict(type='TemplateMatch',param=dict(template=variants,
-                roi=[400,400,700,260],threshold=.88,green_mask=True))),
+                roi=[400,400,700,260],green_mask=True))),
         ])))
         if 'Result_NoRevivePrompt' not in all_of:all_of.append('Result_NoRevivePrompt')
     path.write_text(json.dumps(nodes,ensure_ascii=False,indent=2)+'\n',encoding='utf8',newline='\n')

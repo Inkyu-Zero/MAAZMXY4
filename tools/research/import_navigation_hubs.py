@@ -70,11 +70,23 @@ def generate(source, root=ROOT):
             relative='navigation/hubs/'+file.name;templates.append(relative)
             metadata['assets'].append(dict(path=relative,crop=list(box),source_origin=[ox,oy],source=origin,sha256=hashlib.sha256(file.read_bytes()).hexdigest()))
         bank['nodes']['Nav_Province_'+town]=dict(deepcopy(bank['templates']['read']),
-            recognition=dict(type='TemplateMatch',param=dict(template=templates,roi=[120,135,920,465],threshold=.88)))
+            recognition=dict(type='TemplateMatch',param=dict(template=templates,roi=[120,135,920,465])))
     scroll=json.loads((root/'assets/resource/base/pipeline/game_management_scroll.json').read_text(encoding='utf8'))
+    terrain_assets=json.loads((root/'agent/data/navigation/stage-scroll.json').read_text(encoding='utf8'))['assets']
     for town in ['town5','town6']:
         recognition=deepcopy(scroll['GameManagement_'+town+'_Terrain']['recognition'])
+        # Dragging may intentionally use only one safe terrain strip. Province
+        # identity needs the complete authored landmark set across all views.
+        recognition['param']['template']=sorted(a['path'] for a in terrain_assets
+            if a['path'].startswith('navigation/scroll/'+town+'-'))
         recognition['param']['roi']=[50,120,990,480]
+        if town == 'town6':
+            # Mainline 63-65 starts at y=2124: landmark 23 is visible there.
+            # Then cover upper/middle bands before the remaining full set.
+            templates = recognition['param']['template']
+            first = [23, 3, 13, 8, 18]
+            recognition['param']['template'] = [templates[i] for i in first] + [
+                path for i, path in enumerate(templates) if i not in first]
         bank['nodes']['Nav_Province_'+town]=dict(deepcopy(bank['templates']['read']),recognition=recognition)
     # Existing redacted-world crops have exact source rectangles and hashes in
     # library.json. These rectangles restrict search, not an unverified click.
@@ -111,7 +123,7 @@ def generate(source, root=ROOT):
             crop=[px,py,w,h],source=dict(path='tests/fixtures/navigation/world.png',sha256=hashlib.sha256(world_path.read_bytes()).hexdigest()),
             shape_source=origins['town0'],sprite=sprite,opaque_crop=[x,y,w,h],source_match_score=round(score,6)))
         probe='Nav_Portal_'+town
-        bank['recognizers'][probe]=dict(type='TemplateMatch',param=dict(template=relative,roi=roi,threshold=.94))
+        bank['recognizers'][probe]=dict(type='TemplateMatch',param=dict(template=relative,roi=roi))
         name='Nav_WorldNanzhan' if town=='town1' else 'Nav_World_'+town
         bank['actions'][name]=dict(base='click',all_of=['Nav_See_world',probe,'Result_NoRevivePrompt'],box_index=1,
                                   source='world',destination='map',label='世界地图 → '+dict(town1='南瞻部洲',town2='东胜神洲',town3='北俱芦洲',town4='西牛贺洲',town5='幽冥血海',town6='六欲魔天')[town])
@@ -129,7 +141,7 @@ def generate(source, root=ROOT):
         source=dict(path='navigation/templates/map-a/world.png',sha256=hashlib.sha256(original.read_bytes()).hexdigest()),
         sha256=hashlib.sha256(compass.read_bytes()).hexdigest()))
     bank['recognizers']['Nav_WorldCompass']=dict(type='TemplateMatch',param=dict(
-        template='navigation/hubs/world-compass.png',roi=[1050,25,97,100],threshold=.94))
+        template='navigation/hubs/world-compass.png',roi=[1050,25,97,100]))
     bank['actions']['Nav_OpenWorld']['all_of'][1]='Nav_WorldCompass'
     bank['routines']['screens']['nanzhan']=dict(detector='Nav_Nanzhan',label='南瞻部洲',exit='Nav_OpenWorld')
     bank['routines']['routes']['nanzhan']=['Nav_WorldNanzhan','Nav_OpenWorld','Nav_Go_task_map_world']

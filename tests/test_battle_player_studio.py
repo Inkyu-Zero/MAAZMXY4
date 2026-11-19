@@ -1,5 +1,5 @@
 """Fake-controller playback checks: never load Maa native libraries or send input."""
-from contextlib import redirect_stdout
+from contextlib import redirect_stdout, contextmanager
 import hashlib
 import importlib.util
 import io
@@ -100,7 +100,8 @@ class BattlePlayerStudioTests(unittest.TestCase):
     def guarded_monitor(self, outcome):
         events = []
         monitor = SimpleNamespace(branch=None, error=None, interrupted=False, rpc_lock=threading.RLock(),
-            start=lambda:None, probe=lambda:None, request_stop=lambda:None, close=lambda:events.append('closed'))
+            start=lambda:None, probe=lambda:None, request_stop=lambda:None, close=lambda:events.append('closed'),
+            recheck_unknown_dialog=lambda:events.append('rechecked'))
         def after(name, *_args):
             events.append(name)
             if name == 'post_key_down':
@@ -131,6 +132,27 @@ class BattlePlayerStudioTests(unittest.TestCase):
             self.assertFalse(self.run_recording(result_guard={'default_next':['Exit']}))
         self.assertNotIn(('next',['Failed']), events)
         self.assertIn('post_key_up', events)
+
+    def test_guard_cleanup_failure_is_not_downgraded_to_playback_failure(self):
+        self.write([dict(t=0,op='keydown',key=65),dict(t=1,op='keyup',key=65)])
+        @contextmanager
+        def guard(_):
+            yield
+            raise player.MouseGuardError('guard cleanup timeout')
+        with patch.object(player,'hold_background_mouse',guard), self.assertRaises(player.MouseGuardError):
+            player.BattlePlay().run_managed(self.context, SimpleNamespace(
+                node_name='Playback', custom_action_param={'file':'record.json'}))
+        self.assertEqual([c[0] for c in self.controller.calls],['post_key_down','post_key_up'])
+
+    def test_native_callback_returns_failure_for_guard_cleanup_error(self):
+        self.write([dict(t=0,op='keydown',key=65),dict(t=1,op='keyup',key=65)])
+        @contextmanager
+        def guard(_):
+            yield
+            raise player.MouseGuardError('guard cleanup timeout')
+        with patch.object(player, 'hold_background_mouse', guard):
+            self.assertFalse(self.run_recording())
+        self.assertTrue(any('guard cleanup timeout' in message for message in self.logs))
 
     def test_cancelled_task_never_follows_a_concurrent_result(self):
         self.write([dict(t=0,op='keydown',key=65),dict(t=10,op='keyup',key=65)])
@@ -190,6 +212,8 @@ class BattlePlayerStudioTests(unittest.TestCase):
                 else:
                     self.assertLess(events.index('post_key_up'),events.index(target))
                     self.assertLess(events.index('closed'),events.index(target))
+                    self.assertLess(events.index('closed'),events.index('rechecked'))
+                    self.assertLess(events.index('rechecked'),events.index(target))
                     self.assertNotIn(('next',['Fatal']),events)
 
     def test_capture_loss_keeps_the_normal_failure_path_for_verified_window_recovery(self):
@@ -297,15 +321,12 @@ class BattlePlayerStudioTests(unittest.TestCase):
 
     def test_stop_just_before_dispatch_does_not_send_a_provisional_press_or_release(self):
         self.write([dict(t=0,op="keydown",key=74),dict(t=10,op="keyup",key=74)])
-        class StoppingTasker:
-            controller=self.controller
-            reads=0
-            @property
-            def stopping(self):
-                self.reads+=1
-                return self.reads>=4
-        self.context.tasker=StoppingTasker()
-        self.assertFalse(self.run_recording())
+        def cancel_after_wait(target, stopping=None, clock=None):
+            self.assertFalse(stopping())  # The cached poll is still clear.
+            self.tasker.stopping=True
+            return True  # Cancellation arrives after the wait, before input.
+        with patch.object(player,'_sleep_until',cancel_after_wait):
+            self.assertFalse(self.run_recording())
         self.assertEqual(self.controller.calls,[])
 
     def test_invalid_speed_fails_without_input(self):
@@ -430,7 +451,7 @@ class BattlePlayerStudioTests(unittest.TestCase):
                 if isinstance(action,dict) and action.get('param',{}).get('custom_action')=='script_task_state' and action['param']['custom_action_param'].get('phase')=='begin':
                     self.assertTrue(action['param']['custom_action_param']['file'].startswith('@task'))
                     count+=1
-        self.assertEqual(count,11)
+        self.assertEqual(count,12+65)
 
     def test_timestamp_wait_checks_stop_instead_of_sleeping_entire_gap(self):
         # Unpatch only the timing helper; all OS timer and clock access stays fake.

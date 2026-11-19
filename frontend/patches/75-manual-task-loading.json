@@ -1,0 +1,6 @@
+{
+  "description": "Only auto-add opted-in new tasks; preserve explicitly added and deleted tasks",
+  "path": "MFAAvalonia/Extensions/MaaFW/TaskLoader.cs",
+  "find": "            // 真正的新任务：不在 existingKeys 中，也不在 deletedTaskKeys 中",
+  "replace": "            if (task.DefaultAdd == false)\n            {\n                continue;\n            }\n\n            // 真正的新任务：不在 existingKeys 中，也不在 deletedTaskKeys 中"
+}

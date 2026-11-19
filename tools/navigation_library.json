@@ -31,7 +31,6 @@
           "bounty-candle/pause-cloudy.png",
           "navigation/panels/daily-pause-caption.png"
         ],
-        "threshold": 0.9,
         "roi": [
           300,
           300,
@@ -56,12 +55,11 @@
               "param": {
                 "template": "navigation/templates/daily-expanded/menu-arhat.png",
                 "roi": [
-                  297,
-                  292,
-                  58,
-                  47
-                ],
-                "threshold": 0.94
+                  290,
+                  175,
+                  135,
+                  170
+                ]
               }
             }
           },
@@ -71,12 +69,11 @@
               "param": {
                 "template": "navigation/templates/daily-expanded/menu-arena.png",
                 "roi": [
-                  378,
-                  378,
-                  64,
-                  48
-                ],
-                "threshold": 0.94
+                  370,
+                  175,
+                  480,
+                  255
+                ]
               }
             }
           }
@@ -88,36 +85,69 @@
       "param": {
         "template": "navigation/templates/daily-expanded/menu-arhat.png",
         "roi": [
-          297,
-          292,
-          58,
-          47
+          290,
+          175,
+          135,
+          170
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_daily_expanded_arhat_Color": {
-      "type": "ColorMatch",
+      "type": "Or",
       "param": {
-        "roi": [
-          301,
-          317,
-          2,
-          2
-        ],
-        "method": 4,
-        "lower": [
-          228,
-          194,
-          104
-        ],
-        "upper": [
-          255,
-          248,
-          211
-        ],
-        "count": 4
+        "any_of": [
+          {
+            "recognition": {
+              "type": "ColorMatch",
+              "param": {
+                "roi": [
+                  301,
+                  317,
+                  2,
+                  2
+                ],
+                "method": 4,
+                "lower": [
+                  228,
+                  194,
+                  104
+                ],
+                "upper": [
+                  255,
+                  248,
+                  211
+                ],
+                "count": 4
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "ColorMatch",
+              "param": {
+                "roi": [
+                  363,
+                  208,
+                  2,
+                  2
+                ],
+                "method": 4,
+                "lower": [
+                  228,
+                  194,
+                  104
+                ],
+                "upper": [
+                  255,
+                  248,
+                  211
+                ],
+                "count": 4
+              }
+            }
+          }
+        ]
       }
     },
     "Nav_Probe_daily_expanded_arena": {
@@ -125,36 +155,69 @@
       "param": {
         "template": "navigation/templates/daily-expanded/menu-arena.png",
         "roi": [
-          378,
-          378,
-          64,
-          48
+          370,
+          175,
+          480,
+          255
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_daily_expanded_arena_Color": {
-      "type": "ColorMatch",
+      "type": "Or",
       "param": {
-        "roi": [
-          428,
-          399,
-          2,
-          2
-        ],
-        "method": 4,
-        "lower": [
-          232,
-          0,
-          0
-        ],
-        "upper": [
-          255,
-          32,
-          18
-        ],
-        "count": 4
+        "any_of": [
+          {
+            "recognition": {
+              "type": "ColorMatch",
+              "param": {
+                "roi": [
+                  428,
+                  399,
+                  2,
+                  2
+                ],
+                "method": 4,
+                "lower": [
+                  232,
+                  0,
+                  0
+                ],
+                "upper": [
+                  255,
+                  32,
+                  18
+                ],
+                "count": 4
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "ColorMatch",
+              "param": {
+                "roi": [
+                  827,
+                  205,
+                  2,
+                  2
+                ],
+                "method": 4,
+                "lower": [
+                  232,
+                  0,
+                  0
+                ],
+                "upper": [
+                  255,
+                  32,
+                  18
+                ],
+                "count": 4
+              }
+            }
+          }
+        ]
       }
     },
     "Nav_Probe_login_logo": {
@@ -167,8 +230,7 @@
           251,
           152
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_login_logo_Color": {
@@ -204,8 +266,7 @@
           215,
           69
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_login_start_Color": {
@@ -241,8 +302,7 @@
           190,
           57
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_saves_title_Color": {
@@ -320,8 +380,7 @@
           130,
           95
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_map_a_center_Color": {
@@ -357,8 +416,7 @@
           144,
           117
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_map_a_lower_Color": {
@@ -394,8 +452,7 @@
           117,
           103
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_map_b_center_Color": {
@@ -431,8 +488,7 @@
           130,
           87
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_map_b_lower_Color": {
@@ -468,8 +524,7 @@
           200,
           62
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_activity_title_Color": {
@@ -505,8 +560,7 @@
           214,
           55
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_profile_title_Color": {
@@ -542,8 +596,7 @@
           105,
           53
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_treasure_title_Color": {
@@ -579,8 +632,7 @@
           306,
           98
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_time_boat_title_Color": {
@@ -616,8 +668,7 @@
           205,
           57
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_theme_title_Color": {
@@ -653,8 +704,7 @@
           205,
           57
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_hell_title_Color": {
@@ -690,8 +740,7 @@
           157,
           57
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_arhat_title_Color": {
@@ -727,8 +776,7 @@
           254,
           60
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_fortune_title_Color": {
@@ -764,8 +812,7 @@
           288,
           53
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_mount_gather_title_Color": {
@@ -801,8 +848,7 @@
           141,
           51
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_arena_title_Color": {
@@ -838,8 +884,7 @@
           243,
           33
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_arena_list_Color": {
@@ -875,8 +920,7 @@
           106,
           53
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_shop_title_Color": {
@@ -912,8 +956,7 @@
           118,
           44
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_shop_mystery_selected_Color": {
@@ -949,8 +992,7 @@
           205,
           56
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_time_replay_1_title_Color": {
@@ -986,8 +1028,7 @@
           42,
           42
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_time_replay_1_selected_Color": {
@@ -1023,8 +1064,7 @@
           205,
           56
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_time_replay_2_title_Color": {
@@ -1060,8 +1100,7 @@
           42,
           42
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_time_replay_2_selected_Color": {
@@ -1097,8 +1136,7 @@
           322,
           57
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_defend_south_title_Color": {
@@ -1134,8 +1172,7 @@
           113,
           81
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_defend_south_selected_Color": {
@@ -1171,8 +1208,7 @@
           322,
           57
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_defend_east_title_Color": {
@@ -1208,8 +1244,7 @@
           113,
           81
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_defend_east_selected_Color": {
@@ -1245,8 +1280,7 @@
           322,
           57
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_defend_north_title_Color": {
@@ -1282,8 +1316,7 @@
           113,
           81
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_defend_north_selected_Color": {
@@ -1319,8 +1352,7 @@
           101,
           57
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_bounty_board_title_Color": {
@@ -1356,8 +1388,7 @@
           126,
           59
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_bounty_board_tab_Color": {
@@ -1393,8 +1424,7 @@
           182,
           48
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_alliance_title_Color": {
@@ -1430,8 +1460,7 @@
           145,
           38
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_alliance_overview_Color": {
@@ -1467,8 +1496,7 @@
           188,
           49
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_alliance_contribution_title_Color": {
@@ -1504,8 +1532,7 @@
           187,
           51
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_alliance_blessing_title_Color": {
@@ -1541,8 +1568,7 @@
           260,
           62
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_survival_week_title_Color": {
@@ -1578,8 +1604,7 @@
           151,
           35
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_survival_week_label_Color": {
@@ -1615,8 +1640,7 @@
           260,
           62
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_survival_question_title_Color": {
@@ -1652,8 +1676,7 @@
           154,
           38
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_survival_rewards_title": {
@@ -1666,8 +1689,7 @@
           211,
           65
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_survival_rewards_title_Color": {
@@ -1703,8 +1725,7 @@
           232,
           38
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_survival_rewards_choice_Color": {
@@ -1740,8 +1761,7 @@
           396,
           40
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_profile_sell_warning_Color": {
@@ -1777,8 +1797,7 @@
           145,
           42
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_profile_sell_quality_Color": {
@@ -1814,8 +1833,7 @@
           101,
           52
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_warehouse_title_Color": {
@@ -1851,8 +1869,7 @@
           147,
           38
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_warehouse_bag_Color": {
@@ -1888,8 +1905,7 @@
           244,
           58
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_settings_continue_Color": {
@@ -1925,8 +1941,7 @@
           244,
           58
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_settings_return_map_Color": {
@@ -1962,8 +1977,7 @@
           74,
           71
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_saves_close_Color": {
@@ -1999,8 +2013,7 @@
           90,
           92
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_map_a_world_Color": {
@@ -2036,8 +2049,7 @@
           63,
           67
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_map_a_activity_entry_Color": {
@@ -2073,8 +2085,7 @@
           60,
           70
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_map_a_backpack_entry_Color": {
@@ -2110,8 +2121,7 @@
           62,
           71
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_map_a_treasure_entry_Color": {
@@ -2147,8 +2157,7 @@
           90,
           92
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_map_b_world_Color": {
@@ -2184,8 +2193,7 @@
           63,
           67
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_map_b_activity_entry_Color": {
@@ -2221,8 +2229,7 @@
           60,
           70
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_map_b_backpack_entry_Color": {
@@ -2258,8 +2265,7 @@
           62,
           71
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_map_b_treasure_entry_Color": {
@@ -2294,8 +2300,7 @@
           277,
           105,
           78
-        ],
-        "threshold": 0.94
+        ]
       }
     },
     "Nav_Probe_hub_world_entry": {
@@ -2308,8 +2313,7 @@
           67,
           73
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_hub_world_entry_Color": {
@@ -2345,8 +2349,7 @@
           60,
           74
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_hub_profile_entry_Color": {
@@ -2382,8 +2385,7 @@
           55,
           74
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_hub_treasure_entry_Color": {
@@ -2419,8 +2421,7 @@
           56,
           74
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_hub_settings_menu_entry_Color": {
@@ -2456,8 +2457,7 @@
           65,
           74
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_hub_alliance_entry_Color": {
@@ -2493,8 +2493,7 @@
           80,
           78
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_hub_time_boat_entry_Color": {
@@ -2530,8 +2529,7 @@
           77,
           78
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_hub_daily_toggle_Color": {
@@ -2562,36 +2560,69 @@
       "param": {
         "template": "navigation/templates/daily-expanded/menu-arena.png",
         "roi": [
-          378,
-          378,
-          64,
-          48
+          370,
+          175,
+          480,
+          255
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_daily_arena_entry_Color": {
-      "type": "ColorMatch",
+      "type": "Or",
       "param": {
-        "roi": [
-          428,
-          399,
-          2,
-          2
-        ],
-        "method": 4,
-        "lower": [
-          232,
-          0,
-          0
-        ],
-        "upper": [
-          255,
-          32,
-          18
-        ],
-        "count": 4
+        "any_of": [
+          {
+            "recognition": {
+              "type": "ColorMatch",
+              "param": {
+                "roi": [
+                  428,
+                  399,
+                  2,
+                  2
+                ],
+                "method": 4,
+                "lower": [
+                  232,
+                  0,
+                  0
+                ],
+                "upper": [
+                  255,
+                  32,
+                  18
+                ],
+                "count": 4
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "ColorMatch",
+              "param": {
+                "roi": [
+                  827,
+                  205,
+                  2,
+                  2
+                ],
+                "method": 4,
+                "lower": [
+                  232,
+                  0,
+                  0
+                ],
+                "upper": [
+                  255,
+                  32,
+                  18
+                ],
+                "count": 4
+              }
+            }
+          }
+        ]
       }
     },
     "Nav_Probe_daily_theme_entry": {
@@ -2604,8 +2635,7 @@
           66,
           50
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_daily_theme_entry_Color": {
@@ -2641,8 +2671,7 @@
           58,
           48
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_daily_hell_entry_Color": {
@@ -2678,8 +2707,7 @@
           58,
           47
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_daily_arhat_entry_Color": {
@@ -2715,8 +2743,7 @@
           63,
           51
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_daily_fortune_entry_Color": {
@@ -2752,8 +2779,7 @@
           65,
           49
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_daily_survival_week_entry_Color": {
@@ -2789,8 +2815,7 @@
           74,
           49
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_daily_defend_entry_Color": {
@@ -2826,8 +2851,7 @@
           113,
           81
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_defend_south_to_east_Color": {
@@ -2863,8 +2887,7 @@
           113,
           81
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_defend_south_to_north_Color": {
@@ -2900,8 +2923,7 @@
           113,
           81
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_defend_east_to_south_Color": {
@@ -2937,8 +2959,7 @@
           113,
           81
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_defend_east_to_north_Color": {
@@ -2974,8 +2995,7 @@
           113,
           81
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_defend_north_to_south_Color": {
@@ -3011,8 +3031,7 @@
           113,
           81
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_defend_north_to_east_Color": {
@@ -3048,8 +3067,7 @@
           134,
           160
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_time_boat_replay_entry_Color": {
@@ -3085,8 +3103,7 @@
           42,
           42
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_time_replay_1_to_2_Color": {
@@ -3122,8 +3139,7 @@
           69,
           73
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_time_replay_1_close_Color": {
@@ -3159,8 +3175,7 @@
           42,
           42
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_time_replay_2_to_1_Color": {
@@ -3196,8 +3211,7 @@
           69,
           73
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_time_replay_2_close_Color": {
@@ -3233,8 +3247,7 @@
           103,
           109
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_alliance_contribution_entry_Color": {
@@ -3270,8 +3283,7 @@
           77,
           45
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_profile_warehouse_entry_Color": {
@@ -3307,8 +3319,7 @@
           118,
           44
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_survival_reward_entry_Color": {
@@ -3344,8 +3355,7 @@
           65,
           73
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_activity_close_Color": {
@@ -3381,8 +3391,7 @@
           71,
           70
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_profile_close_Color": {
@@ -3418,8 +3427,7 @@
           73,
           68
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_treasure_close_Color": {
@@ -3455,8 +3463,7 @@
           70,
           70
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_arena_close_Color": {
@@ -3492,8 +3499,7 @@
           71,
           68
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_shop_mystery_close_Color": {
@@ -3529,8 +3535,7 @@
           71,
           72
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_time_boat_close_Color": {
@@ -3566,8 +3571,7 @@
           77,
           77
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_theme_close_Color": {
@@ -3603,8 +3607,7 @@
           74,
           74
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_hell_close_Color": {
@@ -3640,8 +3643,7 @@
           74,
           74
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_arhat_close_Color": {
@@ -3677,8 +3679,7 @@
           72,
           71
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_fortune_close_Color": {
@@ -3714,8 +3715,7 @@
           71,
           74
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_bounty_board_close_Color": {
@@ -3751,8 +3751,7 @@
           68,
           66
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_alliance_close_Color": {
@@ -3788,8 +3787,7 @@
           68,
           75
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_mount_gather_close_Color": {
@@ -3825,8 +3823,7 @@
           74,
           71
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_survival_week_close_Color": {
@@ -3862,8 +3859,7 @@
           74,
           74
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_defend_south_close_Color": {
@@ -3899,8 +3895,7 @@
           74,
           74
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_defend_east_close_Color": {
@@ -3936,8 +3931,7 @@
           74,
           74
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_defend_north_close_Color": {
@@ -3973,8 +3967,7 @@
           74,
           69
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_alliance_contribution_close_Color": {
@@ -4010,8 +4003,7 @@
           75,
           68
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_alliance_blessing_close_Color": {
@@ -4047,8 +4039,7 @@
           71,
           72
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_survival_rewards_close_Color": {
@@ -4084,8 +4075,7 @@
           73,
           72
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_warehouse_close_Color": {
@@ -4121,8 +4111,7 @@
           100,
           44
         ],
-        "method": 5,
-        "threshold": 0.94
+        "method": 5
       }
     },
     "Nav_Probe_profile_sell_cancel_Color": {
@@ -4157,8 +4146,7 @@
           477,
           108,
           64
-        ],
-        "threshold": 0.94
+        ]
       }
     },
     "Nav_Portal_town2": {
@@ -4170,8 +4158,7 @@
           284,
           108,
           98
-        ],
-        "threshold": 0.94
+        ]
       }
     },
     "Nav_Portal_town3": {
@@ -4183,8 +4170,7 @@
           89,
           108,
           98
-        ],
-        "threshold": 0.94
+        ]
       }
     },
     "Nav_Portal_town4": {
@@ -4196,8 +4182,7 @@
           294,
           98,
           98
-        ],
-        "threshold": 0.94
+        ]
       }
     },
     "Nav_Portal_town5": {
@@ -4209,8 +4194,7 @@
           524,
           108,
           98
-        ],
-        "threshold": 0.94
+        ]
       }
     },
     "Nav_Portal_town6": {
@@ -4222,8 +4206,7 @@
           109,
           108,
           98
-        ],
-        "threshold": 0.94
+        ]
       }
     },
     "Nav_WorldCompass": {
@@ -4235,8 +4218,7 @@
           25,
           97,
           100
-        ],
-        "threshold": 0.94
+        ]
       }
     }
   },
@@ -5352,8 +5334,34 @@
     "library": "agent/data/navigation/library.json",
     "source_commit": "cd31785853ea850955310b5653b740fb72387ada"
   },
-  "public_recognizers": [],
+  "public_recognizers": [
+    "Nav_Probe_hub_world_entry"
+  ],
+  "boolean_template_nodes": [
+    "Nav_Province_town1",
+    "Nav_Province_town2",
+    "Nav_Province_town3",
+    "Nav_Province_town4",
+    "Nav_Province_town5",
+    "Nav_Province_town6"
+  ],
   "nodes": {
+    "Nav_StageOverlay": {
+      "recognition": {
+        "type": "Or",
+        "param": {
+          "any_of": [
+            "Nav_Probe_hub_world_entry",
+            "Nav_ModalPresent"
+          ]
+        }
+      },
+      "action": {
+        "type": "DoNothing"
+      },
+      "next": [],
+      "post_delay": 0
+    },
     "Nav_MapSurface": {
       "action": {
         "type": "DoNothing"
@@ -5469,7 +5477,6 @@
                     "bounty-candle/pause-cloudy.png",
                     "navigation/panels/daily-pause-caption.png"
                   ],
-                  "threshold": 0.9,
                   "roi": [
                     300,
                     300,
@@ -5494,8 +5501,7 @@
                             292,
                             58,
                             47
-                          ],
-                          "threshold": 0.94
+                          ]
                         }
                       }
                     },
@@ -5509,8 +5515,7 @@
                             378,
                             64,
                             48
-                          ],
-                          "threshold": 0.94
+                          ]
                         }
                       }
                     }
@@ -5551,8 +5556,7 @@
             135,
             920,
             465
-          ],
-          "threshold": 0.88
+          ]
         }
       }
     },
@@ -5574,8 +5578,7 @@
             135,
             920,
             465
-          ],
-          "threshold": 0.88
+          ]
         }
       }
     },
@@ -5597,8 +5600,7 @@
             135,
             920,
             465
-          ],
-          "threshold": 0.88
+          ]
         }
       }
     },
@@ -5620,8 +5622,7 @@
             135,
             920,
             465
-          ],
-          "threshold": 0.88
+          ]
         }
       }
     },
@@ -5647,8 +5648,7 @@
             120,
             990,
             480
-          ],
-          "threshold": 0.9
+          ]
         }
       }
     },
@@ -5662,30 +5662,30 @@
         "type": "TemplateMatch",
         "param": {
           "template": [
+            "navigation/scroll/town6-23.png",
+            "navigation/scroll/town6-03.png",
+            "navigation/scroll/town6-13.png",
+            "navigation/scroll/town6-08.png",
+            "navigation/scroll/town6-18.png",
             "navigation/scroll/town6-00.png",
             "navigation/scroll/town6-01.png",
             "navigation/scroll/town6-02.png",
-            "navigation/scroll/town6-03.png",
             "navigation/scroll/town6-04.png",
             "navigation/scroll/town6-05.png",
             "navigation/scroll/town6-06.png",
             "navigation/scroll/town6-07.png",
-            "navigation/scroll/town6-08.png",
             "navigation/scroll/town6-09.png",
             "navigation/scroll/town6-10.png",
             "navigation/scroll/town6-11.png",
             "navigation/scroll/town6-12.png",
-            "navigation/scroll/town6-13.png",
             "navigation/scroll/town6-14.png",
             "navigation/scroll/town6-15.png",
             "navigation/scroll/town6-16.png",
             "navigation/scroll/town6-17.png",
-            "navigation/scroll/town6-18.png",
             "navigation/scroll/town6-19.png",
             "navigation/scroll/town6-20.png",
             "navigation/scroll/town6-21.png",
             "navigation/scroll/town6-22.png",
-            "navigation/scroll/town6-23.png",
             "navigation/scroll/town6-24.png",
             "navigation/scroll/town6-25.png"
           ],
@@ -5694,8 +5694,7 @@
             120,
             990,
             480
-          ],
-          "threshold": 0.9
+          ]
         }
       }
     },
@@ -5764,6 +5763,74 @@
           "custom_recognition_param": "hub"
         }
       }
+    },
+    "Nav_BattleControls": {
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "设置.png"
+          ],
+          "roi": [
+            0,
+            560,
+            1148,
+            160
+          ]
+        }
+      },
+      "action": {
+        "type": "DoNothing"
+      },
+      "next": [],
+      "post_delay": 0
+    },
+    "Nav_InStage": {
+      "recognition": {
+        "type": "And",
+        "param": {
+          "all_of": [
+            "Nav_Wushuang",
+            {
+              "recognition": {
+                "type": "Custom",
+                "param": {
+                  "custom_recognition": "battle_no_revive",
+                  "custom_recognition_param": "stage"
+                }
+              }
+            }
+          ],
+          "box_index": 0
+        }
+      },
+      "action": {
+        "type": "DoNothing"
+      },
+      "next": [],
+      "post_delay": 0
+    },
+    "Nav_Wushuang": {
+      "recognition": {
+        "type": "TemplateMatch",
+        "param": {
+          "template": [
+            "navigation/stage/wushuang-idle.png",
+            "navigation/stage/wushuang-ready.png"
+          ],
+          "roi": [
+            0,
+            580,
+            180,
+            140
+          ]
+        }
+      },
+      "action": {
+        "type": "DoNothing"
+      },
+      "next": [],
+      "post_delay": 0
     }
   },
   "routines": {
@@ -6829,6 +6896,11 @@
       ],
       "stage": [
         "quest_panel"
+      ],
+      "arena": [
+        "arena",
+        "daily_menu",
+        "sumeru"
       ]
     },
     "fallback": [

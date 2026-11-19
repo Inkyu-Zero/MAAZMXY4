@@ -122,8 +122,7 @@ def generate(source, root=ROOT):
             'Nav_ClearMap',
             dict(recognition=dict(type='Or', param=dict(any_of=[
                 dict(recognition=deepcopy(original_recognition)),
-                dict(recognition=dict(type='TemplateMatch', param=dict(template=variants,
-                    threshold=.82, **(dict(roi=view_roi) if view_roi else
+                dict(recognition=dict(type='TemplateMatch', param=dict(template=variants, **(dict(roi=view_roi) if view_roi else
                         {} if town == 'town5' else dict(roi=[0,115,1045,500])), method=5))),
             ]))),
         ], box_index=1))

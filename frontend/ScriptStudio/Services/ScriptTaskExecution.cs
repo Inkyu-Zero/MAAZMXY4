@@ -12,21 +12,38 @@ namespace MFAAvalonia.Services;
 public static class ScriptTaskExecution
 {
     public static async Task<MaaJobStatus> RunAsync(MaaProcessor processor, string? name, string? entry, string? overrides,
-        Func<string?, string?, CancellationToken, Task<MaaJobStatus>> execute, Action stopOnFailure, CancellationToken token)
+        Func<string?, string?, CancellationToken, Task<MaaJobStatus>> execute, Action stopOnFailure, CancellationToken token,
+        NativeBoxSpeedSession? speedSession = null)
     {
         if (string.IsNullOrEmpty(entry) || string.IsNullOrEmpty(name)) return await execute(entry, overrides, token);
         try
         {
             overrides = TaskScriptPlan.NormalizeRepeatLimits(overrides ?? "{}", entry);
-            using var library = new ScriptStudioClient(AppPaths.DataRoot, releaseCaptureOnDisconnect: false);
-            var plan = (await library.CallAsync("execution_plan", new JsonObject
+            JsonObject plan;
+            // The returned plan owns managed JSON; its read-only worker has no
+            // role during navigation, playback, retry, or recovery.
+            using (var library = new ScriptStudioClient(AppPaths.DataRoot, releaseCaptureOnDisconnect: false))
             {
-                ["name"] = name, ["entry"] = entry,
-                ["overrides"] = TaskRecoveryPolicy.MergePipelineOverrides(overrides),
-                ["report_unbound"] = true
-            }, token)).AsObject();
+                plan = (await library.CallAsync("execution_plan", new JsonObject
+                {
+                    ["name"] = name, ["entry"] = entry,
+                    ["overrides"] = TaskRecoveryPolicy.MergePipelineOverrides(overrides),
+                    ["report_unbound"] = true
+                }, token)).AsObject();
+            }
             token.ThrowIfCancellationRequested();
             TaskScriptPlan.StopIfUnbound(plan, message => processor.AddLog(message), token);
+            if (speedSession != null)
+            {
+                var nativeExecute = execute;
+                execute = async (targetEntry, parameters, cancellation) =>
+                {
+                    if (targetEntry == "GameManagement_Resume")
+                        return await nativeExecute(targetEntry, parameters, cancellation);
+                    var proof = await speedSession.EnsureAsync(processor, plan["recording"], cancellation);
+                    return await nativeExecute(targetEntry, NativeBoxSpeedSession.WithProof(parameters, proof), cancellation);
+                };
+            }
             if (TaskScriptPlan.IsAfkMode(overrides) && plan["binding"]?["mode"]?.GetValue<string>() == "replace")
                 throw new InvalidOperationException("挂机模式需要原任务流程的战败与返回确认，请改为原流程绑定。");
             var management = GameManagementService.For(processor);

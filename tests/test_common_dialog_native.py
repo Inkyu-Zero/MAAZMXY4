@@ -19,11 +19,13 @@ class CommonDialogNativeTests(unittest.TestCase):
         positives=[folder/c['file'] for c in json.loads((folder/'cases.json').read_text(encoding='utf8'))['cases']]
         # The sell-confirmation fixture uses this exact shared WarnBar skin.
         positives.append(ROOT/'tests/fixtures/navigation/profile-sell.png')
+        # This retained log image is a paid revival panel, not a clear screen.
+        positives.append(ROOT/'tests/fixtures/navigation/revival-threshold-20261103.png')
         # Resurrection uses the same three corners. Its precise caption still
         # selects the known decline route; an unreadable caption remains blocked.
         positives += [p for p in (ROOT/'tests/fixtures/navigation/revival').glob('*.png')
                       if not p.name.startswith('return-')]
-        negatives=[p for p in (ROOT/'tests/fixtures/navigation').glob('*.png') if p.name!='profile-sell.png']
+        negatives=[p for p in (ROOT/'tests/fixtures/navigation').glob('*.png') if p not in positives]
         negatives+=list((ROOT/'tests/fixtures/navigation/revival').glob('return-*.png'))
         errors=[];checked=[]
         class Pixels(CustomController):

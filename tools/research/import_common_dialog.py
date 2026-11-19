@@ -57,11 +57,13 @@ def generate(source,root=ROOT):
     # WarnBar places buttons 40 raw pixels above the bottom. Keep this crop
     # below that band, including on the minimum-height confirmation panel.
     bottom=template(bg_path,'confirm-bottom.png',(12,bg.height-30,43,bg.height-12))
-    def match(images,**kw):return dict(type='TemplateMatch',param=dict(template=images,threshold=.9,**kw))
+    def match(images,**kw):return dict(type='TemplateMatch',param=dict(template=images,**kw))
     node=dict(recognition=dict(type='And',param=dict(all_of=[
         # WarnBar centers the panel; its left corner stays in the left half.
         # Include wide dialogs without searching unrelated right-hand controls.
-        dict(sub_name='panel_corner',recognition=match(left,roi=[0,70,575,530])),
+        # The upper-left patch of a vertically centered panel is above its
+        # center; retain a margin through y=410, not unrelated lower HUD pixels.
+        dict(sub_name='panel_corner',recognition=match(left,roi=[0,70,575,340])),
         dict(recognition=match(right,roi='panel_corner',roi_offset=[200,-8,650,16])),
         dict(recognition=match(bottom,roi='panel_corner',roi_offset=[-8,100,16,400])),
     ],box_index=0)),action=dict(type='DoNothing'),next=[],post_delay=0)

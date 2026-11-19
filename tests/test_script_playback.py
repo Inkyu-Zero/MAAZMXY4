@@ -11,7 +11,7 @@ from unittest.mock import patch
 from test_battle_player_studio import player, FakeController
 from test_window_geometry import Geometry
 from window_geometry import WindowLease
-from script_playback import PlaybackJob
+from script_playback import PlaybackJob, InputOnlyController, CompletedInput
 from script_studio_service import StudioService
 from task_catalog import task_catalog, execution_plan
 from script_library import bind_task_recording
@@ -50,6 +50,39 @@ class PlaybackTests(unittest.TestCase):
         self.assertEqual([c[0] for c in self.ctrl.calls],['post_key_down','post_key_up','post_touch_down','post_touch_move','post_touch_up'])
         self.assertFalse(self.geometry.claimed)
 
+    def test_confirmed_double_speed_scales_actual_timeline_including_trailing_wait(self):
+        from box_speed import verify_proof
+        proof=dict(state='ready',speed=2,hwnd=42,pid=17,started_utc_ticks=123,
+                   exe_path=str(self.root/'box.exe'),sha256=self.params['sha256'])
+        self.params.update(speed=2,box_speed_proof=proof)
+        now=[10.0];deadlines=[];events=[]
+        self.ctrl.after_call=lambda name,args,kwargs:events.append((name,now[0]-10.0))
+        def wait_until(target,should_stop,clock):
+            deadlines.append(target-10.0);now[0]=target
+            return not should_stop()
+        def confirmed(receipt,hwnd,revision):
+            return verify_proof(receipt,hwnd,revision,dict(pid=17,started_utc_ticks=123),proof['exe_path'])
+        with patch('box_speed_native.verify_playback_proof',side_effect=confirmed) as verify, \
+                patch('window_geometry.WindowLease.clock',lambda lease:now[0]), \
+                patch('recording_playback._sleep_until',side_effect=wait_until):
+            result=self.finish(self.job())
+        self.assertEqual(result['state'],'succeeded',result)
+        verify.assert_called_once_with(proof,42,self.params['sha256'])
+        self.assertEqual(len(deadlines),5)
+        for actual,expected in zip(deadlines,[0,.015,.015,.03,.035]):
+            self.assertAlmostEqual(actual,expected)
+        self.assertEqual([name for name,_ in events],
+                         ['post_key_down','post_key_up','post_touch_down','post_touch_move','post_touch_up'])
+        self.assertFalse(self.geometry.claimed)
+
+    def test_unconfirmed_double_speed_never_adapts_window_or_sends_input(self):
+        self.params['speed']=2
+        result=self.finish(self.job())
+        self.assertEqual(result['state'],'failed',result)
+        self.assertIn('尚未准备完成',result['error'])
+        self.assertEqual(self.ctrl.calls,[])
+        self.assertEqual(self.geometry.changes,[])
+
     def test_stop_during_gap_releases_input_and_never_counts_success(self):
         data=json.loads(self.file.read_text());data['actions'][1]['t']=10000;data['duration_ms']=10040
         self.file.write_text(json.dumps(data));self.params['sha256']=hashlib.sha256(self.file.read_bytes()).hexdigest()
@@ -78,7 +111,7 @@ class PlaybackTests(unittest.TestCase):
         self.ctrl.after_call=fail
         result=self.finish(self.job())
         self.assertEqual(result['state'],'failed',result)
-        self.assertIn('无法将',result['error'])
+        self.assertIn('播放期间窗口尺寸',result['error'])
         self.assertEqual([c[0] for c in self.ctrl.calls],['post_key_down','post_key_up'])
         self.assertFalse(self.geometry.claimed)
 
@@ -101,6 +134,49 @@ class PlaybackTests(unittest.TestCase):
         self.assertEqual(plan['recording']['sha256'],self.params['sha256'])
         self.assertEqual(plan['recording']['base'],[1148,720])
         self.assertEqual(self.file.read_bytes(),before)
+
+
+class InputCoordinateTests(unittest.TestCase):
+    def test_failed_mouse_dispatch_restores_the_thread_pixel_scope(self):
+        from contextlib import contextmanager
+        from types import SimpleNamespace
+        events=[]
+        @contextmanager
+        def pixels():
+            events.append('enter')
+            try:yield
+            finally:events.append('restore')
+        def failed(*args):
+            events.append('send')
+            return False
+        controller=object.__new__(InputOnlyController)
+        controller.lease=SimpleNamespace(hwnd=42,require_identity=lambda:None,
+            api=SimpleNamespace(windows=SimpleNamespace(_physical_pixels=pixels)))
+        controller.mouse_method='PostMessage'
+        controller.api=SimpleNamespace(PostMessageW=failed)
+        with self.assertRaisesRegex(RuntimeError,'后台鼠标输入失败'):
+            controller._message(0x201,1,0)
+        self.assertEqual(events,['enter','send','restore'])
+
+    def test_mouse_and_wheel_map_script_coordinates_without_capture(self):
+        api=Geometry();api.bits=0;api.info.update(width=1722,height=1080)
+        with WindowLease(42,(1148,720),api=api) as lease:
+            controller=object.__new__(InputOnlyController)
+            controller.lease=lease
+            controller.position=(0,0);controller.buttons=set()
+            messages=[]
+            controller._message=lambda *args:(messages.append(args),CompletedInput())[1]
+            controller.post_touch_down(100,200)
+            controller.post_touch_up()
+            self.assertIn((0x201,1,(300<<16)|150),messages)
+            self.assertIn((0x202,0,(300<<16)|150),messages)
+            controller.post_touch_move(200,300)
+            self.assertEqual(messages[-1],(0x200,0,(450<<16)|300))
+            controller.post_scroll(0,120)
+            self.assertEqual(messages[-1],(0x20a,120<<16,(500<<16)|400))
+            controller.clear_hover()
+            self.assertEqual(messages[-1],(0x200,0,(20<<16)|20))
+            self.assertFalse(api.changes)
 
 
 if __name__=='__main__':unittest.main()

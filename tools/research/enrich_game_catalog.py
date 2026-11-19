@@ -20,6 +20,7 @@ import xml.etree.ElementTree as ET
 from bs4 import BeautifulSoup
 from PIL import Image
 import requests
+from catalog_links import add_catalog_links
 
 STATS = {'hpMax':'生命', 'mpMax':'魔法', 'atk':'攻击', 'phyDef':'防御', 'magRes':'魔抗',
          'reduceMagDef':'破魔', 'hit':'命中', 'dodge':'闪避', 'critical':'暴击',
@@ -130,7 +131,7 @@ def enrich(catalog, assets, wiki):
         explanation='配置中的分号表示区间端点；小数比例保留原值（0.05 = 5%）。同名 Boss 的不同记录分别列出，不能将关卡、等级或形态混为同一实战数值。')
     data['wiki_snapshot'] = dict(repository='https://github.com/Rotating-stars/zmxy4-helpPages',revision=wiki_revision,
         license='MIT',matched_pages=len(matched_pages),date='2026-10-29')
-    return data, icons
+    return add_catalog_links(data), icons
 
 
 def download_icons(icons, output, cache):

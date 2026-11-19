@@ -20,6 +20,7 @@ from uuid import NAMESPACE_URL, uuid5
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "agent"))
 from script_studio.model import MAX_FILE_BYTES, RecordingDocument
+from script_library import publish_new_file
 
 MANIFEST_SCHEMA = "maazmxy4.zaomeng-script-migration"
 MANIFEST_VERSION = 1
@@ -53,7 +54,7 @@ def _encode(data):
 
 
 def _atomic_write(path, raw, *, overwrite=False):
-    """Publish a complete file; hard-link publication is exclusive on Windows too."""
+    """Publish a complete file while refusing concurrent destination creation."""
     temporary, published, cleanup_warning = None, False, None
     try:
         with tempfile.NamedTemporaryFile(mode="wb", dir=path.parent, prefix=".migration-",
@@ -65,7 +66,7 @@ def _atomic_write(path, raw, *, overwrite=False):
         if overwrite:
             os.replace(temporary, path)
         else:
-            os.link(temporary, path)
+            publish_new_file(temporary, path)
         published=True
     finally:
         if temporary is not None and temporary.exists():
@@ -75,7 +76,7 @@ def _atomic_write(path, raw, *, overwrite=False):
                 if not published:
                     raise
                 # The destination is already complete and authoritative. Treat
-                # a locked temporary hard link as a cleanup warning, rather
+                # a locked temporary name as a cleanup warning, rather
                 # than rolling back recordings after a manifest was committed.
                 cleanup_warning=f"{path.name} 已完整写入，但临时文件 {temporary.name} 暂未清理：{error}"
     return cleanup_warning

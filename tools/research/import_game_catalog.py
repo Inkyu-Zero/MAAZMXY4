@@ -131,6 +131,22 @@ def skill_sections(soup, entry_name):
     return list({(s['name'],s['description']):s for s in skills if s['description']}.values())
 
 
+def linked_fact(label, value, node, source_url):
+    fact = dict(label=label,value=value)
+    links = []
+    for anchor in node.find_all('a',href=True):
+        text = clean(anchor)
+        target = urljoin(source_url,anchor['href'])
+        if target.startswith('http://news.4399.com/'):
+            target = 'https://' + target[len('http://'):]
+        uri = urlparse(target)
+        if text and text in value and uri.scheme=='https' and uri.hostname=='news.4399.com' and not uri.username:
+            link=dict(text=text,target=target)
+            if link not in links:links.append(link)
+    if links:fact['links']=links
+    return fact
+
+
 def article_facts(content, entry):
     soup = BeautifulSoup(content, 'html.parser')
     facts = []
@@ -141,8 +157,8 @@ def article_facts(content, entry):
         for row in table.find_all('tr'):
             if row.find_parent('table') is not table:
                 continue
-            cells = [clean(td) for td in row.find_all(['td', 'th'], recursive=False) if not td.find('table')]
-            cells = [text for text in cells if text]
+            cell_nodes = [td for td in row.find_all(['td','th'], recursive=False) if not td.find('table') and clean(td)]
+            cells = [clean(td) for td in cell_nodes]
             if not cells:
                 continue
             if any('更多推荐' in text or '推荐攻略' in text for text in cells):
@@ -154,11 +170,11 @@ def article_facts(content, entry):
                 headers, mode = cells, 'facts'
                 continue
             if len(cells) == 2 and cells[0] in FIELDS:
-                facts.append(dict(label=cells[0], value=cells[1]))
+                facts.append(linked_fact(cells[0],cells[1],cell_nodes[1],entry.get('source_url','')))
                 headers = []
                 continue
             if mode == 'facts' and len(cells) == len(headers):
-                facts.extend(dict(label=key, value=value) for key, value in zip(headers, cells))
+                facts.extend(linked_fact(key,value,td,entry.get('source_url','')) for key,value,td in zip(headers,cells,cell_nodes))
                 headers = []
     # Source text is kept as text, never rendered as HTML. Unpublished values
     # stay absent (the UI displays "来源未提供"), never guessed or set to zero.

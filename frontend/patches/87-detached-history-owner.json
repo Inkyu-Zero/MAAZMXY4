@@ -1,0 +1,6 @@
+{
+  "description": "Retain detached tasker history while its stop waiter is active.",
+  "path": "MFAAvalonia/Extensions/MaaFW/MaaProcessor.cs",
+  "find": "var stopTask = Task.Run(() => oldTasker.Stop().Wait());",
+  "replace": "var stopTask = Task.Run(() => MFAAvalonia.Services.NativeTaskHistory.Use(oldTasker, () => oldTasker.Stop().Wait()));"
+}

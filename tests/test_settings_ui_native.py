@@ -51,16 +51,18 @@ class SettingsNativeTests(unittest.TestCase):
                     if context.run_recognition('Nav_CloseSettingsSubpanel', frame).hit:
                         errors.append((case['file'], 'titleless close permitted'))
                     completed.append(case['file'])
-                for offset in (0, 20):
+                for offset in (0, 20, 'small-window'):
                     shifted = menu.copy()
-                    if offset:
+                    if offset == 'small-window':
+                        shifted=read_png_bgr(folder/'regressions/settings-small-window.png')
+                    elif offset:
                         shifted[110:670, 400:770] = 0
                         shifted[130:670, 400:770] = menu[110:650, 400:770]
                     for node in ('Nav_SettingsMenu', 'Nav_SettingsReturn', 'Nav_SettingsContinue'):
                         result = context.run_recognition(node, shifted)
                         if result is None or not result.hit: errors.append((node, offset, 'missed'))
                     completed.append('menu' + str(offset))
-                for name in ('map-a', 'world', 'profile', 'challenge-failed'):
+                for name in ('map-a', 'world', 'profile', 'challenge-failed','revival/normal-p1-up'):
                     frame = read_png_bgr(folder / (name + '.png'))
                     for node in ('Nav_SettingsSubpanel', 'Nav_SettingsReturn'):
                         if context.run_recognition(node, frame).hit: errors.append((name, node, 'false match'))
@@ -78,7 +80,7 @@ class SettingsNativeTests(unittest.TestCase):
         resource.override_pipeline({'__SettingsTest': dict(action=dict(type='Custom', param=dict(custom_action='__inspect_settings')))})
         self.assertTrue(tasker.bind(resource, controller))
         self.assertTrue(tasker.post_task('__SettingsTest').wait().succeeded)
-        self.assertEqual(len(completed), 5)
+        self.assertEqual(len(completed), 6)
         self.assertEqual(errors, [])
 
 

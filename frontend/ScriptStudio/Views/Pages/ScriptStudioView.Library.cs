@@ -30,6 +30,7 @@ public sealed partial class ScriptStudioView
     {
         var layout = new Grid { ColumnDefinitions = new ColumnDefinitions("*,12,300"), Margin = new Thickness(0, 8, 0, 0) };
         var library = Card(BuildLibraryPane(_library, _search, false));
+        library.Name = "TourScriptLibrary";
         library.Padding = new Thickness(12); layout.Children.Add(library);
         var recording = new StackPanel { Spacing = 10 };
         recording.Children.Add(new TextBlock { Text = "倒计时结束前切回游戏，失焦会自动暂停。", TextWrapping = TextWrapping.Wrap, Opacity = .65, FontSize = 12 });
@@ -97,26 +98,36 @@ public sealed partial class ScriptStudioView
             pane.Children.Add(new TextBlock { Text = "脚本库", FontWeight = FontWeight.SemiBold, FontSize = 15 });
         else
         {
-            _deleteFile = Button("删除", async () => { if (CurrentLibraryItem is JsonNode item) await DeleteLibraryFileAsync(item); });
-            var rename = Button("重命名…", async () => { if (CurrentLibraryItem is JsonNode item) await RenameLibraryFileAsync(item); });
+            _deleteFile = Button("删除", async () =>
+            {
+                if (_library.SelectedItem is JsonNode group && IsLibraryGroup(group)) { if (group["kind"]!.GetValue<string>() == "folder") await DeleteFolderAsync(group); }
+                else if (CurrentLibraryItem is JsonNode item) await DeleteLibraryFileAsync(item);
+            });
+            var rename = Button("重命名…", async () =>
+            {
+                if (_library.SelectedItem is JsonNode group && IsLibraryGroup(group)) { if (group["kind"]!.GetValue<string>() == "folder") await RenameFolderAsync(group); }
+                else if (CurrentLibraryItem is JsonNode item) await RenameLibraryFileAsync(item);
+            });
             _documentActions.Add(rename);
-            var tools = Wrap(Button("新建", NewScriptAsync), Button("导入…", ImportAsync), rename, _deleteFile, Button("刷新", RefreshLibraryAsync, allowDuringTask: true), _libraryCount);
+            var tools = Wrap(Button("新建", NewScriptAsync), Button("新建文件夹", CreateFolderAsync, allowDuringTask: true), Button("导入…", ImportAsync), rename, _deleteFile, Button("刷新", RefreshLibraryAsync, allowDuringTask: true), _libraryCount);
             foreach (var button in tools.Children.OfType<Button>()) { button.Padding = new Thickness(10, 6); button.MinHeight = 32; }
             _libraryCount.VerticalAlignment = VerticalAlignment.Center; _libraryCount.Opacity = .6; _libraryCount.FontSize = 12;
             pane.Children.Add(tools);
         }
         Grid.SetRow(search, 1); pane.Children.Add(search);
         list.MinHeight = 0; list.ClipToBounds = true;
-        list.ItemTemplate = new FuncDataTemplate<JsonNode>((item, _) => item == null ? new TextBlock() : BuildLibraryRow(item, compact));
+        list.ItemTemplate = new FuncDataTemplate<JsonNode>((item, _) => item == null ? new TextBlock() :
+            IsLibraryGroup(item) ? BuildFolderRow(item, compact) : BuildLibraryRow(item, compact));
         Grid.SetRow(list, 2); pane.Children.Add(list);
-        list.DoubleTapped += async (_, _) => { if (list.SelectedItem is JsonNode item) await Run(async () => await OpenLibraryFileAsync(item, true)); };
+        list.DoubleTapped += async (_, _) => { if (list.SelectedItem is JsonNode item && !IsLibraryGroup(item)) await Run(async () => await OpenLibraryFileAsync(item, true)); };
         return pane;
     }
 
     private Control BuildLibraryRow(JsonNode item, bool compact)
     {
-        var row = new Grid { ColumnDefinitions = new ColumnDefinitions(compact ? "*" : "*,160,Auto,Auto"), ColumnSpacing = 8,
-            Margin = new Thickness(5, 6), MinHeight = 42 };
+        var row = new Grid { Name = "LibraryScriptRow", Background = Brushes.Transparent,
+            ColumnDefinitions = new ColumnDefinitions(compact ? "*" : "*,160,Auto,Auto"), ColumnSpacing = 8,
+            Margin = new Thickness(item["folder_id"] != null ? 25 : 5, 6, 5, 6), MinHeight = 42 };
         var info = new StackPanel { Spacing = 3, VerticalAlignment = VerticalAlignment.Center };
         info.Children.Add(new TextBlock { Text = item["name"]?.GetValue<string>(), FontWeight = FontWeight.SemiBold, TextTrimming = TextTrimming.CharacterEllipsis });
         var duration = (item["duration_ms"]?.GetValue<double>() ?? 0) / 1000;
@@ -124,9 +135,11 @@ public sealed partial class ScriptStudioView
         var error = item["error"]?.GetValue<string>();
         ToolTip.SetTip(info, string.IsNullOrEmpty(error) ? item["description"]?.GetValue<string>() : error);
         row.Children.Add(info);
+        WireScriptDrag(row, item, compact);
         if (compact) return row;
         var associations = item["bindings"]?.AsArray() ?? new JsonArray();
         var bind = Button(associations.Count == 0 ? "绑定任务…" : associations.Count == 1 ? associations[0]!["label"]!.GetValue<string>() : $"已绑定 {associations.Count} 个任务", () => Task.CompletedTask);
+        bind.Name = "ScriptTaskBinding";
         bind.Content = new TextBlock { Text = bind.Content?.ToString(), TextTrimming = TextTrimming.CharacterEllipsis };
         bind.Click += async (_, _) => await Run(async () => await ShowBindingFlyoutAsync(item, bind));
         ToolTip.SetTip(bind, associations.Count == 0 ? "选择使用这份脚本的任务" : string.Join("\n", associations.Select(value => value?["label"]?.GetValue<string>())) + "\n单击修改绑定");
@@ -153,12 +166,14 @@ public sealed partial class ScriptStudioView
 
     private void WireLibrarySelection(ListBox list) => list.SelectionChanged += async (_, _) =>
     {
-        if (!_sync && list.SelectedItem is JsonNode item)
+        if (!_sync && list.SelectedItem is JsonNode item && !IsLibraryGroup(item))
             await Run(async () => await OpenLibraryFileAsync(item, ReferenceEquals(list, _editorLibrary)));
     };
 
     private async Task<bool> OpenLibraryFileAsync(JsonNode item, bool edit)
     {
+        _selectedLibraryGroup = null;
+        if (item["folder_id"]?.GetValue<string>() is { } folder) _expandedFolders.Add(folder);
         var file = item["file"]!.GetValue<string>();
         if (file != _vm.File)
         {
@@ -166,6 +181,7 @@ public sealed partial class ScriptStudioView
             await _vm.ChangeAsync("load", new JsonObject { ["file"] = file });
         }
         if (edit) _tabs.SelectedIndex = 1;
+        FilterLibrary();
         _status.Text = "已打开“" + _vm.Name + "”。修改后按 Ctrl+S 保存。";
         return true;
     }
@@ -174,6 +190,8 @@ public sealed partial class ScriptStudioView
     {
         var result = await _vm.Client.CallAsync("list");
         _files = result["items"]!.AsArray(); _availableTasks = result["tasks"]?.AsArray() ?? new JsonArray();
+        _folders = result["folders"]?.AsArray() ?? new JsonArray();
+        _folderRevision = result["folder_revision"]?.GetValue<string>();
         _bindingRevision = result["binding_revision"]?.GetValue<string>();
         if (result["binding_errors"] is JsonObject errors && errors.Count > 0)
             _status.Text = string.Join("；", errors.Select(error => error.Value?.GetValue<string>()).Where(error => !string.IsNullOrEmpty(error)).Distinct());
@@ -189,9 +207,11 @@ public sealed partial class ScriptStudioView
             foreach (var pair in new[] { (_library, _search), (_editorLibrary, _editorSearch) })
             {
                 var query = pair.Item2.Text?.Trim() ?? "";
-                var files = _files.Where(item => item != null && (query.Length == 0 || (item["name"]?.GetValue<string>() ?? "").Contains(query, StringComparison.CurrentCultureIgnoreCase))).ToList();
+                var files = LibraryRows(query);
                 pair.Item1.ItemsSource = files;
-                pair.Item1.SelectedItem = files.FirstOrDefault(item => item?["file"]?.GetValue<string>() == _vm.File);
+                pair.Item1.SelectedItem = _selectedLibraryGroup == null
+                    ? files.FirstOrDefault(item => item?["file"]?.GetValue<string>() == _vm.File && !IsLibraryGroup(item!))
+                    : files.FirstOrDefault(item => item != null && IsLibraryGroup(item) && (item["id"]?.GetValue<string>() ?? "") == _selectedLibraryGroup);
             }
             _editorPicker.ItemsSource = _files.Where(item => item != null).ToList();
             _editorPicker.SelectedItem = _files.FirstOrDefault(item => item?["file"]?.GetValue<string>() == _vm.File);

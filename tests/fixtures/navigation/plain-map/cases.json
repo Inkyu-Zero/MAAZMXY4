@@ -1,0 +1,33 @@
+{
+  "source": "User-provided 2026-11-10 failure archive; top HUD/identity removed",
+  "cases": [
+    {
+      "file": "Mainline_020_Target.png",
+      "entry": "Mainline_020_Target",
+      "source_sha256": "938ddd6f1be51cd15c9df82247441c2371952610be5e084cce6551a0381a322b",
+      "sha256": "b7ddade00413bc5e7126bb5b446a65f92df55bdcdf8ebdbd81e4a54cb16afb17",
+      "redactions": [
+        [
+          0,
+          0,
+          1147,
+          140
+        ]
+      ]
+    },
+    {
+      "file": "Mainline_023_Target.png",
+      "entry": "Mainline_023_Target",
+      "source_sha256": "c5b77f67703f417eccfff629cacdef6c8fd14caa6ea4a02634c96cc521fc9d2e",
+      "sha256": "40c37550f9a352cff0146afade43894977f6ab49253d2828091956248d02de94",
+      "redactions": [
+        [
+          0,
+          0,
+          1152,
+          140
+        ]
+      ]
+    }
+  ]
+}

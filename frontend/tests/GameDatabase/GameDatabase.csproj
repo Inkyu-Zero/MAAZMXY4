@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../../ScriptStudio/Services/GameBossBehavior.cs" Link="GameBossBehavior.cs" />
     <Compile Include="../../ScriptStudio/Services/GameDatabasePresentation.cs" Link="GameDatabasePresentation.cs" />
     <Compile Include="../../ScriptStudio/Controls/PlayerUi.cs" Link="PlayerUi.cs" />
     <PackageReference Include="Avalonia.Headless" Version="11.3.12" />

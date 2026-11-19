@@ -31,6 +31,36 @@ class RevivalAnchorAssetsTests(unittest.TestCase):
 
 @unittest.skipUnless(os.environ.get('NAVIGATION_NATIVE_TESTS') == '1', 'opt-in memory-only revival regression')
 class RevivalAnchorNativeTests(unittest.TestCase):
+    def test_free_revival_with_obscured_sentence_clicks_cancel_without_text(self):
+        from fixture_pixels import read_png_bgr
+        from battle_outcomes import BattleOutcomeMonitor
+        prompt = read_png_bgr(FIXTURES/'vip-p1-countdown10.png')
+        # The 2026-11-09 runtime read a combat digit before the sentence and
+        # missed both the whole-line template and exact OCR fallback. Retain
+        # the distinctive free-revival phrase, obscure the sentence ends,
+        # and erase cancel text/countdown while retaining the button layout.
+        prompt[310:350,424:514] = (170,120,50)
+        prompt[310:350,622:852] = (170,120,50)
+        prompt[428:452,622:702] = (170,120,50)
+
+        def inspect(context, controller, events):
+            policy = dict(failed_next=['Result_Failed'], succeeded_next=['Result_Succeeded'],
+                          default_next=['Round_PlayDone'], revive_next=['Result_RevivePrompt'])
+            monitor = BattleOutcomeMonitor(context, policy)
+            try:
+                monitor.probe()
+                self.assertIsNone(monitor.error)
+                self.assertEqual(monitor.branch, policy['revive_next'])
+            finally:
+                monitor.close()
+            self.assertEqual(events, [])
+            result = context.run_task('Result_DeclineRevive')
+            self.assertTrue(result and result.status.succeeded)
+            self.assertEqual([event[0] for event in events], ['down', 'up'])
+            self.assertTrue(614 <= events[0][1] < 710 and 416 <= events[0][2] < 458, events)
+
+        self.run_memory_case(inspect, prompt)
+
     def run_memory_case(self, inspect, first_frame):
         from maa.controller import CustomController
         from maa.custom_action import CustomAction
@@ -59,8 +89,9 @@ class RevivalAnchorNativeTests(unittest.TestCase):
                 try:
                     inspect(context, controller, events)
                     completed.append(True)
-                except Exception as error:
-                    errors.append(repr(error))
+                except Exception:
+                    import traceback
+                    errors.append(traceback.format_exc())
                 return not errors
 
         log = Path(os.environ.get('MAA_REVIVAL_TEST_LOG', str(ROOT / '.runtime-cache/revival-anchor')))
@@ -158,32 +189,23 @@ class RevivalAnchorNativeTests(unittest.TestCase):
                       default_next=['Round_PlayDone'],revive_next=['Result_RevivePrompt'])
 
         def inspect(context, controller, events):
-            # The semantic fallback may identify a resurrection prompt, but
+            # The revival template may identify a resurrection prompt, but
             # never authorizes a click without the complete button layout.
             obscured = prompt.copy()
             obscured[400:460,430:720] = 0
             self.assertTrue(context.run_recognition('Result_RevivePrompt', obscured).hit)
             self.assertFalse(context.run_recognition('Result_DeclineRevive', obscured).hit)
-            # The lowered template threshold can recognize this caption alone.
-            # It must never authorize a cancel click without the actual panel.
+            # A caption alone must never authorize a cancel click without the
+            # actual panel and the corresponding button layout.
             import numpy as np
             caption_only = np.full_like(prompt, (50,60,70))
             caption_only[316:350,440:810] = prompt[316:350,440:810]
             self.assertFalse(context.run_recognition('Result_DeclineRevive', caption_only).hit)
-            # Independently exercise the existing free-revival OCR fallback;
-            # it still requires a matched confirmation frame.
-            nodes = json.loads((ROOT/'assets/resource/base/pipeline/battle_outcomes.json').read_text(encoding='utf8'))
-            fallback = nodes['Result_ReviveEvidence']['recognition']['param']['any_of'][1]['recognition']
-            self.assertTrue(context.override_pipeline({'__FreeRevivalOcrOnly': dict(recognition=fallback,
-                action=dict(type='DoNothing'), next=[], post_delay=0)}))
-            self.assertTrue(context.run_recognition('__FreeRevivalOcrOnly', prompt).hit)
-            self.assertFalse(context.run_recognition('__FreeRevivalOcrOnly', caption_only).hit)
             for path in sorted((ROOT/'tests/fixtures/navigation/common-dialog').glob('*.png')):
                 other = read_png_bgr(path)
                 self.assertFalse(context.run_recognition('Result_RevivePrompt', other).hit, path.name)
                 self.assertFalse(context.run_recognition('Result_DeclineRevive', other).hit, path.name)
-            # This captured free-revival caption scored 0.858 against the SWF
-            # template. The monitor must still enter the safe decline route.
+            # The captured free-revival phrase must enter the decline route.
             monitor = BattleOutcomeMonitor(context, policy)
             try:
                 monitor.start()
