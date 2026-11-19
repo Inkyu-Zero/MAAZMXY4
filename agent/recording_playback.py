@@ -10,6 +10,7 @@ import json
 import os
 import re
 import time
+from task_control import StopQuery
 from typing import Any, Dict
 from script_studio.model import MAX_FILE_BYTES, RecordingDocument
 
@@ -174,14 +175,15 @@ def play_actions(rec, ctrl, should_stop, *, speed=1.0, monitor=None, log=print,
     # the same Agent channel.  Serialize the complete requests, not only
     # the monitor's own calls, to keep their replies matched.
     rpc_lock = monitor.rpc_lock if monitor is not None else nullcontext()
+    refresh_stop = should_stop.refresh if isinstance(should_stop, StopQuery) else should_stop
     last_geometry_probe = float('-inf')
-    def stopping():
+    def stopping(*, force=False):
         nonlocal last_geometry_probe
         try:
             if monitor is not None and monitor.interrupted:
                 return True
             with rpc_lock:
-                if should_stop():
+                if (refresh_stop if force else should_stop)():
                     return True
                 if ensure is not None and time.monotonic() - last_geometry_probe >= .1:
                     ensure()
@@ -222,7 +224,7 @@ def play_actions(rec, ctrl, should_stop, *, speed=1.0, monitor=None, log=print,
                 # Check once more immediately before dispatch, after local
                 # bookkeeping, so cancellation never schedules an old action.
                 with rpc_lock:
-                    if stopping():
+                    if stopping(force=True):
                         if not key_was_held:
                             held_keys.discard(press_key)
                         if not contact_was_held:
@@ -250,7 +252,7 @@ def play_actions(rec, ctrl, should_stop, *, speed=1.0, monitor=None, log=print,
                 held_buttons.discard(0)
         else:
             # The editor preserves the empty interval after the final event.
-            completed = wait_until(started + _total, stopping, clock) and not stopping()
+            completed = wait_until(started + _total, stopping, clock) and not stopping(force=True)
     finally:
         if monitor is not None:
             monitor.request_stop()

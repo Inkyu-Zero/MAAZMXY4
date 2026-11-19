@@ -65,6 +65,14 @@ AGENT_VERSION = "2026-10-29-managed-boundary"
 CHARACTER_NODE = "生存大冒险_角色"
 ATTR_NODE_FMT = "生存大冒险_属性_{}"
 OPTION_NODE_FMT = "生存大冒险_选项_{}"
+# 4 行选项在 1280×720 基准下的 ROI（与 pipeline 里 生存大冒险_选项_N 一致）。
+# 只在「整条重读」时用作 pipeline_override 的 roi，正常情况下直接跑节点即可。
+_OPTION_ROI = {
+    1: [375, 337, 410, 44],
+    2: [375, 407, 410, 44],
+    3: [375, 476, 410, 44],
+    4: [375, 546, 410, 44],
+}
 BULK_ATTR_NODE = "生存大冒险_属性全部"
 CONTINUE_NODE = "生存大冒险_继续冒险"
 
@@ -692,7 +700,49 @@ def _match_event(question: str) -> Optional[str]:
 
 
 def _read_options(context: Context, image: Any) -> List[str]:
-    return [_ocr(context, image, OPTION_NODE_FMT.format(i)) for i in range(1, 5)]
+    """读 4 行选项文本。
+
+    实测过一次读错：第一行正文「送唐僧去看大夫」只拿到一个字「厦」。用同一帧的重放
+    验证过，固定 ROI 本身没问题（位置、清晰度都对，四种 ROI/only_rec 组合都能读对），
+    所以原因不是坐标，而是那一帧的 OCR **返回了多段、而代码只取了第一段**——第一段
+    就是行首那个圆形项目符号被识别成一个字。
+
+    对策三条，都不改变点击位置（点击框由 `_locate_options` 另外自适应算）：
+      1. 取回全部文本，**选最长的一段**（选项正文一定比符号长）；
+      2. 若最长的一段仍然只有 1 个字，用 `only_rec=True` 把这个 ROI 整条再读一次
+         （跳过检测阶段，避免符号被单独框出来）；
+      3. 多段或重读时打日志，便于下次复核。
+    """
+    out: List[str] = []
+    for i in range(1, 5):
+        node = OPTION_NODE_FMT.format(i)
+        texts = _ocr(context, image, node, all_texts=True)
+        good = [t for t in texts if t and len(t.strip()) >= 2] or list(texts)
+        picked = max(good, key=len) if good else ""
+        if len(picked.strip()) < 2:
+            retry = _ocr(
+                context,
+                image,
+                node,
+                all_texts=True,
+                override={
+                    node: {
+                        "recognition": {
+                            "type": "OCR",
+                            "param": {"roi": _OPTION_ROI[i], "only_rec": True},
+                        }
+                    }
+                },
+            )
+            if retry:
+                cand = max(retry, key=len)
+                if len(cand.strip()) > len(picked.strip()):
+                    picked = cand
+            _log(f"选项{i} 只读到「{picked}」，已用 only_rec 重读")
+        if len(texts) > 1:
+            _log(f"选项{i} 识别到多段 {texts} -> 取最长「{picked}」")
+        out.append(picked)
+    return out
 
 
 def _match_event_by_options(option_texts: List[str]) -> Optional[str]:

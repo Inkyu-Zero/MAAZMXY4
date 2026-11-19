@@ -117,60 +117,8 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "Or",
-              "param": {
-                "any_of": [
-                  {
-                    "recognition": {
-                      "type": "TemplateMatch",
-                      "param": {
-                        "template": "bounty-candle/pause.png",
-                        "method": 1,
-                        "threshold": 0.045,
-                        "roi": [
-                          350,
-                          315,
-                          450,
-                          95
-                        ]
-                      }
-                    }
-                  },
-                  {
-                    "recognition": {
-                      "type": "TemplateMatch",
-                      "param": {
-                        "template": "bounty-candle/pause-cloudy.png",
-                        "method": 1,
-                        "threshold": 0.045,
-                        "roi": [
-                          350,
-                          315,
-                          450,
-                          95
-                        ]
-                      }
-                    }
-                  }
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": [
-                  "守卫太宗场景.png",
-                  "守卫宝烛场景.png",
-                  "飞天大盗场景.png",
-                  "遁地大盗场景.png"
-                ]
-              }
-            }
-          }
+          "Bounty_StagePause",
+          "Nav_InStage"
         ],
         "box_index": 0
       }
@@ -282,20 +230,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": [
-                  "守卫太宗场景.png",
-                  "守卫宝烛场景.png",
-                  "飞天大盗场景.png",
-                  "遁地大盗场景.png"
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -323,16 +258,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": [
-                  "设置.png"
-                ]
-              }
-            }
-          },
+          "Nav_BattleControls",
           "Result_NoRevivePrompt"
         ],
         "box_index": 0

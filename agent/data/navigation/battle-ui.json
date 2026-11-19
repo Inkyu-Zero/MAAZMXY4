@@ -20,7 +20,7 @@
   "assets": [
     {
       "path": "navigation/outcomes/revive-normal-caption.png",
-      "sha256": "e676a1a0dc77b8d4a0c195af2f7caca725e017e8c6cb041c769b3042681489ae",
+      "sha256": "5f22ae357ead392128c44de0c4a2ed37e678872b811fb22c02e9780ee4ae1dfa",
       "source_frame": "revive-normal-p1/DefineSprite_42_mc_fh/1.png",
       "source_frame_sha256": "3a5f9b4776a9a735764d9b812ff74cc3f1424b5a6b9ade5f4da0248904dea94f",
       "crop": [
@@ -30,22 +30,22 @@
         72
       ],
       "scale": 1.2203389830508475,
-      "scale_first": false,
+      "scale_first": true,
       "green_mask": false
     },
     {
       "path": "navigation/outcomes/revive-vip-caption.png",
-      "sha256": "4ee6630773975b5d81b96b370af00942a02d4dcc939dbfc308d9b125d49a1138",
+      "sha256": "81e102c0a43b64ccd137298af83a34643c95195480b5f2e94e27b6e75106048e",
       "source_frame": "revive-vip-p1/DefineSprite_42_mc_fh/1.png",
       "source_frame_sha256": "8b6b233d5eae768b8593b9572430dfda44a0a5415d274ec1f4281912d8974bc2",
       "crop": [
-        128,
+        188,
         76,
-        422,
+        275,
         99
       ],
       "scale": 1.2203389830508475,
-      "scale_first": false,
+      "scale_first": true,
       "green_mask": false
     },
     {

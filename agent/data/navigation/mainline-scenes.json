@@ -2601,36 +2601,36 @@
         {
           "template": "navigation/mainline/scene-s046-0.png",
           "box": [
-            561,
-            281,
+            781,
+            427,
             88,
             63
           ],
           "roi": [
-            491,
-            201,
+            711,
+            347,
             228,
             223
           ],
           "threshold": 0.83,
-          "sha256": "d5413af63c37e5d8d73788f1bfebd6fc28e5e64a6399a5b45311eab5d9111b53"
+          "sha256": "e243003d1f27d8c65164c9417efd7669a01c8db3cc6c1d9721ddfebf175c8b08"
         },
         {
           "template": "navigation/mainline/scene-s046-1.png",
           "box": [
-            488,
-            134,
+            976,
+            305,
             88,
             63
           ],
           "roi": [
-            418,
-            54,
+            906,
+            225,
             228,
             223
           ],
           "threshold": 0.83,
-          "sha256": "e8aa5458b9e28347e9adc9328a242922315979331c3f1b2a07acfd955f569512"
+          "sha256": "3dfdc63f6cfc6b76cac02633e3ec75ff004fd4bb59f3410dde8c61a09126482b"
         }
       ],
       "equivalent_ids": [

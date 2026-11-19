@@ -24,7 +24,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "贪妄（金蟾宝宫）-识别场景1",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "贪妄（金蟾宝宫）-刷取次数"
           },
@@ -76,47 +76,31 @@
       "type": "And",
       "param": {
         "all_of": [
-          "Nav_ClearMap",
           {
             "recognition": {
-              "type": "Or",
+              "type": "TemplateMatch",
               "param": {
-                "any_of": [
-                  {
-                    "recognition": {
-                      "type": "TemplateMatch",
-                      "param": {
-                        "template": [
-                          "金蟾宝宫.png"
-                        ]
-                      }
-                    }
-                  },
-                  {
-                    "recognition": {
-                      "type": "TemplateMatch",
-                      "param": {
-                        "template": [
-                          "navigation/stages/s65-frame1.png",
-                          "navigation/stages/s65-frame2.png",
-                          "navigation/stages/s65-frame3.png"
-                        ],
-                        "roi": [
-                          0,
-                          115,
-                          1045,
-                          500
-                        ],
-                        "method": 5
-                      }
-                    }
-                  }
-                ]
+                "template": [
+                  "navigation/mainline/s065-f1.png",
+                  "navigation/mainline/s065-f2.png",
+                  "navigation/mainline/s065-f3.png"
+                ],
+                "roi": [
+                  193,
+                  369,
+                  156,
+                  169
+                ],
+                "method": 5,
+                "green_mask": false
               }
             }
-          }
+          },
+          "Nav_Province_town6",
+          "GameManagement_NormalMap",
+          "Nav_ClearMap"
         ],
-        "box_index": 1
+        "box_index": 0
       }
     },
     "pre_delay": 0,
@@ -135,17 +119,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": [
-                  "金蟾宝宫场景.png"
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -161,17 +135,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": [
-                  "金蟾宝宫场景.png"
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },

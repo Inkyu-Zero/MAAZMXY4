@@ -24,7 +24,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "无冥（孤魂岭）-识别场景1",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "无冥（孤魂岭）-刷取次数"
           },
@@ -76,52 +76,30 @@
       "type": "And",
       "param": {
         "all_of": [
-          "Nav_ClearMap",
           {
             "recognition": {
-              "type": "Or",
+              "type": "TemplateMatch",
               "param": {
-                "any_of": [
-                  {
-                    "recognition": {
-                      "type": "TemplateMatch",
-                      "param": {
-                        "template": [
-                          "孤魂岭.png"
-                        ],
-                        "roi": [
-                          240,
-                          60,
-                          220,
-                          230
-                        ]
-                      }
-                    }
-                  },
-                  {
-                    "recognition": {
-                      "type": "TemplateMatch",
-                      "param": {
-                        "template": [
-                          "navigation/stages/s47-frame1.png",
-                          "navigation/stages/s47-frame3.png"
-                        ],
-                        "method": 5,
-                        "roi": [
-                          240,
-                          60,
-                          220,
-                          230
-                        ]
-                      }
-                    }
-                  }
-                ]
+                "template": [
+                  "navigation/mainline/s047-f1.png",
+                  "navigation/mainline/s047-f3.png"
+                ],
+                "roi": [
+                  273,
+                  106,
+                  150,
+                  138
+                ],
+                "method": 5,
+                "green_mask": false
               }
             }
-          }
+          },
+          "Nav_Province_town5",
+          "GameManagement_NormalMap",
+          "Nav_ClearMap"
         ],
-        "box_index": 1
+        "box_index": 0
       }
     },
     "pre_delay": 0,
@@ -140,17 +118,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": [
-                  "孤魂岭场景.png"
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -166,17 +134,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": [
-                  "孤魂岭场景.png"
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },

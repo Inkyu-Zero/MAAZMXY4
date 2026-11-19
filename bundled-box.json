@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "version": "1.9",
+  "source_url": "https://gitee.com/duskeye/zmBox/releases/download/v1.9/zmBox_x64.zip",
+  "source_sha256": "80bf750ed356bc0774ba78aa772b4352484de3a1cc7467939b79dfff38d0462a",
+  "exe_path": "造梦盒子/zmBox.exe",
+  "files": [
+    {
+      "path": "造梦盒子/AppEntry.swf",
+      "sha256": "d7a179998b6fc07e7a5efc87bdacb21399d5ac48f7ac5e87ef2f0743d5ee99db"
+    },
+    {
+      "path": "造梦盒子/zmBox.exe",
+      "sha256": "ab0606d001d6577e8978f0f0c9b70d68a98a7bd8e63df4a0d4aca406fd6f711f"
+    },
+    {
+      "path": "造梦盒子/META-INF/signatures.xml",
+      "sha256": "7046835e58a549894a021a6b6b56c46df428329d413c47bf1369b8724e5f9ac2"
+    },
+    {
+      "path": "造梦盒子/META-INF/AIR/application.xml",
+      "sha256": "5e4c42b45390e7fbd473aeb06283e524a4f5d9666aa2a54a98f2df315360db17"
+    },
+    {
+      "path": "造梦盒子/META-INF/AIR/hash",
+      "sha256": "60d3a988c68d78cfb9c190f25c68af2c08443dbc017054165ee41f3d25d33b73"
+    },
+    {
+      "path": "造梦盒子/META-INF/AIR/license.txt",
+      "sha256": "efead909222547d5547ae7db20569554e8b935f65abe05e53a0d85b88a3c9f4c"
+    },
+    {
+      "path": "造梦盒子/Adobe AIR/Versions/1.0/Adobe AIR.dll",
+      "sha256": "ee63f1732fa1358829909600eb98cfe7e9250d6e6d31e440303a633575043b4c"
+    },
+    {
+      "path": "造梦盒子/NOTICE.txt",
+      "sha256": "fac26d8a29b2ece2d6504a46b9623c108e5fa2b9c38b4775472c7e0f2f221305"
+    }
+  ]
+}

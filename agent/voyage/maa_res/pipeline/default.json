@@ -1,0 +1,7 @@
+{
+  "玩家船": {
+    "recognition": "TemplateMatch",
+    "template": "tpl_player.png",
+    "threshold": 0.7
+  }
+}

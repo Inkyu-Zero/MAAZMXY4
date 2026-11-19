@@ -24,7 +24,7 @@
             "max_retries": 3
           },
           "round_flow": {
-            "scene_node": "伽岚（万世冥阁）-识别场景1",
+            "scene_node": "Nav_InStage",
             "load_timeout_ms": 15000,
             "repeat_node": "伽岚（万世冥阁）-刷取次数"
           },
@@ -141,17 +141,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": [
-                  "万世冥阁场景.png"
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },
@@ -167,17 +157,7 @@
       "type": "And",
       "param": {
         "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": [
-                  "万世冥阁场景.png"
-                ]
-              }
-            }
-          },
-          "Result_NoRevivePrompt"
+          "Nav_InStage"
         ]
       }
     },

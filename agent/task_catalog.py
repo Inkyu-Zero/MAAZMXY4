@@ -251,10 +251,8 @@ def inspect_saved_recording(root, reference):
     document = RecordingDocument.from_dict(data)
     document.to_dict(strict=True)
     if not data.get('actions'): raise ValueError('任务不能绑定空白脚本。')
-    if document.diagnostics:
-        print('[task_catalog] 脚本存在 %d 条诊断，仍然继续' % len(document.diagnostics), file=__import__('sys').stderr, flush=True)
-    if min(document.base) != 720:
-        print('[task_catalog] 脚本基准为 %dx%d，非 720，按录制尺寸回放' % (document.base[0], document.base[1]), file=__import__('sys').stderr, flush=True)
+    if document.diagnostics: raise ValueError('请先修复脚本中的操作诊断。')
+    if min(document.base) != 720: raise ValueError('请先将脚本转换为本工程720坐标。')
     return dict(file=path.name, path=str(path), sha256=hashlib.sha256(raw).hexdigest(), base=list(document.base))
 
 

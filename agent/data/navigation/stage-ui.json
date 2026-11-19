@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "viewport": [
+    1148,
+    720
+  ],
+  "assets": [
+    {
+      "path": "navigation/stage/wushuang-idle.png",
+      "state": "idle",
+      "crop": [
+        14,
+        641,
+        92,
+        681
+      ],
+      "source_frame": "candle-battle-ready.png",
+      "source_sha256": "5a2010c09ff3637870a81345a58b6ab10bb187ab90d0ef30b618300f12a3a51c",
+      "sha256": "fe14aefbf012a27dbcaf8deb27c8e01d3481519e5633642a007725404785c2ae",
+      "source": "Archived 2026-10/11 gameplay frame; public fixed Wushuang button glyphs only"
+    },
+    {
+      "path": "navigation/stage/wushuang-ready.png",
+      "state": "ready",
+      "crop": [
+        14,
+        641,
+        92,
+        681
+      ],
+      "source_frame": "2026.11.10-16.48.29.854_悬赏（遁地大盗）-刷取次数.png",
+      "source_sha256": "4d4ceded68d841c983b9c190eb269702311d2b6ff7d7ceb01b861c9b6cea1219",
+      "sha256": "db3557c5a3fc596fc145c9ca4aba7ac06ea4bd30ec1dc76ffe84f3cc8bc5c9e1",
+      "source": "Archived 2026-10/11 gameplay frame; public fixed Wushuang button glyphs only"
+    }
+  ],
+  "scope": "Shared stage presence; no map/background/Boss identity or energy amount"
+}

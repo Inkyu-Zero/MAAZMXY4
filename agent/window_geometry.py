@@ -18,8 +18,9 @@ LAYOUT_TOLERANCE = 8  # Existing short-side-720 recording compatibility.
 
 def validate_base(base):
     if (not isinstance(base, (list, tuple)) or len(base) != 2
-            or any(type(v) is not int or not 1 <= v <= 8192 for v in base)):
-        raise ValueError('脚本窗口基准必须是两个 1~8192 的整数。')
+            or any(type(v) is not int or not 1 <= v <= 8192 for v in base)
+            or min(base) != 720):
+        raise ValueError('脚本窗口基准必须为短边 720 的有效尺寸。')
     return tuple(base)
 
 
@@ -208,10 +209,7 @@ class WindowLease:
                 else:
                     stable_since = None
                 if now >= end:
-                    cur = _size(current)
-                    print('[window_geometry] 无法把客户区调整为 %dx%d，改用实际 %dx%d 继续。' % (target[0], target[1], cur[0], cur[1]), file=__import__('sys').stderr, flush=True)
-                    self.base = (int(cur[0]), int(cur[1]))
-                    return cur
+                    raise RuntimeError(f'无法将游戏客户区稳定调整为脚本比例（目标 {target[0]}×{target[1]}），已停止输入。')
                 time.sleep(.05)
         self.client_size = _size(current)
         self.ensure()

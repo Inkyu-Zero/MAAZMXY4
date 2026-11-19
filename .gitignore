@@ -521,3 +521,12 @@ interface.json.bak*
 /dist/
 /dist_pr5/
 /temp/
+
+# 游戏客户端（第三方二进制，不入库）
+/造梦盒子/
+# Inno Setup 卸载信息（本地安装产生）
+/unins000.dat
+/unins000.exe
+/agent/voyage/_tmp_old/
+/agent/voyage/debug/
+/agent/voyage/_old/

@@ -1216,8 +1216,13 @@ def match_event_by_options(
 ) -> Optional[str]:
     """按 4 行选项文本反查事件。
 
-    界面选项顺序与题库顺序一致（已用「危险任务」验证），故逐行配对求平均相似度，
-    取最高分的事件；低于阈值则返回 None（交给采集分支）。
+    界面选项顺序与题库顺序一致（已用「危险任务」验证），故逐行配对求相似度。
+
+    判定分取**去掉最差一行后的平均分**：选项 OCR 偶尔会把某一行整行糊成一两个字
+    （实测「选唐僧带着去大夫」被读成「厦」），若按 4 行平均，正确事件会被压到阈值
+    以下 → 整题判成「未知事件」而不点击 → 游戏停在原地等点击，表现出来就是卡死。
+    去掉最差一行仍要求过阈值，既能容一次 OCR 失误，又不会把「4 行里有 2 行对不上」
+    的事件放进来。
     """
     if not option_texts or not any(option_texts):
         return None
@@ -1226,11 +1231,17 @@ def match_event_by_options(
         lib_options = body.get("options") or []
         if len(lib_options) != len(option_texts):
             continue
-        total = sum(
+        sims = [
             text_similarity(opt.get("text", ""), ocr)
             for opt, ocr in zip(lib_options, option_texts)
-        )
-        scored.append((total / len(option_texts), name))
+        ]
+        if not sims:
+            continue
+        if len(sims) > 3:
+            score = (sum(sims) - min(sims)) / (len(sims) - 1)
+        else:
+            score = sum(sims) / len(sims)
+        scored.append((score, name))
     if not scored:
         return None
     best_score, best_name = max(scored)

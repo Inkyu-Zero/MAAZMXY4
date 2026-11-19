@@ -38,6 +38,7 @@ import sys
 import threading
 import time
 from typing import Any, Dict, List, Optional
+from task_control import StopQuery
 
 from maa.agent.agent_server import AgentServer
 from maa.custom_action import CustomAction
@@ -365,7 +366,7 @@ class BattlePlay(CustomAction):
                         self._log('[battle_play] 战斗结果监测未启动：' + str(error))
                         return False
                 with hold_background_mouse(ctrl):
-                    completed = playback.play_actions(rec, ctrl, lambda: context.tasker.stopping,
+                    completed = playback.play_actions(rec, ctrl, StopQuery(lambda: context.tasker.stopping),
                         speed=speed, monitor=monitor, log=self._log,
                         ensure=lease.ensure if lease else None,
                         clock=lease.clock if lease else time.monotonic, wait_until=_sleep_until,
@@ -379,6 +380,13 @@ class BattlePlay(CustomAction):
                 raise
             return False
         if monitor is not None:
+            if isinstance(monitor.error, UnrecognizedDialog):
+                # play_actions has released every held input and joined the
+                # monitor. Retry only this exceptional recognition state.
+                try:
+                    monitor.recheck_unknown_dialog()
+                except Exception as error:
+                    monitor.error = error
             if monitor.error is not None:
                 self._log('[battle_play] 结果监测停止：' + str(monitor.error))
                 # Preserve the exact failure even if releasing input dismisses

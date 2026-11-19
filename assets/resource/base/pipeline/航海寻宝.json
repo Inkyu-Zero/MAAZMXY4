@@ -1,0 +1,31 @@
+{
+    "航海寻宝_入口": {
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "voyage_run"
+            }
+        },
+        "focus": {
+            "Node.Action.Succeeded": {
+                "content": "./debug/voyage.log",
+                "display": "log"
+            }
+        },
+        "next": [
+            "航海寻宝_结束"
+        ]
+    },
+    "航海寻宝_结束": {
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "StopTask"
+        },
+        "next": []
+    }
+}

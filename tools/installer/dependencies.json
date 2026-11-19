@@ -21,12 +21,13 @@
     {
       "id": "vcredist",
       "file": "vc_redist.x64.exe",
-      "version": "14.51.36247.0",
+      "version": "14.52.37029.0",
       "minimum": "14.51.36247.0",
       "url": "https://aka.ms/vc14/vc_redist.x64.exe",
-      "sha256": "843068991daaa1f73ad9f6239bce4d0f6a07a51f18c37ea2a867e9beca71295c",
+      "sha256": "9c02c9ed120f671b900e6b9471d890e3b2414117a7e53f4ae2e855466fa2b7c9",
       "publisher": "Microsoft Corporation",
-      "license": "https://visualstudio.microsoft.com/license-terms/vs2022-cruntime/"
+      "license": "https://visualstudio.microsoft.com/license-terms/vs2022-cruntime/",
+      "sha512": "e38e75ccd3c4c38713afb452fa70f56a78006cdac14c9404836fa43fb02e5cec8b0fe20f7f492c20c5a7f4bf7cc6007c69a711d11e9869da41763b8e224fa399"
     }
   ]
 }

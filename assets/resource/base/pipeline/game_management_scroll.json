@@ -117,16 +117,18 @@
         "end": true,
         "end_offset": [
           0,
-          -280,
+          0,
           0,
           0
         ],
-        "duration": 450
+        "duration": 900,
+        "end_hold": 200
       }
     },
     "next": [],
     "post_delay": 350,
-    "timeout": 3000
+    "timeout": 3000,
+    "pre_delay": 0
   },
   "GameManagement_town5_DragBack": {
     "recognition": {

@@ -1061,6 +1061,11 @@
     ],
     "stage": [
       "quest_panel"
+    ],
+    "arena": [
+      "arena",
+      "daily_menu",
+      "sumeru"
     ]
   },
   "fallback": [
@@ -1169,6 +1174,9 @@
     "Mainline_059_Target": "town5",
     "Mainline_060_Target": "town5",
     "Mainline_061_Target": "town5",
-    "Mainline_062_Target": "town5"
+    "Mainline_062_Target": "town5",
+    "Mainline_063_Target": "town6",
+    "Mainline_064_Target": "town6",
+    "Mainline_065_Target": "town6"
   }
 }
