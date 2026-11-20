@@ -8,6 +8,14 @@
 import sys
 import time
 
+import site
+from pathlib import Path
+
+site.addsitedir(str(Path(sys.executable).parent / "voyage-site"))
+import win32gui
+import win32process
+
+HWND, PID = map(int, sys.argv[1:])
 sys.argv = [sys.argv[0]]
 
 import cv2
@@ -19,33 +27,21 @@ from zmxy4_treasure_hunt.voyage.core import action_manager as AM
 from zmxy4_treasure_hunt.voyage import env as EV
 from zmxy4_treasure_hunt.voyage.env import Voyager, auto_loop
 
-def _pick_game_window():
-    """挑出真正的游戏窗口。
-
-    关键字「造梦」会连资源管理器一起命中（文件夹名就叫 MAA造梦西游4-release），
-    而被最小化的窗口客户区是 0x0，后面 cv2.resize 会直接断言失败、任务「瞬间结束」。
-    所以按「标题像游戏 > 面积大 > 坐标正常」挑一个，并且把候选打出来便于排查。
-    """
-    cands = R.list_windows("造梦")
-    good = []
-    for hwnd, title, box in cands:
-        w, h = box[2] - box[0], box[3] - box[1]
-        if w < 200 or h < 150 or box[0] < -5000 or box[1] < -5000:
-            continue
-        if ("资源管理器" in title) or ("Explorer" in title):
-            continue
-        score = 2 if "造梦盒子" in title else 1
-        good.append((score, w * h, hwnd, title, box))
-    if not good:
-        raise SystemExit(
-            "没找到游戏窗口。标题含「造梦」的可见窗口：%s"
-            % [(t, b) for _, t, b in cands]
-        )
-    good.sort(key=lambda x: (x[0], x[1]), reverse=True)
-    return good[0][2], good[0][3], good[0][4]
+def _bound_window():
+    if not HWND or not PID or win32process.GetWindowThreadProcessId(HWND)[1] != PID:
+        raise RuntimeError("已绑定的造梦盒子窗口已关闭或变更。")
+    return HWND
 
 
-HWND, TITLE, BOX = _pick_game_window()
+def _post(msg, key, flags):
+    return win32gui.PostMessage(_bound_window(), msg, key, flags)
+
+
+TITLE = win32gui.GetWindowText(_bound_window())
+left, top, right, bottom = win32gui.GetClientRect(HWND)
+if right - left < 200 or bottom - top < 150 or win32gui.IsIconic(HWND):
+    raise SystemExit("已绑定窗口已最小化或客户区过小，请还原造梦盒子窗口。")
+BOX = (*win32gui.ClientToScreen(HWND, (left, top)), *win32gui.ClientToScreen(HWND, (right, bottom)))
 _HWND_CACHE = {"hwnd": HWND}
 W, H = BOX[2] - BOX[0], BOX[3] - BOX[1]
 
@@ -81,7 +77,7 @@ import zm_grab as _zg
 
 def _capture(box=None):
     _t0 = time.perf_counter()
-    img = _zg.grab(HWND, W, H)
+    img = _zg.grab(_bound_window(), W, H)
     _PROF["cap"] += time.perf_counter() - _t0
     # 顺手缓存一帧 BGR：门检测和白块同步都从这里拿，
     # 别再自己截图 —— 一次 PrintWindow 要 40~500ms，多截一次就把主循环拖死。
@@ -94,20 +90,17 @@ GW.GameWindow.capture_screen = lambda self, box=None: _capture(box)
 
 # 按键同理：win32api.keybd_event 是全局键，窗口不在前台就全打在别的窗口上。
 # 换成 PostMessage 直接投给游戏窗口。
-import ctypes as _ct
 
 import win32api
 import win32con
 
-_u32 = _ct.windll.user32
-_orig_keybd = win32api.keybd_event
 
 
 def _keybd(vk, bscan=0, dwflags=0, extra=0):
     if dwflags & win32con.KEYEVENTF_KEYUP:
-        _u32.PostMessageW(HWND, 0x101, vk, 0)     # WM_KEYUP
+        _post(0x101, vk, 0)     # WM_KEYUP
     else:
-        _u32.PostMessageW(HWND, 0x100, vk, 0)     # WM_KEYDOWN
+        _post(0x100, vk, 0)     # WM_KEYDOWN
 
 
 win32api.keybd_event = _keybd
@@ -116,7 +109,7 @@ win32api.keybd_event = _keybd
 def _clear_keys():
     """把 WASD+J 全部松一遍（清掉上一次被 kill 时残留的按住状态）。"""
     for ch in ("W", "A", "S", "D", "J"):
-        _u32.PostMessageW(HWND, 0x101, ord(ch), 0)
+        _post(0x101, ord(ch), 0)
 
 
 def in_voyage(image) -> bool:
@@ -133,7 +126,7 @@ def in_voyage(image) -> bool:
 
 def _grab_bgr():
     # 只用 FramePool（用户要求，不要 PrintWindow）
-    return _zg.grab(HWND, W, H)
+    return _zg.grab(_bound_window(), W, H)
 
 
 _DET = R.OnnxDetector("weights/best.onnx")
@@ -1620,12 +1613,11 @@ ZMAP.Map.get_shot_place_direction = _shot_logged
 
 # 上一次被 kill 时 KEYUP 可能没发出去，游戏里会残留「一直按着某个方向」。
 # 启动先无条件把所有键松一遍。
-_clear = _ct.windll.user32
 for _ch in ("W", "A", "S", "D", "J"):
-    _clear.PostMessageW(HWND, 0x101, ord(_ch), 0)
-    _clear.PostMessageW(HWND, 0x101, ord(_ch), 0xC0000001)
+    _post(0x101, ord(_ch), 0)
+    _post(0x101, ord(_ch), 0xC0000001)
 print("窗口", TITLE, BOX, flush=True)
-v = Voyager(render_enabled=False)
+v = Voyager(render_enabled=False, capture_enabled=False)
 _VOYAGER_REF[0] = v
 # 传可玩区域当 window_box：仓库内部按这个尺寸把画面映射成 320x200，
 # 传整窗会把边框算进去，玩家坐标系统性偏移。
@@ -1670,7 +1662,7 @@ def _scene_ready(now, why):
         lvl, _ = _SCENE["want"]
         _SCENE["want"] = None
         try:
-            img = _zg.grab(HWND, W, H)
+            img = _zg.grab(_bound_window(), W, H)
             cv2.imwrite("debug/real/level_%d.png" % lvl, img)
             print("[场景] 已存 debug/real/level_%d.png" % lvl, flush=True)
             _verify_map_index(v, "换关", img=img, level=lvl)
@@ -1795,7 +1787,7 @@ while not in_voyage(_probe) and _waited < 12.0:
 if not in_voyage(_probe):
     _clear_keys()
     print("等了 %.0f 秒还没进副本（海面太少），退出" % _waited, flush=True)
-    raise SystemExit(0)
+    raise SystemExit(1)
 print("在副本里（等了 %.1f 秒）" % _waited, flush=True)
 print("在副本里，海面占比 %.2f" % (
     __import__("numpy").mean(
@@ -1825,9 +1817,9 @@ try:
         # 船可能正贴着某一侧的墙，按那一边当然不动 —— 四个方向轮流试，
         # 只要有一个方向能挪动就说明按键通路是好的。
         for ch in ("D", "A", "S", "W"):
-            _u32.PostMessageW(HWND, 0x100, ord(ch), 0)
+            _post(0x100, ord(ch), 0)
             time.sleep(0.5)
-            _u32.PostMessageW(HWND, 0x101, ord(ch), 0)
+            _post(0x101, ord(ch), 0)
             time.sleep(0.2)
             b = _player_px(_grab_bgr())
             if b is None:
@@ -1857,6 +1849,6 @@ finally:
     # 进程被 kill 时 keybd_event 的 KEYUP 不会发出，游戏里会残留「一直按着某个方向」
     # → 船自己顶着墙跑。这里无条件把 WASD+J 全部松掉。
     for _ch in ("W", "A", "S", "D", "J"):
-        _u32.PostMessageW(HWND, 0x101, ord(_ch), 0)
-        _u32.PostMessageW(HWND, 0x101, ord(_ch), 0xC0000001)
+        _post(0x101, ord(_ch), 0)
+        _post(0x101, ord(_ch), 0xC0000001)
     print("已释放所有按键", flush=True)

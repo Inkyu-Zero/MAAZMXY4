@@ -161,6 +161,11 @@ def main() -> int:
         return 1
 
     build(prefix)
+    subprocess.run([
+        os.path.join(prefix, "python.exe"), "-m", "pip", "install", "--only-binary=:all:",
+        "--no-deps", "--no-compile", "--target", os.path.join(PY_DIR, "voyage-site"),
+        "-r", os.path.join(ROOT, "tools", "voyage-requirements.txt"),
+    ], check=True)
     print("\n重建完成，开始自检…\n")
     return subprocess.call([sys.executable, os.path.join(ROOT, "tools", "runtime_check.py")])
 

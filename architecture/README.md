@@ -313,6 +313,10 @@ flowchart TD
 
 原生导航通过 `NAVIGATION_NATIVE_TESTS=1` 启用，真实 Agent IPC 通过 `MAA_AGENT_NATIVE_TESTS=1` 启用；部分语料还要求显式设置素材路径。缺少依赖/语料而跳过不能记为通过。测试使用独立目录和配置，构建及验证产物放在源码/日常客户端之外。
 
+### 航海寻宝（2.5.3）
+
+任务入口 `航海寻宝_入口` 调用 Agent 动作 `voyage_run`。`agent/voyage_action.py` 将当前控制器绑定的窗口句柄和进程号交给 `agent/voyage/run_zmxy4.py`，并向任务队列返回子进程结果。子进程使用 Maa FramePool 获取画面，用 `agent/voyage/weights/best.onnx` 识别船只，并读取 `agent/voyage/data/scenario.json`。重建内嵌 Python 时，`tools/setup_runtime.py` 按 `tools/voyage-requirements.txt` 安装 Windows x64 航海依赖到 `runtimes/python/voyage-site/`。这组依赖仅由航海子进程加载。
+
 ## 10. 常见误读
 
 - 运行根 `resource/` 不是规范 `assets/resource/`；安装副本不是源码树。

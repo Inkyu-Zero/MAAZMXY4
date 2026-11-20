@@ -18,11 +18,14 @@ class UpstreamMergeTests(unittest.TestCase):
     def test_alchemy_code_templates_entry_and_default_scripts_are_packaged(self):
         names={name for _,name in collect(str(ROOT))}
         for name in ('agent/jzld_action.py','agent/jzld/board.py','agent/jzld/bot.py',
+                     'agent/voyage/weights/best.onnx', 'agent/voyage/data/scenario.json',
+                     'agent/voyage_action.py', 'agent/voyage/run_zmxy4.py',
                      'agent/jzld/templates_small/tslag.png','resource/base/pipeline/九转炼丹.json',
                      'agent/recordings/manifest.json','agent/recordings/示例-移动与攻击.json'):
             self.assertIn(name,names)
         interface=json.loads((ROOT/'assets/interface.json').read_bytes())
-        self.assertEqual(len(interface['task']),14+65+1)
+        self.assertEqual(len(interface['task']),14+65+2)
+        self.assertIn('航海寻宝_入口',[t['entry'] for t in interface['task']])
         self.assertIn('Arena',[t['entry'] for t in interface['task']])
         self.assertIn('GenericScriptPlayback',[t['entry'] for t in interface['task']])
         self.assertIn('九转炼丹-入口',[t['entry'] for t in interface['task']])

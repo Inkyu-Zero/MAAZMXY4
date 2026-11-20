@@ -45,12 +45,12 @@ class FrameRateCalculator:
 
 
 class Voyager:
-    def __init__(self, timeout=5, stay_timeout=60, render_enabled=False, combat_timeout=60):
+    def __init__(self, timeout=5, stay_timeout=60, render_enabled=False, combat_timeout=60, *, capture_enabled=True):
         if not np.isfinite(combat_timeout) or combat_timeout <= 0:
             raise ValueError("combat_timeout must be positive and finite")
         self.render_enabled = render_enabled
         self.timeout = timeout
-        self.game_window = GameWindow()
+        self.game_window = GameWindow(capture_enabled=capture_enabled)
         self.window_size = None
         self.action_manager = ActionManager()
 

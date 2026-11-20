@@ -659,6 +659,7 @@
                   "navigation/outcomes/revive-layout-p1-over.png",
                   "navigation/outcomes/revive-layout-p1-down.png"
                 ],
+                "threshold": 0.9,
                 "roi": "revive_window",
                 "roi_offset": [
                   10,
@@ -718,6 +719,7 @@
                   "navigation/outcomes/revive-layout-p2-over.png",
                   "navigation/outcomes/revive-layout-p2-down.png"
                 ],
+                "threshold": 0.9,
                 "roi": "revive_window",
                 "roi_offset": [
                   10,

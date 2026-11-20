@@ -236,12 +236,7 @@ public static class TaskRecovery
                     var failure = await IdentifyWindowFailureAsync(token);
                     if (failure != null) return failure;
                 }
-                // 任务没有声明轮次边界时不会产出状态文件；按 Maa 原生结果判定。
-                if (!resume && status == MaaJobStatus.Succeeded)
-                {
-                    processor.AddLog("游戏管理：本轮任务没有声明轮次状态，按原生结果判定。");
-                    return new(TaskAttemptStatus.Success);
-                }
+                // Native tasks bypass recovery. A managed round requires its checkpoint.
                 return TaskAttempt.Fatal("缺少本轮确认状态。");
             }
             if (new FileInfo(statusPath).Length > 65536) return TaskAttempt.Fatal("本轮状态文件无效。");
