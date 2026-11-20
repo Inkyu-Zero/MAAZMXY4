@@ -21,8 +21,8 @@ public sealed class GameManagementView : UserControl
     private readonly CheckBox _interval = new() { Content = "按间隔自动重启" };
     private readonly TextBox _minutes = new() { Text = "60", Width = 80 };
     private readonly TextBox _exe = new() { Watermark = "现有造梦盒子 EXE 路径" };
-    private readonly TextBox _account = new() { Watermark = "盒子历史账号中的名称" };
-    private readonly TextBox _role = new() { Watermark = "用于核对存档的角色名" };
+    private readonly TextBox _account = new() { Watermark = "选填，留空使用盒子当前账号" };
+    private readonly TextBox _role = new() { Watermark = "选填，留空仅核对存档位" };
     private readonly ComboBox _slot = new() { ItemsSource = new[] { "存档 1", "存档 2", "存档 3", "存档 4", "存档 5", "存档 6", "存档 7", "存档 8" }, SelectedIndex = 0 };
     private readonly TextBlock _feedback = Text("", 12);
     private bool _busy;
@@ -193,7 +193,7 @@ public sealed class GameManagementView : UserControl
     private void ShowError(Exception error)
     {
         Feedback("操作提示：" + error.Message);
-        Page?.Processor.AddLog("游戏管理：" + error.Message);
+        Page?.Processor.AddLog($"error: 游戏管理操作失败。{error.Message} {TaskAttempt.ScreenshotHint}");
     }
 
     private GameManagementService Service() => Page == null

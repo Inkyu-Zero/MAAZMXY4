@@ -57,7 +57,7 @@
                 "roi": [
                   290,
                   175,
-                  135,
+                  150,
                   170
                 ]
               }
@@ -843,10 +843,10 @@
       "param": {
         "template": "navigation/templates/arena/title.png",
         "roi": [
-          499,
-          18,
-          141,
-          51
+          497,
+          16,
+          145,
+          55
         ],
         "method": 5
       }
@@ -855,10 +855,10 @@
       "type": "ColorMatch",
       "param": {
         "roi": [
-          612,
-          59,
-          2,
-          2
+          610,
+          57,
+          6,
+          6
         ],
         "method": 4,
         "lower": [
@@ -879,10 +879,10 @@
       "param": {
         "template": "navigation/templates/arena/challenge-instruction.png",
         "roi": [
-          324,
-          143,
-          243,
-          33
+          322,
+          141,
+          247,
+          37
         ],
         "method": 5
       }
@@ -891,10 +891,10 @@
       "type": "ColorMatch",
       "param": {
         "roi": [
-          341,
-          149,
-          2,
-          2
+          339,
+          147,
+          6,
+          6
         ],
         "method": 4,
         "lower": [
@@ -2569,60 +2569,27 @@
       }
     },
     "Nav_Probe_daily_arena_entry_Color": {
-      "type": "Or",
+      "type": "ColorMatch",
       "param": {
-        "any_of": [
-          {
-            "recognition": {
-              "type": "ColorMatch",
-              "param": {
-                "roi": [
-                  428,
-                  399,
-                  2,
-                  2
-                ],
-                "method": 4,
-                "lower": [
-                  232,
-                  0,
-                  0
-                ],
-                "upper": [
-                  255,
-                  32,
-                  18
-                ],
-                "count": 4
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "ColorMatch",
-              "param": {
-                "roi": [
-                  827,
-                  205,
-                  2,
-                  2
-                ],
-                "method": 4,
-                "lower": [
-                  232,
-                  0,
-                  0
-                ],
-                "upper": [
-                  255,
-                  32,
-                  18
-                ],
-                "count": 4
-              }
-            }
-          }
-        ]
+        "roi": "arena_entry",
+        "roi_offset": [
+          46,
+          17,
+          -54,
+          -38
+        ],
+        "method": 4,
+        "lower": [
+          232,
+          0,
+          0
+        ],
+        "upper": [
+          255,
+          32,
+          18
+        ],
+        "count": 4
       }
     },
     "Nav_Probe_daily_theme_entry": {
@@ -4220,11 +4187,25 @@
           100
         ]
       }
+    },
+    "Nav_Probe_map_daily_toggle": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/templates/daily-expanded/top-collapse.png",
+        "roi": [
+          840,
+          30,
+          50,
+          55
+        ],
+        "method": 5,
+        "threshold": 0.75
+      }
     }
   },
   "screens": {
     "daily_menu": {
-      "label": "须弥山日常活动菜单",
+      "label": "日常活动菜单",
       "all_of": [
         "Nav_Probe_daily_menu_scene"
       ]
@@ -4591,11 +4572,21 @@
       "base": "click",
       "all_of": [
         "Nav_See_daily_menu",
+        {
+          "sub_name": "arena_entry",
+          "recognition": {
+            "type": "And",
+            "param": {
+              "all_of": [
+                "Nav_Probe_daily_arena_entry"
+              ]
+            }
+          }
+        },
         "Nav_Probe_daily_arena_entry_Color",
-        "Nav_Probe_daily_arena_entry",
         "Result_NoRevivePrompt"
       ],
-      "box_index": 2,
+      "box_index": 1,
       "source": "daily_menu",
       "destination": "arena",
       "label": "打开竞技场对手列表",
@@ -5328,6 +5319,18 @@
       "destination": "sumeru",
       "label": "恢复暂停须弥山",
       "post_delay": 350
+    },
+    "Nav_Go_map_daily_menu": {
+      "base": "click",
+      "all_of": [
+        "Nav_ClearMap",
+        "Nav_Probe_map_daily_toggle"
+      ],
+      "box_index": 1,
+      "source": "map",
+      "destination": "daily_menu",
+      "label": "展开顶部活动菜单",
+      "post_delay": 400
     }
   },
   "origins": {
@@ -5842,7 +5845,7 @@
     "screens": {
       "daily_menu": {
         "detector": "Nav_See_daily_menu",
-        "label": "须弥山日常活动菜单",
+        "label": "日常活动菜单",
         "exit": "Nav_Close_daily_menu"
       },
       "daily_expanded": {
@@ -6754,6 +6757,15 @@
           "paused_sumeru"
         ],
         "label": "从设置菜单返回地图"
+      },
+      "Nav_Go_map_daily_menu": {
+        "from": [
+          "map"
+        ],
+        "verify": [
+          "daily_menu"
+        ],
+        "label": "展开顶部活动菜单"
       }
     },
     "routes": {
@@ -6794,9 +6806,9 @@
       ],
       "arena": [
         "Nav_Go_daily_menu_arena",
+        "Nav_Go_map_daily_menu",
         "Nav_Go_task_map_daily_menu",
-        "Nav_WorldSumeru",
-        "Nav_OpenWorld"
+        "Nav_WorldNanzhan"
       ],
       "theme": [
         "Nav_Go_daily_menu_theme",

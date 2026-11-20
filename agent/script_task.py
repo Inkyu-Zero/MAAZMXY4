@@ -13,7 +13,7 @@ from pathlib import Path
 import tempfile
 import threading
 import time
-from window_geometry import prepare_playback_controller
+from window_geometry import prepare_playback_controller, WindowLayoutError
 from mouse_input import ENTRY_PRESS_MS
 from background_mouse_guard import MouseGuardError
 from types import SimpleNamespace
@@ -251,7 +251,8 @@ def begin_round(context, parameters, state, *, frame=None):
     frame = capture(context) if frame is None else frame
     height, width = frame.shape[:2]
     if min(height, width) != 720:
-        raise ValueError('导航截图必须使用短边720的坐标。')
+        raise WindowLayoutError(f'任务启动时收到的截图为 {width}×{height}，导航要求截图短边为 720。'
+                                '请检查所选盒子窗口和控制器的截图缩放设置，然后重新连接。')
     # The bound script's one-time preparation precedes recognition: a distorted
     # map may otherwise fail before BattlePlay can ever perform its adaptation.
     playback = dict(file=recording['path'], expected_sha256=recording['sha256'],
@@ -377,7 +378,8 @@ def retry_failed_round(context, state, node_name=None, navigator=None):
     confirm_return(context, state, navigator)
     policy = state['failure_retry']
     if not policy['enabled']:
-        write_status(state, 'fatal', 'battle_failed', message='挑战失败，已返回地图；失败自动重试已关闭，本轮未计次。')
+        destination = '对手列表' if state['parameters'].get('navigation', {}).get('kind') == 'arena' else '地图'
+        write_status(state, 'fatal', 'battle_failed', message=f'挑战失败，已返回{destination}。失败自动重试已关闭，本轮未计次。')
         return False
     if policy['max_retries'] != -1 and state['failure_retries'] >= policy['max_retries']:
         write_status(state, 'fatal', 'battle_retry_exhausted', message='挑战失败重试次数已用尽，本轮未计次。')
@@ -552,6 +554,9 @@ def finish_round(context, state, navigator):
     navigator.attempts.clear()
     navigator.routine['actions']['Result_FailedReturn'].update(attempts=3, verify_ms=1500)
     navigator.routine['actions']['Nav_SettingsReturn'].update(attempts=2, timeout_ms=1500, verify_ms=1500)
+    # Arena playback may end during the last attack animation. Only a
+    # recognized battle can use this short, observation-only grace period.
+    settlement_deadline = navigator.clock() + 4
     while True:
         navigator._check()
         current = navigator._identify(allowed)
@@ -563,11 +568,11 @@ def finish_round(context, state, navigator):
                 return missing_victory(state)
             confirm_return(context, state, navigator)
             return True
-        if not recover_round_return(state, navigator):
+        if not recover_round_return(state, navigator, settlement_deadline):
             return False
 
 
-def recover_round_return(state, navigator):
+def recover_round_return(state, navigator, settlement_deadline):
     """A missed return alone enables bounded, same-frame recovery candidates."""
     current = navigator._identify(['challenge_failed', 'challenge_succeeded', 'settings_menu'])
     if current == 'revive_prompt':
@@ -589,6 +594,10 @@ def recover_round_return(state, navigator):
     elif navigator.recognize('Nav_BlockedDialog').hit:
         raise NavigationError('返回地图被其他提示阻断。', reason='blocked')
     elif requires_victory(state):
+        remaining = settlement_deadline - navigator.clock()
+        if remaining > 0 and navigator.recognize(state['parameters']['round_flow']['scene_node']).hit:
+            navigator.refresh_after_wait(min(2000, remaining * 1000))
+            return True
         return missing_victory(state)
     elif navigator.recognize('Bounty_OpenSettings').hit:
         if navigator.attempts.get('Bounty_OpenSettings', 0) >= 2:
@@ -784,6 +793,11 @@ class ScriptTaskState(CustomAction):
                     _stop_status(state, 'fatal', 'configuration_or_recording_error', message=str(failure))
             elif state is not None:
                 _stop_status(state, 'fatal', reason, message=str(error))
+            return False
+        except WindowLayoutError as error:
+            terminal = True
+            if state is not None:
+                _stop_status(state, 'fatal', 'window_layout', message=str(error))
             return False
         except (NavigationError, TimeoutError) as error:
             terminal = True

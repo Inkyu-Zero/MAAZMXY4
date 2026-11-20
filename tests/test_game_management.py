@@ -61,8 +61,21 @@ class GameManagementTests(unittest.TestCase):
                 return SimpleNamespace(status=SimpleNamespace(succeeded=True))
             def sleep(self,seconds):self.now+=seconds
         ctx=Context()
-        values=dict(account_name='历史昵称',role_name='角色名',save_slot=1,**params)
+        values=dict(account_name='历史昵称',role_name='角色名',save_slot=1) | params
         return ctx,lambda:login.restore(ctx,values,clock=lambda:ctx.now,sleep=ctx.sleep)
+
+    def test_optional_names_independently_select_checks(self):
+        for account in ('   ', '账号'):
+            for role in ('', '角色'):
+                with self.subTest(account=account,role=role):
+                    ctx,run=self.scenario([{'BoxLogin','AccountSelected'}, {'SavePage','Slot8','ChooseRole'},
+                                           {'MapReady'}], account_name=account,role_name=role,save_slot=8)
+                    run()
+                    self.assertEqual('GameManagement_AccountSelected' in ctx.recognitions,bool(account.strip()))
+                    self.assertEqual('GameManagement_SelectAccount' in ctx.patches[0],bool(account.strip()))
+                    self.assertEqual('GameManagement_ChooseRole' in ctx.patches[0],bool(role))
+                    self.assertEqual(ctx.actions,['GameManagement_LoginBox',
+                                     'GameManagement_ChooseRole' if role else 'GameManagement_Slot8'])
 
     def test_near_reference_login_frame_sizes_are_accepted_but_larger_deviations_stop(self):
         for width in (1140,1141,1147,1149,1154):
@@ -74,7 +87,7 @@ class GameManagementTests(unittest.TestCase):
         for size in ((1139,720),(1155,720),(1147,719),(1147,721)):
             with self.subTest(size=size):
                 ctx,run=self.scenario([{'MapReady'}],frame_size=size,allow_existing_map=True)
-                with self.assertRaisesRegex(ValueError,'盒子画面比例'):run()
+                with self.assertRaisesRegex(ValueError,rf'盒子画面比例.*{size[0]}×{size[1]}.*还原盒子窗口'):run()
                 self.assertEqual(ctx.recognitions,[])
                 self.assertEqual(ctx.actions,[])
 

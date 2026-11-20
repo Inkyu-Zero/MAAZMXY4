@@ -16,7 +16,44 @@ def write(path, value):
     path.write_text(json.dumps(value, ensure_ascii=False, indent=2) + '\n', encoding='utf8', newline='\n')
 
 
-def compile_library(bank):
+def landmark_geometry(root):
+    """Authored crop coordinates in the game's 940 x 590 layout."""
+    directory = root / 'agent/data/navigation'
+    hubs = json.loads((directory/'hubs.json').read_text(encoding='utf8'))
+    scroll = json.loads((directory/'stage-scroll.json').read_text(encoding='utf8'))
+    geometry = {asset['path']: (asset['crop'], asset['source_origin'], None)
+                for asset in hubs['assets'] if 'source_origin' in asset}
+    layouts = {item['source']['sha256']: (item['source_bounds'][:2], item['axis'])
+               for item in scroll['maps'] if 'source' in item}
+    for asset in scroll['assets']:
+        if 'crop' in asset and asset['source_sha256'] in layouts:
+            origin, axis = layouts[asset['source_sha256']]
+            geometry[asset['path']] = (asset['crop'], origin, axis)
+    return geometry
+
+
+def landmark_fast_roi(roi, geometry):
+    """Restrict only stationary axes, always inside the original search area."""
+    if not isinstance(roi, list) or len(roi) != 4 or not all(type(v) is int and v >= 0 for v in roi):
+        return None
+    crop, origin, scroll_axis = geometry
+    scale = 720 / 590
+    margin = 32  # Allow viewport centering and AIR layout differences, in normalized pixels.
+    result = list(roi)
+    for i, axis in enumerate(('x', 'y')):
+        if axis == scroll_axis:
+            continue
+        size = round((crop[i+2] - crop[i]) * scale)
+        position = round((origin[i] + crop[i]) * scale)
+        start = max(roi[i], position - margin)
+        end = min(roi[i] + roi[i+2], position + size + margin)
+        if end - start < size:
+            return None
+        result[i], result[i+2] = start, end - start
+    return result if result != roi else None
+
+
+def compile_library(bank, root=ROOT):
     nodes = {}
     for name, recognition in bank['recognizers'].items():
         nodes[name] = dict(deepcopy(bank['templates']['read']), recognition=recognition)
@@ -36,6 +73,7 @@ def compile_library(bank):
     # Province landmarks are boolean guards, never input coordinates. Or stops
     # after the first matching landmark while retaining every source template,
     # ROI and per-template threshold. Do not apply this to ranked click targets.
+    geometry = landmark_geometry(root)
     for name in bank.get('boolean_template_nodes', []):
         node = nodes[name]
         recognition = node['recognition']
@@ -45,7 +83,7 @@ def compile_library(bank):
                 or not templates or params.get('index', 0) != 0
                 or node.get('action', {}).get('type') != 'DoNothing'):
             raise ValueError('Boolean template guard must not select a ranked input target: ' + name)
-        alternatives = []
+        nearby, alternatives = [], []
         for index, template in enumerate(templates):
             part = deepcopy(params)
             part['template'] = template
@@ -55,7 +93,11 @@ def compile_library(bank):
                     raise ValueError('Empty template thresholds: ' + name)
                 part['threshold'] = thresholds[min(index, len(thresholds) - 1)]
             alternatives.append(dict(recognition=dict(type='TemplateMatch', param=part)))
-        node['recognition'] = dict(type='Or', param=dict(any_of=alternatives))
+            if template in geometry:
+                roi = landmark_fast_roi(part.get('roi'), geometry[template])
+                if roi:
+                    nearby.append(dict(recognition=dict(type='TemplateMatch', param=dict(part, roi=roi))))
+        node['recognition'] = dict(type='Or', param=dict(any_of=nearby + alternatives))
     # Unused source probes stay in the source bank, not in the loaded pipeline.
     used = set(bank.get('public_recognizers', []))
     used.update('Nav_See_' + ident for ident in bank['screens'])
@@ -100,7 +142,7 @@ def build(root=ROOT):
     bank = json.loads((root / 'tools/navigation_library.json').read_text(encoding='utf8'))
     from mainline_tasks import stages, names
     bank['routines']['stages'].update({names(stage)['target']:stage['town'] for stage in stages(root)})
-    nodes = compile_library(bank)
+    nodes = compile_library(bank, root)
     write(root / 'assets/resource/base/pipeline/navigation.json', nodes)
     write(root / 'agent/data/navigation/routines.json', bank['routines'])
     return nodes

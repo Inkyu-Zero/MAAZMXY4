@@ -466,7 +466,7 @@
                         "roi": [
                           290,
                           175,
-                          135,
+                          150,
                           170
                         ]
                       }
@@ -1383,10 +1383,10 @@
               "type": "ColorMatch",
               "param": {
                 "roi": [
-                  612,
-                  59,
-                  2,
-                  2
+                  610,
+                  57,
+                  6,
+                  6
                 ],
                 "method": 4,
                 "lower": [
@@ -1409,10 +1409,10 @@
               "type": "ColorMatch",
               "param": {
                 "roi": [
-                  341,
-                  149,
-                  2,
-                  2
+                  339,
+                  147,
+                  6,
+                  6
                 ],
                 "method": 4,
                 "lower": [
@@ -1436,10 +1436,10 @@
               "param": {
                 "template": "navigation/templates/arena/title.png",
                 "roi": [
-                  499,
-                  18,
-                  141,
-                  51
+                  497,
+                  16,
+                  145,
+                  55
                 ],
                 "method": 5
               }
@@ -1452,10 +1452,10 @@
               "param": {
                 "template": "navigation/templates/arena/challenge-instruction.png",
                 "roi": [
-                  324,
-                  143,
-                  243,
-                  33
+                  322,
+                  141,
+                  247,
+                  37
                 ],
                 "method": 5
               }
@@ -3193,58 +3193,24 @@
         "all_of": [
           "Nav_See_daily_menu",
           {
-            "sub_name": "Nav_Probe_daily_arena_entry_Color",
+            "sub_name": "arena_entry",
             "recognition": {
-              "type": "Or",
+              "type": "And",
               "param": {
-                "any_of": [
+                "all_of": [
                   {
+                    "sub_name": "Nav_Probe_daily_arena_entry",
                     "recognition": {
-                      "type": "ColorMatch",
+                      "type": "TemplateMatch",
                       "param": {
+                        "template": "navigation/templates/daily-expanded/menu-arena.png",
                         "roi": [
-                          428,
-                          399,
-                          2,
-                          2
+                          370,
+                          175,
+                          480,
+                          255
                         ],
-                        "method": 4,
-                        "lower": [
-                          232,
-                          0,
-                          0
-                        ],
-                        "upper": [
-                          255,
-                          32,
-                          18
-                        ],
-                        "count": 4
-                      }
-                    }
-                  },
-                  {
-                    "recognition": {
-                      "type": "ColorMatch",
-                      "param": {
-                        "roi": [
-                          827,
-                          205,
-                          2,
-                          2
-                        ],
-                        "method": 4,
-                        "lower": [
-                          232,
-                          0,
-                          0
-                        ],
-                        "upper": [
-                          255,
-                          32,
-                          18
-                        ],
-                        "count": 4
+                        "method": 5
                       }
                     }
                   }
@@ -3253,24 +3219,35 @@
             }
           },
           {
-            "sub_name": "Nav_Probe_daily_arena_entry",
+            "sub_name": "Nav_Probe_daily_arena_entry_Color",
             "recognition": {
-              "type": "TemplateMatch",
+              "type": "ColorMatch",
               "param": {
-                "template": "navigation/templates/daily-expanded/menu-arena.png",
-                "roi": [
-                  370,
-                  175,
-                  480,
-                  255
+                "roi": "arena_entry",
+                "roi_offset": [
+                  46,
+                  17,
+                  -54,
+                  -38
                 ],
-                "method": 5
+                "method": 4,
+                "lower": [
+                  232,
+                  0,
+                  0
+                ],
+                "upper": [
+                  255,
+                  32,
+                  18
+                ],
+                "count": 4
               }
             }
           },
           "Result_NoRevivePrompt"
         ],
-        "box_index": 2
+        "box_index": 1
       }
     }
   },
@@ -6083,6 +6060,45 @@
       }
     }
   },
+  "Nav_Go_map_daily_menu": {
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "next": [],
+    "post_delay": 400,
+    "pre_delay": 0,
+    "rate_limit": 200,
+    "timeout": 1500,
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          "Nav_ClearMap",
+          {
+            "sub_name": "Nav_Probe_map_daily_toggle",
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/daily-expanded/top-collapse.png",
+                "roi": [
+                  840,
+                  30,
+                  50,
+                  55
+                ],
+                "method": 5,
+                "threshold": 0.75
+              }
+            }
+          }
+        ],
+        "box_index": 1
+      }
+    }
+  },
   "Nav_StageOverlay": {
     "recognition": {
       "type": "Or",
@@ -6291,6 +6307,34 @@
               "param": {
                 "template": "navigation/hubs/town1-0.png",
                 "roi": [
+                  487,
+                  261,
+                  156,
+                  143
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/hubs/town1-1.png",
+                "roi": [
+                  456,
+                  481,
+                  156,
+                  119
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/hubs/town1-0.png",
+                "roi": [
                   120,
                   135,
                   920,
@@ -6327,6 +6371,34 @@
       "type": "Or",
       "param": {
         "any_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/hubs/town2-0.png",
+                "roi": [
+                  578,
+                  163,
+                  156,
+                  143
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/hubs/town2-1.png",
+                "roi": [
+                  914,
+                  310,
+                  126,
+                  143
+                ]
+              }
+            }
+          },
           {
             "recognition": {
               "type": "TemplateMatch",
@@ -6375,6 +6447,34 @@
               "param": {
                 "template": "navigation/hubs/town3-0.png",
                 "roi": [
+                  670,
+                  236,
+                  156,
+                  143
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/hubs/town3-1.png",
+                "roi": [
+                  304,
+                  310,
+                  156,
+                  143
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/hubs/town3-0.png",
+                "roi": [
                   120,
                   135,
                   920,
@@ -6417,6 +6517,34 @@
               "param": {
                 "template": "navigation/hubs/town4-0.png",
                 "roi": [
+                  914,
+                  481,
+                  126,
+                  119
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/hubs/town4-1.png",
+                "roi": [
+                  853,
+                  334,
+                  156,
+                  143
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/hubs/town4-0.png",
+                "roi": [
                   120,
                   135,
                   920,
@@ -6453,6 +6581,90 @@
       "type": "Or",
       "param": {
         "any_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town5-00.png",
+                "roi": [
+                  50,
+                  420,
+                  990,
+                  143
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town5-01.png",
+                "roi": [
+                  50,
+                  420,
+                  990,
+                  143
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town5-02.png",
+                "roi": [
+                  50,
+                  395,
+                  990,
+                  143
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town5-03.png",
+                "roi": [
+                  50,
+                  322,
+                  990,
+                  143
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town5-04.png",
+                "roi": [
+                  50,
+                  420,
+                  990,
+                  143
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town5-05.png",
+                "roi": [
+                  50,
+                  420,
+                  990,
+                  143
+                ]
+              }
+            }
+          },
           {
             "recognition": {
               "type": "TemplateMatch",
@@ -6551,6 +6763,370 @@
       "type": "Or",
       "param": {
         "any_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town6-23.png",
+                "roi": [
+                  542,
+                  120,
+                  156,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town6-03.png",
+                "roi": [
+                  639,
+                  120,
+                  156,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town6-13.png",
+                "roi": [
+                  688,
+                  120,
+                  156,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town6-08.png",
+                "roi": [
+                  493,
+                  120,
+                  156,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town6-18.png",
+                "roi": [
+                  493,
+                  120,
+                  156,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town6-00.png",
+                "roi": [
+                  493,
+                  120,
+                  156,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town6-01.png",
+                "roi": [
+                  493,
+                  120,
+                  156,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town6-02.png",
+                "roi": [
+                  883,
+                  120,
+                  156,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town6-04.png",
+                "roi": [
+                  639,
+                  120,
+                  156,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town6-05.png",
+                "roi": [
+                  786,
+                  120,
+                  156,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town6-06.png",
+                "roi": [
+                  834,
+                  120,
+                  156,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town6-07.png",
+                "roi": [
+                  737,
+                  120,
+                  156,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town6-09.png",
+                "roi": [
+                  639,
+                  120,
+                  156,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town6-10.png",
+                "roi": [
+                  590,
+                  120,
+                  156,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town6-11.png",
+                "roi": [
+                  737,
+                  120,
+                  156,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town6-12.png",
+                "roi": [
+                  493,
+                  120,
+                  156,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town6-14.png",
+                "roi": [
+                  493,
+                  120,
+                  156,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town6-15.png",
+                "roi": [
+                  834,
+                  120,
+                  156,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town6-16.png",
+                "roi": [
+                  834,
+                  120,
+                  156,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town6-17.png",
+                "roi": [
+                  639,
+                  120,
+                  156,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town6-19.png",
+                "roi": [
+                  883,
+                  120,
+                  156,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town6-20.png",
+                "roi": [
+                  834,
+                  120,
+                  156,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town6-21.png",
+                "roi": [
+                  688,
+                  120,
+                  156,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town6-22.png",
+                "roi": [
+                  590,
+                  120,
+                  156,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town6-24.png",
+                "roi": [
+                  737,
+                  120,
+                  156,
+                  480
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/town6-25.png",
+                "roi": [
+                  737,
+                  120,
+                  156,
+                  480
+                ]
+              }
+            }
+          },
           {
             "recognition": {
               "type": "TemplateMatch",

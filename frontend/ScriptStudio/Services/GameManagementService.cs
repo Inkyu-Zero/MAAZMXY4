@@ -155,11 +155,11 @@ public sealed class GameManagementService : IDisposable
         return process.MainModule?.FileName ?? throw new InvalidOperationException("无法读取所选窗口的程序路径。");
     }
 
-    public void Arm(bool requireLogin = true)
+    public void Arm()
     {
         if (_attentionRequired != null) throw new InvalidOperationException(_attentionRequired);
         var options = Options;
-        options.Validate(requireTarget: true, requireLogin: requireLogin);
+        options.Validate(requireTarget: true);
         VerifyBox(options.ExePath);
         var verified = TaskRecovery.CaptureManagedTarget(_processor, options.ExePath);
         var identity = verified.Process;
@@ -182,10 +182,10 @@ public sealed class GameManagementService : IDisposable
     private async Task StartSelectedAsync()
     {
         _attentionRequired = null;
-        Options.Validate(requireTarget: true, requireLogin: false); VerifyBox(Options.ExePath);
+        Options.Validate(requireTarget: true); VerifyBox(Options.ExePath);
         if (_processor.ViewModel?.CurrentDevice is DesktopWindowInfo window && WindowPid(window.Handle) != 0)
         {
-            Arm(requireLogin: false);
+            Arm();
             await OperateAsync("connect", false, _lifetime.Token);
             return;
         }
@@ -234,7 +234,7 @@ public sealed class GameManagementService : IDisposable
         }
         _attentionRequired = null;
         if (OwnedLaunch() == null || _processor.ViewModel?.CurrentDevice is DesktopWindowInfo selected && WindowPid(selected.Handle) != 0)
-            Arm(requireLogin: false);
+            Arm();
         await OperateAsync("restart", false, _lifetime.Token);
     }
 
@@ -281,17 +281,16 @@ public sealed class GameManagementService : IDisposable
                 ScriptStudioGuard.GameManagementOperations++;
                 ownsGuard = true;
             }
-            Options.Validate(requireTarget: true, requireLogin: operation != "close" && Options.HasLogin); VerifyBox(Options.ExePath);
+            Options.Validate(requireTarget: true); VerifyBox(Options.ExePath);
             Log(operation == "close" ? "正在关闭已核验的造梦盒子。" : "正在重建盒子会话，停止旧输入并重新核验窗口。");
             var selected = _processor.ViewModel?.CurrentDevice as DesktopWindowInfo;
             var owned = selected == null || WindowPid(selected.Handle) == 0 ? OwnedLaunch() : null;
             var result = await TaskRecovery.ManageAsync(_processor, Options, operation, execute ?? ExecuteAsync, token, owned);
             if (result.Status != TaskAttemptStatus.Ready)
-                throw new IOException("恢复未完成：" + result.Reason + "；请处理登录或存档问题后重试。");
+                throw new IOException("恢复未完成。" + result.FailureText);
             lock (_sync) { _schedule.CompleteRestart(Clock); _manualRestart = false; }
-            if (operation != "close") Arm(requireLogin: Options.HasLogin);
-            Log(operation == "close" ? "盒子已关闭，自动监测已停止。" : Options.HasLogin
-                ? "盒子已就绪，账号、存档及地图检查完成。" : "已连接盒子窗口，请在盒子内完成登录；自动续跑资料可稍后填写。");
+            if (operation != "close") Arm();
+            Log(operation == "close" ? "盒子已关闭，自动监测已停止。" : "盒子已就绪，已到达地图。");
         }
         catch
         {

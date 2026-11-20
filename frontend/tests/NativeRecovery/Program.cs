@@ -60,12 +60,15 @@ Test("terminal unknown navigation checkpoint follows failure toggle and bounded 
         ["status"] = "recoverable", ["reason"] = "task_failed", ["navigation_failure"] = "unknown", ["failure_phase"] = "navigate" };
     var failure = TaskRecoveryPolicy.ReadCheckpoint(checkpoint, "round", "default", false);
     Require(failure.Status == TaskAttemptStatus.Recoverable);
+    Require(failure.FailureText.Contains("无法识别") && failure.FailureText.Contains("起始界面"));
     foreach (var restartEnabled in new[] { false, true })
     {
-        var runs = 0; var restarts = 0;
+        var runs = 0; var restarts = 0; var notices = new List<string>();
         var result = await TaskRecoveryPolicy.RunRoundAsync(enabled with { Enabled = restartEnabled },
             _ => Task.FromResult(++runs == 1 ? failure : Good()),
-            (slot, attempt, _) => { Require(restartEnabled && slot == 1 && attempt == 1); restarts++; return Task.FromResult(Ready()); }, default);
+            (slot, attempt, _) => { Require(notices.SequenceEqual(new[] { failure.FailureText })); Require(restartEnabled && slot == 1 && attempt == 1); restarts++; return Task.FromResult(Ready()); },
+            default, notices.Add);
+        Require(notices.Count == restarts);
         Console.WriteLine($"TRACE unknown navigation restart enabled={restartEnabled} runs={runs} restarts={restarts} result={result.Status}");
         Require(restartEnabled ? result.Status == TaskAttemptStatus.Success && runs == 2 && restarts == 1
                                : result.Status == TaskAttemptStatus.Recoverable && runs == 1 && restarts == 0);
@@ -75,6 +78,16 @@ Test("terminal unknown navigation checkpoint follows failure toggle and bounded 
         _ => { failedRuns++; return Task.FromResult(failure); },
         (_, attempt, _) => { Require(attempt == ++cappedRestarts); return Task.FromResult(Ready()); }, default);
     Require(exhausted.Status == TaskAttemptStatus.Fatal && failedRuns == 4 && cappedRestarts == 3);
+});
+Sync("window failure details belong only to the current task and instance", () =>
+{
+    var state = new JsonObject { ["version"] = 1, ["run_id"] = "round", ["instance_id"] = "default",
+        ["status"] = "fatal", ["reason"] = "window_layout", ["message"] = "盒子截图为 1280×720，请还原盒子窗口。" };
+    var actual = TaskRecoveryPolicy.ReadCheckpoint(state, "round", "default", false);
+    Require(actual.Status == TaskAttemptStatus.Fatal && actual.FailureText.Contains("1280×720") && actual.FailureText.Contains("还原"));
+    Require(!TaskRecoveryPolicy.ReadCheckpoint(state, "other", "default", false).FailureText.Contains("1280×720"));
+    state["status"] = "failed"; state["reason"] = "victory_not_observed"; state.Remove("message");
+    Require(TaskRecoveryPolicy.ReadCheckpoint(state, "round", "default", false).FailureText.Contains("胜利结算"));
 });
 Test("unrecognized dialog failure uses the existing same-round restart budget", async () =>
 {

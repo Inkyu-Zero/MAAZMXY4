@@ -1,0 +1,42 @@
+{
+  "source": "Arena defeat result in a local task failure frame, 2026-11-19. Only the static heading and return button are retained.",
+  "source_sha256": "c9e28825d2c50b4e08576de8c83e36f93e471d7d31c67bc0fbd7cb2498f31958",
+  "frame_size": [
+    1148,
+    720
+  ],
+  "assets": [
+    {
+      "template": "navigation/outcomes/arena-failed-title.png",
+      "crop": [
+        387,
+        14,
+        762,
+        118
+      ],
+      "roi": [
+        355,
+        2,
+        440,
+        135
+      ],
+      "sha256": "cd067e886f5ffa11da21350f65a98862420bd072c03413f302261576839b15c2"
+    },
+    {
+      "template": "navigation/outcomes/arena-failed-return.png",
+      "crop": [
+        520,
+        571,
+        640,
+        619
+      ],
+      "roi": [
+        475,
+        540,
+        210,
+        100
+      ],
+      "sha256": "e5fe737324d0d21ed6a458f4d36af7432bea3cdbc640412b1e86fead7ca11273"
+    }
+  ]
+}

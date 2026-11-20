@@ -42,6 +42,9 @@ def native_case(mode):
         def screencap(self):
             self.captures.append((self.scene,len(self.inputs)))
             if self.scene=='capture':return None
+            if mode=='unknown_layout':
+                import numpy as np
+                return np.zeros((720,1280,3), dtype=np.uint8)
             return frames[self.scene].copy()
         def touch_down(self,contact,x,y,pressure):
             self.inputs.append(('down',self.scene,x,y));return True
@@ -112,7 +115,7 @@ AgentServer.shut_down()
                     returns=controller.returns,captures=controller.captures,inputs=controller.inputs,
                     status=state.get('status'),reason=state.get('reason'),retries=state.get('failure_retries'),
                     navigation_failure=state.get('navigation_failure'),failure_phase=state.get('failure_phase'),
-                    failure_cause=state.get('failure_cause'),
+                    failure_cause=state.get('failure_cause'),message=state.get('message'),
                     known_blocker_logged='检测到验证码、登录或阻断提示' in agent_output,
                     known_sell_logged='检测到出售确认浮窗' in agent_output)),flush=True)
                 print(agent_output,flush=True)
@@ -121,6 +124,13 @@ AgentServer.shut_down()
 
 @unittest.skipUnless(os.environ.get('MAA_AGENT_NATIVE_TESTS')=='1','opt-in memory-only real Agent IPC')
 class CompactRoundTransportTests(unittest.TestCase):
+    def test_unknown_distorted_frame_reports_actual_dimensions_without_input(self):
+        data=self.run_case('unknown_layout',expected='fatal')
+        self.assertEqual(data['reason'],'navigation_unknown')
+        self.assertIn('1280×720',data['message'])
+        self.assertIn('还原盒子窗口',data['message'])
+        self.assertFalse(data['inputs'])
+
     def run_case(self,mode,expected='success'):
         result=subprocess.run([sys.executable,'-B','-E','-s','-X','utf8',str(Path(__file__).resolve()),'--native-case',mode],
             cwd=ROOT,capture_output=True,text=True,encoding='utf8',errors='replace',timeout=120)

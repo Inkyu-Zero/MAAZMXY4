@@ -48,8 +48,9 @@ def task_routine(context, parameters, *, targets=None):
             result['screens']['task_destination']['detector'] = name
     if kind == 'arena':
         # The same result actions return to this task's lobby instead of a map.
-        for action in ('Result_FailedReturn', 'Result_SucceededReturn'):
+        for action, label in [('Result_FailedReturn', '战败返回对手列表'), ('Result_SucceededReturn', '胜利返回对手列表')]:
             result['actions'][action]['verify'] = ['arena']
+            result['actions'][action]['label'] = label
     if kind == 'bounty':
         aliases = config.get('title_aliases', [])
         if not isinstance(aliases, list):

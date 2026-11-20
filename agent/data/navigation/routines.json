@@ -7,7 +7,7 @@
   "screens": {
     "daily_menu": {
       "detector": "Nav_See_daily_menu",
-      "label": "须弥山日常活动菜单",
+      "label": "日常活动菜单",
       "exit": "Nav_Close_daily_menu"
     },
     "daily_expanded": {
@@ -919,6 +919,15 @@
         "paused_sumeru"
       ],
       "label": "从设置菜单返回地图"
+    },
+    "Nav_Go_map_daily_menu": {
+      "from": [
+        "map"
+      ],
+      "verify": [
+        "daily_menu"
+      ],
+      "label": "展开顶部活动菜单"
     }
   },
   "routes": {
@@ -959,9 +968,9 @@
     ],
     "arena": [
       "Nav_Go_daily_menu_arena",
+      "Nav_Go_map_daily_menu",
       "Nav_Go_task_map_daily_menu",
-      "Nav_WorldSumeru",
-      "Nav_OpenWorld"
+      "Nav_WorldNanzhan"
     ],
     "theme": [
       "Nav_Go_daily_menu_theme",
