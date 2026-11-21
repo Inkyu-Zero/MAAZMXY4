@@ -519,7 +519,8 @@ class BountyCandleTests(unittest.TestCase):
                         self.assertEqual(context.patches[0]['Bounty_Play']['action']['param']
                                          ['custom_action_param']['expected_base'], [1148, 720])
                     else:
-                        with self.assertRaisesRegex(ValueError, '短边720'):
+                        height, width = shape[:2]
+                        with self.assertRaisesRegex(runtime.WindowLayoutError, f'{width}×{height}，导航要求截图短边为 720'):
                             runtime.begin_round(context, params, {}, frame=SimpleNamespace(shape=shape))
                         self.assertEqual(context.patches, [])
 

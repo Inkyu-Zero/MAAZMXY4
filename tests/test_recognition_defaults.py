@@ -24,6 +24,8 @@ class RecognitionDefaultsTests(unittest.TestCase):
         self.assertEqual(default['TemplateMatch']['recognition']['param']['threshold'], .83)
         files = list((resource/'pipeline').glob('*.json')) + [ROOT/'tools'/name for name in
                  ('navigation_library.json','script_task_profiles.json','bounty_task_template.json')]
+        revive_layouts = [[f'navigation/outcomes/revive-layout-{player}-{state}.png'
+                           for state in ('up', 'over', 'down')] for player in ('p1', 'p2')]
         standard = difference = 0
         for path in files:
             for params in recognizers(json.loads(path.read_text(encoding='utf8'))):
@@ -33,6 +35,8 @@ class RecognitionDefaultsTests(unittest.TestCase):
                 else:
                     standard += 1
                     expected = .80 if params.get('template') == 'navigation/settings/continue.png' else .83
+                    if path.name == 'battle_outcomes.json' and params.get('template') in revive_layouts:
+                        expected = .90
                     self.assertEqual(params.get('threshold', .83), expected, path)
         self.assertGreater(standard, 100)
         self.assertGreater(difference, 0)
