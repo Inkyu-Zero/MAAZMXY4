@@ -601,10 +601,13 @@ def recover_round_return(state, navigator, settlement_deadline):
         return missing_victory(state)
     elif navigator.recognize('Bounty_OpenSettings').hit:
         if navigator.attempts.get('Bounty_OpenSettings', 0) >= 2:
-            raise NavigationError('打开设置菜单未确认。', reason='transition_failed')
+            raise NavigationError('回放后已两次点击副本设置，仍停在副本画面，未能返回地图。', reason='transition_failed')
         navigator.attempts['Bounty_OpenSettings'] = navigator.attempts.get('Bounty_OpenSettings', 0) + 1
-        if not navigator.perform('Bounty_OpenSettings'):
+        if not navigator.perform('Bounty_OpenSettings', center=True):
             raise NavigationError('打开设置菜单失败。', reason='transition_failed')
+        # The gear can remain visible during the transition. Give the menu
+        # time to appear before another click, and reuse the resulting frame.
+        navigator.wait_for(['Nav_SettingsMenu'], 1500)
     else:
         navigator.refresh_after_wait(200)
     return True

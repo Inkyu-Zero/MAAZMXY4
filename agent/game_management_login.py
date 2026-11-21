@@ -60,17 +60,27 @@ def restore(context, params, *, clock=time.monotonic, sleep=time.sleep):
         nonlocal last_phase
         if message!=last_phase:
             print('[game_management] '+message,flush=True);last_phase=message
-    def perform(name):
+    def perform(name, *, match=None):
         nonlocal last_action,last_time
         _check(context)
         if name==last_action and clock()-last_time<2:return False
-        # Entry actions bypass recognition in Maa; always dispatch through a wrapper.
-        result=context.run_task('GameManagement_Invoke',{'GameManagement_Invoke':dict(
-            action=dict(type='DoNothing'),next=[name],timeout=3000,post_delay=0)})
+        if match is None:
+            result=context.run_task('GameManagement_Invoke',{'GameManagement_Invoke':dict(
+                action=dict(type='DoNothing'),next=[name],timeout=3000,post_delay=0)})
+            succeeded=result is not None and result.status.succeeded
+        else:
+            # A second OCR pass can see the map after the save page closes.
+            # Dispatch from the verified slot on this frame, before recapturing.
+            if not match.hit or match.box is None:
+                raise ValueError('未取得指定存档的位置，已停止。')
+            x,y,w,h=match.box
+            if w<=0 or h<=0:raise ValueError('指定存档的位置无效，已停止。')
+            result=context.run_action(name,box=[x+w//2,y+h//2,1,1])
+            succeeded=result is not None and result.success
         _check(context)
         last_action,last_time=name,clock()
         if result is None:raise ValueError('恢复操作未确认：'+name)
-        if not result.status.succeeded:
+        if not succeeded:
             failed_actions[name]=failed_actions.get(name,0)+1
             if failed_actions[name]>=3:raise ValueError('恢复操作未确认：'+name)
             phase('恢复画面可能已切换，重新识别后再决定操作：'+name)
@@ -85,10 +95,12 @@ def restore(context, params, *, clock=time.monotonic, sleep=time.sleep):
         if abs(frame.shape[1]-1147)>7 or frame.shape[0]!=720:
             raise ValueError(f'盒子画面比例或截图尺寸不符合登录布局，当前截图为 {frame.shape[1]}×{frame.shape[0]}，'
                              '预期约 1147×720。请还原盒子窗口，将游戏区域调回 940∶590 的比例后重新连接。')
-        def hit(name):
+        def recognize(name):
             detail=context.run_recognition(name,frame)
             if detail is None:raise ValueError('缺少恢复节点：'+name)
-            return detail.hit
+            return detail
+        def hit(name):
+            return recognize(name).hit
         if hit('GameManagement_Blocking'):
             raise ValueError('登录需要人工处理验证码或账号错误；处理后再继续，未尝试其它账号。')
         if hit('GameManagement_Loading'):
@@ -108,8 +120,9 @@ def restore(context, params, *, clock=time.monotonic, sleep=time.sleep):
             phase('已选择并核对存档，等待进入地图，不重复开始游戏或选择存档。')
         elif hit('GameManagement_SavePage'):
             phase('已进入存档页，检查指定的已有存档。')
-            if not hit(slot_node):raise ValueError('指定存档为空或角色名称不符，已停止。')
-            if perform(slot_node):role_confirmed=True
+            match=recognize(slot_node)
+            if not match.hit:raise ValueError('指定存档为空或角色名称不符，已停止。')
+            if perform(slot_node,match=match):role_confirmed=True
         elif hit('GameManagement_StartGame'):
             phase('已识别开始游戏页面。')
             perform('GameManagement_StartGame')

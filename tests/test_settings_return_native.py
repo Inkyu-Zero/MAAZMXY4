@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 @unittest.skipUnless(os.environ.get('NAVIGATION_NATIVE_TESTS') == '1', 'opt-in memory-only return test')
 class SettingsReturnNativeTests(unittest.TestCase):
-    def test_all_battle_only_routes_accept_an_open_menu_and_a_shifted_return_map(self):
+    def test_shared_return_routes_accept_an_open_menu_and_a_shifted_return_map(self):
         from maa.controller import CustomController
         from maa.custom_action import CustomAction
         from maa.resource import Resource
@@ -64,11 +64,11 @@ class SettingsReturnNativeTests(unittest.TestCase):
                     graph = json.loads(path.read_bytes())
                     params = next((custom_parameters(n) for n in graph.values()
                                    if isinstance(n, dict) and custom_parameters(n).get('round_flow')), None)
-                    if not params: continue
-                    prefix = path.stem + '-'
-                    shared=params.get('completion_node') is not None
-                    if shared:graph.update(json.loads((ROOT/'assets/resource/base/pipeline/bounty_common.json').read_bytes()))
-                    if params['navigation']['kind'] == 'stage':
+                    if not params or params['round_flow'].get('require_victory'): continue
+                    if 'Mainline_041' in graph:
+                        params=custom_parameters(graph['Mainline_041'])
+                        returned=read_png_bgr(ROOT / 'tests/fixtures/navigation/map-a.png')
+                    elif params['navigation']['kind'] == 'stage':
                         if path.stem in ('伽岚（万世冥阁）', '无冥（孤魂岭）', '贪妄（金蟾宝宫）'):
                             town = 'town6' if path.stem.startswith('贪妄') else 'town5'
                             full = read_png_bgr(ROOT / 'tests/fixtures/game-management/scroll' / (town+'.png'))
@@ -110,7 +110,7 @@ class SettingsReturnNativeTests(unittest.TestCase):
         self.assertTrue(tasker.bind(resource, controller))
         self.assertTrue(tasker.post_task('__ReturnRoutes').wait().succeeded)
         self.assertEqual(errors, [])
-        self.assertEqual(len(checks), 33)
+        self.assertEqual(len(checks), 36)
 
     def test_real_menu_preserves_return_and_continue_click_boxes(self):
         from maa.controller import CustomController

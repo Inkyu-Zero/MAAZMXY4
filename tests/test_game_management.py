@@ -54,7 +54,11 @@ class GameManagementTests(unittest.TestCase):
             def override_pipeline(self,p):self.patches.append(deepcopy(p));return True
             def run_recognition(self,name,frame):
                 self.recognitions.append(name)
-                return SimpleNamespace(hit=name.removeprefix('GameManagement_') in states[self.index])
+                return SimpleNamespace(hit=name.removeprefix('GameManagement_') in states[self.index],box=[361,158,146,30])
+            def run_action(self,name,*,box):
+                self.actions.append(name);self.index=min(self.index+1,len(states)-1)
+                self.slot_box=box
+                return SimpleNamespace(success=True)
             def run_task(self,name,overrides):
                 self.assert_wrapper=(name=='GameManagement_Invoke' and overrides[name]['action']['type']=='DoNothing')
                 self.actions.append(overrides[name]['next'][0]);self.index=min(self.index+1,len(states)-1)
@@ -158,11 +162,21 @@ class GameManagementTests(unittest.TestCase):
 
     def test_failed_role_click_cannot_authorize_an_existing_map(self):
         ctx,run=self.scenario([{'SavePage','ChooseRole'},{'MapReady'}])
-        def dispatch(*args):
+        def dispatch(name,*,box):
+            ctx.index=1
+            return SimpleNamespace(success=False)
+        ctx.run_action=dispatch
+        with self.assertRaises(ValueError):run()
+
+    def test_slot_click_reuses_verified_frame_before_save_page_disappears(self):
+        ctx,run=self.scenario([{'SavePage','ChooseRole'},{'MapReady'}])
+        def expired_wrapper(*args):
             ctx.index=1
             return SimpleNamespace(status=SimpleNamespace(succeeded=False))
-        ctx.run_task=dispatch
-        with self.assertRaises(ValueError):run()
+        ctx.run_task=expired_wrapper
+        run()
+        self.assertEqual(ctx.actions,['GameManagement_ChooseRole'])
+        self.assertEqual(ctx.slot_box,[434,173,1,1])
 
     def test_repeated_failed_action_remains_bounded(self):
         ctx,run=self.scenario([{'StartGame'}]);calls=[]
