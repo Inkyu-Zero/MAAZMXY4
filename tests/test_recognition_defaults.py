@@ -35,6 +35,8 @@ class RecognitionDefaultsTests(unittest.TestCase):
                 else:
                     standard += 1
                     expected = .80 if params.get('template') == 'navigation/settings/continue.png' else .83
+                    if params.get('template') == 'navigation/templates/daily-expanded/top-collapse.png':
+                        expected = .75
                     if path.name == 'battle_outcomes.json' and params.get('template') in revive_layouts:
                         expected = .90
                     self.assertEqual(params.get('threshold', .83), expected, path)
