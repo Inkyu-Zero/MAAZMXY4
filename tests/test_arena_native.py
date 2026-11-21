@@ -21,6 +21,8 @@ FILES = {
     'success2': 'a61f1a38-49ce-4330-a18f-d6292139c798',
     'world': '87c2625a-dea6-4af2-b1f4-20a33465c198',
     'town6': '787ed47b-341e-4bcd-a77d-662ed4627add',
+    'map_current': 'd764c69d-097b-44c5-8339-3c150d3b19be',
+    'menu_current': '97f4eb1b-d7bd-4101-9997-657f6a1faf92',
 }
 
 
@@ -37,10 +39,25 @@ def native_case():
     from navigation.catalog import task_routine
     from navigation.runtime import Navigator
     from task_catalog import task_catalog
+    sys.path.insert(0, str(ROOT/'tests'))
+    from fixture_pixels import read_png_bgr
     frames = {}
     for name, identifier in FILES.items():
         raw = cv2.imdecode(np.fromfile(CAPTURES/f'codex-clipboard-{identifier}.png', dtype=np.uint8), 1)
-        frames[name] = cv2.resize(raw[39:776, 1:1176], (1147,720), interpolation=cv2.INTER_AREA)
+        viewport = raw if name.endswith('_current') else raw[39:776, 1:1176]
+        frames[name] = cv2.resize(viewport, (1147,720), interpolation=cv2.INTER_AREA)
+    frames['map_fixture'] = read_png_bgr(ROOT/'tests/fixtures/navigation/map-a.png')
+    # The incident frame is already in controller coordinates (1148 x 720).
+    # Keep its one-pixel displacement. Resizing here would hide the regression.
+    frames['arena_original'] = frames['arena']
+    frames['arena'] = read_png_bgr(ROOT/'tests/fixtures/navigation/regressions/arena-lobby.png')
+    # Reconstruct only the public result controls, at their captured positions.
+    defeat = np.zeros_like(frames['arena'])
+    crops = json.loads((ROOT/'agent/data/navigation/arena-defeat-assets.json').read_text(encoding='utf8'))
+    for asset in crops['assets']:
+        left, top, right, bottom = asset['crop']
+        defeat[top:bottom,left:right] = read_png_bgr(ROOT/'assets/resource/base/image'/asset['template'])
+    frames['defeat'] = defeat
     task = next(t for t in task_catalog(ROOT, bindings={}) if t['entry']=='Arena')
     params = task['management_profile']['parameters']
     results, errors = [], []
@@ -51,17 +68,26 @@ def native_case():
         def __init__(self): super().__init__(); self.inputs = []
         def connect(self): return True
         def request_uuid(self): return 'arena-memory-only'
-        def screencap(self): return frames[self.scene].copy()
+        def screencap(self):
+            if self.scene == 'settling':
+                self.scene = 'success'
+                return frames['stage'].copy()
+            return frames[self.scene].copy()
         def touch_down(self, contact, x, y, pressure):
             self.point = (x,y)
             self.inputs.append(('down',self.scene,x,y))
             return True
         def touch_up(self, contact):
-            if self.scene=='menu':
-                assert 777<=self.point[0]<=841 and 184<=self.point[1]<=232, self.point
+            if self.scene in ('map_current', 'map_fixture'):
+                assert 845<=self.point[0]<=880 and 35<=self.point[1]<=75, self.point
+                self.scene='menu_current'
+            elif self.scene in ('menu', 'menu_current'):
+                assert 777<=self.point[0]<=850 and 180<=self.point[1]<=235, self.point
                 self.scene='arena'
             elif self.scene=='arena': self.scene='stage'
-            elif self.scene=='success': self.scene='arena'
+            elif self.scene in ('success','defeat'):
+                assert 475 <= self.point[0] < 685 and 540 <= self.point[1] < 640, self.point
+                self.scene='arena'
             else: raise AssertionError(('Unexpected exit/input', self.scene, self.point))
             return True
         def key_down(self, key): self.inputs.append(('key_down',key)); return True
@@ -77,12 +103,17 @@ def native_case():
         def run(self, ctx, argv):
             checks = {
                 'arena': ['Nav_See_arena','Arena_Target'],
+                'arena_original': ['Nav_See_arena','Arena_Target'],
                 'arena2': ['Nav_See_arena'], 'arena3': ['Nav_See_arena'],
                 'menu': ['Nav_See_daily_menu','Nav_Go_daily_menu_arena'],
                 'menu2': ['Nav_See_daily_menu','Nav_Go_daily_menu_arena'],
+                'map_current': ['Nav_ClearMap','Nav_Go_map_daily_menu'],
+                'map_fixture': ['Nav_ClearMap','Nav_Go_map_daily_menu'],
+                'menu_current': ['Nav_See_daily_menu','Nav_Go_daily_menu_arena'],
                 'stage': ['Nav_InStage'],
                 'success': ['Result_Succeeded','Result_SucceededReturn'],
                 'success2': ['Result_Succeeded','Result_SucceededReturn'],
+                'defeat': ['Result_Failed','Result_FailedClear','Result_FailedReturn'],
                 'world': ['Nav_World_town6'],
                 'town6': ['Mainline_063_Target','Mainline_064_Target','Mainline_065_Target'],
             }
@@ -90,14 +121,46 @@ def native_case():
                 for name in nodes:
                     hit = ctx.run_recognition(name, frames[scene])
                     if not hit or not hit.hit: errors.append((scene,name))
-            for scene in ('stage','arena','menu'):
+            for missing_rows in (slice(0, 100), slice(100, 200)):
+                partial = frames['arena'].copy()
+                partial[missing_rows] = 0
+                if ctx.run_recognition('Arena_Target', partial).hit:
+                    errors.append(('incomplete lobby authorized an opponent', str(missing_rows)))
+            if errors:
+                return True  # Report failed recognitions before attempting navigation.
+            # The menu is still over the map HUD. Its down arrow must never be
+            # mistaken for the closed menu's up arrow (which would collapse it).
+            assert not ctx.run_recognition('Nav_Go_map_daily_menu',frames['menu_current']).hit
+            # A resampled icon shifts its red highlight by a pixel. The colour
+            # guard follows that icon, but still rejects a missing highlight.
+            current = ctx.run_recognition('Nav_Go_daily_menu_arena',frames['menu_current'])
+            if current.hit:
+                x,y,w,h=current.box
+                missing_red=frames['menu_current'].copy()
+                missing_red[y+17:y+27,x+46:x+56]=0
+                assert not ctx.run_recognition('Nav_Go_daily_menu_arena',missing_red).hit
+            for scene in ('stage','arena','menu','defeat'):
                 if ctx.run_recognition('Result_Succeeded',frames[scene]).hit:
                     errors.append(('false_victory',scene))
-            controller.scene='menu'
-            nav=Navigator(ctx,task_routine(ctx,params),capture=controller.screencap,check=lambda:None)
-            try:
-                assert nav.run()=='task_destination'
-            except Exception as error: errors.append(('menu_navigation',str(error)))
+            for scene in ('success','success2','stage','arena','menu'):
+                assert not ctx.run_recognition('Result_Failed',frames[scene]).hit, scene
+            for rows in (slice(0,140),slice(540,640)):
+                incomplete = defeat.copy()
+                incomplete[rows] = 0
+                assert not ctx.run_recognition('Result_FailedReturn',incomplete).hit
+            for initial, expected_scenes in [('menu',['menu']), ('menu_current',['menu_current']),
+                                             ('map_current',['map_current','menu_current']),
+                                             ('map_fixture',['map_fixture','menu_current'])]:
+                controller.scene=initial;controller.inputs=[];captures=[]
+                def capture():
+                    captures.append(controller.scene)
+                    return controller.screencap()
+                nav=Navigator(ctx,task_routine(ctx,params),capture=capture,check=lambda:None)
+                try:
+                    assert nav.run()=='task_destination'
+                    assert [i[1] for i in controller.inputs]==expected_scenes,controller.inputs
+                    assert captures==expected_scenes+['arena'],captures
+                except Exception as error: errors.append(('menu_navigation',initial,str(error)))
             interface=json.loads((ROOT/'assets/interface.json').read_text(encoding='utf8'))
             for option in interface['option']['竞技场对手']['cases']:
                 controller.scene='arena'
@@ -144,8 +207,9 @@ AgentServer.start_up(sys.argv[1]);AgentServer.join();AgentServer.shut_down()
                 cwd=directory,stdout=output,stderr=output,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
             try:
                 assert client.connect()
-                for scene,expected in [('success','success'),('stage','failed'),('arena','failed')]:
-                    controller.scene='arena';controller.result_scene=scene;controller.inputs=[]
+                for scene,expected in [('success','success'),('settling','success'),('defeat','fatal'),
+                                       ('stage','failed'),('arena','failed')]:
+                    controller.scene='map_current';controller.result_scene=scene;controller.inputs=[]
                     run_id=str(uuid4())
                     configured=dict(params,file=str(recording),run_id=run_id)
                     patch={'Arena':dict(action=dict(param=dict(custom_action_param=configured))),
@@ -155,8 +219,12 @@ AgentServer.start_up(sys.argv[1]);AgentServer.join();AgentServer.shut_down()
                     tasker.post_task('Arena',patch).wait()
                     status=json.loads((directory/'status'/(run_id+'.json')).read_text(encoding='utf8'))
                     assert status['status']==expected, (status,(directory/'agent.log').read_text(encoding='utf8',errors='replace')[-5000:])
-                    assert controller.inputs[0]==('down','arena',1022,273),controller.inputs
-                    assert len([i for i in controller.inputs if i[0]=='down'])==(2 if scene=='success' else 1),controller.inputs
+                    downs=[i for i in controller.inputs if i[0]=='down']
+                    assert [i[1] for i in downs[:3]]==['map_current','menu_current','arena'],controller.inputs
+                    assert downs[2]==('down','arena',1022,273),controller.inputs
+                    assert len(downs)==(4 if scene in ('success','settling','defeat') else 3),controller.inputs
+                    if scene=='defeat':
+                        assert status['reason']=='battle_failed' and not status['victory_observed']
                     results.append(dict(scene=scene,status=status['status'],reason=status['reason']))
             finally: child.terminate();child.wait(timeout=5)
         print('ARENA_NATIVE '+json.dumps(dict(rounds=results,errors=errors)),flush=True)

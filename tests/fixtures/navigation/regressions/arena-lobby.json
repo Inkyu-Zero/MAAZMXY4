@@ -1,0 +1,23 @@
+{
+  "source": "2026-11-18 arena recognition failure frame. Only the static title and challenge instruction are retained at original coordinates.",
+  "source_sha256": "d16c300f478774d2f56d761c09e26a3aa041aea96d963d051ac3a4ffd0bb6b6c",
+  "frame_size": [
+    1148,
+    720
+  ],
+  "retained_rois": [
+    [
+      494,
+      13,
+      151,
+      61
+    ],
+    [
+      319,
+      138,
+      253,
+      43
+    ]
+  ],
+  "sha256": "c32badc34f9274872cca859380982f8d0af480fbedbf37429e089493ae1b8e42"
+}

@@ -41,17 +41,18 @@ public static class TaskRecovery
                 else session.CaptureTarget();
             }
             var outcome = await TaskRecoveryPolicy.RunRoundAsync(options,
-                ct => session.RunEntryAsync(entry, false, ct), session.RecoverAsync, token);
+                ct => session.RunEntryAsync(entry, false, ct), session.RecoverAsync, token,
+                cause => processor.AddLog($"warn: 本轮准备自动恢复。{cause} {TaskAttempt.ScreenshotHint}"));
             if (outcome.Status == TaskAttemptStatus.Cancelled)
                 throw new OperationCanceledException(outcome.Reason, token);
             if (outcome.Status == TaskAttemptStatus.Success) return MaaJobStatus.Succeeded;
-            processor.AddLog("任务已停止：" + outcome.Reason);
+            processor.AddLog($"error: 任务已停止。{outcome.FailureText} {TaskAttempt.ScreenshotHint}");
             return MaaJobStatus.Failed;
         }
         catch (OperationCanceledException) { throw; }
         catch (Exception error)
         {
-            processor.AddLog("任务恢复未执行：" + error.Message);
+            processor.AddLog($"error: 任务恢复未执行。{error.Message} {TaskAttempt.ScreenshotHint}");
             LoggerHelper.Warning("任务原生恢复停止：" + error.Message);
             return MaaJobStatus.Failed;
         }
@@ -82,7 +83,7 @@ public static class TaskRecovery
         string operation, Func<string?, string?, CancellationToken, Task<MaaJobStatus>> execute, CancellationToken token,
         TaskProcessIdentity? launchedProcess = null)
     {
-        options.Validate(requireTarget: true, requireLogin: operation != "close" && options.HasLogin);
+        options.Validate(requireTarget: true);
         if (!OperatingSystem.IsWindows() || processor.ViewModel?.CurrentController != MaaControllerTypes.Win32)
             throw new InvalidOperationException("游戏管理需要先选择 Win32 造梦盒子控制器。");
         using var reconnection = GameManagementService.SuppressReconnection(processor);
@@ -103,7 +104,7 @@ public static class TaskRecovery
             await session.StartSelectedProcessAsync(token);
             await session.BindUniqueWindowAsync(token);
             await session.ReconnectAsync(token);
-            return options.HasLogin ? await session.ResumeAsync(options.SaveSlot, token) : new(TaskAttemptStatus.Ready);
+            return await session.ResumeAsync(options.SaveSlot, token);
         }
         if (launchedProcess != null)
         {
@@ -115,7 +116,7 @@ public static class TaskRecovery
         {
             await session.PrepareBoundWindowAsync(token);
             await session.ReconnectAsync(token);
-            return options.HasLogin ? await session.ResumeAsync(options.SaveSlot, token) : new(TaskAttemptStatus.Ready);
+            return await session.ResumeAsync(options.SaveSlot, token);
         }
         if (operation == "close")
         {
@@ -124,15 +125,6 @@ public static class TaskRecovery
             return new(TaskAttemptStatus.Ready);
         }
         if (operation != "restart") throw new InvalidOperationException("未知的盒子管理操作。");
-        if (!options.HasLogin)
-        {
-            await session.StopInputsAndAgentAsync(token);
-            await session.StopSelectedProcessAsync(token);
-            await session.StartSelectedProcessAsync(token);
-            await session.BindUniqueWindowAsync(token);
-            await session.ReconnectAsync(token);
-            return new(TaskAttemptStatus.Ready);
-        }
         return await TaskRecoveryPolicy.RestartAsync(session, options.SaveSlot, token);
     }
 
@@ -244,12 +236,7 @@ public static class TaskRecovery
                     var failure = await IdentifyWindowFailureAsync(token);
                     if (failure != null) return failure;
                 }
-                // 任务没有声明轮次边界时不会产出状态文件；按 Maa 原生结果判定。
-                if (!resume && status == MaaJobStatus.Succeeded)
-                {
-                    processor.AddLog("游戏管理：本轮任务没有声明轮次状态，按原生结果判定。");
-                    return new(TaskAttemptStatus.Success);
-                }
+                // Native tasks bypass recovery. A managed round requires its checkpoint.
                 return TaskAttempt.Fatal("缺少本轮确认状态。");
             }
             if (new FileInfo(statusPath).Length > 65536) return TaskAttempt.Fatal("本轮状态文件无效。");

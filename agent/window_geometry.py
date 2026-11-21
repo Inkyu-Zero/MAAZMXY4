@@ -16,6 +16,10 @@ SIZE_TOLERANCE = 8  # Physical-pixel allowance for window sizing and AIR/DPI rou
 LAYOUT_TOLERANCE = 8  # Existing short-side-720 recording compatibility.
 
 
+class WindowLayoutError(RuntimeError):
+    """The existing window preparation or playback layout check failed."""
+
+
 def validate_base(base):
     if (not isinstance(base, (list, tuple)) or len(base) != 2
             or any(type(v) is not int or not 1 <= v <= 8192 for v in base)
@@ -209,7 +213,10 @@ class WindowLease:
                 else:
                     stable_since = None
                 if now >= end:
-                    raise RuntimeError(f'无法将游戏客户区稳定调整为脚本比例（目标 {target[0]}×{target[1]}），已停止输入。')
+                    width, height = _size(current)
+                    raise WindowLayoutError(
+                        f'无法将盒子游戏区域稳定调整到脚本所需尺寸。当前 {width}×{height}，目标 {target[0]}×{target[1]}。'
+                        '请退出最大化，停止拖动窗口，待游戏画面稳定后重试。')
                 time.sleep(.05)
         self.client_size = _size(current)
         self.ensure()

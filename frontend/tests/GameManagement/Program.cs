@@ -66,7 +66,7 @@ internal static class Program
         Require(memoryLimit.Text == "1.8", "Memory limit defaults to 1.8 GB");
         var exe = texts.Single(t => t.Watermark?.Contains("EXE") == true);
         var account = texts.Single(t => t.Watermark?.Contains("账号") == true);
-        var role = texts.Single(t => t.Watermark?.Contains("角色") == true);
+        var role = texts.Single(t => t.Watermark?.Contains("存档位") == true);
         var save = control.GetVisualDescendants().OfType<Button>().First(b => Equals(b.Content,"保存设置"));
         checks[1].IsChecked = true; Dispatcher.UIThread.RunJobs();
         Require(checks[1].IsChecked != true && !GameManagementService.For(first.Processor).Options.Enabled,
@@ -144,8 +144,8 @@ internal static class Program
         var root = Path.GetFullPath("fixture client 中文");
         var initial = new GameManagementOptions().WithBundledDefault(root);
         Require(initial.UseBundledBox && initial.ExePath == Path.Combine(root, "造梦盒子", "zmBox.exe"), "New instances bind the bundled box");
-        initial.Validate(requireTarget: true, requireLogin: false);
-        Require(!initial.HasLogin, "First launch needs no account or role");
+        foreach (var names in new[] { ("", ""), ("账号", ""), ("", "角色"), ("账号", "角色") })
+            (initial with { RestartOnFailure = true, AccountName = names.Item1, RoleName = names.Item2 }).Validate(requireTarget: true);
         var custom = initial with { UseBundledBox = false, ExePath = Path.GetFullPath("custom box.exe") };
         Require(custom.WithBundledDefault(root) == custom, "Existing custom binding is preserved");
         Require(initial.WithBundledDefault(root + " moved").ExePath != initial.ExePath, "Bundled binding follows the installation directory");

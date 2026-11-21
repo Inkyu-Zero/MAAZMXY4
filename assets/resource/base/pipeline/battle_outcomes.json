@@ -1,14 +1,37 @@
 {
   "Result_Failed": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "Or",
       "param": {
-        "template": "navigation/outcomes/failed-title.png",
-        "roi": [
-          200,
-          120,
-          780,
-          380
+        "any_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/outcomes/failed-title.png",
+                "roi": [
+                  200,
+                  120,
+                  780,
+                  380
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/outcomes/arena-failed-title.png",
+                "roi": [
+                  355,
+                  2,
+                  440,
+                  135
+                ]
+              }
+            }
+          }
         ]
       }
     },
@@ -60,25 +83,26 @@
                         "green_mask": true
                       }
                     }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "navigation/outcomes/arena-failed-return.png",
+                        "roi": [
+                          475,
+                          540,
+                          210,
+                          100
+                        ]
+                      }
+                    }
                   }
                 ]
               }
             }
           },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "navigation/outcomes/failed-title.png",
-                "roi": [
-                  200,
-                  120,
-                  780,
-                  380
-                ]
-              }
-            }
-          },
+          "Result_Failed",
           "Result_NoRevivePrompt"
         ],
         "box_index": 0
@@ -635,6 +659,7 @@
                   "navigation/outcomes/revive-layout-p1-over.png",
                   "navigation/outcomes/revive-layout-p1-down.png"
                 ],
+                "threshold": 0.9,
                 "roi": "revive_window",
                 "roi_offset": [
                   10,
@@ -694,6 +719,7 @@
                   "navigation/outcomes/revive-layout-p2-over.png",
                   "navigation/outcomes/revive-layout-p2-down.png"
                 ],
+                "threshold": 0.9,
                 "roi": "revive_window",
                 "roi_offset": [
                   10,

@@ -136,7 +136,7 @@ def generate(source,root=ROOT):
         name='Result_ReviveLayout'+players.upper()
         nodes[name]=dict(recognition=dict(type='And',param=dict(all_of=[
             dict(sub_name='revive_window',recognition=reference('Result_ReviveWindow')),
-            dict(recognition=dict(type='TemplateMatch',param=dict(template=layouts[players],
+            dict(recognition=dict(type='TemplateMatch',param=dict(template=layouts[players],threshold=0.9,
                 roi='revive_window',roi_offset=[10,155,472,-8]))),
             dict(recognition=dict(type='DirectHit',param=dict(roi='revive_window',
                 roi_offset=[dx,dy,-37,-42]))),

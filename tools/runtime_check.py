@@ -35,6 +35,8 @@ PYTHON_REQUIRED = (
     'Lib/site-packages/six.py', 'Lib/site-packages/MaaAgentBinary', 'Lib/tkinter/__init__.py',
     'DLLs/_tkinter.pyd', 'DLLs/tcl86t.dll', 'DLLs/tk86t.dll',
     'tcl/tcl8.6/init.tcl', 'tcl/tk8.6/tk.tcl',
+    'voyage-site/onnxruntime/__init__.py', 'voyage-site/scipy/__init__.py',
+    'voyage-site/win32/win32api.pyd', 'voyage-site/pywin32.pth',
 )
 REQUIRED = list(PYTHON_REQUIRED)
 
@@ -43,6 +45,9 @@ PROBE = (
     "import sys, numpy, strenum, tkinter, pynput, six, cv2\n"
     "from PIL import Image\n"
     "tkinter.Tcl()\n"
+    "import site; from pathlib import Path\n"
+    "site.addsitedir(str(Path(sys.executable).parent / 'voyage-site'))\n"
+    "import onnxruntime, win32api, win32process, win32gui; from scipy.ndimage import binary_dilation\n"
     "from maa.agent.agent_server import AgentServer\n"
     "from maa.toolkit import Toolkit\n"
     "from maa.custom_action import CustomAction\n"

@@ -20,7 +20,7 @@ class RoundTests(unittest.TestCase):
     def run_round(self, task, *, results=('map',), mode='recorded_return', retry=False, afk=False,
                   restart=False, entry_scene='stage', return_after=1, cancel=False, changed=False,
                   observed_failure=False, observed_success=False, observed_unknown_dialog=False, box_speed=1, speed_proof=None,
-                  existing_entry_duration=None, guard_failure=None):
+                  existing_entry_duration=None, guard_failure=None, settings_delay=0):
         with tempfile.TemporaryDirectory() as temp:
             root=Path(temp);library=root/'recordings';library.mkdir()
             recording=library/'test.json'
@@ -42,6 +42,9 @@ class RoundTests(unittest.TestCase):
             context.nodes['脚本任务设置']['action']['param']['custom_action_param'].update(exit_mode=mode,afk_mode=afk,
                 failure_retry=dict(enabled=retry,max_retries=1),box_speed=box_speed,box_speed_proof=speed_proof)
             def capture():
+                if context.scene=='stage' and getattr(context,'settings_at',float('inf'))<=clock[0]:
+                    context.scene='settings'
+                    del context.settings_at
                 context.captures.append((context.scene,len(context.inputs)))
                 return Frame()
             def recognition(name,frame):
@@ -66,7 +69,9 @@ class RoundTests(unittest.TestCase):
                 elif name=='Nav_SelectBountyTab':context.scene='accepted'
                 elif name=='Nav_ChooseBounty':context.scene='detail'
                 elif name=='Bounty_ResumeStage':context.scene='stage'
-                elif name=='Bounty_OpenSettings':context.scene='settings'
+                elif name=='Bounty_OpenSettings':
+                    context.settings_box=box
+                    context.settings_at=clock[0]+settings_delay
                 elif name=='Result_FailedReturn':
                     context.return_count+=1
                     if cancel:context.tasker.stopping=True
@@ -115,6 +120,21 @@ class RoundTests(unittest.TestCase):
 
     def tasks(self):
         return [t for t in task_catalog(ROOT,bindings={}) if t['management_profile'] and t['entry'] != 'Arena']
+
+    def test_slow_settings_menu_uses_one_center_click_before_return(self):
+        ok,status,ctx=self.run_round(self.tasks()[0],results=['stage'],mode='battle_only',settings_delay=1)
+        self.assertTrue(ok,status)
+        self.assertEqual(ctx.inputs.count('Bounty_OpenSettings'),1)
+        self.assertEqual(ctx.settings_box,[115,110,1,1])
+
+    def test_unresponsive_settings_button_stops_after_two_clicks(self):
+        ok,status,ctx=self.run_round(self.tasks()[0],results=['stage'],mode='battle_only',
+                                     settings_delay=float('inf'),restart=True)
+        self.assertFalse(ok)
+        self.assertEqual(ctx.inputs.count('Bounty_OpenSettings'),2)
+        self.assertNotIn('Nav_SettingsReturn',ctx.inputs)
+        self.assertEqual(status['status'],'recoverable')
+        self.assertIn('两次点击副本设置',status['message'])
 
     def test_arena_requires_victory_and_never_exits_unfinished_battle(self):
         task=next(t for t in task_catalog(ROOT,bindings={}) if t['entry']=='Arena')

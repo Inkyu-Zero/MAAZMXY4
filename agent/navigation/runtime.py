@@ -198,7 +198,18 @@ class Navigator:
                 raise NavigationError('验证码、登录或阻断提示未处理，导航已停止。', reason='blocked')
             if attempt + 1 < self.routine.get('locate_attempts', 3):
                 self.refresh_after_wait()
-        raise NavigationError('当前界面无法定位，未发送导航操作。', reason='unknown')
+        message = '当前界面无法定位，未发送导航操作。'
+        # Explain a distorted observation only after the existing attempts
+        # failed. Use the same frame; this diagnostic never gates navigation.
+        shape = getattr(self._frame, 'shape', None)
+        if shape is not None and len(shape) >= 2 and min(shape[:2]) > 0:
+            from window_geometry import STANDARD_BASE, matches_layout
+            height, width = shape[:2]
+            if not matches_layout((width, height), STANDARD_BASE):
+                message += (f' 当前截图 {width}×{height} 与导航参考画面 '
+                            f'{STANDARD_BASE[0]}×{STANDARD_BASE[1]} 的宽高比不同，可能影响识别。'
+                            '请还原盒子窗口并按参考比例调整。')
+        raise NavigationError(message, reason='unknown')
 
     def _action(self, current):
         kind = self.routine.get('kind')

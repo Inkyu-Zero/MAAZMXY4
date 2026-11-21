@@ -31,7 +31,7 @@ def build(root=ROOT):
         option=['竞技场对手', '挂机模式', '盒子与脚本倍速', '刷取次数', '失败自动重试'],
         description='默认挑战第 5 位普通对手，可改选第 1～5 位或神秘竞技者。请绑定仅包含战斗的脚本，胜利结算由任务返回。\n'
                     '点击头像后沿用普通关卡的进关与回放流程；确认挑战成功并返回对手列表后计次。'
-                    '脚本播放结束仍未胜利时任务失败，保留当前战斗，不自动打开设置退关。'))
+                    '脚本结束时若仍在战斗，最多再观察 4 秒等待结算。战败按重试设置处理，未出现结算则保留当前界面并停止。'))
     interface['option']['竞技场对手'] = dict(type='select', default_case=labels[4], cases=[
         dict(name=label, pipeline_override={target:dict(action=dict(param=dict(target=[x, y, 1, 1])))})
         for label, (x, y) in zip(labels, positions)])

@@ -46,7 +46,7 @@ from maa.custom_action import CustomAction
 from script_studio.model import MAX_FILE_BYTES, RecordingDocument
 from script_library import resolve_recording_reference
 from battle_outcomes import BattleOutcomeMonitor, UnrecognizedDialog
-from window_geometry import controller_hwnd, WindowLease, matches_layout
+from window_geometry import controller_hwnd, WindowLayoutError, WindowLease, matches_layout
 import recording_playback as playback
 from mouse_input import finish_mouse_operation
 from background_mouse_guard import hold_background_mouse, MouseGuardError
@@ -348,9 +348,13 @@ class BattlePlay(CustomAction):
                     if lease.changed:
                         _wait_job(ctrl.post_screencap())
                     frame = ctrl.cached_image
-                    if frame is None or min(frame.shape[:2]) != 720 or not matches_layout(
+                    if frame is None:
+                        raise WindowLayoutError('回放前没有可用的游戏截图。请还原盒子窗口，确认预览显示游戏画面后重试。')
+                    if min(frame.shape[:2]) != 720 or not matches_layout(
                             (frame.shape[1],frame.shape[0]),rec['base']):
-                        raise ValueError('播放前的窗口截图尚未匹配脚本比例，已停止输入。')
+                        raise WindowLayoutError(f'回放前的盒子截图为 {frame.shape[1]}×{frame.shape[0]}，'
+                                                f'脚本基准为 {rec["base"][0]}×{rec["base"][1]}。'
+                                                '请还原盒子窗口并按录制时的比例调整，再重新连接。')
                 if param.get('result_guard') is not None:
                     try:
                         monitor = BattleOutcomeMonitor(context, param['result_guard'])
@@ -375,6 +379,11 @@ class BattlePlay(CustomAction):
         except Exception as error:
             if monitor is not None:
                 monitor.close()
+            if isinstance(error, WindowLayoutError):
+                # This callback returns False to Maa. Surface its precise cause
+                # before the normal round failure/return policy runs.
+                self._log('error: 回放未开始。' + str(error) + ' 如需协助，请截图保留游戏画面和此条日志。')
+                return False
             self._log('[battle_play] 回放已停止：' + str(error))
             if isinstance(error, MouseGuardError):
                 raise
@@ -411,8 +420,8 @@ class BattlePlay(CustomAction):
 
     @staticmethod
     def _log(msg: str) -> None:
-        # agent 的 stdout 不会被 MAA 的 GUI 日志面板转发，
-        # 但会进 debug/maafw.log 的 agent 输出段，排查够用。
+        # The host routes severity-prefixed lines to the task log and keeps
+        # ordinary playback traces in the Agent output log.
         print(msg, flush=True)
 
 

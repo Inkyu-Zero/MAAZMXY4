@@ -9,36 +9,48 @@ from maa.custom_action import CustomAction
 from script_task import _check, _new_state, capture, write_status, Cancelled, white_frame
 
 
+def optional_name(value):
+    if value is None:
+        return ''
+    if not isinstance(value, str) or len(value) > 100:
+        raise ValueError('账号和角色名称须为不超过 100 字的文本。')
+    return value.strip()
+
+
 def login_overrides(account, role, slot):
-    if not isinstance(account,str) or not account.strip() or len(account)>100:
-        raise ValueError('请设置盒子历史账号名称。')
-    if not isinstance(role,str) or not role.strip() or len(role)>100 or type(slot) is not int or not 1<=slot<=8:
-        raise ValueError('请设置已有存档及角色核对名称。')
-    def ocr(text,roi):return dict(type='OCR',param=dict(expected=['^'+re.escape(text)+'$'],roi=roi,threshold=.8))
-    game4=dict(type='OCR',param=dict(expected=['^造梦西游4$'],roi=[80,510,360,130],threshold=.75))
-    selected=ocr(account,[440,125,340,80])
-    role_roi=[328 if slot%2 else 655, 150+118*((slot-1)//2), 250,105]
-    role_match=ocr(role,role_roi)
-    # Real save tiles render the role and Lv. together as one OCR line.
-    # Match the configured literal name, optionally followed by a level, rather
-    # than accepting a substring that could select a different character.
-    role_match['param']['expected']=['^'+re.escape(role)+r'(?:\s*[Ll][Vv][.· :]*[0-9]+)?$']
-    return {
-        'GameManagement_SelectAccount':dict(recognition=dict(type='And',param=dict(all_of=[
-            dict(recognition=ocr(account,[440,125,340,390])),dict(recognition=game4)],box_index=0)),
-            action=dict(type='Click',param=dict(target=True)),next=[],post_delay=300),
-        'GameManagement_AccountSelected':dict(recognition=selected,action=dict(type='DoNothing'),next=[]),
-        'GameManagement_LoginBox':dict(recognition=dict(type='And',param=dict(all_of=[
-            dict(recognition=game4),dict(recognition=selected),'GameManagement_BoxLogin'],box_index=0)),
-            action=dict(type='Click',param=dict(target=True)),next=[],post_delay=500),
-        'GameManagement_ChooseRole':dict(recognition=dict(type='And',param=dict(all_of=[
-            'GameManagement_Slot'+str(slot),dict(recognition=role_match)],box_index=1)),
-            action=dict(type='Click',param=dict(target=True)),next=[],post_delay=500),
-    }
+    account, role = optional_name(account), optional_name(role)
+    if type(slot) is not int or not 1 <= slot <= 8:
+        raise ValueError('请选择第 1～8 个已有存档。')
+
+    def ocr(pattern, roi, threshold=.8):
+        return dict(recognition=dict(type='OCR', param=dict(expected=[pattern], roi=roi, threshold=threshold)))
+
+    def click(parts, index=0, delay=500):
+        return dict(recognition=dict(type='And', param=dict(all_of=parts, box_index=index)),
+                    action=dict(type='Click', param=dict(target=True)), next=[], post_delay=delay)
+
+    game = ocr('^造梦西游4$', [80,510,360,130], threshold=.75)
+    login_parts = [game]
+    nodes = {}
+    if account:
+        pattern = '^' + re.escape(account) + '$'
+        selected = ocr(pattern, [440,125,340,80])
+        nodes['GameManagement_AccountSelected'] = dict(**selected, action=dict(type='DoNothing'), next=[])
+        nodes['GameManagement_SelectAccount'] = click([ocr(pattern, [440,125,340,390]), game], delay=300)
+        login_parts.append(selected)
+    nodes['GameManagement_LoginBox'] = click([*login_parts, 'GameManagement_BoxLogin'])
+    if role:
+        pattern = '^' + re.escape(role) + r'(?:\s*[Ll][Vv][.· :]*[0-9]+)?$'
+        roi = [328 if slot%2 else 655, 150+118*((slot-1)//2), 250,105]
+        nodes['GameManagement_ChooseRole'] = click(['GameManagement_Slot'+str(slot), ocr(pattern, roi)], index=1)
+    return nodes
 
 
 def restore(context, params, *, clock=time.monotonic, sleep=time.sleep):
-    patch=login_overrides(params.get('account_name'),params.get('role_name'),params.get('save_slot'))
+    slot = params.get('save_slot')
+    patch = login_overrides(params.get('account_name'), params.get('role_name'), slot)
+    check_account = 'GameManagement_AccountSelected' in patch
+    slot_node = 'GameManagement_ChooseRole' if 'GameManagement_ChooseRole' in patch else f'GameManagement_Slot{slot}'
     if not context.override_pipeline(patch):raise ValueError('恢复识别参数未载入。')
     deadline=clock()+120
     account_opened=False; submitted=False; role_confirmed=False; last_action=None; last_time=0
@@ -48,17 +60,27 @@ def restore(context, params, *, clock=time.monotonic, sleep=time.sleep):
         nonlocal last_phase
         if message!=last_phase:
             print('[game_management] '+message,flush=True);last_phase=message
-    def perform(name):
+    def perform(name, *, match=None):
         nonlocal last_action,last_time
         _check(context)
         if name==last_action and clock()-last_time<2:return False
-        # Entry actions bypass recognition in Maa; always dispatch through a wrapper.
-        result=context.run_task('GameManagement_Invoke',{'GameManagement_Invoke':dict(
-            action=dict(type='DoNothing'),next=[name],timeout=3000,post_delay=0)})
+        if match is None:
+            result=context.run_task('GameManagement_Invoke',{'GameManagement_Invoke':dict(
+                action=dict(type='DoNothing'),next=[name],timeout=3000,post_delay=0)})
+            succeeded=result is not None and result.status.succeeded
+        else:
+            # A second OCR pass can see the map after the save page closes.
+            # Dispatch from the verified slot on this frame, before recapturing.
+            if not match.hit or match.box is None:
+                raise ValueError('未取得指定存档的位置，已停止。')
+            x,y,w,h=match.box
+            if w<=0 or h<=0:raise ValueError('指定存档的位置无效，已停止。')
+            result=context.run_action(name,box=[x+w//2,y+h//2,1,1])
+            succeeded=result is not None and result.success
         _check(context)
         last_action,last_time=name,clock()
         if result is None:raise ValueError('恢复操作未确认：'+name)
-        if not result.status.succeeded:
+        if not succeeded:
             failed_actions[name]=failed_actions.get(name,0)+1
             if failed_actions[name]>=3:raise ValueError('恢复操作未确认：'+name)
             phase('恢复画面可能已切换，重新识别后再决定操作：'+name)
@@ -71,11 +93,14 @@ def restore(context, params, *, clock=time.monotonic, sleep=time.sleep):
         # The same 940×590 layout can normalize to 1140×720 after a window
         # resize; allow this small variation while retaining the aspect guard.
         if abs(frame.shape[1]-1147)>7 or frame.shape[0]!=720:
-            raise ValueError('盒子画面比例与已适配的 940×590 布局不一致，请恢复窗口比例。')
-        def hit(name):
+            raise ValueError(f'盒子画面比例或截图尺寸不符合登录布局，当前截图为 {frame.shape[1]}×{frame.shape[0]}，'
+                             '预期约 1147×720。请还原盒子窗口，将游戏区域调回 940∶590 的比例后重新连接。')
+        def recognize(name):
             detail=context.run_recognition(name,frame)
             if detail is None:raise ValueError('缺少恢复节点：'+name)
-            return detail.hit
+            return detail
+        def hit(name):
+            return recognize(name).hit
         if hit('GameManagement_Blocking'):
             raise ValueError('登录需要人工处理验证码或账号错误；处理后再继续，未尝试其它账号。')
         if hit('GameManagement_Loading'):
@@ -94,18 +119,19 @@ def restore(context, params, *, clock=time.monotonic, sleep=time.sleep):
             # dialog. It is not a new login request: wait for the verified map.
             phase('已选择并核对存档，等待进入地图，不重复开始游戏或选择存档。')
         elif hit('GameManagement_SavePage'):
-            phase('已进入存档页，核对指定位置与角色。')
-            if not hit('GameManagement_ChooseRole'):raise ValueError('指定存档为空或角色名称不符，已停止。')
-            if perform('GameManagement_ChooseRole'):role_confirmed=True
+            phase('已进入存档页，检查指定的已有存档。')
+            match=recognize(slot_node)
+            if not match.hit:raise ValueError('指定存档为空或角色名称不符，已停止。')
+            if perform(slot_node,match=match):role_confirmed=True
         elif hit('GameManagement_StartGame'):
             phase('已识别开始游戏页面。')
             perform('GameManagement_StartGame')
         elif not submitted and hit('GameManagement_BoxLogin'):
-            phase('已识别盒子登录页，核对已保存账号。')
+            phase('已识别盒子登录页，核对已保存账号。' if check_account else '使用盒子当前账号。')
             if account_opened:
                 if hit('GameManagement_SelectAccount'):
                     if perform('GameManagement_SelectAccount'):account_opened=False
-            elif hit('GameManagement_AccountSelected'):
+            elif not check_account or hit('GameManagement_AccountSelected'):
                 if perform('GameManagement_LoginBox'):submitted=True
             elif not account_opened:
                 if perform('GameManagement_OpenAccounts'):account_opened=True

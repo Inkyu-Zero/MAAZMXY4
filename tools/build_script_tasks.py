@@ -75,6 +75,8 @@ def build_bounties(root=ROOT):
 
 def build(root=ROOT):
     from task_catalog import task_key
+    tasks = json.loads((root/'assets/interface.json').read_bytes())['task']
+    order = {task['entry']: index for index, task in enumerate(tasks)}
     build_bounties(root)
     profiles=json.loads((root/'tools/script_task_profiles.json').read_text(encoding='utf8'))
     from mainline_tasks import LEGACY_STAGES, stages, target_recognition
@@ -115,10 +117,10 @@ def build(root=ROOT):
     build_mainline(root)
     from arena_tasks import build as build_arena
     build_arena(root)
-    configure_box_speed(root)
+    configure_box_speed(root, order)
 
 
-def configure_box_speed(root=ROOT):
+def configure_box_speed(root=ROOT, order=None):
     from task_catalog import task_catalog
     supported={task['entry'] for task in task_catalog(root,bindings={}) if task['management_profile'] or task['input_only']}
     path=root/'assets/interface.json'
@@ -140,6 +142,8 @@ def configure_box_speed(root=ROOT):
                 '回放期间不截图、不识别，实时预览暂停；倍速切换仅发送两次按键，不截图核验')
             task['description']=task['description'].replace('选择 2 倍时仅在切换阶段截图核验',
                 '倍速切换仅发送两次按键，不截图核验')
+    if order is not None:
+        interface['task'].sort(key=lambda task: order.get(task['entry'], len(order)))
     write(path,interface)
 
 if __name__=='__main__':

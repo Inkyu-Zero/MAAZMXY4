@@ -25,8 +25,6 @@ public sealed record GameManagementOptions
     public int SaveSlot { get; init; } = 1;
     public string RoleName { get; init; } = "";
     [JsonExtensionData] public Dictionary<string, JsonElement>? Extra { get; init; }
-    [JsonIgnore] public bool HasLogin => !string.IsNullOrWhiteSpace(AccountName) && AccountName.Length <= 100
-        && !string.IsNullOrWhiteSpace(RoleName) && RoleName.Length <= 100;
     public bool Enabled => RestartOnFailure || RestartOnMemory || RestartOnInterval;
     public const decimal DefaultMemoryLimitGb = 1.8m;
     [JsonIgnore] public decimal EffectiveMemoryLimitGb => IsValidMemoryLimit(MemoryLimitGb) ? MemoryLimitGb : DefaultMemoryLimitGb;
@@ -37,19 +35,19 @@ public sealed record GameManagementOptions
     public GameManagementOptions WithBundledDefault(string root) => UseBundledBox || string.IsNullOrWhiteSpace(ExePath)
         ? this with { ExePath = BundledExePath(root), UseBundledBox = true } : this;
 
-    public void Validate(bool requireTarget = false, bool requireLogin = true)
+    public void Validate(bool requireTarget = false)
     {
         if (IntervalMinutes is < 1 or > 10080)
             throw new InvalidDataException("重启间隔请输入 1～10080 分钟。");
         if (SaveSlot is < 1 or > 8)
             throw new InvalidDataException("请选择第 1～8 个已有存档。");
+        if (AccountName?.Length > 100 || RoleName?.Length > 100)
+            throw new InvalidDataException("账号和角色名称最长为 100 字，可留空。");
         if (!Enabled && !requireTarget) return;
         if (string.IsNullOrWhiteSpace(ExePath) || !Path.IsPathFullyQualified(ExePath)
             || !ExePath.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
             throw new InvalidDataException("请选择现有造梦盒子的完整 EXE 路径。");
-        if (requireLogin && (string.IsNullOrWhiteSpace(AccountName) || AccountName.Length > 100
-            || string.IsNullOrWhiteSpace(RoleName) || RoleName.Length > 100))
-            throw new InvalidDataException("请填写盒子的历史账号名称及存档角色名，用于恢复时核对。");
+
     }
 
     public static GameManagementOptions Parse(string json)

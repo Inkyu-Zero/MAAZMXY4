@@ -37,6 +37,7 @@ on:
       - 'docs/zh_cn/更新协议与发布规范.md'
       - '新图标.ico'
       - '.github/workflows/script-studio.yml'
+      - 'global.json'
   workflow_dispatch:
 jobs:
   verify:

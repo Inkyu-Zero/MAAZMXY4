@@ -15,7 +15,14 @@ public static class ScriptTaskExecution
         Func<string?, string?, CancellationToken, Task<MaaJobStatus>> execute, Action stopOnFailure, CancellationToken token,
         NativeBoxSpeedSession? speedSession = null)
     {
-        if (string.IsNullOrEmpty(entry) || string.IsNullOrEmpty(name)) return await execute(entry, overrides, token);
+        async Task<MaaJobStatus> RunNativeAsync(string? nativeEntry, string? parameters)
+        {
+            var status = await execute(nativeEntry, parameters, token);
+            if (status == MaaJobStatus.Failed && !token.IsCancellationRequested)
+                processor.AddLog($"error: {name ?? nativeEntry ?? "当前任务"}执行失败。请查看上一条节点日志，确认预览中显示的是任务起始界面后重试。{TaskAttempt.ScreenshotHint}");
+            return status;
+        }
+        if (string.IsNullOrEmpty(entry) || string.IsNullOrEmpty(name)) return await RunNativeAsync(entry, overrides);
         try
         {
             overrides = TaskScriptPlan.NormalizeRepeatLimits(overrides ?? "{}", entry);
@@ -54,7 +61,7 @@ public static class ScriptTaskExecution
                     throw new InvalidOperationException("替代答题任务的录制没有结算检查点，不能自动重启。");
                 return await management.RunCompletionOnlyAsync(entry, overrides, execute, token);
             }
-            if (plan["handled"]?.GetValue<bool>() != true) return await execute(entry, overrides, token);
+            if (plan["handled"]?.GetValue<bool>() != true) return await RunNativeAsync(entry, overrides);
             stopOnFailure();
             if (management.Options.Enabled || management.IsArmed)
             {
@@ -71,13 +78,13 @@ public static class ScriptTaskExecution
                     new JsonObject { ["enabled"] = false, ["max_retries"] = 3, ["save_slot"] = 1, ["exe_path"] = "" };
                 return await TaskRecovery.RunAsync(processor, prepared.Entry, prepared.Pipeline.ToJsonString(), prepared.Profile, execute, token);
             }
-            return await execute(prepared.Entry, prepared.Pipeline.ToJsonString(), token);
+            return await RunNativeAsync(prepared.Entry, prepared.Pipeline.ToJsonString());
         }
         catch (OperationCanceledException) { throw; }
         catch (Exception error)
         {
             stopOnFailure();
-            processor.AddLog("任务脚本未执行：" + error.Message);
+            processor.AddLog($"error: 任务脚本未执行。{error.Message} {TaskAttempt.ScreenshotHint}");
             return MaaJobStatus.Failed;
         }
     }

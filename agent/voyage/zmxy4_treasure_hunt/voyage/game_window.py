@@ -3,7 +3,6 @@ import os
 import sys
 import time
 import numpy as np
-import dxcam
 import win32api
 import win32con
 
@@ -35,6 +34,7 @@ class GameWindow:
         self.refresh_on_engine_timeout = False
         self.camera = None
         if capture_enabled:
+            import dxcam
             try:
                 self.camera = dxcam.create()
             except Exception as exc:

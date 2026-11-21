@@ -38,6 +38,7 @@ INTERFACE_CANDIDATES = ("assets/interface.json", "interface.json")
 
 # 绝不进发布包的文件：私有插件、备份、字节码、私有 pipeline。
 EXCLUDE_NAMES = {
+    "mfa_layout.json",            # 布局由用户在客户端保存
     "adventure_order.py",         # 题序规则（自用）
     "adventure_local_hook.py",    # 本地钩子（自用）
     "adventure_drops.py",         # 掉落预判（自用）
@@ -209,6 +210,7 @@ def validate_client(root, *, require_box=False):
     root = Path(root)
     validate_launcher(root / LAUNCHER_NAME)
     require_paths(root, FRONTEND_REQUIRED + ('agent/main.py',), '完整客户端')
+    validate_frontend_source(Path(ROOT), root)
     validate_mouse_guard(root / NATIVE_FOLDER)
     require_paths(root / 'runtimes/python', PYTHON_REQUIRED, '内嵌 Python')
     if require_box or (root / 'bundled-box.json').exists():
@@ -273,7 +275,7 @@ def client_files(root, frontend, python_runtime, launcher, mouse_guard=None):
                  'docs/zh_cn/2.5.2-rc.1更新说明.md', 'docs/zh_cn/性能与日志优化说明.md',
                  'docs/zh_cn/通用导航迁移与失败重试说明.md', 'docs/zh_cn/2.3.9更新说明.md',
                  'docs/zh_cn/2.4.1-rc.1更新说明.md',
-                'docs/zh_cn/2.5.3更新说明.md'):
+                 'docs/zh_cn/2.5.3更新说明.md', 'docs/zh_cn/2.5.4更新说明.md'):
         files.append((root / name, name))
     files = [(source, relative) for source, relative in files
              if not is_local_instructions(Path(relative).name)]

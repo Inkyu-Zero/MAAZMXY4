@@ -60,11 +60,27 @@ class NavigationAssetsTests(unittest.TestCase):
         for name in bank['boolean_template_nodes']:
             params = bank['nodes'][name]['recognition']['param']
             alternatives = compiled[name]['recognition']['param']['any_of']
-            self.assertEqual([part['recognition']['param']['template'] for part in alternatives], params['template'])
-            for part in alternatives:
+            count = len(params['template'])
+            nearby, fallback = alternatives[:-count], alternatives[-count:]
+            self.assertEqual([part['recognition']['param']['template'] for part in fallback], params['template'])
+            for part in fallback:
                 self.assertEqual(part['recognition']['type'], 'TemplateMatch')
                 self.assertEqual({k:v for k,v in part['recognition']['param'].items() if k != 'template'},
                                  {k:v for k,v in params.items() if k != 'template'})
+            originals = {p['recognition']['param']['template']: p['recognition']['param'] for p in fallback}
+            self.assertTrue(nearby, name)
+            for part in nearby:
+                fast = part['recognition']['param']
+                full = originals[fast['template']]
+                self.assertEqual(dict(fast, roi=full['roi']), full)
+                x, y, w, h = fast['roi']
+                ox, oy, ow, oh = full['roi']
+                self.assertTrue(ox <= x < x+w <= ox+ow and oy <= y < y+h <= oy+oh)
+                self.assertLess(w*h, ow*oh)
+                if name == 'Nav_Province_town5':  # Horizontal scroll
+                    self.assertEqual((x,w), (ox,ow))
+                if name == 'Nav_Province_town6':  # Vertical scroll
+                    self.assertEqual((y,h), (oy,oh))
         # Province landmarks must never replace the current stage-icon box.
         for name, node in self.nodes.items():
             if name.startswith('Mainline_') and name.endswith('_Target'):

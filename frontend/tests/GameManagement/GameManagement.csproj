@@ -11,6 +11,7 @@
     <PackageReference Include="Avalonia.Skia" Version="11.3.12" />
     <PackageReference Include="SkiaSharp" Version="3.119.1" />
     <Compile Include="../../ScriptStudio/Services/GameManagementPolicy.cs" Link="GameManagementPolicy.cs" />
+    <Compile Include="../../ScriptStudio/Services/TaskRecoveryPolicy.cs" Link="TaskRecoveryPolicy.cs" />
     <Compile Include="../../ScriptStudio/Services/AfkOptionControls.cs" Link="AfkOptionControls.cs" />
     <Compile Include="../../ScriptStudio/Views/UserControls/GameManagementView.cs" Link="GameManagementView.cs" />
   </ItemGroup>

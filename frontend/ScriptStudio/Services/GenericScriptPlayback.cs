@@ -63,7 +63,7 @@ public sealed class GenericScriptPlayback
         catch (OperationCanceledException) { throw; }
         catch (Exception error)
         {
-            processor.AddLog("通用脚本播放已停止：" + error.Message);
+            processor.AddLog($"error: 通用脚本播放已停止。{error.Message} {TaskAttempt.ScreenshotHint}");
             return MaaJobStatus.Failed;
         }
         finally

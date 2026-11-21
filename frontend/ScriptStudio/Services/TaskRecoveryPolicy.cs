@@ -16,6 +16,46 @@ public enum TaskAttemptStatus { Success, Ready, Fatal, Recoverable, Cancelled }
 public sealed record TaskAttempt(TaskAttemptStatus Status, string Reason = "")
 {
     public static TaskAttempt Fatal(string reason) => new(TaskAttemptStatus.Fatal, reason);
+    public const string ScreenshotHint = "如需协助，请截图保留出错时的游戏画面和这条任务日志，可遮住昵称、账号等信息。";
+    public string? Detail { get; init; }
+    public string FailureText => Detail ?? Describe(Reason, null);
+
+    internal static string Describe(string cause, string? detail)
+    {
+        var (summary, action) = cause switch
+        {
+            "unknown" or "navigation_unknown" or "unrecognized_screen" =>
+                ("小助手无法识别当前游戏界面。", "等画面加载完成，关闭遮挡菜单，再从任务起始界面重试。"),
+            "timeout" or "budget" or "unreachable" or "transition_failed" or
+            "navigation_timeout" or "navigation_budget" or "navigation_unreachable" or "navigation_transition_failed" =>
+                ("导航未能到达预期界面。", "查看游戏是否还在加载或有弹窗遮挡入口，回到任务起始界面后重试。"),
+            "unrecognized_dialog" or "navigation_unrecognized_dialog" =>
+                ("小助手无法识别当前弹窗。", "查看弹窗内容，手动处理后再开始任务。"),
+            "blocked_dialog" or "navigation_blocked" or "navigation_ambiguous" =>
+                ("画面有阻断提示或识别结果冲突。", "检查游戏中的提示，确认界面后再重试。"),
+            "window_lost" or "window_connection_lost" =>
+                ("与已选择的游戏窗口失去连接。", "确认盒子已打开，在连接设置中重新选择游戏窗口。"),
+            "capture_unavailable" or "white_screen" =>
+                (cause == "white_screen" ? "游戏画面持续白屏。" : "连续获取游戏画面失败。", "还原盒子窗口，确认小助手预览能显示游戏画面后重试。"),
+            "stage_paused" or "stage_settings_open" =>
+                ("游戏仍在暂停或设置界面。", "关闭设置并恢复游戏后重试。"),
+            "recording_changed" or "configuration_or_recording_error" =>
+                ("任务配置或绑定的录制无法使用。", "检查当前任务的脚本绑定及执行设置。"),
+            "victory_not_observed" =>
+                ("回放结束时尚未识别到胜利结算。", "检查绑定脚本能否完成战斗，并留出等待结算的时间。"),
+            "battle_failed" => ("本轮挑战失败。", "检查战斗脚本和本任务的失败重试设置。"),
+            "battle_retry_exhausted" => ("本轮挑战已用完重试次数。", "检查战斗脚本和对手选择后重试。"),
+            "battle_return_failed" => ("战败后未能返回任务界面。", "处理结算画面并回到任务起始界面后重试。"),
+            "playback_failed" => ("绑定脚本回放失败。", "查看回放日志，检查脚本绑定和盒子窗口。"),
+            "login_requires_attention" =>
+                ("盒子登录或恢复未完成。", "核对当前登录或存档界面后重试。"),
+            "window_layout" => ("盒子窗口没有达到任务要求的尺寸，请还原窗口后重新连接。", ""),
+            "task_failed" => ("本轮任务流程未完成。", "检查游戏画面及此条之前的任务日志。"),
+            _ => (cause, "")
+        };
+        return string.Join(" ", new[] { string.IsNullOrWhiteSpace(detail) ? summary : detail, action }
+            .Where(part => !string.IsNullOrWhiteSpace(part)));
+    }
 }
 
 public interface ITaskRestartLifecycle
@@ -355,7 +395,7 @@ public static class TaskRecoveryPolicy
         TaskRecoveryOptions options,
         Func<CancellationToken, Task<TaskAttempt>> runRound,
         Func<int, int, CancellationToken, Task<TaskAttempt>> recover,
-        CancellationToken token)
+        CancellationToken token, Action<string>? beforeRestart = null)
     {
         token.ThrowIfCancellationRequested();
         var outcome = await runRound(token);
@@ -368,12 +408,13 @@ public static class TaskRecoveryPolicy
             // Game defeats retry inside the same running Pipeline. Process
             // recovery has a separate budget even for an unlimited task.
             if (restarts >= options.MaxRetries)
-                return TaskAttempt.Fatal("本轮连续重启恢复失败，已达到上限，请检查游戏状态。");
+                return TaskAttempt.Fatal("本轮自动重启已达到上限。" + outcome.FailureText);
             restarts++;
+            beforeRestart?.Invoke(outcome.FailureText);
             outcome = await recover(options.SaveSlot, restarts, token);
             token.ThrowIfCancellationRequested();
             if (outcome.Status == TaskAttemptStatus.Recoverable)
-                return TaskAttempt.Fatal("重启恢复阶段失败，已停止：" + outcome.Reason);
+                return TaskAttempt.Fatal("重启恢复阶段失败，已停止：" + outcome.FailureText);
             if (outcome.Status == TaskAttemptStatus.Ready)
                 outcome = await runRound(token);
         }
@@ -386,15 +427,23 @@ public static class TaskRecoveryPolicy
         if (!CheckpointBelongsTo(state, runId, instanceId))
             return TaskAttempt.Fatal("任务状态标识不匹配，未确认本轮完成。");
         var reason = state["reason"]?.GetValue<string>() ?? "";
-        return state["status"]?.GetValue<string>() switch
+        var status = state["status"]?.GetValue<string>();
+        var outcome = status switch
         {
             "success" when !resume => new(TaskAttemptStatus.Success),
             "ready" when resume => new(TaskAttemptStatus.Ready),
             "recoverable" when !resume && reason is ("white_screen" or "window_lost" or "battle_failed" or "battle_retry_exhausted" or "battle_return_failed" or "task_failed") => new(TaskAttemptStatus.Recoverable, reason),
             "cancelled" => new(TaskAttemptStatus.Cancelled, reason),
-            "fatal" => TaskAttempt.Fatal(reason),
+            "fatal" or "failed" => TaskAttempt.Fatal(reason),
             _ => TaskAttempt.Fatal("任务没有留下可验证的成功状态。")
         };
+        if (status is not ("fatal" or "failed" or "recoverable") ||
+            outcome.Status is not (TaskAttemptStatus.Fatal or TaskAttemptStatus.Recoverable) || outcome.Reason != reason)
+            return outcome;
+        static string? Text(JsonNode? field) =>
+            field is JsonValue value && value.TryGetValue<string>(out var text) ? text : null;
+        var cause = Text(state["navigation_failure"]) ?? Text(state["failure_cause"]) ?? reason;
+        return outcome with { Detail = TaskAttempt.Describe(cause, Text(state["message"])) };
     }
 
     public static bool CheckpointBelongsTo(JsonObject state, string runId, string instanceId) =>

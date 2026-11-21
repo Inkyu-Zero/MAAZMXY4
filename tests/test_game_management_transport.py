@@ -86,6 +86,8 @@ AgentServer.shut_down()
                 params=dict(run_id=run,instance_id='memory',status_path=str(status),account_name='历史账号甲',
                     role_name='角色甲' if kind not in ('wrong-role','live-wrong-role') else '错误角色',
                     save_slot=2 if kind=='live-empty-slot' else 8 if kind=='live-slot8' else 1)
+                if kind.startswith('live-blank'):
+                    params.update(account_name=' ', role_name='', save_slot=2 if kind.endswith('empty-slot') else 1)
                 job=tasker.post_task('GameManagement_Resume',{'GameManagement_Resume':{'action':{'param':{'custom_action_param':params}}}})
                 completed={}
                 waiter=threading.Thread(target=lambda:completed.update(succeeded=job.wait().succeeded),daemon=True)
@@ -148,6 +150,13 @@ class ManagedLoginTransportTests(unittest.TestCase):
         self.assertTrue(result['succeeded'],result)
         self.assertEqual(result['status'],'ready',result)
         self.assertTrue(655<=result['clicks'][-1][1]<=905 and 504<=result['clicks'][-1][2]<=609,result)
+
+    def test_optional_names_use_current_account_and_only_an_occupied_slot(self):
+        for kind,status,stages in [('live-blank','ready',[0,2,3]),('live-blank-empty-slot','fatal',[0,2])]:
+            with self.subTest(kind=kind):
+                result=self.run_case(kind)
+                self.assertEqual(result['status'],status,result)
+                self.assertEqual([click[0] for click in result['clicks']],stages)
 
     def run_case(self,kind):
         result=subprocess.run([sys.executable,'-B','-X','utf8',str(Path(__file__).resolve()),'--native-case',kind],

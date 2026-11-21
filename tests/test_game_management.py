@@ -54,15 +54,32 @@ class GameManagementTests(unittest.TestCase):
             def override_pipeline(self,p):self.patches.append(deepcopy(p));return True
             def run_recognition(self,name,frame):
                 self.recognitions.append(name)
-                return SimpleNamespace(hit=name.removeprefix('GameManagement_') in states[self.index])
+                return SimpleNamespace(hit=name.removeprefix('GameManagement_') in states[self.index],box=[361,158,146,30])
+            def run_action(self,name,*,box):
+                self.actions.append(name);self.index=min(self.index+1,len(states)-1)
+                self.slot_box=box
+                return SimpleNamespace(success=True)
             def run_task(self,name,overrides):
                 self.assert_wrapper=(name=='GameManagement_Invoke' and overrides[name]['action']['type']=='DoNothing')
                 self.actions.append(overrides[name]['next'][0]);self.index=min(self.index+1,len(states)-1)
                 return SimpleNamespace(status=SimpleNamespace(succeeded=True))
             def sleep(self,seconds):self.now+=seconds
         ctx=Context()
-        values=dict(account_name='历史昵称',role_name='角色名',save_slot=1,**params)
+        values=dict(account_name='历史昵称',role_name='角色名',save_slot=1) | params
         return ctx,lambda:login.restore(ctx,values,clock=lambda:ctx.now,sleep=ctx.sleep)
+
+    def test_optional_names_independently_select_checks(self):
+        for account in ('   ', '账号'):
+            for role in ('', '角色'):
+                with self.subTest(account=account,role=role):
+                    ctx,run=self.scenario([{'BoxLogin','AccountSelected'}, {'SavePage','Slot8','ChooseRole'},
+                                           {'MapReady'}], account_name=account,role_name=role,save_slot=8)
+                    run()
+                    self.assertEqual('GameManagement_AccountSelected' in ctx.recognitions,bool(account.strip()))
+                    self.assertEqual('GameManagement_SelectAccount' in ctx.patches[0],bool(account.strip()))
+                    self.assertEqual('GameManagement_ChooseRole' in ctx.patches[0],bool(role))
+                    self.assertEqual(ctx.actions,['GameManagement_LoginBox',
+                                     'GameManagement_ChooseRole' if role else 'GameManagement_Slot8'])
 
     def test_near_reference_login_frame_sizes_are_accepted_but_larger_deviations_stop(self):
         for width in (1140,1141,1147,1149,1154):
@@ -74,7 +91,7 @@ class GameManagementTests(unittest.TestCase):
         for size in ((1139,720),(1155,720),(1147,719),(1147,721)):
             with self.subTest(size=size):
                 ctx,run=self.scenario([{'MapReady'}],frame_size=size,allow_existing_map=True)
-                with self.assertRaisesRegex(ValueError,'盒子画面比例'):run()
+                with self.assertRaisesRegex(ValueError,rf'盒子画面比例.*{size[0]}×{size[1]}.*还原盒子窗口'):run()
                 self.assertEqual(ctx.recognitions,[])
                 self.assertEqual(ctx.actions,[])
 
@@ -145,11 +162,21 @@ class GameManagementTests(unittest.TestCase):
 
     def test_failed_role_click_cannot_authorize_an_existing_map(self):
         ctx,run=self.scenario([{'SavePage','ChooseRole'},{'MapReady'}])
-        def dispatch(*args):
+        def dispatch(name,*,box):
+            ctx.index=1
+            return SimpleNamespace(success=False)
+        ctx.run_action=dispatch
+        with self.assertRaises(ValueError):run()
+
+    def test_slot_click_reuses_verified_frame_before_save_page_disappears(self):
+        ctx,run=self.scenario([{'SavePage','ChooseRole'},{'MapReady'}])
+        def expired_wrapper(*args):
             ctx.index=1
             return SimpleNamespace(status=SimpleNamespace(succeeded=False))
-        ctx.run_task=dispatch
-        with self.assertRaises(ValueError):run()
+        ctx.run_task=expired_wrapper
+        run()
+        self.assertEqual(ctx.actions,['GameManagement_ChooseRole'])
+        self.assertEqual(ctx.slot_box,[434,173,1,1])
 
     def test_repeated_failed_action_remains_bounded(self):
         ctx,run=self.scenario([{'StartGame'}]);calls=[]
