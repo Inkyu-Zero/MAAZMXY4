@@ -4,7 +4,7 @@
 MAA 的任务节点 `航海寻宝_入口` 是一个 `action: Custom`，name = `voyage_run`，
 最终落到这个文件里的 VoyageRun。
 
-真正干活的是 `agent/voyage/run_zmxy4.py`（照抄 zmxy4-treasure-hunt 的那套，
+真正干活的是 `agent/voyage/voyage.py`（照抄 zmxy4-treasure-hunt 的那套，
 外加坐标对齐 / 白块识别 / 卡墙挪出等补丁）。这里只负责把它当子进程拉起来、
 把它的输出转进 MAA 日志，并在用户点停止时把进程收掉、把按键松干净。
 """
@@ -13,17 +13,27 @@ from __future__ import annotations
 import ctypes
 import os
 import subprocess
+import shutil
 import sys
-from threading import Thread
+import time
 from pathlib import Path
 
 from maa.agent.agent_server import AgentServer
 from maa.context import Context
 from maa.custom_action import CustomAction
-from window_geometry import controller_hwnd
 
 _HERE = Path(__file__).resolve().parent
 _VOYAGE_DIR = _HERE / "voyage"
+
+# MFA 的 agent 进程 stdout 在 Windows 上是 GBK，而子进程是按 UTF-8 读的、
+# 里面还可能出现替换字符 U+FFFD（子进程自己的编码兜底产物）。直接 print 会抛
+# UnicodeEncodeError → CustomAction 崩 → 任务「瞬间失败」。这里统一改成 UTF-8 +
+# errors="replace"，顺带把 _log 也兜住。
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:  # noqa: BLE001
+        pass
 
 
 def _safe_print(text: str) -> None:
@@ -39,34 +49,86 @@ def _safe_print(text: str) -> None:
     except Exception:  # noqa: BLE001
         pass
 
-_LOG_FILE = _HERE.parent / "debug" / "voyage.log"
+# 这套跑图脚本依赖 dxcam / onnxruntime / scipy，MFA 自带的 runtimes/python 里没有；
+# 用它自己那个解释器会把 ImportError 变成「任务瞬间结束」，所以指定系统 Python。
+def _python_candidates() -> list:
+    """找系统装的 Python 3.12 / 3.11（跑图脚本要 dxcam / onnxruntime / scipy）。
+
+    不能写死路径：发布包会被装到别人机器上，用户名不同。
+    """
+    found = []
+    local = os.environ.get("LOCALAPPDATA")
+    if local:
+        base = Path(local) / "Programs" / "Python"
+        for name in ("Python312", "Python311"):
+            exe = base / name / "python.exe"
+            if exe.is_file():
+                found.append(exe)
+    for name in ("python3.12", "python3.11", "python"):
+        which = shutil.which(name)
+        if which:
+            found.append(Path(which))
+    return found
+
+
+def _pick_python() -> str:
+    for p in _python_candidates():
+        if p.exists():
+            return str(p)
+    return sys.executable
+
+
+_LOG_FILE = None
 
 
 def _log(msg: str) -> None:
+    global _LOG_FILE
     _safe_print("[航海] " + msg)
+    # agent 进程的 stdout 未必会被 MFA 收进 maafw.log，所以再单独落一份文件。
     try:
-        _LOG_FILE.parent.mkdir(exist_ok=True)
-        with _LOG_FILE.open("a", encoding="utf-8") as stream:
-            stream.write(msg + "\n")
-    except OSError:
+        if _LOG_FILE is None:
+            d = _HERE.parent / "debug"
+            d.mkdir(parents=True, exist_ok=True)
+            # 固定写一份 debug/voyage.log（pipeline 的 focus 指向它，MFA 日志面板能直接看），
+            # 同时另存带时间戳的那份，出问题可以翻历史。
+            _LOG_FILE = d / ("voyage_%s.log" % time.strftime("%Y%m%d_%H%M%S"))
+        try:
+            with open(_LOG_FILE.parent / "voyage.log", "a", encoding="utf-8") as fp:
+                fp.write(line + "\n")
+        except Exception:
+            pass
+        with open(_LOG_FILE, "a", encoding="utf-8") as fp:
+            fp.write("[%s] %s\n" % (time.strftime("%H:%M:%S"), msg))
+    except Exception:
         pass
 
 
-def _window_pid(hwnd):
-    pid = ctypes.c_ulong()
-    ctypes.windll.user32.GetWindowThreadProcessId(ctypes.c_void_p(hwnd), ctypes.byref(pid))
-    return pid.value
+def _clear_keys() -> None:
+    """兜底：把 WASD+J 全松一遍，避免进程被硬杀后在游戏里残留「一直按着」。"""
+    try:
+        u32 = ctypes.windll.user32
+        buf = ctypes.create_unicode_buffer(256)
+        targets: list[int] = []
 
+        CB = ctypes.WINFUNCTYPE(ctypes.c_bool, ctypes.c_void_p, ctypes.c_void_p)
 
-def _clear_keys(hwnd, pid):
-    if _window_pid(hwnd) == pid:
-        for key in "WASDJ":
-            ctypes.windll.user32.PostMessageW(ctypes.c_void_p(hwnd), 0x101, ord(key), 0)
+        def _cb(hwnd, _lparam):
+            u32.GetWindowTextW(hwnd, buf, 256)
+            if "造梦" in buf.value and u32.IsWindowVisible(hwnd):
+                targets.append(int(hwnd))
+            return True
+
+        u32.EnumWindows(CB(_cb), 0)
+        for hwnd in targets:
+            for ch in "WASDJ":
+                u32.PostMessageW(hwnd, 0x101, ord(ch), 0)
+    except Exception:
+        pass
 
 
 @AgentServer.custom_action("voyage_run")
 class VoyageRun(CustomAction):
-    """跑航海寻宝：交给 agent/voyage/run_zmxy4.py。"""
+    """跑航海寻宝：交给 agent/voyage/voyage.py。"""
 
     def run(self, context: Context, argv: CustomAction.RunArg) -> bool:
         # 包一层 try：回调里抛异常会让 MFA 直接把这个任务判结束，
@@ -80,6 +142,9 @@ class VoyageRun(CustomAction):
             return False
 
     def _run_impl(self, context: Context, argv: CustomAction.RunArg) -> bool:
+        # 回退到合并成单文件之前的那套：run_zmxy4.py + real_adapter.py +
+        # zm_mapid.py + maa_white.py + zmxy4_treasure_hunt/ 包。
+        # 合并版保留为 voyage.py.bak-merged，不再被调用。
         script = _VOYAGE_DIR / "run_zmxy4.py"
         if not script.exists():
             _log("缺少 %s" % script)
@@ -90,15 +155,10 @@ class VoyageRun(CustomAction):
         env["PYTHONUTF8"] = "1"
 
         _log("启动 %s" % script)
-        hwnd = controller_hwnd(context.tasker.controller)
-        pid = _window_pid(hwnd) if hwnd else 0
-        if not pid or context.tasker.stopping:
-            _log("无法启动航海，请确认小助手已绑定当前造梦盒子窗口。")
-            return False
-        exe = sys.executable
+        exe = _pick_python()
         _log("解释器 %s" % exe)
         proc = subprocess.Popen(
-            [exe, "-s", "-u", "-X", "utf8", str(script), str(hwnd), str(pid)],
+            [exe, "-u", "-X", "utf8", str(script)],
             cwd=str(_VOYAGE_DIR),
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
@@ -108,28 +168,37 @@ class VoyageRun(CustomAction):
             env=env,
         )
 
-        def read_output():
-            with proc.stdout as stream:
-                for line in stream:
-                    _log(line.rstrip())
-
-        reader = Thread(target=read_output, daemon=True)
-        reader.start()
+        stopped = False
         try:
-            while proc.poll() is None:
+            assert proc.stdout is not None
+            for line in proc.stdout:
+                line = line.rstrip()
+                if line:
+                    _safe_print(line)
+                    try:
+                        with open(_LOG_FILE, "a", encoding="utf-8") as fp:
+                            fp.write(line + "\n")
+                    except Exception:
+                        pass
                 if context.tasker.stopping:
-                    _log("收到停止请求，结束航海")
-                    return False
-                try:
-                    proc.wait(timeout=0.25)
-                except subprocess.TimeoutExpired:
-                    continue
-            if proc.returncode:
-                _log(f"航海子进程失败，退出码 {proc.returncode}。请查看上方错误及航海日志。")
-            return proc.returncode == 0 and not context.tasker.stopping
+                    stopped = True
+                    _log("收到停止请求，收尾")
+                    break
         finally:
             if proc.poll() is None:
                 proc.kill()
-            proc.wait()
-            reader.join()
-            _clear_keys(hwnd, pid)
+                try:
+                    proc.wait(timeout=5)
+                except Exception:
+                    pass
+            time.sleep(0.2)
+            _clear_keys()
+            _log("已释放所有按键（%s）" % ("手动停止" if stopped else "进程结束"))
+
+        # 子进程退出码是唯一的成败信息：0=挑战成功、2=挑战失败（两种都要
+        # 交给 pipeline 的「收尾」节点点「返回地图」），手动停止按成功处理。
+        if stopped:
+            return True
+        code = proc.returncode
+        _log("子进程退出码 %s" % code)
+        return code == 0

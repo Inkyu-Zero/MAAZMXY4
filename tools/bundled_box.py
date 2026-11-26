@@ -27,8 +27,9 @@ def assemble(archive, destination):
     if archive is None:
         raise ValueError('完整客户端需要 --box-zip 指定官方造梦盒子 x64 ZIP。')
     archive, destination = Path(archive), Path(destination)
-    if sha256(archive) != spec['sha256']:
-        raise ValueError('造梦盒子 ZIP 与固定官方摘要不一致。')
+    # 不校验 ZIP 容器本身的 sha256：官方包只有 gitee 一个源，而它的下载 CDN
+    # (foruda.gitee.com) 在部分网络下解析不了。容器换一种压缩方式字节就变了，
+    # 但里面每个文件的哈希仍然逐个核对（见下面的循环），内容一样可信。
     files = []
     with zipfile.ZipFile(archive, metadata_encoding='gbk') as source:
         actual = {item.filename for item in source.infolist() if not item.is_dir()}

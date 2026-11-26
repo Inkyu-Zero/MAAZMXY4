@@ -3,7 +3,7 @@
   "name": "MAA造梦西游4",
   "label": "MAAZMXY4",
   "github": "https://github.com/Inkyu-Zero/MAAZMXY4",
-  "version": "2.5.4",
+  "version": "2.5.5",
   "license": "本项目基于 MaaFramework 开发，作者 InkyuZero（GitHub: Inkyu-Zero/MAAZMXY4）。采用 PolyForm Noncommercial 1.0.0 许可：完全免费，允许个人使用与免费分享，禁止任何形式的售卖与商业用途。",
   "resource": [
     {
@@ -28,9 +28,9 @@
     },
     {
       "name": "生存大冒险·自动答题",
-      "entry": "生存大冒险_初始化",
+      "entry": "生存大冒险_入口",
       "option": [],
-      "description": "在开始任务前，请先把游戏停在「生存大冒险」的题目界面，本项目会自己识别角色与题目。\n\n**期望表现**（离线模拟：每角色 1500 局，7 个角色等权）\n\n- 单局平均分：**77.0** / 100\n- 单局满分（100 分）概率：**6.4%**\n- 一周 7 天总分 ≥ 480 的概率：**96.7%**\n- 一周 7 天总分 ≥ 620 的概率：**0.7%**\n\n一周期望总分 539 / 700。\n\n游戏管理：答题只在确认整局结算后执行内存或定时重启。异常中断、窗口丢失或连续三分钟无进展时保留日志并停止，不会自动重新开局或消耗新的冒险次数；“任务失败后自动重启”不对答题中断生效。"
+      "description": "任务会自动识别当前停在哪个界面（大地图 / 活动菜单 / 七天卡片页 / 答题中）并从那里接着走。\n\n**期望表现**（离线模拟：每角色 1500 局，7 个角色等权）\n\n- 单局平均分：**77.0** / 100\n- 单局满分（100 分）概率：**6.4%**\n- 一周 7 天总分 ≥ 480 的概率：**96.7%**\n- 一周 7 天总分 ≥ 620 的概率：**0.7%**\n\n一周期望总分 539 / 700。\n\n游戏管理：答题只在确认整局结算后执行内存或定时重启。异常中断、窗口丢失或连续三分钟无进展时保留日志并停止，不会自动重新开局或消耗新的冒险次数；“任务失败后自动重启”不对答题中断生效。"
     },
     {
       "name": "贪妄（金蟾宝宫）",
@@ -1316,13 +1316,22 @@
         "刷取次数",
         "失败自动重试"
       ],
-      "description": "默认挑战第 5 位普通对手，可改选第 1～5 位或神秘竞技者。请绑定仅包含战斗的脚本，胜利结算由任务返回。\n点击头像后沿用普通关卡的进关与回放流程；确认挑战成功并返回对手列表后计次。脚本结束时若仍在战斗，最多再观察 4 秒等待结算。战败按重试设置处理，未出现结算则保留当前界面并停止。"
+      "description": "默认挑战第 5 位普通对手，可改选第 1～5 位或神秘竞技者。请绑定仅包含战斗的脚本，胜利结算由任务返回。\n点击头像后沿用普通关卡的进关与回放流程；确认挑战成功并返回对手列表后计次。脚本播放结束仍未胜利时任务失败，保留当前战斗，不自动打开设置退关。"
     },
     {
       "name": "航海寻宝",
-      "entry": "航海寻宝_入口",
+      "entry": "航海寻宝_执行日",
+      "option": [
+        "航海寻宝执行日",
+        "航海寻宝完成方式"
+      ],
+      "description": "任务会自己从当前界面走回大地图、展开活动菜单、点进「航海寻宝」并点击起航；请在开始前把游戏停在任意普通地图界面。"
+    },
+    {
+      "name": "福果来",
+      "entry": "福果来_入口",
       "option": [],
-      "description": "在开始任务前，请先把游戏停在「航海寻宝」界面（或已进入副本内任意房间）。\n\n本项目会自己截图、认出当前是第几套大地图、按路线走到下一个房间，遇到敌人就按仓库那套规则打（躲弹、找射击位、开火），一路推到 Boss。\n\n**识别方式**：MaaFramework 截图 + YOLO（player/enemy/bullet + 道具）+ ColorMatch 读小地图白格。\n\n**注意事项**\n- 不要用鼠标/键盘干预，脚本在按 WASD + J；\n- 窗口被别的窗口挡住也能跑（走的是后台截图 + PostMessage 按键），但请不要最小化；\n- 点「停止」后脚本会自己把按键松干净。"
+      "description": "任务会自己从当前界面走回大地图、展开活动菜单、点进「福果来」并进入副本；请在开始前把游戏停在任意普通地图界面。"
     }
   ],
   "option": {
@@ -2012,6 +2021,156 @@
                     1,
                     1
                   ]
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "航海寻宝完成方式": {
+      "type": "select",
+      "label": "完成方式",
+      "default_case": "只完成一轮",
+      "description": "只完成一轮：起航一次、跑完一局就停。清空奖励次数：跑完一局回到面板后再次起航，直到本周剩余可领取次数用完（面板上没有「起航」时自动结束）。",
+      "cases": [
+        {
+          "name": "只完成一轮",
+          "pipeline_override": {
+            "航海寻宝_收尾": {
+              "next": [
+                "航海寻宝_结束_单次"
+              ]
+            }
+          }
+        },
+        {
+          "name": "清空奖励次数",
+          "pipeline_override": {}
+        }
+      ]
+    },
+    "航海寻宝执行日": {
+      "type": "select",
+      "label": "执行日",
+      "default_case": "不限制",
+      "description": "只在选定的那一天执行本任务；其他日子点开始后会直接结束，不做任何操作。",
+      "cases": [
+        {
+          "name": "不限制",
+          "pipeline_override": {
+            "航海寻宝_执行日": {
+              "action": {
+                "param": {
+                  "custom_action": "adventure_weekday_gate",
+                  "custom_action_param": {
+                    "weekday": 0
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "周一",
+          "pipeline_override": {
+            "航海寻宝_执行日": {
+              "action": {
+                "param": {
+                  "custom_action": "adventure_weekday_gate",
+                  "custom_action_param": {
+                    "weekday": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "周二",
+          "pipeline_override": {
+            "航海寻宝_执行日": {
+              "action": {
+                "param": {
+                  "custom_action": "adventure_weekday_gate",
+                  "custom_action_param": {
+                    "weekday": 2
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "周三",
+          "pipeline_override": {
+            "航海寻宝_执行日": {
+              "action": {
+                "param": {
+                  "custom_action": "adventure_weekday_gate",
+                  "custom_action_param": {
+                    "weekday": 3
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "周四",
+          "pipeline_override": {
+            "航海寻宝_执行日": {
+              "action": {
+                "param": {
+                  "custom_action": "adventure_weekday_gate",
+                  "custom_action_param": {
+                    "weekday": 4
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "周五",
+          "pipeline_override": {
+            "航海寻宝_执行日": {
+              "action": {
+                "param": {
+                  "custom_action": "adventure_weekday_gate",
+                  "custom_action_param": {
+                    "weekday": 5
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "周六",
+          "pipeline_override": {
+            "航海寻宝_执行日": {
+              "action": {
+                "param": {
+                  "custom_action": "adventure_weekday_gate",
+                  "custom_action_param": {
+                    "weekday": 6
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "周日",
+          "pipeline_override": {
+            "航海寻宝_执行日": {
+              "action": {
+                "param": {
+                  "custom_action": "adventure_weekday_gate",
+                  "custom_action_param": {
+                    "weekday": 7
+                  }
                 }
               }
             }

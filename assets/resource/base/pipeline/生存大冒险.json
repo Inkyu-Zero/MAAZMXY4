@@ -1,4 +1,101 @@
 {
+  "生存大冒险_展开菜单": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "survival/arrow.png",
+          "survival/arrow_1410.png"
+        ],
+        "roi": [
+          780,
+          0,
+          451,
+          123
+        ],
+        "threshold": 0.6
+      }
+    },
+    "action": {
+      "type": "Click"
+    },
+    "next": [
+      "生存大冒险_点图标"
+    ],
+    "on_error": [
+      "生存大冒险_点图标"
+    ],
+    "post_delay": 120,
+    "post_wait_freezes": {
+      "time": 150,
+      "timeout": 1200,
+      "rate_limit": 80
+    },
+    "timeout": 800
+  },
+  "生存大冒险_点图标": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "expected": [
+          "生存大冒险"
+        ],
+        "roi": [
+          300,
+          80,
+          660,
+          500
+        ]
+      }
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "adventure_click_icon"
+      }
+    },
+    "next": [
+      "生存大冒险_开始冒险",
+      "生存大冒险_本日已完成"
+    ],
+    "timeout": 4000,
+    "post_delay": 120,
+    "post_wait_freezes": {
+      "time": 150,
+      "timeout": 1200,
+      "rate_limit": 80
+    }
+  },
+  "生存大冒险_开始冒险": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "expected": [
+          "^开始冒险$",
+          "^继续冒险$"
+        ],
+        "roi": [
+          30,
+          520,
+          1080,
+          100
+        ]
+      }
+    },
+    "action": {
+      "type": "Click"
+    },
+    "next": [
+      "生存大冒险_初始化"
+    ],
+    "timeout": 4000,
+    "post_delay": 400,
+    "post_wait_freezes": {
+      "time": 250,
+      "timeout": 2500,
+      "rate_limit": 120
+    }
+  },
   "生存大冒险_初始化": {
     "recognition": {
       "type": "DirectHit"
@@ -15,6 +112,7 @@
   },
   "生存大冒险_答题循环": {
     "next": [
+      "生存大冒险_结算确认",
       "生存大冒险_结算",
       "生存大冒险_继续冒险",
       "生存大冒险_界面检查"
@@ -35,8 +133,8 @@
         "roi": [
           780,
           280,
-          300,
-          340
+          369,
+          418
         ]
       }
     },
@@ -375,5 +473,324 @@
     },
     "pre_delay": 0,
     "post_delay": 0
+  },
+  "生存大冒险_本日已完成": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "expected": [
+          "^重新冒险$"
+        ],
+        "roi": [
+          30,
+          520,
+          1080,
+          100
+        ]
+      }
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "adventure_daily_done"
+      }
+    },
+    "next": [
+      "生存大冒险_结束"
+    ],
+    "timeout": 3000,
+    "post_delay": 200,
+    "focus": {
+      "Node.Action.Succeeded": {
+        "content": "./debug/adventure/daily_done.md",
+        "display": "log"
+      }
+    }
+  },
+  "生存大冒险_入口": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "adventure_entry_route",
+        "custom_action_param": {
+          "settings_node": "生存大冒险_点设置",
+          "panels": [
+            {
+              "node": "生存大冒险_识别卡片页",
+              "target": "生存大冒险_识别卡片页"
+            },
+            {
+              "node": "生存大冒险_识别答题页",
+              "target": "生存大冒险_接管"
+            }
+          ]
+        }
+      }
+    },
+    "next": [
+      "生存大冒险_识别卡片页",
+      "生存大冒险_识别菜单",
+      "生存大冒险_识别答题页",
+      "生存大冒险_识别大地图",
+      "生存大冒险_回地图"
+    ],
+    "timeout": 20000
+  },
+  "生存大冒险_识别答题页": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "expected": [
+          "生存属性"
+        ],
+        "roi": [
+          0,
+          180,
+          260,
+          390
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "生存大冒险_接管"
+    ],
+    "timeout": 800
+  },
+  "生存大冒险_识别卡片页": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "expected": [
+          "本周生存积分"
+        ],
+        "roi": [
+          30,
+          30,
+          300,
+          110
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "生存大冒险_开始冒险",
+      "生存大冒险_本日已完成"
+    ],
+    "timeout": 800
+  },
+  "生存大冒险_识别菜单": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "expected": [
+          "生存大冒险"
+        ],
+        "roi": [
+          300,
+          80,
+          660,
+          500
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "生存大冒险_点图标"
+    ],
+    "timeout": 800
+  },
+  "生存大冒险_接管": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "adventure_takeover"
+      }
+    },
+    "next": [
+      "生存大冒险_答题循环"
+    ]
+  },
+  "生存大冒险_回地图": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "adventure_goto_map"
+      }
+    },
+    "next": [
+      "生存大冒险_入口"
+    ],
+    "timeout": 130000,
+    "on_error": [
+      "生存大冒险_返回地图"
+    ]
+  },
+  "生存大冒险_识别大地图": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          "Nav_ClearMap"
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "生存大冒险_展开菜单"
+    ],
+    "on_error": [
+      "生存大冒险_回地图"
+    ],
+    "timeout": 800
+  },
+  "生存大冒险_返回地图": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "expected": [
+          "返回地图"
+        ]
+      }
+    },
+    "action": {
+      "type": "Click"
+    },
+    "next": [
+      "生存大冒险_入口"
+    ],
+    "on_error": [
+      "生存大冒险_点设置"
+    ],
+    "timeout": 2500,
+    "post_delay": 300,
+    "post_wait_freezes": {
+      "time": 200,
+      "timeout": 3000,
+      "rate_limit": 200
+    }
+  },
+  "生存大冒险_识别红叉": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "ui/close_x.png",
+          "ui/close_x_1410.png"
+        ],
+        "roi": [
+          860,
+          0,
+          353,
+          270
+        ],
+        "threshold": 0.8
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "timeout": 800
+  },
+  "生存大冒险_点红叉": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "ui/close_x.png",
+          "ui/close_x_1410.png"
+        ],
+        "roi": [
+          860,
+          0,
+          353,
+          270
+        ],
+        "threshold": 0.8
+      }
+    },
+    "action": {
+      "type": "Click"
+    },
+    "next": [
+      "生存大冒险_入口"
+    ],
+    "on_error": [
+      "生存大冒险_入口"
+    ],
+    "timeout": 800,
+    "post_delay": 400,
+    "post_wait_freezes": {
+      "time": 200,
+      "timeout": 3000,
+      "rate_limit": 200
+    }
+  },
+  "生存大冒险_点设置": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "expected": [
+          "^设置$"
+        ]
+      }
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "adventure_click_settings"
+      }
+    },
+    "next": [
+      "生存大冒险_返回地图复检"
+    ],
+    "on_error": [
+      "生存大冒险_回地图"
+    ],
+    "timeout": 4000
+  },
+  "生存大冒险_返回地图复检": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "expected": [
+          "返回地图"
+        ]
+      }
+    },
+    "action": {
+      "type": "Click"
+    },
+    "next": [
+      "生存大冒险_入口"
+    ],
+    "on_error": [
+      "生存大冒险_回地图"
+    ],
+    "timeout": 2500,
+    "post_delay": 300,
+    "post_wait_freezes": {
+      "time": 200,
+      "timeout": 3000,
+      "rate_limit": 200
+    }
   }
 }

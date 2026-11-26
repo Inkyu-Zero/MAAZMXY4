@@ -45,7 +45,7 @@ EXCLUDE_NAMES = {
     "adventure_drops_action.py",  # 掉落预判的 CustomRecognition 注册（自用）
     "掉落预判.json",               # 上面那个插件的 pipeline
 }
-EXCLUDE_DIRS = {"__pycache__", ".git", "recordings"}
+EXCLUDE_DIRS = {"__pycache__", ".git", "recordings", "_tmp_old"}
 
 
 def is_local_instructions(name):

@@ -22,6 +22,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 import json
 import os
 from rolling_log import append_log
@@ -57,6 +58,9 @@ from maa.custom_recognition import CustomRecognition  # noqa: E402
 # 界面永远认不出来 → 任务卡在「运行中」空转）。
 UI_PATH = os.path.join(_ROOT, "agent", "data", "adventure_ui.json")
 LOG_DIR = os.path.join(_ROOT, "debug", "adventure")
+# 给 GUI 日志窗看的提示文件（pipeline 的 focus 只认文件内容）
+DAILY_DONE_FILE = os.path.join(LOG_DIR, "daily_done.md")
+VOYAGE_DONE_FILE = os.path.join(LOG_DIR, "voyage_done.md")
 COLLECTED_PATH = os.path.join(LOG_DIR, "collected.jsonl")
 LOG_PATH = os.path.join(LOG_DIR, "adventure.log")
 
@@ -793,13 +797,13 @@ def _collect(
         _log(f"写入采集记录失败：{exc}")
 
 
-_RESULT_MARKS = ("冒险成功", "冒险失败", "直降为0", "结束冒险")
+_RESULT_MARKS = ("冒险成功", "冒险失败")
 
 # 结算识别专用节点（pipeline 里 ROI 放大到题干+选项+按钮）
 RESULT_NODE = "生存大冒险_结算识别"
-# check 阶段只认「真的结算了」（成功/失败/直降），不能含「结束冒险」——
+# check 阶段只认「真的结算了」（冒险成功/冒险失败），不能含「结束冒险」——
 # 那只是按钮文字，按钮还在时把它当结算标记会提前收工。
-_CHECK_MARKS = ("冒险成功", "冒险失败", "直降为0")
+_CHECK_MARKS = ("冒险成功", "冒险失败")
 
 
 PANEL_FILE = os.path.join(LOG_DIR, "panel.md")
@@ -842,8 +846,7 @@ def _result_mark(text: str) -> str:
     for one in _RESULT_MARKS:
         if one in body:
             return one
-    hit = re.search(r"获得\s*\d+\s*积分", body)
-    return hit.group(0) if hit else ""
+    return ""
 
 
 def _click_end_adventure(context: Context, image: Any) -> bool:
@@ -942,9 +945,540 @@ def _apply(attrs: Dict[str, int], gains: Dict[str, int]) -> Dict[str, int]:
     return out
 
 
+# 顶部进度条：10 个圆点，已答过的是亮金色，当前那一格被角色头像盖住（紫色），
+# 没答的是暗棕色。坐标按 1147x720 量得，用比例存，跟随窗口缩放。
+_DOT_X0 = 355.0 / 1147.0
+_DOT_STEP = 71.7 / 1147.0
+_DOT_Y = 150.0 / 720.0
+_DOT_COUNT = 10
+
+
+def _find_close_button(image):
+    """在右上区域找红叉关闭按钮：取红色像素最密的一小块。
+
+    各界面红叉位置不一样（采集在 1105,42；时光之舟在 1015,148），所以不去
+    猜固定坐标。红叉是实心红圆 + 白叉，红色像素远多于别处的红字，取最大簇
+    就是它。
+    """
+    shape = getattr(image, "shape", None)
+    if shape is None or len(shape) < 2:
+        return None
+    height, width = int(shape[0]), int(shape[1])
+    cell = 10
+    counts = {}
+    # 红叉在最右侧一竖条里，但各界面位置差得远：采集 1113、时光之舟 1031、
+    # 航海面板 881、翅膀面板 914，所以起点只能放到 0.76。工具栏右侧那些红色
+    # 图标是实心的、红叉是空心的，靠下面那一步区分。
+    for y in range(0, int(height * 0.30), 2):
+        row = image[y]
+        for x in range(int(width * 0.76), width, 2):
+            pixel = row[x]
+            if int(pixel[2]) > 170 and int(pixel[1]) < 85 and int(pixel[0]) < 85:
+                key = (y // cell, x // cell)
+                counts[key] = counts.get(key, 0) + 1
+    if not counts:
+        return None
+    key = max(counts, key=counts.get)
+    if counts[key] < 20:
+        return None
+    # 格子中心只有 10px 精度，红叉直径才 ~34px，偏一点就点空。
+    top, left = key[0] * cell, key[1] * cell
+    sum_x = sum_y = total = 0
+    for y in range(max(0, top - cell), min(height, top + 2 * cell)):
+        row = image[y]
+        for x in range(max(0, left - cell), min(width, left + 2 * cell)):
+            pixel = row[x]
+            if int(pixel[2]) > 170 and int(pixel[1]) < 85 and int(pixel[0]) < 85:
+                sum_x += x
+                sum_y += y
+                total += 1
+    if not total:
+        return (left + cell // 2, top + cell // 2)
+    return (sum_x // total, sum_y // total)
+
+
+def _question_from_progress(image) -> int:
+    """数进度条上亮金色的圆点 = 本局已经答完几题（也就是当前题号，0 基）。
+
+    中途接管时 pipeline 没法知道用户停在第几题，题号猜错会让之后每题都按错的
+    属性需求去选，所以这里直接从界面读数。
+
+    只认「金色圆点」，不认角色头像：当前那一格会被头像盖住，盖住之后就不算
+    金色了，所以金色个数天然等于已答题数。头像长什么样（兔子/别的角色、什么
+    颜色）都不影响。
+    """
+    if image is None:
+        return 0
+    try:
+        height, width = int(image.shape[0]), int(image.shape[1])
+    except Exception:                          # noqa: BLE001
+        return 0
+    radius = max(2, int(round(width * 0.006)))
+    done = 0
+    for i in range(_DOT_COUNT):
+        cx = int(round((_DOT_X0 + i * _DOT_STEP) * width))
+        cy = int(round(_DOT_Y * height))
+        gold = total = 0
+        for y in range(cy - radius, cy + radius + 1):
+            if y < 0 or y >= height:
+                continue
+            for x in range(cx - radius, cx + radius + 1):
+                if x < 0 or x >= width:
+                    continue
+                px = image[y, x]
+                b, g, r = int(px[0]), int(px[1]), int(px[2])
+                total += 1
+                if r > 150 and g > 100 and b < 120:
+                    gold += 1
+        if total and gold * 2 > total:
+            done += 1
+    return max(0, min(done, _DOT_COUNT))
+
+
+_ENTRY_RETRY = {}
+
+
+def _entry_retry(entry_node: str) -> int:
+    """计一下这个入口短时间内被调了几次。
+
+    入口重试是正常循环（每轮只挪一步），但动作没生效时
+    会一直回来。超过 60 秒算新一轮，避免上一局的计数污染这一局。
+    """
+    now = time.time()
+    count, ts = _ENTRY_RETRY.get(entry_node, (0, 0.0))
+    if now - ts > 60.0:
+        count = 0
+    count += 1
+    _ENTRY_RETRY[entry_node] = (count, now)
+    return count
+
+
+@AgentServer.custom_action("adventure_entry_route")
+class AdventureEntryRoute(CustomAction):
+    """定位一次当前界面，直接把入口的 next 改到对应分支。
+
+    原来入口把 4 个判断节点挨个试，每个都要等自己的超时，停在大地图也要
+    十几秒。导航运行时本来就是「一帧图逐项识别、命中即返回」，这里直接用它
+    的 locate()，再把结果写成入口的下一个节点，省掉全部试探。
+    """
+
+    ROUTE = {
+        "map": "生存大冒险_展开菜单",
+        "survival_week": "生存大冒险_开始冒险",
+        "survival_question": "生存大冒险_接管",
+    }
+
+    def run(self, context, argv) -> bool:
+        from script_task import capture  # noqa: PLC0415
+
+        # 这个入口是通用的：pipeline 用 custom_action_param 告诉它"点开菜单后
+        # 该去点哪个图标节点"。生存大冒险、航海寻宝共用同一套红叉/箭头/
+        # 世界地图/返回地图的判断。
+        # binding 给的是 JSON 字符串（见 _as_dict 的说明），直接走统一的解析。
+        conf = _as_dict(getattr(argv, "custom_action_param", None))
+        # 整套入口判断（红叉 / 箭头 / 世界地图 / 回地图 / 返回地图）都是通用的，
+        # pipeline 用 custom_action_param 指定自己那一份节点名。
+        entry_node = str(conf.get("entry_node") or "生存大冒险_入口")
+        # 入口是「一步一步往目标挪」的循环点：每轮只做一个动作，做完回来重新判。
+        # 一直回来就说明动作没生效，超过 10 轮就放弃，别无限点下去。
+        retry = _entry_retry(entry_node)
+        if retry > 10:
+            _log("入口已重试 %d 轮仍没到目标，放弃" % retry)
+            return False
+        _log("入口第 %d 轮判断" % retry)
+        icon_node = str(conf.get("icon_node") or "生存大冒险_点图标")
+        map_node = str(conf.get("map_node") or "生存大冒险_回地图")
+        back_node = str(conf.get("back_node") or "生存大冒险_返回地图")
+        settings_node = str(conf.get("settings_node") or "生存大冒险_点设置")
+        big_map_node = str(conf.get("big_map_node") or "生存大冒险_识别大地图")
+        arrow_node = str(conf.get("arrow_node") or "生存大冒险_展开菜单")
+
+        # 先抓一帧看右上角有没有红叉：有就是活动面板/弹窗界面，直接点掉最省事，
+        # 不用去跑候选界面的识别。红叉用模板匹配（红色 X + 橙边 + 黑圈），
+        # 不再按「红色像素最密」猜——那样会把工具栏的红色图标当成叉。
+        image = None
+        try:
+            image = capture(context)
+        except Exception as error:                      # noqa: BLE001
+            _log("入口截图失败：" + str(error))
+        close_node = str(conf.get("close_node") or "生存大冒险_识别红叉")
+        close_click = str(conf.get("close_click_node") or "生存大冒险_点红叉")
+        # 先看是不是已经停在目标界面上了。这些界面的右上角都有红叉，
+        # 要是先判红叉会把它点掉，白跑一圈重新点进来。
+        # panels 是 [{node, target}] 的有序列表，逐个识别，命中就用它的 target 当 next。
+        panels: List[Dict[str, Any]] = []
+        raw_panels = conf.get("panels")
+        if isinstance(raw_panels, list):
+            panels = [item for item in raw_panels if isinstance(item, dict)]
+        elif conf.get("panel_node"):
+            panels = [{"node": conf.get("panel_node"),
+                       "target": conf.get("panel_target")}]
+        if panels and image is not None:
+            for item in panels:
+                node = str(item.get("node") or "")
+                if not node:
+                    continue
+                try:
+                    panel = context.run_recognition(node, image)
+                except Exception as error:              # noqa: BLE001
+                    _log("面板识别失败（%s）：%s" % (node, error))
+                    continue
+                if getattr(panel, "hit", False):
+                    panel_target = str(item.get("target") or node)
+                    _log("入口：已在「%s」界面，直接继续" % node)
+                    return self._route(context, entry_node, "已在目标界面", panel_target)
+
+
+        # 菜单已经展开时（点过箭头但没点图标），画面上就有「福果来」那行字，
+        # 直接交给「点图标」，省掉再点一下箭头把菜单关掉的来回。
+        if image is not None:
+            try:
+                found = context.run_recognition(close_node, image)
+                if getattr(found, "hit", False) and getattr(found, "box", None):
+                    _log("入口：识别到关闭按钮，交给 pipeline 点掉")
+                    return self._route(context, entry_node, "有红叉", close_click)
+            except Exception as error:                  # noqa: BLE001
+                _log("红叉识别失败：" + str(error))
+
+        menu_node = str(conf.get("menu_node") or "")
+        if menu_node and image is not None:
+            try:
+                opened = context.run_recognition(menu_node, image)
+            except Exception as error:                  # noqa: BLE001
+                _log("菜单识别失败：%s" % error)
+                opened = None
+            if getattr(opened, "hit", False):
+                _log("入口：菜单已经展开，直接点图标")
+                return self._route(context, entry_node, "菜单已展开", icon_node)
+
+        # 已经在副本里（福果来那种没有底部按钮的副本，靠设置退不出去）：
+        # 直接认出来，把入口指到副本流程本身，别再折腾导航。
+        dungeon = str(conf.get("dungeon_node") or "")
+        if dungeon and image is not None:
+            try:
+                inside = context.run_recognition(dungeon, image)
+            except Exception as error:                  # noqa: BLE001
+                _log("副本识别失败：%s" % error)
+                inside = None
+            if getattr(inside, "hit", False):
+                _log("入口：已经在副本内，直接开始")
+                return self._route(context, entry_node, "在副本内",
+                                   str(conf.get("dungeon_target") or icon_node))
+
+        # 没有红叉就只剩两种可能：停在人物大地图（工具栏上有金色箭头），
+        # 或者停在别的界面。
+        #
+        # 这里不再用模板匹配。模板带着裁剪时的背景色，换一张地图分数就掉到
+        # 阈值以下（须弥山是浅蓝天空、普通野外是暗红岩石），而地图上别处的
+        # 金色图标反而能过线 —— 22:39 那次就误命中了须弥山中间那棵金树
+        # (573, 360)。这颗箭头在所有地图上都在同一相对位置：两种窗口实测
+        # 都是 (0.750w, 0.076h)，直接按比例点。
+        target, reason = map_node, "没认出来"
+        if image is not None and getattr(image, "shape", None) is not None:
+            height, width = int(image.shape[0]), int(image.shape[1])
+            cx, cy = int(round(width * 0.750)), int(round(height * 0.076))
+            _log("入口：点开菜单箭头 @ (%d, %d)" % (cx, cy))
+            try:
+                context.tasker.controller.post_click(cx, cy).wait()
+            except Exception as error:                  # noqa: BLE001
+                _log("点箭头失败：" + str(error))
+            time.sleep(0.5)
+            target, reason = icon_node, "已点开菜单"
+        # 停在世界地图（云海）时，南瞻部洲入口就在画面下方。导航库那条
+        # Nav_WorldNanzhan 也是点这个框，但它要额外走一遍「等条件就绪 + 点完
+        # 再反复确认 3 秒」，实测 4 秒；这里直接识别框中心点掉，随后让
+        # 「识别大地图」去确认，失败会自己回退到回地图。
+        if target == map_node:
+            try:
+                town = context.run_recognition("Nav_WorldNanzhan", image)
+                box = getattr(town, "box", None) if town is not None else None
+                if getattr(town, "hit", False) and box:
+                    bx, by, bw, bh = (int(v) for v in box[:4])
+                    cx, cy = bx + bw // 2, by + bh // 2
+                    _log("入口：在世界地图，点南瞻部洲 (%d, %d)" % (cx, cy))
+                    try:
+                        context.tasker.controller.post_click(cx, cy).wait()
+                    except Exception as error:          # noqa: BLE001
+                        _log("点南瞻部洲失败：" + str(error))
+                    time.sleep(1.2)
+                    target, reason = big_map_node, "世界地图已点南瞻部洲"
+            except Exception as error:                  # noqa: BLE001
+                _log("世界地图识别失败：" + str(error))
+        # 还是认不出来：多半是停在须弥山 / 副本 / 挑战结果页。
+        # 挑战成功/失败页上没有齿轮，但页面上本来就有「返回地图」——先认一次，
+        # 命中就直接交给「返回地图」节点点掉，省掉「点设置 + 等 1.5 秒」那一趟。
+        if target == map_node and image is not None:
+            try:
+                back = context.run_recognition(back_node, image)
+                if getattr(back, "hit", False) and getattr(back, "box", None):
+                    target, reason = back_node, "有返回地图"
+            except Exception as error:                  # noqa: BLE001
+                _log("返回地图识别失败：" + str(error))
+        # 没有「返回地图」才点底部齿轮：菜单里的「返回地图」直接回人物大地图
+        # （南瞻部洲），副本 / 须弥山走这条。
+        if target == map_node:
+            target, reason = settings_node, "点设置再返回地图"
+        return self._route(context, entry_node, reason, target)
+
+    @staticmethod
+    def _route(context, entry_node, why, target):
+        done = context.override_pipeline({entry_node: {"next": [target]}})
+        _log("入口定位：%s → %s（覆盖%s）" % (why, target, "成功" if done else "失败"))
+        return True
+
+
+@AgentServer.custom_action("adventure_goto_map")
+class AdventureGotoMap(CustomAction):
+    """从任意界面走回人物大地图：复用项目自带的 navigation 运行时。"""
+
+    def run(self, context, argv) -> bool:
+        from navigation import NavigationError
+        from navigation.catalog import task_routine
+        from navigation.runtime import Navigator
+        from script_task import _check, capture
+
+        parameters = {"navigation": {"kind": "screen", "screen": "map"}}
+        try:
+            routine = task_routine(context, parameters)
+        except ValueError as error:
+            _log("导航初始化失败：" + str(error))
+            return False
+        # 只回地图，不需要反复确认界面；压低探测次数和每次操作后的等待。
+        # locate_attempts=1：认不出来就立刻走"关窗口"兜底，不再白跑第二轮。
+        routine["locate_attempts"] = 1
+        routine["settle_ms"] = 200
+        # quick 里已经带了 map / world / 暂停 / 设置这几个，这里只补两个
+        # 最常停留、又能直接走官方出口的界面。每多一个候选就多 140ms，
+        # 42 个候选要 6 秒，7 个候选只要 1 秒。
+        routine["fallback"] = ["world", "settings_menu"]
+        # 导航库默认做完动作要「反复截图确认画面变了」，最长 10 秒（verify_ms）
+        # 或 10 秒（timeout_ms）。回地图这种操作确认个 3 秒足够，超了就按
+        # "没确认"处理、交给下一轮重新定位，比干等 10 秒划算。
+        for action in routine.get("actions", {}).values():
+            action["verify_ms"] = min(int(action.get("verify_ms", 10000)), 3000)
+            action["timeout_ms"] = min(int(action.get("timeout_ms", 10000)), 3000)
+
+        def build():
+            return Navigator(
+                context,
+                routine,
+                capture=lambda: capture(context),
+                check=lambda: _check(context, force=False),
+                input_check=lambda: _check(context),
+                log=lambda message: _log("[导航] " + message),
+            )
+
+        last = None
+        closed = 0
+        for attempt in range(3):
+            try:
+                current = build().run()
+            except NavigationError as error:
+                last = error
+                _log("导航失败（第 %d 次）：%s" % (attempt + 1, error))
+                if attempt == 2 or closed:
+                    break
+                # 认不出的界面大多是没收录的活动弹窗或副本场景：前者右上角
+                # 有红叉，后者点底部设置再点「返回地图」。点完之后直接回入口
+                # 重新判断（入口有世界地图、大地图的快捷路径），比在这里再
+                # 跑一轮 locate + 世界地图导航快好几秒。只放行一次，避免
+                # 点不掉时来回打转。
+                closed += 1
+                self._close_window(context)
+                # 返回 False 让 pipeline 走 on_error：那个节点会认「返回地图」
+                # 并点掉（自己在一帧里完成识别+点击，不跨 Python 调用）。
+                return False
+            _log("导航完成，当前界面：" + str(current))
+            return True
+        _log("导航回地图失败：" + str(last))
+        return False
+
+    @classmethod
+    def _close_window(cls, context):
+        controller = context.tasker.controller
+        image = getattr(controller, "cached_image", None)
+        point = _find_close_button(image)
+        if point is not None:
+            _log("关闭当前窗口：点击 (%d, %d)" % point)
+            try:
+                controller.post_click(point[0], point[1]).wait()
+            except Exception as error:
+                _log("关闭窗口点击失败：" + str(error))
+        elif getattr(image, "shape", None) is None or len(getattr(image, "shape", ())) < 2:
+            _log("没有截图，跳过关窗口（交给 pipeline 的「点设置」节点）")
+        else:
+            # 副本内的场景（血条+技能栏那种）既认不出来也没有右上角红叉。
+            # 退出方式是点底部齿轮「设置」，它弹出的设置菜单导航库认得，
+            # 自带 Nav_SettingsReturn（从设置菜单返回地图）。
+            shape = getattr(image, "shape", None)
+            height, width = (shape[0], shape[1]) if shape is not None and len(shape) >= 2 else (720, 1147)
+            x = int(round(width * 0.606))
+            y = int(round(height * 0.935))
+            _log("没找到关闭按钮，点设置 (%d, %d)" % (x, y))
+            try:
+                controller.post_click(x, y).wait()
+            except Exception as error:
+                _log("点设置失败：" + str(error))
+            # 导航库有个 Nav_SettingsReturn 出口名，但 navigation.json 里根本
+            # 没有对应节点，点完设置它什么都不点，白等一轮确认（实测 8 秒）。
+            # 这里自己点设置菜单里的「返回地图」。
+            # 「返回地图」交给 pipeline 的 生存大冒险_返回地图 节点去点：
+            # 在这里先 run_recognition 再 post_click，MAA 的 Python 绑定会抛
+            # access violation（实测两次），把识别和点击分到两个动作里才稳。
+            _log("设置菜单已打开，交给 pipeline 点「返回地图」")
+        time.sleep(0.7)
+
+
+@AgentServer.custom_action("adventure_click_settings")
+class AdventureClickSettings(CustomAction):
+    """点底部齿轮「设置」。
+
+    「返回地图」按钮有两种出现方式：挑战成功/失败页上直接有这一个按钮；
+    副本内要先点设置，弹出的设置菜单里才有。所以入口先直接找「返回地图」，
+    找不到再来这里点设置。
+    """
+
+    def run(self, context, argv) -> bool:
+        image = getattr(argv, "image", None)
+        shape = getattr(image, "shape", None)
+        height, width = (shape[0], shape[1]) if shape is not None and len(shape) >= 2 else (720, 1147)
+        box = list(getattr(argv, "box", []) or [])
+        if len(box) >= 4 and box[2] > 0 and box[3] > 0:
+            x = int(box[0]) + int(box[2]) // 2
+            y = int(box[1]) + int(box[3]) // 2
+        else:
+            x = int(round(width * 0.606))
+            y = int(round(height * 0.935))
+        _log("没找到「返回地图」，点底部设置 (%d, %d)" % (x, y))
+        context.tasker.controller.post_click(x, y).wait()
+        # 设置菜单是滑入动画，睡够再交棒，否则「返回地图」那一步会 OCR 落空。
+        time.sleep(1.5)
+        return True
+
+
+@AgentServer.custom_action("adventure_takeover")
+class AdventureTakeover(CustomAction):
+    """用户已经手动进了冒险：把上一轮残留的局内状态清干净，按界面进度条定题号。"""
+
+    def run(self, context: Context, argv: CustomAction.RunArg) -> bool:
+        question = _question_from_progress(getattr(argv, "image", None))
+        STATE.question = question
+        STATE.stage_seen = {}
+        STATE.finished = False
+        STATE.result_clicked = False
+        STATE.clicked_key = ()
+        STATE.repeat_count = 0
+        STATE.idle_warned = False
+        STATE.last_progress_ts = time.monotonic()
+        STATE.attrs = {}
+        STATE.initial_attrs = {}
+        STATE.character = ""
+        STATE.char_checked = False
+        STATE.score_by_q = {}
+        STATE.strategy_logged = False
+        _log(f"接管进行中的一局：进度条读到第 {question + 1} 题，题号按 {question} 记")
+        return True
+
+
 # --------------------------------------------------------------------------- #
 # 初始化属性（由 interface.json 的输入项注入）
 # --------------------------------------------------------------------------- #
+@AgentServer.custom_action("adventure_click_icon")
+class AdventureClickIcon(CustomAction):
+    """点活动菜单里的「生存大冒险」图标。
+
+    菜单里的图标位置不固定（活动增减会重排），所以先让 pipeline 用 OCR 找到
+    「生存大冒险」这行文字，再按画面高度往上偏移到图标本体。
+    """
+
+    def run(self, context, argv) -> bool:
+        box = list(getattr(argv, "box", []) or [])
+        if len(box) < 4:
+            _log("点图标：没拿到识别框")
+            return False
+        x, y, w, h = (int(v) for v in box[:4])
+        image = getattr(argv, "image", None)
+        height = image.shape[0] if image is not None else 720
+        # 文字框中心到图标中心的距离占画面高度的比例（1147x720 下实测 44px）
+        offset = int(round(height * 44.0 / 720.0))
+        cx, cy = x + w // 2, y + h // 2 - offset
+        context.tasker.controller.post_click(cx, cy).wait()
+        _log(f"点图标：文字框 {box} → 点击 ({cx}, {cy})")
+        return True
+
+
+@AgentServer.custom_action("adventure_weekday_gate")
+class AdventureWeekdayGate(CustomAction):
+    """只在指定的星期几执行任务，其他日子直接结束。
+
+    custom_action_param {"weekday": 0} 表示不限制，1~7 表示周一到周日。
+    """
+
+    def run(self, context, argv) -> bool:
+        params = _as_dict(getattr(argv, "custom_action_param", None))
+        try:
+            want = int(params.get("weekday", 0) or 0)
+        except (TypeError, ValueError):
+            want = 0
+        today = datetime.now().isoweekday()
+        if want == 0:
+            _log(f"执行日检查：今天是周{today}，未限制，继续")
+            return True
+        if want == today:
+            _log(f"执行日检查：今天是周{today}，设定的就是今天，继续")
+            return True
+        _log(f"执行日检查：今天是周{today}，设定的是周{want}，本任务今天不跑")
+        return False
+
+
+@AgentServer.custom_action("adventure_voyage_done")
+class AdventureVoyageDone(CustomAction):
+    """航海寻宝收工：把完成语写到文本文件，由 pipeline 节点的 focus 显示到日志窗。
+
+    mode=cleared：清空奖励次数模式（界面上剩余次数已归零）
+    mode=once：单次模式（只跑一轮就收工）
+    """
+
+    def run(self, context: Context, argv: CustomAction.RunArg) -> bool:
+        conf = _as_dict(getattr(argv, "custom_action_param", None))
+        mode = str(conf.get("mode") or "once")
+        if mode == "cleared":
+            msg = "已领完航海寻宝奖励"
+        else:
+            msg = "已完成本次航海寻宝"
+        _log(msg)
+        # agent 的 stdout 不进 maafw.log（GUI 日志窗看不到），所以这里另写一份
+        # 文本文件，由 pipeline 节点的 focus 把它显示到日志窗。
+        try:
+            os.makedirs(LOG_DIR, exist_ok=True)
+            with open(VOYAGE_DONE_FILE, "w", encoding="utf-8") as handle:
+                handle.write(msg + "\n")
+        except Exception as exc:               # noqa: BLE001
+            _log(f"写提示文件失败（{type(exc).__name__}: {exc}）")
+        return True
+
+
+@AgentServer.custom_action("adventure_daily_done")
+class AdventureDailyDone(CustomAction):
+    """本日已无可冒险次数（界面上只剩「重新冒险」）：打一条提示，然后收工。"""
+
+    def run(self, context: Context, argv: CustomAction.RunArg) -> bool:
+        msg = (
+            "本日生存大冒险已完成，如果你想使用点券重新冒险，"
+            "请自行消耗点券进入冒险后开始任务"
+        )
+        _log(msg)
+        # agent 的 stdout 不进 maafw.log（GUI 日志窗看不到），所以这里另写一份
+        # 文本文件，由 pipeline 节点的 focus 把它显示到日志窗。
+        try:
+            os.makedirs(LOG_DIR, exist_ok=True)
+            with open(DAILY_DONE_FILE, "w", encoding="utf-8") as handle:
+                handle.write(msg + "\n")
+        except Exception as exc:               # noqa: BLE001
+            _log(f"写提示文件失败（{type(exc).__name__}: {exc}）")
+        return True
+
+
 @AgentServer.custom_action("adventure_init")
 class AdventureInit(CustomAction):
     def run(self, context: Context, argv: CustomAction.RunArg) -> bool:
@@ -963,8 +1497,9 @@ class AdventureInit(CustomAction):
             if value is not None:
                 attrs[name] = value
         STATE.attrs = attrs
-        # 新的一局：题号归零、局内状态清空（归纳表**不动**，见下）
-        STATE.question = 0
+        # 新的一局：局内状态清空（归纳表**不动**，见下）。
+        # 题号不能写死 0 —— 点「继续冒险」会回到原来那一局，界面进度条才是真相。
+        STATE.question = _question_from_progress(getattr(argv, "image", None))
         STATE.stage_seen = {}
         if _hook is not None:
             try:
@@ -1008,7 +1543,7 @@ class AdventureResult(CustomRecognition):
 
     `custom_recognition_param` 里的 `phase` 决定这一轮干哪件事：
     - `click`：认出「结束冒险」按钮 → 把它的框交给 pipeline 点掉
-    - `check`：认出「冒险成功 / 冒险失败 / 直降为0」→ 记面板，由 pipeline 收工
+    - `check`：认出「冒险成功 / 冒险失败」→ 记面板，由 pipeline 收工
     """
 
     def analyze(self, context: Context, argv: CustomRecognition.AnalyzeArg):
@@ -1037,7 +1572,9 @@ class AdventureResult(CustomRecognition):
             # 要的是「已答题数」→ 把各阶段列表长度加起来。
             seen = getattr(STATE, "stage_seen", None) or {}
             done = sum(len(v) for v in seen.values()) if isinstance(seen, dict) else len(seen)
-            if done < 9:
+            # 闸门只挡「一题都没答」的情况：中途接手或题号错乱时账本可能只有
+            # 一两题，原来的 done<9 会把结算检测整段挡掉，导致看到结算面板还在空转。
+            if done < 1:
                 return None
 
             image = getattr(argv, "image", None)
@@ -1060,9 +1597,6 @@ class AdventureResult(CustomRecognition):
                 return None
 
             mark = next((m for m in _CHECK_MARKS if m in joined), "")
-            if not mark:
-                hit = re.search(r"获得\s*\d+\s*积分", joined)
-                mark = hit.group(0) if hit else ""
             if not mark:
                 return None
             _log_result(context, joined, mark)
@@ -1161,7 +1695,7 @@ class AdventureRead(CustomRecognition):
                 "不像答题界面（题干或选项不符），不做任何点击"
                 f"｜题干：{question[:40]}｜选项：{option_texts}"
             )
-            # 结算画面也走这条分支（「获得 N 积分」/「直降为0，冒险失败」）。
+            # 结算画面也走这条分支（标题「冒险成功」或「冒险失败」）。
             # 认到就先点掉「结束冒险」，记收尾日志，然后返回 None 让 pipeline
             # 接着走「结算」→「结算确认」→ StopTask 正常收工。
             # 注意：**不能用 tasker.post_stop()** —— 从识别回调里停任务，pipeline
@@ -1180,9 +1714,18 @@ class AdventureRead(CustomRecognition):
             # 先确保题库索引建好：第 1 题时它还是空的，question_for_event 会
             # 返回 None，事件也就登记不进 stage_seen（结算时上帝视角只算到 9 题）。
             logic.ensure_exact_index(_events())
-            derived = logic.question_for_event(event, STATE.stage_seen)
-            if derived is None:
-                derived = STATE.question  # 题库元信息不全时的兜底
+            # 题号以界面进度条为准：init 那一刻画面可能还停在加载/卡片页，
+            # 读不到进度条会得到 0，所以决策前再读一次（此时一定在答题页）。
+            _live_q = _question_from_progress(getattr(argv, "image", None))
+            if _live_q and _live_q != STATE.question:
+                _log(f"题号以界面进度条为准：已答 {_live_q} 题，账本记的是 {STATE.question} 题")
+                STATE.question = _live_q
+            # 按阶段反推在「中途接管」时是从空账本起步的，会一路偏小；
+            # 这里只借用它把事件登记进 stage_seen。
+            probe = logic.question_for_event(event, STATE.stage_seen)
+            derived = STATE.question
+            if probe is not None and probe != derived:
+                _log(f"题号以界面进度为准：按阶段推得第 {probe + 1} 题，进度条是第 {derived + 1} 题")
             STATE.question = derived + 1
             # 同一题刚点过、界面还没切走 → 只回报一个落在左上角黑边的空点击，不再决策。
             # 上限见 _REPEAT_LIMIT：界面切换慢的时候靠它撑住，别提前重新决策。
