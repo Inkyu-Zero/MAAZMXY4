@@ -65,14 +65,7 @@
             "param": {
                 "expected": [
                     "返回地图"
-                ],
-                "roi": [
-                    700,
-                    470,
-                    447,
-                    100
-                ],
-                "only_rec": true
+                ]
             }
         },
         "action": {

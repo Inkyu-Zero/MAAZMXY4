@@ -36,29 +36,39 @@
                 "custom_action_param": {
                     "entry_node": "航海寻宝_导航入口",
                     "icon_node": "航海寻宝_点图标",
-                    "close_node": "航海寻宝_识别红叉",
-                    "close_click_node": "航海寻宝_点红叉",
-                    "back_node": "航海寻宝_返回地图",
-                    "settings_node": "航海寻宝_点设置",
+                    "close_node": "Adventure_识别红叉",
+                    "close_click_node": "Adventure_点红叉",
+                    "back_node": "Adventure_返回地图",
+                    "settings_node": "Adventure_点设置",
                     "menu_node": "航海寻宝_识别菜单",
                     "panels": [
                         {
-                            "node": "航海寻宝_面板",
-                            "target": "航海寻宝_面板"
+                            "node": "航海寻宝_起航",
+                            "target": "航海寻宝_起航"
                         }
                     ],
                     "pipeline": "航海寻宝.json",
-                    "wu_node": "航海寻宝_识别无双",
-                    "world_node": "Adventure_识别南瞻部洲",
-                    "world_click_node": "航海寻宝_点南瞻部洲",
-                    "map_node": "航海寻宝_识别世界图标"
+                    "wu_node": "Adventure_识别无双",
+                    "map_node": "Adventure_识别世界",
+                    "menu_hsv": [
+                        55,
+                        150,
+                        50,
+                        80,
+                        255,
+                        190
+                    ],
+                    "world_node": "Adventure_识别南瞻部洲"
                 }
             }
         },
         "next": [
             "航海寻宝_点图标"
         ],
-        "timeout": 20000
+        "timeout": 20000,
+        "on_error": [
+            "航海寻宝_收尾"
+        ]
     },
     "航海寻宝_点图标": {
         "recognition": {

@@ -59,17 +59,22 @@ def _python_candidates() -> list:
     - 系统 Python 是干净的，拿它跑必然 ImportError 或 9009
     - Windows 上 `python.exe` 还常常是微软商店的占位别名，一执行就退 9009
 
-    顺序：本进程的解释器 → 相对 agent/ 往上两级的 runtimes/python。
+    顺序：相对 agent/ 往上找的 `runtimes/python` → 本进程解释器。
+
+    **发布包自带的 Python 排在最前**：用户机器上 `sys.executable` 可能
+    根本不是 runtimes 里那个（21:35 那批日志里就是
+    `D:\\Anaconda\\Install\\python.EXE`），拿 Anaconda 跑必然缺
+    dxcam / onnxruntime / pywin32，子进程退出码 1，任务瞬间失败。
     """
     found = []
-    if sys.executable and os.path.isfile(sys.executable):
-        found.append(Path(sys.executable))
     here = Path(__file__).resolve()
     for parent in list(here.parents)[:4]:
         exe = parent / "runtimes" / "python" / "python.exe"
         if exe.is_file():
             found.append(exe)
             break
+    if sys.executable and os.path.isfile(sys.executable):
+        found.append(Path(sys.executable))
     return found
 
 

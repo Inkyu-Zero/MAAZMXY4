@@ -254,26 +254,43 @@ def _dump_debug_frame(img, px, bag_x, reach, targets, t):
 
 # ---------------------------------------------------------------- 窗口 / 按键
 def _find_hwnd() -> int:
-    """找标题带「造梦」的可见窗口，取面积最大的那个。"""
+    """找「造梦盒子」游戏窗口。
+
+    不能只按「标题带造梦 + 面积最大」挑：MFA 自己的窗口标题也叫
+    「MAA造梦西游4」，而且往往比游戏窗口还大。挑错了 PostMessage 就
+    全打到 MFA 上，游戏一个键都收不到 —— 表现正是「direction=1 但人
+    一直不动」。所以先认死了的游戏标题，再退到「带造梦且不带 MAA」。
+    """
     u32 = ctypes.windll.user32
     buf = ctypes.create_unicode_buffer(256)
-    found: list[tuple[int, int]] = []
+    exact: list[tuple[int, int]] = []
+    loose: list[tuple[int, int]] = []
 
     CB = ctypes.WINFUNCTYPE(ctypes.c_bool, ctypes.c_void_p, ctypes.c_void_p)
 
     def _cb(hwnd, _lparam):
         u32.GetWindowTextW(hwnd, buf, 256)
-        if "造梦" in buf.value and u32.IsWindowVisible(hwnd):
-            rect = ctypes.create_string_buffer(16)
-            u32.GetClientRect(hwnd, rect)
-            w, h = int.from_bytes(rect[8:12], "little"), int.from_bytes(rect[12:16], "little")
-            found.append((w * h, int(hwnd)))
+        title = buf.value
+        if not u32.IsWindowVisible(hwnd):
+            return True
+        rect = ctypes.create_string_buffer(16)
+        u32.GetClientRect(hwnd, rect)
+        w, h = int.from_bytes(rect[8:12], "little"), int.from_bytes(rect[12:16], "little")
+        area = w * h
+        if area <= 0:
+            return True
+        if "造梦盒子" in title:
+            exact.append((area, int(hwnd)))
+        elif "造梦" in title and "MAA" not in title and "Maa" not in title:
+            loose.append((area, int(hwnd)))
         return True
 
     u32.EnumWindows(CB(_cb), 0)
-    if not found:
-        return 0
-    return max(found)[1]
+    if exact:
+        return max(exact)[1]
+    if loose:
+        return max(loose)[1]
+    return 0
 
 
 def _post(hwnd: int, vk: int, down: bool) -> None:
@@ -992,7 +1009,7 @@ def _douchong_reclick(context) -> bool:
     wx, wy = int(round(cx)), int(round(cy))
     _log("重点图标：点击 @ (%d, %d)" % (wx, wy))
     try:
-        context.tasker.controller.post_swipe(wx, wy, wx, wy, 80).wait()
+        context.tasker.controller.post_click(wx, wy).wait()
     except Exception as error:                        # noqa: BLE001
         _log("重点图标：点击失败 %s" % error)
         return False
@@ -1032,9 +1049,9 @@ def _douchong_back(context, frame) -> bool:
         box = item[1]
         cx = int(box[0]) + int(box[2]) // 2
         cy = int(box[1]) + int(box[3]) // 2
-        # box 是当前帧坐标（1147 基准），post_swipe 也收 1147 基准
+        # box 是当前帧坐标（1147 基准），post_click 也是 1147 基准
         try:
-            context.tasker.controller.post_swipe(cx, cy, cx, cy, 80).wait()
+            context.tasker.controller.post_click(cx, cy).wait()
         except Exception as error:                    # noqa: BLE001
             _log("斗宠点返回失败：%s" % error)
             return False
@@ -1300,7 +1317,7 @@ class DouChongRun(CustomAction):
             wx, wy = int(round(pt[0])), int(round(pt[1]))
             _log("斗宠：点击第 %d 组 @ (%d, %d)" % (pick_group, wx, wy))
             try:
-                context.tasker.controller.post_swipe(wx, wy, wx, wy, 80).wait()
+                context.tasker.controller.post_click(wx, wy).wait()
             except Exception as error:                # noqa: BLE001
                 _log("斗宠：点击失败 %s" % error)
                 return True
@@ -1393,7 +1410,7 @@ def _xm_click_close(context, frame) -> bool:
         ky = frame.shape[0] / 720.0
     cx, cy = int(round(905 * kx)), int(round(60 * ky))
     try:
-        context.tasker.controller.post_swipe(cx, cy, cx, cy, 80).wait()
+        context.tasker.controller.post_click(cx, cy).wait()
     except Exception as error:                        # noqa: BLE001
         _log("须弥山：关弹窗失败 %s" % error)
         return False
@@ -1423,7 +1440,7 @@ def _xm_click_text(context, frame, roi, keyword) -> bool:
         cx = int(box[0]) + int(box[2]) // 2
         cy = int(box[1]) + int(box[3]) // 2
         try:
-            context.tasker.controller.post_swipe(cx, cy, cx, cy, 80).wait()
+            context.tasker.controller.post_click(cx, cy).wait()
         except Exception as error:                    # noqa: BLE001
             _log("须弥山：点「%s」失败 %s" % (text, error))
             return False
@@ -1488,7 +1505,7 @@ def _xm_click_template(context, frame, tpl_name, roi) -> bool:
     cx = X + mp[0] + tw // 2
     cy = Y + mp[1] + th // 2
     try:
-        context.tasker.controller.post_swipe(cx, cy, cx, cy, 80).wait()
+        context.tasker.controller.post_click(cx, cy).wait()
     except Exception as error:                        # noqa: BLE001
         _log("须弥山：点 %s 失败" % tpl_name)
         return False
@@ -1778,6 +1795,29 @@ def _jingjichang_ready(context, frame) -> bool:
     return False
 
 
+@AgentServer.custom_action("jingjichang_enter_check")
+class JingJiChangEnterCheck(CustomAction):
+    """判是不是已经在扫荡竞技场界面：认顶部中间那个「竞技场」大标题。
+
+    大地图上也有「竞技场」三个字（活动菜单里的图标），所以 roi 只取顶部
+    横幅那一块，不看菜单区域。判不出来就返回 False，让 pipeline 回入口
+    重新导航 —— 绝不能因为「图标没认出来」就直接开始点挑战。
+    """
+
+    def run(self, context, argv) -> bool:
+        from script_task import capture
+        try:
+            frame = capture(context)
+        except Exception as error:                      # noqa: BLE001
+            _log("竞技场判界面：取帧失败 %s" % error)
+            return False
+        if _jingjichang_ready(context, frame):
+            _log("竞技场判界面：已经在竞技场里")
+            return True
+        _log("竞技场判界面：不在竞技场，回入口")
+        return False
+
+
 @AgentServer.custom_action("jingjichang_run")
 class JingJiChangRun(CustomAction):
     """扫荡竞技场：一直点最右边那个通的圆圈，直到剩余挑战次数为 0。
@@ -1847,7 +1887,7 @@ class JingJiChangRun(CustomAction):
             wx, wy = int(round(pt[0])), int(round(pt[1]))
             _log("竞技场第%d轮：点通 @ (%d, %d)" % (round_no, wx, wy))
             try:
-                context.tasker.controller.post_swipe(wx, wy, wx, wy, 80).wait()
+                context.tasker.controller.post_click(wx, wy).wait()
             except Exception as error:                # noqa: BLE001
                 _log("竞技场：点击失败 %s" % error)
                 return True
@@ -1904,7 +1944,7 @@ class ShopRun(CustomAction):
                 score, pt = _match_in(frame, _SHOP_BUY_ROI[tier], _SHOP_BUY_TPL)
                 if pt is None:
                     continue
-                # pt 是 1147 基准，post_swipe 也是 1147 基准（MAA 自己换算）
+                # pt 是 1147 基准，post_click 也是 1147 基准（MAA 自己换算）
                 cx, cy = int(round(pt[0])), int(round(pt[1]))
                 name = ""
                 try:
@@ -1918,7 +1958,7 @@ class ShopRun(CustomAction):
                 _gui(label)
                 _log("商店：%s（%.3f）点击 (%d, %d)" % (label, score, cx, cy))
                 try:
-                    context.tasker.controller.post_swipe(cx, cy, cx, cy, 80).wait()
+                    context.tasker.controller.post_click(cx, cy).wait()
                 except Exception as error:                # noqa: BLE001
                     _log("商店：点击失败 %s" % error)
                     return self._finish(records)
@@ -2329,6 +2369,9 @@ class FuguoRun(CustomAction):
         self._lock_at = 0.0
         self._last_dir = 0
 
+        _last_frame = None
+        _still = 0
+
         while True:
             now = time.time()
             if context.tasker.stopping:
@@ -2344,6 +2387,27 @@ class FuguoRun(CustomAction):
             if img is None:
                 time.sleep(VIS["frame_sleep"])
                 continue
+
+            # 游戏窗口一失去焦点就暂停，画面上浮出「当前失去焦点，请点我继续游戏」，
+            # 整帧完全静止 —— 表现就是「进去了但不动」。连续 20 帧（约 2 秒）
+            # 一模一样就点一下画面中央把提示点掉。
+            if _last_frame is not None and _last_frame.shape == img.shape:
+                if np.array_equal(img, _last_frame):
+                    _still += 1
+                else:
+                    _still = 0
+            else:
+                _still = 0
+            _last_frame = img.copy()
+            if _still >= 20:
+                _log("画面连续 %d 帧没变化，点一下中央（游戏失去焦点会暂停）" % _still)
+                _h, _w = int(img.shape[0]), int(img.shape[1])
+                try:
+                    ctrl.post_click(_w // 2, _h // 2).wait()
+                except Exception as error:              # noqa: BLE001
+                    _log("点中央失败 %s" % error)
+                _still = 0
+                time.sleep(0.3)
 
             # ① 果子：每帧只做一次颜色检测，结果缓存给下一帧做跟踪比对
             dt = now - last_img_ts if last_img_ts else 0.0

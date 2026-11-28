@@ -64,7 +64,7 @@
         ],
         "timeout": 800,
         "on_error": [
-            "扫荡竞技场_入口"
+            "扫荡竞技场_判界面"
         ]
     },
     "扫荡竞技场_点图标": {
@@ -119,5 +119,23 @@
             "扫荡竞技场_结束"
         ],
         "timeout": 300000
+    },
+    "扫荡竞技场_判界面": {
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "jingjichang_enter_check"
+            }
+        },
+        "next": [
+            "扫荡竞技场_挑战流程"
+        ],
+        "on_error": [
+            "扫荡竞技场_入口"
+        ],
+        "timeout": 800
     }
 }

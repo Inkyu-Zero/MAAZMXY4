@@ -1,0 +1,326 @@
+{
+    "$__mpe_config_切换存档": {
+        "$__mpe_code": {
+            "prefix": "",
+            "coordinateMode": "absolute-v1",
+            "lastSyncTime": 1795875020288,
+            "isModifiedExternally": false,
+            "isDeleted": false,
+            "filePath": "E:\\maa\\MAA造梦西游4\\resource\\base\\pipeline\\切换存档.json",
+            "savedViewport": {
+                "x": 101,
+                "y": 9,
+                "zoom": 0.7
+            },
+            "filename": "切换存档",
+            "version": "v2.1.3"
+        }
+    },
+    "切换存档_入口": {
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "adventure_entry_route",
+                "custom_action_param": {
+                    "back_node": "Adventure_返回地图",
+                    "close_click_node": "Adventure_点红叉",
+                    "close_node": "Adventure_识别红叉",
+                    "entry_node": "切换存档_入口",
+                    "icon_node": "切换存档_点返回",
+                    "map_done_node": "切换存档_点返回",
+                    "map_node": "Adventure_识别世界",
+                    "menu_hsv": [
+                        55,
+                        150,
+                        50,
+                        80,
+                        255,
+                        190
+                    ],
+                    "panels": [],
+                    "pipeline": "切换存档.json",
+                    "settings_node": "Adventure_点设置",
+                    "world_node": "Adventure_识别南瞻部洲",
+                    "wu_node": "Adventure_识别无双"
+                }
+            }
+        },
+        "timeout": 20000,
+        "next": [
+            "切换存档_点返回"
+        ],
+        "on_error": [
+            "切换存档_入口"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 320,
+                "y": 694
+            }
+        }
+    },
+    "切换存档_点开始游戏": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "ui/kaishiyouxi.png"
+                ],
+                "green_mask": true,
+                "threshold": 0.7
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "切换存档_选档1"
+        ],
+        "on_error": [
+            "切换存档_入口"
+        ],
+        "timeout": 8000,
+        "post_delay": 2000
+    },
+    "切换存档_点返回": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "ui/fanhui.png"
+                ],
+                "green_mask": true,
+                "threshold": 0.7
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "切换存档_点开始游戏"
+        ],
+        "on_error": [
+            "切换存档_入口"
+        ],
+        "timeout": 5000,
+        "post_delay": 1500
+    },
+    "切换存档_结束": {
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "next": [],
+        "post_delay": 500
+    },
+    "切换存档_选档1": {
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    272,
+                    174,
+                    254,
+                    64
+                ]
+            }
+        },
+        "post_delay": 2000,
+        "next": [
+            "切换存档_结束"
+        ],
+        "on_error": [
+            "切换存档_结束"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 960,
+                "y": 339
+            }
+        }
+    },
+    "切换存档_选档2": {
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    603,
+                    179,
+                    244,
+                    51
+                ]
+            }
+        },
+        "post_delay": 2000,
+        "next": [
+            "切换存档_结束"
+        ],
+        "on_error": [
+            "切换存档_结束"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 960,
+                "y": 678
+            }
+        }
+    },
+    "切换存档_选档3": {
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    273,
+                    293,
+                    252,
+                    51
+                ]
+            }
+        },
+        "post_delay": 2000,
+        "next": [
+            "切换存档_结束"
+        ],
+        "on_error": [
+            "切换存档_结束"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 960,
+                "y": 1017
+            }
+        }
+    },
+    "切换存档_选档4": {
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    602,
+                    292,
+                    251,
+                    49
+                ]
+            }
+        },
+        "post_delay": 2000,
+        "next": [
+            "切换存档_结束"
+        ],
+        "on_error": [
+            "切换存档_结束"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 960,
+                "y": 1356
+            }
+        }
+    },
+    "切换存档_选档5": {
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    275,
+                    408,
+                    249,
+                    51
+                ]
+            }
+        },
+        "post_delay": 2000,
+        "next": [
+            "切换存档_结束"
+        ],
+        "on_error": [
+            "切换存档_结束"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 960,
+                "y": 1695
+            }
+        }
+    },
+    "切换存档_选档6": {
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    602,
+                    404,
+                    247,
+                    52
+                ]
+            }
+        },
+        "post_delay": 2000,
+        "next": [
+            "切换存档_结束"
+        ],
+        "on_error": [
+            "切换存档_结束"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 960,
+                "y": 2034
+            }
+        }
+    },
+    "切换存档_选档7": {
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    272,
+                    522,
+                    270,
+                    57
+                ]
+            }
+        },
+        "post_delay": 2000,
+        "next": [
+            "切换存档_结束"
+        ],
+        "on_error": [
+            "切换存档_结束"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 960,
+                "y": 2373
+            }
+        }
+    },
+    "切换存档_选档8": {
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    606,
+                    522,
+                    241,
+                    54
+                ]
+            }
+        },
+        "post_delay": 2000,
+        "next": [
+            "切换存档_结束"
+        ],
+        "on_error": [
+            "切换存档_结束"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 960,
+                "y": 0
+            }
+        }
+    }
+}

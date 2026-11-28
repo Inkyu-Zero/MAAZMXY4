@@ -1115,6 +1115,17 @@ class AdventureEntryRoute(CustomAction):
     def run(self, context, argv) -> bool:
         from script_task import capture  # noqa: PLC0415
 
+        # 每个任务进场先把截图压到短边 720。盒子默认窗口比例固定 1.5932
+        # （940x590 / 1147x720 / 1410x885 都是），短边 720 一缩就必然是
+        # 1147x720，pipeline 里按 1147 写的 roi 才站得住。不设的话截图
+        # 是什么尺寸 roi 就按什么尺寸裁，窗口一宽就整体跑偏。
+        try:
+            from view_scale import ensure_view_scale  # noqa: PLC0415
+            controller = getattr(getattr(context, "tasker", None), "controller", None)
+            ensure_view_scale(controller, quiet=False)
+        except Exception as error:                      # noqa: BLE001
+            _log("设置截图缩放失败：%s" % error)
+
         # 这个入口是通用的：pipeline 用 custom_action_param 告诉它"点开菜单后
         # 该去点哪个图标节点"。生存大冒险、航海寻宝共用同一套红叉/箭头/
         # 世界地图/返回地图的判断。
@@ -1250,6 +1261,12 @@ class AdventureEntryRoute(CustomAction):
         if image is not None and getattr(image, "shape", None) is not None:
             height, width = int(image.shape[0]), int(image.shape[1])
             pt = _find_toolbar_arrow(image)
+            # 配了 map_done_node 的任务（比如切换存档）在主线地图上不点箭头，
+            # 直接交给那个节点接着做。认出箭头就说明人已经站在主线地图了。
+            map_done = str(conf.get("map_done_node") or "")
+            if map_done and pt is not None:
+                _log("入口：已在主线地图 → %s" % map_done)
+                return self._route(context, entry_node, "已在主线地图", map_done)
             if pt is None:
                 return self._route(context, entry_node, "右上角没看到箭头", settings_node)
             cx, cy = pt

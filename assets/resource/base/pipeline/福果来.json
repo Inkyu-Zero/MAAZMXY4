@@ -41,7 +41,7 @@
                     "close_node": "Adventure_识别红叉",
                     "close_click_node": "Adventure_点红叉",
                     "back_node": "Adventure_返回地图",
-                    "settings_node": "福果来_点设置",
+                    "settings_node": "Adventure_点设置",
                     "menu_node": "福果来_识别菜单",
                     "panels": [
                         {
@@ -50,8 +50,8 @@
                         }
                     ],
                     "pipeline": "福果来.json",
-                    "wu_node": "福果来_识别无双",
-                    "map_node": "福果来_识别世界图标",
+                    "wu_node": "Adventure_识别无双",
+                    "map_node": "Adventure_识别世界",
                     "menu_hsv": [
                         55,
                         150,
@@ -67,7 +67,10 @@
         "next": [
             "福果来_点图标"
         ],
-        "timeout": 20000
+        "timeout": 20000,
+        "on_error": [
+            "福果来_入口"
+        ]
     },
     "福果来_识别菜单": {
         "recognition": {
