@@ -27,6 +27,10 @@ RESIZE_METHOD = 3
 
 # controller id -> 上次设置的时间戳，只给 sink 的节流用
 _LAST_AT: dict[int, float] = {}
+# 已经设好的 controller：改截图尺寸会触发 MAA 的 Resolution changed 重算，
+# 02:09 / 02:15 两次闪退都断在这条路径上。所以同一个 controller 只设一次，
+# 之后一律跳过；九转炼丹那种临时改 raw_size 的场景由它自己恢复。
+_DONE: set[int] = set()
 
 
 def ensure_view_scale(controller, quiet: bool = True, throttle: float = 0.0) -> bool:
@@ -50,6 +54,8 @@ def ensure_view_scale(controller, quiet: bool = True, throttle: float = 0.0) -> 
         return False
 
     key = id(controller)
+    if key in _DONE:
+        return True
     if throttle > 0:
         now = time.time()
         if now - _LAST_AT.get(key, 0.0) < throttle:
@@ -59,12 +65,16 @@ def ensure_view_scale(controller, quiet: bool = True, throttle: float = 0.0) -> 
     try:
         controller.set_screenshot_use_raw_size(False)
         controller.set_screenshot_target_short_side(SHORT_SIDE)
-        controller.set_screenshot_resize_method(RESIZE_METHOD)
+        # 不调 set_screenshot_resize_method：5.16.1 里这个 option 是
+        # MaaControllerSetOption key=6，设下去 MFA 直接闪退
+        # （02:09:12 那条 key=6 value=true 之后日志就断了）。
+        # 默认的重采样算法做模板匹配也够用。
     except Exception as error:  # noqa: BLE001
         if not quiet:
             logger.warning("设置截图缩放失败：%s", error)
         return False
 
+    _DONE.add(key)
     return True
 
 

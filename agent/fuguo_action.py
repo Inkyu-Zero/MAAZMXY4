@@ -38,6 +38,133 @@ except Exception:  # noqa: BLE001
 _HERE_LOG = None
 _SHOP_ROOT = Path(__file__).resolve().parent.parent
 
+# ---- 神秘商店 ----
+_SHOP_TIMES_ROI = [150, 205, 300, 32]        # 「今日剩余购买次数 N」
+_SHOP_CONFIRM_TEXT_ROI = [205, 290, 660, 50]   # 「购买新道具后，珍宝商店将会关闭」
+_SHOP_CONFIRM_OK_ROI = [320, 378, 110, 55]     # 弹窗里的「确定」
+_SHOP_BUY_TPL = "richanghuodong/goumai.png"  # 购买按钮
+_SHOP_BUY_ROI = {
+    1: [183, 485, 90, 40],
+    2: [355, 485, 90, 40],
+    3: [526, 485, 90, 40],
+    4: [697, 485, 90, 40],
+    5: [868, 485, 90, 40],
+}
+
+
+def _gui(msg: str) -> None:
+    """推一行到 MFA 的日志窗。
+
+    agent 的 stdout 不进 GUI、stderr 进，而且只有带 `info:` 这类级别前缀的行
+    才会被 MaaProcessor 放进日志窗。
+    """
+    try:
+        print("info: [商店] " + msg, file=sys.stderr, flush=True)
+    except Exception:                                 # noqa: BLE001
+        pass
+
+
+def _shop_confirm(context) -> bool:
+    """买第 5 档之后再买第 1 档会弹「珍宝商店将会关闭，你确定购买吗？」，点确定。
+
+    只认「确定」这两个字：旁边还有个「去珍宝商店」，不含「确定」，
+    所以按整串相等判断不会误点过去。
+    """
+    from script_task import capture
+
+    try:
+        frame = capture(context)
+    except Exception as error:                    # noqa: BLE001
+        _log("商店：确认弹窗取帧失败 %s" % error)
+        return False
+    if frame is None or getattr(frame, "shape", None) is None:
+        return False
+    try:
+        head = context.run_recognition_direct(
+            "OCR", JOCR(roi=_scale_roi(_SHOP_CONFIRM_TEXT_ROI, frame)), frame)
+    except Exception as error:                    # noqa: BLE001
+        _log("商店：确认弹窗识别失败 %s" % error)
+        return False
+    texts = " ".join((t or "") for t, _b in _boxes_of(head))
+    if "珍宝商店" not in texts and "购买新道具" not in texts:
+        return False
+    try:
+        detail = context.run_recognition_direct(
+            "OCR", JOCR(roi=_scale_roi(_SHOP_CONFIRM_OK_ROI, frame)), frame)
+    except Exception:                             # noqa: BLE001
+        return False
+    for text, box in _boxes_of(detail):
+        if (text or "").strip() in ("确定", "确定购买"):
+            cx = int(box[0]) + int(box[2]) // 2
+            cy = int(box[1]) + int(box[3]) // 2
+            context.tasker.controller.post_click(cx, cy).wait()
+            _log("商店：点了「确定」 @ (%d, %d)" % (cx, cy))
+            return True
+    return False
+
+
+def _shop_left(context, frame=None) -> int | None:
+    """读神秘商店「今日剩余购买次数 N」，读不到返回 None。"""
+    if frame is None or getattr(frame, "shape", None) is None:
+        try:
+            from script_task import capture
+            frame = capture(context)
+        except Exception as error:                    # noqa: BLE001
+            _log("商店读次数：取帧失败 %s" % error)
+            return None
+    try:
+        detail = context.run_recognition_direct(
+            "OCR", JOCR(roi=_scale_roi(_SHOP_TIMES_ROI, frame)), frame)
+    except Exception as error:                        # noqa: BLE001
+        _log("商店读次数失败：%s" % error)
+        return None
+    texts = [(item[0] or "").strip() for item in _boxes_of(detail)]
+    for text in texts:
+        m = re.search(r"购买次数\s*[：:]?\s*(\d+)", text)
+        if m:
+            return int(m.group(1))
+    if any("购买次数" in text for text in texts):
+        for text in texts:
+            if text.isdigit():
+                return int(text)
+    return None
+
+
+def _match_in(frame, roi, tpl_name, threshold=0.60):
+    """在 roi 里按模板找一下，返回 (分数, (cx, cy))；没命中 pt 是 None。
+
+    roi 按 1147x720 写，模板按实际帧比例放大，返回的坐标也是 1147 基准
+    （post_click 就吃这个基准，MAA 自己换算）。
+    """
+    if frame is None or getattr(frame, "shape", None) is None:
+        return 0.0, None
+    path = os.path.join(_SHOP_ROOT, "resource", "base", "image", tpl_name)
+    try:
+        tpl = cv2.imdecode(np.fromfile(path, dtype=np.uint8), cv2.IMREAD_COLOR)
+    except Exception as error:                        # noqa: BLE001
+        _log("模板读取失败 %s：%s" % (path, error))
+        return 0.0, None
+    if tpl is None:
+        _log("模板解码失败 %s" % path)
+        return 0.0, None
+    height, width = int(frame.shape[0]), int(frame.shape[1])
+    kx, ky = width / 1147.0, height / 720.0
+    x, y, w, h = (int(round(v * k)) for v, k in zip(roi[:4], (kx, ky, kx, ky)))
+    sub = frame[y:y + h, x:x + w]
+    if sub.size == 0:
+        return 0.0, None
+    tw = int(round(tpl.shape[1] * kx))
+    th = int(round(tpl.shape[0] * ky))
+    if tw < 8 or th < 8 or tw > sub.shape[1] or th > sub.shape[0]:
+        return 0.0, None
+    scaled = cv2.resize(tpl, (tw, th), interpolation=cv2.INTER_AREA)
+    res = cv2.matchTemplate(sub, scaled, cv2.TM_CCOEFF_NORMED)
+    _min_v, max_v, _min_p, max_p = cv2.minMaxLoc(res)
+    if max_v < threshold:
+        return max_v, None
+    return max_v, ((x + max_p[0] + tw / 2.0) / kx, (y + max_p[1] + th / 2.0) / ky)
+
+
 # ---------------------------------------------------------------- 视觉参数
 # 全部是「按窗口宽高比例」写的，跟实际分辨率无关；面积阈值按 1920x1196 标定，
 # 运行时再按 (w*h)/(1920*1196) 缩放。
@@ -346,6 +473,21 @@ def _grab(ctx: Context) -> np.ndarray | None:
 
 
 # ---------------------------------------------------------------- 识别
+def _scale_roi(roi, frame):
+    """把 1147x720 基准写的 roi 换算到当前帧尺寸。
+
+    所有 roi 常量都是按 1147x720 标的，实际帧可能是 1206/1410 等（窗口一宽
+    截图就宽）。不换算直接拿去做 OCR，roi 会整个偏到左边去，读出来全是空的。
+    """
+    if frame is None or getattr(frame, "shape", None) is None:
+        return [int(v) for v in roi[:4]]
+    height, width = int(frame.shape[0]), int(frame.shape[1])
+    kx, ky = width / 1147.0, height / 720.0
+    x, y, rw, rh = (int(v) for v in roi[:4])
+    return [int(round(x * kx)), int(round(y * ky)),
+            max(1, int(round(rw * kx))), max(1, int(round(rh * ky)))]
+
+
 def _boxes_of(detail) -> list[tuple[str, list[int]]]:
     """从 RecognitionDetail 里尽力取出 [(文本, [x, y, w, h])]。"""
     if detail is None:
@@ -937,7 +1079,6 @@ _DC_TIMES_TPL_RE = None
 
 def _douchong_left(context, frame) -> int | None:
     """读斗宠大会的「今日剩余挑战次数 N」。读不到返回 None。"""
-    import re as _re
     try:
         detail = context.run_recognition_direct(
             "OCR", JOCR(roi=_scale_roi(_DC_TIMES_ROI, frame)), frame)
@@ -948,7 +1089,7 @@ def _douchong_left(context, frame) -> int | None:
         text = (item[0] or "").strip()
         if "挑战次数" not in text:
             continue
-        m = _re.search(r"挑战次数\s*[：:]?\s*(\d+)", text)
+        m = re.search(r"挑战次数\s*[：:]?\s*(\d+)", text)
         if m:
             return int(m.group(1))
     return None
@@ -958,6 +1099,11 @@ def _douchong_left(context, frame) -> int | None:
 
 # 三球头像整组的模板（119x120）。用模板匹配而不是固定 roi：
 # 固定 roi 只在窗口比例恰好 1.593 时成立，别的机器窗口比例一变就整体错位。
+_DC_LEFT = (329, 487, 646, 804, 963)   # 五组头像的左边（1147 基准）
+_DC_CELL_W = 119
+_DC_CELL_H = 120
+_DC_TOP_Y = 202
+_DC_DARK_RATIO = 0.15                  # 空位 0.000，最稀的组 0.278
 _DC_TPL = "richanghuodong/douchong_dagang.png"
 _DC_ROW_ROI = [300, 90, 660, 400]          # 搜五组头像的区域（1147 基准）
 _DC_COL_STEP = 158.5                       # 组间距（1147 基准），实测 158~159
@@ -1018,226 +1164,199 @@ def _douchong_reclick(context) -> bool:
 
 _DC_WIN_ROI = [380, 0, 410, 130]          # 「挑战成功」标题（1147 基准）
 _DC_BACK_ROI = [480, 545, 190, 100]        # 「返回」按钮（1147 基准）
+_DC_BACK_POINT = (570, 592)                # 「返回」按钮中心（1147 基准，兜底用）
+_DC_BACK_TPL = "richanghuodong/douchong_fanhui.png"
+_DC_WIN_TPL = "richanghuodong/douchong_shengli.png"
 
 
-def _douchong_won(context, frame) -> bool:
-    """结算页有没有「挑战成功」四个字。"""
-    try:
-        detail = context.run_recognition_direct(
-            "OCR", JOCR(roi=_scale_roi(_DC_WIN_ROI, frame)), frame)
-    except Exception as error:                        # noqa: BLE001
-        _log("斗宠判结算失败：%s" % error)
-        return False
-    for item in _boxes_of(detail):
-        if "挑战成功" in (item[0] or ""):
-            return True
-    return False
-
-
-def _douchong_back(context, frame) -> bool:
-    """结算页点「返回」，回到挑战列表。"""
-    try:
-        detail = context.run_recognition_direct(
-            "OCR", JOCR(roi=_scale_roi(_DC_BACK_ROI, frame)), frame)
-    except Exception as error:                        # noqa: BLE001
-        _log("斗宠找返回失败：%s" % error)
-        return False
-    for item in _boxes_of(detail):
-        text = (item[0] or "").strip()
-        if text != "返回" and "返回" not in text:
-            continue
-        box = item[1]
-        cx = int(box[0]) + int(box[2]) // 2
-        cy = int(box[1]) + int(box[3]) // 2
-        # box 是当前帧坐标（1147 基准），post_click 也是 1147 基准
-        try:
-            context.tasker.controller.post_click(cx, cy).wait()
-        except Exception as error:                    # noqa: BLE001
-            _log("斗宠点返回失败：%s" % error)
-            return False
-        _log("斗宠：点返回 @ (%d, %d)" % (cx, cy))
-        return True
-    return False
-
-
-def _douchong_target(frame, start_group=None):
-    """从第 start_group 组开始往左找，返回第一个那组的中心（1147 基准）。
-
-    不传 start_group 就是「最右边那组」（第 5 组）。
-
-    五组头像位置固定、每组排版和尺寸都一样，所以拿任意一组当模板都能匹配上，
-    再按组间距往右推到第 5 组。模板匹配比固定 roi 稳——roi 依赖窗口比例，
-    模板只依赖「这一组长什么样」。
-    """
-    path = os.path.join(_SHOP_ROOT, "resource", "base", "image", _DC_TPL)
-    try:
-        tpl = cv2.imdecode(np.fromfile(path, dtype=np.uint8), cv2.IMREAD_COLOR)
-    except Exception as error:                        # noqa: BLE001
-        _log("斗宠找头像：模板读不到 %s（%s）" % (path, error))
+def _douchong_tpl(frame, roi, name, threshold=0.80):
+    """在 roi 里模板匹配，命中返回中心点 (x, y)，否则 None。"""
+    if frame is None or getattr(frame, "shape", None) is None:
         return None
+    path = os.path.join(str(_SHOP_ROOT), "resource", "base", "image", name)
+    tpl = cv2.imdecode(np.fromfile(path, dtype=np.uint8), cv2.IMREAD_COLOR)
     if tpl is None:
-        _log("斗宠找头像：模板解码失败 %s" % path)
+        _log("斗宠模板读不到：%s" % path)
         return None
-    kx = frame.shape[1] / 1147.0
-    ky = frame.shape[0] / 720.0
-    x, y, w, h = _DC_ROW_ROI
-    x, y = int(round(x * kx)), int(round(y * ky))
-    w, h = int(round(w * kx)), int(round(h * ky))
-    sub = frame[y:y + h, x:x + w]
-    if sub.size == 0:
-        _log("斗宠找头像：搜索区为空 roi=%s frame=%s" % (_DC_ROW_ROI, getattr(frame, "shape", None)))
-        return None
-    th = int(round(tpl.shape[0] * ky))
-    tw = int(round(tpl.shape[1] * kx))
-    if th > sub.shape[0] or tw > sub.shape[1]:
-        _log("斗宠找头像：模板比搜索区大 tpl=%dx%d sub=%dx%d" % (tw, th, sub.shape[1], sub.shape[0]))
-        return None
-    scaled = cv2.resize(tpl, (tw, th), interpolation=cv2.INTER_AREA)
-    res = cv2.matchTemplate(sub, scaled, cv2.TM_CCOEFF_NORMED)
-    _min_v, max_v, _min_p, max_p = cv2.minMaxLoc(res)
-    _log("斗宠找头像：匹配 best=%.3f at=(%d,%d) 模板 %dx%d" % (max_v, max_p[0], max_p[1], tw, th))
-    if max_v < 0.70:
-        _log("斗宠找头像：分数不够（%.3f < 0.70）" % max_v)
-        return None
-    # 五组等距排开，组间距恒定：直接按组数算目标那一组的 x。
-    # 不能拿搜索区右边界去试探——搜索区比整行窄，会少算一组。
-    step = _DC_COL_STEP * kx
-    left = max_p[0]
-    hit_group = max(1, min(_DC_GROUPS, int(round(left / step)) + 1))
-    want = start_group if start_group else _DC_GROUPS
-    want = max(1, min(_DC_GROUPS, int(want)))
-    cx = (x + left + step * (want - hit_group) + tw / 2.0) / kx
-    cy = (y + max_p[1] + th / 2.0) / ky
-    _log("斗宠找头像：命中第 %d 组，点第 %d 组（共 %d 组）@ (%.0f, %.0f)"
-         % (hit_group, want, _DC_GROUPS, cx, cy))
-    return (cx, cy)
-
-
-def _scale_roi(roi, frame):
-    """把 1147 基准的 roi 换算到当前帧。"""
-    kx = frame.shape[1] / 1147.0
-    ky = frame.shape[0] / 720.0
-    x, y, w, h = roi
-    return [int(round(x * kx)), int(round(y * ky)), int(round(w * kx)), int(round(h * ky))]
-
-
-def _shop_left(context, frame=None) -> int | None:
-    """读「今日剩余购买次数 N」，读不到返回 None。
-
-    必须用原始尺寸帧：`神秘商店_读次数` 的 roi 会被 apply_view_scale
-    按窗口尺寸放大，拿 1147 的帧去配 1410 的 roi 只会读到空气。
-    """
-    import re as _re
-
-    if frame is None:
-        frame = _grab_raw(context)
-    if frame is None:
-        return None
-    detail = context.run_recognition("神秘商店_读次数", frame)
-    texts = [t for t, _b in _boxes_of(detail)]
-    for text in texts:
-        if "购买次数" not in text:
-            continue
-        m = _re.search(r"购买次数\s*[：:]?\s*(\d+)", text)
-        if m:
-            return int(m.group(1))
-    for text in texts:
-        m = _re.search(r"(\d+)", text)
-        if m:
-            return int(m.group(1))
-    return None
-
-
-# 全部按 1147x720 基准写。用户当初在 1263 宽的截图上量的，这里等比缩回来，
-# 运行时 _match_in 再按实际帧尺寸放大。
-def _gui(msg: str) -> None:
-    """推一行到 MFA 的日志窗。
-
-    agent 的 stdout 不进 GUI，但 **stderr 会**——`Toolkit.init_option is
-    deprecated` 那条 Warning 就是这么出现在日志里的。所以这里统一走 stderr，
-    不依赖任何文件路径，别的用户装到哪个目录都能用。
-    """
-    try:
-        # MFA 的 HandleOutputLine 只把 `info:` / `warn:` / `err:` 这类前缀的
-        # 行放进日志窗（MaaProcessor.CheckShouldLog），没有前缀的会被当成
-        # 内部日志丢掉——所以这里必须带 info:。
-        print("info: [商店] " + msg, file=sys.stderr, flush=True)
-    except Exception:                                     # noqa: BLE001
-        pass
-
-
-_SHOP_BUY_ROI = {
-    1: [183, 485, 90, 40],
-    2: [355, 485, 90, 40],
-    3: [526, 485, 90, 40],
-    4: [697, 485, 90, 40],
-    5: [868, 485, 90, 40],
-}
-_SHOP_Q_ROI = {
-    2: [305, 294, 190, 210],
-    3: [475, 294, 190, 210],
-    4: [646, 294, 190, 210],
-    5: [817, 294, 190, 210],
-}
-_SHOP_SCALES = tuple(round(0.85 + 0.05 * i, 2) for i in range(15))
-_SHOP_BUY_TPL = "richanghuodong/goumai.png"
-
-
-def _match_in(frame, roi, tpl_rel, threshold=0.70):
-    """在 roi（1147x720 基准）里多尺度找模板，返回 (分数, 点击点)。
-
-    帧尺寸和 1147x720 不一样时自动等比放大 roi：窗口一变大，
-    按 1147 写的 roi 就会偏到隔壁那格去。
-    """
-    if cv2 is None or frame is None:
-        return 0.0, None
-    src = str(_SHOP_ROOT / "resource" / "base" / "image" / tpl_rel)
-    try:
-        tpl = cv2.imdecode(np.fromfile(src, dtype=np.uint8), cv2.IMREAD_COLOR)
-    except Exception as error:                            # noqa: BLE001
-        _log("读模板失败(%s)：%s" % (tpl_rel, error))
-        return 0.0, None
-    if tpl is None:
-        return 0.0, None
     fh, fw = int(frame.shape[0]), int(frame.shape[1])
     kx, ky = fw / 1147.0, fh / 720.0
     x, y, w, h = (int(round(v * k)) for v, k in zip(roi, (kx, ky, kx, ky)))
     sub = frame[max(0, y):max(0, y) + h, max(0, x):max(0, x) + w]
-    if sub.size == 0:
-        return 0.0, None
-    best_score, best_pt = 0.0, None
-    for scale in _SHOP_SCALES:
-        tw = int(round(tpl.shape[1] * scale * kx))
-        th = int(round(tpl.shape[0] * scale * ky))
-        if tw < 16 or th < 16 or tw > sub.shape[1] or th > sub.shape[0]:
-            continue
-        small = cv2.resize(tpl, (tw, th), interpolation=cv2.INTER_AREA)
-        res = cv2.matchTemplate(sub, small, cv2.TM_CCOEFF_NORMED)
-        _, score, _, loc = cv2.minMaxLoc(res)
-        if score > best_score:
-            best_score = score
-            best_pt = (max(0, x) + loc[0] + tw // 2, max(0, y) + loc[1] + th // 2)
-    if best_score < threshold:
-        return best_score, None
-    return best_score, best_pt
+    tw, th = tpl.shape[1], tpl.shape[0]
+    if sub.size == 0 or sub.shape[0] < th or sub.shape[1] < tw:
+        _log("斗宠模板比搜索区大：tpl=%dx%d sub=%dx%d" % (tw, th, sub.shape[1], sub.shape[0]))
+        return None
+    res = cv2.matchTemplate(sub, tpl, cv2.TM_CCOEFF_NORMED)
+    _mn, mx, _mp, mp = cv2.minMaxLoc(res)
+    _log("斗宠模板 %s best=%.3f" % (name, mx))
+    if mx < threshold:
+        return None
+    return (max(0, x) + mp[0] + tw // 2, max(0, y) + mp[1] + th // 2)
 
 
-def _douchong_wait_left(context, tries=6, gap=0.5) -> int | None:
-    """重试读斗宠挑战次数，读到就返回，超时返回 None。
+def _douchong_won(context, frame) -> bool:
+    """结算页有没有「挑战成功」四个字。"""
+    return _douchong_tpl(frame, _DC_WIN_ROI, _DC_WIN_TPL) is not None
 
-    刚点完「返回」那一帧还是结算页，次数行还没画出来。
+
+def _douchong_back(context, frame) -> bool:
+    """结算页点「返回」，回到挑战列表。"""
+    pt = _douchong_tpl(frame, _DC_BACK_ROI, _DC_BACK_TPL)
+    if pt is None:
+        # 模板也没认出：「返回」位置固定（1147 基准 (570, 592)），按坐标点
+        pt = _DC_BACK_POINT
+        _log("斗宠：模板没认出「返回」，按固定坐标点 %s" % (pt,))
+    try:
+        context.tasker.controller.post_click(int(pt[0]), int(pt[1])).wait()
+    except Exception as error:                        # noqa: BLE001
+        _log("斗宠点返回失败：%s" % error)
+        return False
+    _log("斗宠：点返回 @ %s" % (pt,))
+    return True
+
+
+def _douchong_target(frame, start_group=None):
+    """从第 start_group 组往左扫，返回最右边「有对手」那组的中心（1147 基准）。
+
+    判据是那一格里深色像素的占比：空位是纯米色背景，占比 0；有对手时
+    三个球的深灰占两成以上。不用模板匹配——五组对手的宠物组合各不相同，
+    同一张三球模板在不同组上分数差得离谱（第 5 组 0.76、第 1 组 0.686），
+    阈值怎么定都会误判。
     """
-    for _ in range(tries):
+    if frame is None or getattr(frame, "shape", None) is None:
+        return None
+    kx = frame.shape[1] / 1147.0
+    ky = frame.shape[0] / 720.0
+    want = start_group if start_group else _DC_GROUPS
+    want = max(1, min(_DC_GROUPS, int(want)))
+    for group in range(want, 0, -1):
+        left = _DC_LEFT[group - 1]
+        x = int(round(left * kx))
+        y = int(round(_DC_TOP_Y * ky))
+        w = int(round(_DC_CELL_W * kx))
+        h = int(round(_DC_CELL_H * ky))
+        sub = frame[y:y + h, x:x + w]
+        if sub.size == 0:
+            continue
+        gray = cv2.cvtColor(sub, cv2.COLOR_BGR2GRAY)
+        dark = float((gray < 95).mean())
+        _log("斗宠第 %d 组：深色占比 %.3f" % (group, dark))
+        if dark >= _DC_DARK_RATIO:
+            return (x + w / 2.0, y + h / 2.0)
+    return None
+
+
+
+@AgentServer.custom_action("douchong_left_check")
+class DouChongLeftCheck(CustomAction):
+    """读剩余挑战次数。
+
+    读不到 → 回入口重新点图标（可能还没进斗宠界面）。
+    0        → 收工。
+    >0       → 去点第 5 组。
+    """
+
+    def run(self, context, argv) -> bool:
+        # 点完「返回」回到斗宠主页有切换时间，立刻取帧会读不到次数，
+        # 一回入口就又把标题点一遍。这里最多等 3 秒。
+        for try_no in range(1, 7):
+            try:
+                frame = _grab_raw(context)
+            except Exception as error:                # noqa: BLE001
+                _log("斗宠读次数：第 %d 次取帧失败 %s" % (try_no, error))
+                frame = None
+            if frame is not None and getattr(frame, "shape", None) is not None:
+                left = _douchong_left(context, frame)
+                if left is not None:
+                    _log("斗宠读次数：第 %d 次读到 %s" % (try_no, left))
+                    return True
+                _log("斗宠读次数：第 %d 次读不到" % try_no)
+            time.sleep(0.5)
+        _log("斗宠读次数：3 秒了还是读不到，回入口")
+        return False
+
+
+@AgentServer.custom_action("douchong_zero_check")
+class DouChongZeroCheck(CustomAction):
+    """次数 > 0 才继续打；== 0 收工。"""
+
+    def run(self, context, argv) -> bool:
         try:
             frame = _grab_raw(context)
         except Exception as error:                    # noqa: BLE001
-            _log("斗宠重读取帧失败：%s" % error)
-            return None
-        left = _douchong_left(context, frame) if frame is not None else None
-        if left is not None:
-            return left
-        time.sleep(gap)
-    return None
+            _log("斗宠判次数：取帧失败 %s" % error)
+            return False
+        if frame is None or getattr(frame, "shape", None) is None:
+            _log("斗宠判次数：没取到画面")
+            return False
+        left = _douchong_left(context, frame)
+        _log("斗宠判次数：%s" % ("读不到" if left is None else left))
+        if left is None:
+            return False
+        if left <= 0:
+            _log("斗宠：次数用完，收工")
+            return False
+        return True
+
+
+@AgentServer.custom_action("douchong_enter_check")
+class DouChongEnterCheck2(CustomAction):
+    """点完第 5 组之后判有没有进战斗。
+
+    读不到次数 = 界面已经换成战斗，进了。
+    还读得到   = 没进，回入口重新来。
+    """
+
+    def run(self, context, argv) -> bool:
+        for try_no in range(1, 7):
+            try:
+                frame = _grab_raw(context)
+            except Exception as error:                # noqa: BLE001
+                _log("斗宠进战斗检查：第 %d 次取帧失败 %s" % (try_no, error))
+                frame = None
+            if frame is not None and getattr(frame, "shape", None) is not None:
+                left = _douchong_left(context, frame)
+                if left is None:
+                    _log("斗宠进战斗检查：第 %d 次读不到次数，进了" % try_no)
+                    return True
+                _log("斗宠进战斗检查：第 %d 次还能读到 %s" % (try_no, left))
+            time.sleep(0.5)
+        _log("斗宠进战斗检查：3 秒了还读得到次数，没进去")
+        return False
+
+
+@AgentServer.custom_action("douchong_wait_win")
+class DouChongWaitWin(CustomAction):
+    """等结算页的「挑战成功」，看到就把「返回」点掉。
+
+    之所以合并成一步：拆成「等胜利 → 点返回」两个节点时，第二跳偶尔会
+    被 MAA 跳过（01:54、01:58 两次日志里「点返回」一行都没打，2 秒后直接
+    到了读次数）。合并之后看到挑战成功就当场点返回，不依赖下一跳。
+    """
+
+    def run(self, context, argv) -> bool:
+        deadline = time.monotonic() + 180.0
+        waited = 0.0
+        while time.monotonic() < deadline:
+            try:
+                frame = _grab_raw(context)
+            except Exception:                         # noqa: BLE001
+                frame = None
+            if frame is not None and getattr(frame, "shape", None) is not None:
+                if _douchong_won(context, frame):
+                    _log("斗宠等胜利：看到「挑战成功」，等 %.1f 秒" % waited)
+                    time.sleep(1.2)
+                    try:
+                        frame2 = _grab_raw(context)
+                    except Exception:                 # noqa: BLE001
+                        frame2 = frame
+                    _douchong_back(context, frame2)
+                    time.sleep(1.2)
+                    return True
+            time.sleep(0.5)
+            waited += 0.5
+        _log("斗宠等胜利：等了 %.0f 秒没看到「挑战成功」" % waited)
+        return False
 
 
 @AgentServer.custom_action("douchong_run")
@@ -1250,6 +1369,7 @@ class DouChongRun(CustomAction):
 
     def run(self, context, argv) -> bool:
         rounds = 0
+        no_foe = 0                              # 连续几轮五组都找不到对手
         pick_group = 5                          # 当前想打哪一组，默认最右边那组
         fail_streak = 0                         # 连续几次点了没进战斗
         for round_no in range(1, 60):
@@ -1312,8 +1432,18 @@ class DouChongRun(CustomAction):
                     _log("斗宠：第 %d 组没有对手，改打第 %d 组" % (pick_group, pick_group - 1))
                     pick_group -= 1
                     continue
-                _log("斗宠第%d轮：一组对手都找不到，收工" % round_no)
-                return True
+                # 五组都找不到对手：多半是界面没刷新，重进一次斗宠再试。
+                # 次数还剩着就直接收工会白丢剩下的挑战次数。
+                no_foe += 1
+                if no_foe > 2:
+                    _log("斗宠第%d轮：重进 %d 次仍找不到对手，收工" % (round_no, no_foe))
+                    return True
+                _log("斗宠第%d轮：一组对手都找不到，重进斗宠（第 %d 次）"
+                     % (round_no, no_foe))
+                _douchong_reclick(context, frame)
+                time.sleep(2.0)
+                pick_group = _DC_GROUPS
+                continue
             wx, wy = int(round(pt[0])), int(round(pt[1]))
             _log("斗宠：点击第 %d 组 @ (%d, %d)" % (pick_group, wx, wy))
             try:
@@ -1844,12 +1974,12 @@ class JingJiChangRun(CustomAction):
                 frame = _grab_raw(context)
             except Exception as error:                # noqa: BLE001
                 _log("竞技场：截屏异常 %s" % error)
-                return True
+                return False
             shape = getattr(frame, "shape", None)
             _log("竞技场第%d轮：帧 %s" % (round_no, shape))
             if frame is None or shape is None:
                 _log("竞技场第%d轮：没拿到画面" % round_no)
-                return True
+                return False
 
             # 刚点完图标那一帧可能还是菜单，先等竞技场界面出来再判。
             # 认「今日剩余挑战次数」这行字——大地图菜单里没有它。
@@ -1871,7 +2001,7 @@ class JingJiChangRun(CustomAction):
                 _log("竞技场：等界面加载 %dms 后开始判断" % wait_ms)
                 if wait_ms >= 5000:
                     _log("竞技场：5 秒内没看到挑战次数，没进入竞技场")
-                    return True
+                    return False
 
             left = _jingjichang_left(context, frame)
             _log("竞技场第%d轮：剩余挑战次数 %s" % (round_no, "读不到" if left is None else left))
@@ -1883,14 +2013,14 @@ class JingJiChangRun(CustomAction):
             _log("竞技场第%d轮：通位置 %s" % (round_no, pt))
             if pt is None:
                 _log("竞技场第%d轮：没找到通，收工" % round_no)
-                return True
+                return False
             wx, wy = int(round(pt[0])), int(round(pt[1]))
             _log("竞技场第%d轮：点通 @ (%d, %d)" % (round_no, wx, wy))
             try:
                 context.tasker.controller.post_click(wx, wy).wait()
             except Exception as error:                # noqa: BLE001
                 _log("竞技场：点击失败 %s" % error)
-                return True
+                return False
             rounds += 1
             # 不再固定等 2 秒：一直取帧试，能重新认出「通」就往下走（最多等 2 秒）
             waited = 0
@@ -1963,6 +2093,9 @@ class ShopRun(CustomAction):
                     _log("商店：点击失败 %s" % error)
                     return self._finish(records)
                 time.sleep(0.55)
+                # 买第 5 档之后再买第 1 档会弹「珍宝商店将会关闭，你确定购买吗？」
+                if _shop_confirm(context):
+                    time.sleep(0.4)
                 bought = True
                 break
             if not bought:
@@ -2071,7 +2204,6 @@ class ShopRemaining(CustomAction):
     def run(self, context, argv) -> bool:
         try:
             from script_task import capture
-            import re as _re
 
             frame = capture(context)
             detail = context.run_recognition("神秘商店_读次数", frame)
@@ -2084,9 +2216,9 @@ class ShopRemaining(CustomAction):
                 for t, _b in _boxes_of(detail):
                     text = t
                     break
-            m = _re.search(r"购买次数\s*[：:]?\s*(\d+)", text)
+            m = re.search(r"购买次数\s*[：:]?\s*(\d+)", text)
             if not m:
-                m = _re.search(r"(\d+)", text)
+                m = re.search(r"(\d+)", text)
             if not m:
                 _log("购买次数：没读到数字（OCR=%r），按还有次数处理" % text)
                 return True
@@ -2360,6 +2492,7 @@ class FuguoRun(CustomAction):
         paused = False
         pause_started = 0.0
         i_check_at = 0.0
+        last_i_press = 0.0
         tree_base = 0
         last_u = last_y = last_o = 0.0
         last_probe = 0.0
@@ -2409,7 +2542,41 @@ class FuguoRun(CustomAction):
                 _still = 0
                 time.sleep(0.3)
 
-            # ① 果子：每帧只做一次颜色检测，结果缓存给下一帧做跟踪比对
+            # ① 守护兽气泡：优先级最高，每帧第一件事就是看它。
+            # 决策窗口只有一两秒，等走位/捡果子的逻辑跑完再判就已经被抓住了。
+            # 树冠区（画面 40% 以上）的候选个数：摇树时不断有新果子从树上冒出，
+            # 停住之后这个数就不再增长——用它确认「I 到底停没停住」。
+            # 这里先用上一帧的结果，等下面真检测完会更新成当前帧的。
+            tree_now = sum(1 for (_x, _y, _k) in (prev_fruits or [])
+                           if _y < img.shape[0] * 0.40)
+            guard = _guard_warning(img)
+            if guard and now - last_i_press >= 0.8:
+                if not paused:
+                    paused = True
+                    pause_started = now
+                    tree_base = tree_now
+                    last_i_press = now
+                    _tap(hwnd, _SKILL_KEYS["I"], hold=0.06)
+                    _log("守护兽预警，按 I 停摇")
+                elif tree_now > tree_base:
+                    # I 是切换键，按空了等于还在摇：树冠区还有新果子冒出来就再补一次
+                    last_i_press = now
+                    _tap(hwnd, _SKILL_KEYS["I"], hold=0.06)
+                    _log("停摇没生效（树冠还有新果子），补按一次 I")
+                    tree_base = tree_now
+            elif paused and not guard and now - pause_started >= VIS["guard_recover_delay"]:
+                paused = False
+                last_i_press = now
+                _tap(hwnd, _SKILL_KEYS["I"], hold=0.06)
+                _log("泡泡消失，按 I 恢复摇树")
+            elif paused and now - pause_started > VIS["pause_max"]:
+                # 泡泡挂着不消失就会一直停摇，树不摇就没果子
+                paused = False
+                last_i_press = now
+                _tap(hwnd, _SKILL_KEYS["I"], hold=0.06)
+                _log("暂停已超 %.0f 秒，强制恢复摇树" % VIS["pause_max"])
+
+            # ② 果子：每帧只做一次颜色检测，结果缓存给下一帧做跟踪比对
             dt = now - last_img_ts if last_img_ts else 0.0
             last_img_ts = now
             cur = _detect_fruits(img)
@@ -2419,31 +2586,7 @@ class FuguoRun(CustomAction):
             # 停住之后这个数就不再增长——用它确认「I 到底停没停住」
             tree_now = sum(1 for (_x, _y, _k) in cur if _y < img.shape[0] * 0.40)
 
-            # ② 守护兽预警：决策窗口只有一两秒，得比走位先处理
-            guard = _guard_warning(img)
-            if guard and not paused:
-                paused = True
-                pause_started = now
-                tree_base = tree_now
-                i_check_at = now + 0.5
-                _tap(hwnd, _SKILL_KEYS["I"], hold=0.06)
-                _log("守护兽预警，按 I 停摇")
-            elif paused and guard and now > i_check_at:
-                # I 是「切换」键，按空了等于还在摇：0.5 秒后看树冠区还有没有新果子冒出
-                i_check_at = now + 0.5
-                if tree_now > tree_base:
-                    _tap(hwnd, _SKILL_KEYS["I"], hold=0.06)
-                    _log("停摇没生效（树冠还有新果子），补按一次 I")
-                    tree_base = tree_now
-            elif paused and not guard and now - pause_started >= VIS["guard_recover_delay"]:
-                paused = False
-                _tap(hwnd, _SKILL_KEYS["I"], hold=0.06)
-                _log("泡泡消失，按 I 恢复摇树")
-            elif paused and now - pause_started > VIS["pause_max"]:
-                # 泡泡挂着不消失就会一直停摇，树不摇就没果子
-                paused = False
-                _tap(hwnd, _SKILL_KEYS["I"], hold=0.06)
-                _log("暂停已超 %.0f 秒，强制恢复摇树" % VIS["pause_max"])
+
 
 
 
