@@ -15,15 +15,20 @@ pipeline 链路见 resource/base/pipeline/福果来.json：
 from __future__ import annotations
 
 import ctypes
+import json
+import os
 import re
+import sys
 import time
 import traceback
 
 import numpy as np
+from pathlib import Path
 
 from maa.agent.agent_server import AgentServer
 from maa.context import Context
 from maa.custom_action import CustomAction
+from maa.pipeline import JOCR
 
 try:
     import cv2
@@ -31,6 +36,7 @@ except Exception:  # noqa: BLE001
     cv2 = None
 
 _HERE_LOG = None
+_SHOP_ROOT = Path(__file__).resolve().parent.parent
 
 # ---------------------------------------------------------------- 视觉参数
 # 全部是「按窗口宽高比例」写的，跟实际分辨率无关；面积阈值按 1920x1196 标定，
@@ -119,6 +125,19 @@ ALL_KEYS = tuple(_SKILL_KEYS.values()) + tuple(_MOVE_KEYS.values())
 _REF_AREA = 1920.0 * 1196.0
 
 
+def _as_dict(value) -> dict:
+    """custom_action_param 在 binding 里是 JSON 字符串，不是 dict。"""
+    if isinstance(value, dict):
+        return value
+    if isinstance(value, str) and value.strip():
+        try:
+            parsed = json.loads(value)
+            return parsed if isinstance(parsed, dict) else {}
+        except json.JSONDecodeError:
+            return {}
+    return {}
+
+
 def _write_gui(msg: str) -> None:
     """写一行给 pipeline 的 focus 用。覆盖写，不累积——
     focus 把整个文件读进 GUI，文件越长越难看。"""
@@ -131,6 +150,53 @@ def _write_gui(msg: str) -> None:
             fp.write(msg + "\n")
     except Exception:  # noqa: BLE001
         pass
+
+
+def _write_shop_gui(msg: str) -> None:
+    """写一行给神秘商店的 focus 用。覆盖写。"""
+    try:
+        from pathlib import Path
+
+        d = Path(__file__).resolve().parent.parent / "debug" / "shop"
+        d.mkdir(parents=True, exist_ok=True)
+        with open(d / "buy.md", "w", encoding="utf-8") as fp:
+            fp.write(msg + "\n")
+    except Exception:  # noqa: BLE001
+        pass
+
+
+def _shop_item_name(context, box, frame=None) -> str:
+    """读购买按钮上方的商品名（取最上面一行文字，跳过纯数字和「灵魂/点券」价格行）。"""
+    try:
+        from maa.pipeline import JOCR
+
+        from script_task import capture
+
+        x, y, w, h = (int(v) for v in list(box)[:4])
+        roi = [max(0, x - 40), max(0, y - 152), w + 80, 120]
+        # box 是 MAA 给识别框（窗口原始坐标系），帧也必须是原始的
+        if frame is None:
+            frame = _grab_raw(context)
+        if frame is None:
+            return ""
+        detail = context.run_recognition_direct("OCR", JOCR(roi=roi), frame)
+        if detail is None:
+            return ""
+        items = []
+        for item in _boxes_of(detail):
+            text = (item[0] or "").strip()
+            box_ = item[1]
+            if not text or text.isdigit():
+                continue
+            if "灵魂" in text or "点券" in text:
+                continue
+            items.append((box_[1], text))
+        if not items:
+            return ""
+        items.sort(key=lambda pair: pair[0])
+        return items[0][1]
+    except Exception:  # noqa: BLE001
+        return ""
 
 
 def _log(msg: str) -> None:
@@ -231,18 +297,21 @@ def _release_all(hwnd: int) -> None:
 
 
 # ---------------------------------------------------------------- 截图
-_RES_READY = [False]
 
 
 def _grab(ctx: Context) -> np.ndarray | None:
     """抓一帧 BGR。MFA 给的是「画布」，游戏内容只贴在左上，黑边先裁掉。"""
     ctrl = ctx.tasker.controller
-    if not _RES_READY[0]:
-        try:
-            ctrl.set_screenshot_use_raw_size(True)
-        except Exception:  # noqa: BLE001
-            pass
-        _RES_READY[0] = True
+    # MAA 自带截图缩放：短边缩到 720 就等价于把窗口统一成 1147x720
+    # （造梦盒子的客户区比例固定 1.593，短边 720 → 长边必然是 1147）。
+    # 以前这里用 use_raw_size(True) 关掉了缩放，窗口一变形就全错位。
+    # 每帧都确认一次（节流 5 秒）：九转炼丹会把全局开关临时打开，只设一次会漏。
+    try:
+        from view_scale import ensure_view_scale
+
+        ensure_view_scale(ctrl, quiet=False, throttle=5.0)
+    except Exception:                                     # noqa: BLE001
+        pass
     job = ctrl.post_screencap()
     job.wait()
     img = job.get()
@@ -737,65 +806,6 @@ class FuguoEnterStage(CustomAction):
             return False
 
 
-@AgentServer.custom_action("fuguo_click_icon")
-class FuguoClickIcon(CustomAction):
-    def run(self, context, argv) -> bool:
-        box = list(getattr(argv, "box", []) or [])
-        if len(box) < 4:
-            _log("点图标：没拿到识别框")
-            return False
-        x, y, w, h = (int(v) for v in box[:4])
-        # 模板里带着下方「福果来」三个字，所以框中心落在文字上；
-        # 图标本体在文字上方，按模板高度上移 18% 再点。
-        cx = x + w // 2
-        cy = y + h // 2 - int(round(h * 0.18))
-        _log("点图标：框 %s -> 点击 (%d, %d)" % (box, cx, cy))
-        context.tasker.controller.post_click(cx, cy).wait()
-        # 面板是滑出动画，点完立刻截图会拍到半开的界面，
-        # 下一步的「进入副本」OCR 就会落空。
-        time.sleep(1.2)
-        return True
-
-
-@AgentServer.custom_action("fuguo_enter_stage")
-class FuguoEnterStage(CustomAction):
-    """看「进入副本」按钮是黄还是灰，黄就进，灰就报本日已完成。"""
-
-    def run(self, context: Context, argv) -> bool:
-        try:
-            from script_task import capture
-
-            box = None
-            frame = None
-            for attempt in range(3):
-                if attempt:
-                    time.sleep(0.6)
-                frame = capture(context)
-                detail = context.run_recognition("福果来_读进入副本", frame)
-                for text, b in _boxes_of(detail):
-                    if "进入副本" in text:
-                        # 抠字框可能落在面板的暗色背景上（B=G=R≈96），
-                        # 那样算出来的「黄底占比」永远是 0，会误判成本日已完成。
-                        # 真按钮至少 100×30，太小的框直接当没找到。
-                        if b[2] >= 80 and b[3] >= 24:
-                            box = b
-                            break
-                if box is not None:
-                    break
-            if box is None:
-                _log("没找到「进入副本」按钮（面板没打开？）")
-                return False
-            target = "福果来_本日已完成" if _button_is_gray(frame, box) else "福果来_进入副本"
-            _log("进入副本 -> " + target)
-            # 正在执行的是「检查进入副本」这个节点，覆盖它的 next，
-            # 覆盖「点图标」的没用——那个节点早就走完了。
-            context.override_pipeline({"福果来_检查进入副本": {"next": [target]}})
-            return True
-        except Exception as error:  # noqa: BLE001
-            _log("进入副本判断失败：" + str(error))
-            return False
-
-
 @AgentServer.custom_action("fuguo_daily_done")
 class FuguoDailyDone(CustomAction):
     """本日福果来活动已完成：往 GUI 日志窗推一行。"""
@@ -805,6 +815,1250 @@ class FuguoDailyDone(CustomAction):
         _log(msg)
         _write_gui(msg)
         return True
+
+
+def _grab_raw(ctx):
+    """取一帧 1147x720 的截图。FramePool 是唯一允许的方式。
+
+    `set_screenshot_use_raw_size(True)` 不走 FramePool（21ms → 2000ms），
+    还会把 controller 状态搅乱，已全部去掉。
+    """
+    from script_task import capture
+    frame = None
+    for attempt in range(1, 3):                       # 刚点完那一帧偶尔拿不到，重试一次
+        try:
+            frame = capture(ctx)
+        except Exception as error:                    # noqa: BLE001
+            _log("取帧失败（第 %d 次）：%s" % (attempt, error))
+            frame = None
+        if frame is not None:
+            break
+        time.sleep(0.2)
+    if frame is None:
+        return None
+    img = np.ascontiguousarray(frame)
+    if img.ndim == 3 and img.shape[2] == 4:
+        img = cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
+    return img
+
+
+
+
+_QUESTION_TPL = "richanghuodong/shenmishangdianwenhao.png"
+_QUESTION_SCALES = tuple(round(0.85 + 0.05 * i, 2) for i in range(15))
+
+
+def _find_question(context, roi, threshold=0.70):
+    """在 roi 里找神秘商店的问号（= 这一档没开放），返回 (分数, 点击点)。
+
+    为什么不用 pipeline 的 TemplateMatch：MAA 的识别结果一旦失败，它会先去
+    试 next 里的候选，而 next 里放的是「读购买次数」（DirectHit 永远命中），
+    结果「没问号 = 这一档已开放」也走了「回去补第一档」，第二档永远买不到。
+    自己判、用 DirectHit + CustomAction 承载结果，命中/不命中就都由这里说了算。
+    """
+    if cv2 is None:
+        return 0.0, None
+    frame = _grab_raw(context)
+    if frame is None:
+        return 0.0, None
+    src = str(_SHOP_ROOT / "resource" / "base" / "image" / _QUESTION_TPL)
+    try:
+        tpl = cv2.imdecode(np.fromfile(src, dtype=np.uint8), cv2.IMREAD_COLOR)
+    except Exception as error:                            # noqa: BLE001
+        _log("读问号模板失败：%s" % error)
+        return 0.0, None
+    if tpl is None:
+        return 0.0, None
+    # roi 是按 1147x720 写的，实际帧尺寸不一样时先等比放大，
+    # 否则在 1410x885 的窗口上会量到隔壁那格去。
+    fh, fw = int(frame.shape[0]), int(frame.shape[1])
+    kx, ky = fw / 1147.0, fh / 720.0
+    x, y, w, h = (int(round(v * k)) for v, k in zip(roi, (kx, ky, kx, ky)))
+    sub = frame[max(0, y):max(0, y) + h, max(0, x):max(0, x) + w]
+    if sub.size == 0:
+        return 0.0, None
+    best_score, best_pt, best_scale = 0.0, None, 0.0
+    for scale in _QUESTION_SCALES:
+        tw = int(round(tpl.shape[1] * scale))
+        th = int(round(tpl.shape[0] * scale))
+        if tw < 24 or th < 24 or tw > sub.shape[1] or th > sub.shape[0]:
+            continue
+        small = cv2.resize(tpl, (tw, th), interpolation=cv2.INTER_AREA)
+        res = cv2.matchTemplate(sub, small, cv2.TM_CCOEFF_NORMED)
+        _, score, _, loc = cv2.minMaxLoc(res)
+        if score > best_score:
+            best_score = score
+            best_scale = scale
+            best_pt = (max(0, x) + loc[0] + tw // 2, max(0, y) + loc[1] + th // 2)
+    _log("问号检测：roi=%s best=%.3f scale=%.2f at %s" % (roi, best_score, best_scale, best_pt))
+    if best_score < threshold:
+        return best_score, None
+    return best_score, best_pt
+
+
+@AgentServer.custom_action("shop_check_tier")
+class ShopCheckTier(CustomAction):
+    """看某一档有没有问号：有 = 还没开放（返回 True → next 回去补第一档），
+    没有 = 已开放（返回 False → on_error 去买这一档）。"""
+
+    def run(self, context, argv) -> bool:
+        params = _as_dict(getattr(argv, "custom_action_param", None))
+        tier = int(params.get("tier") or 0)
+        roi = params.get("roi") or []
+        if len(roi) != 4:
+            _log("检查第%d档：roi 不对 %s" % (tier, roi))
+            return False
+        score, _pt = _find_question(context, roi)
+        open_now = score < 0.70
+        _log("检查第%d档：%s（%.3f）" % (tier, "已开放" if open_now else "还是问号", score))
+        return not open_now
+
+
+_DC_TIMES_ROI = [815, 136, 235, 46]       # 「今日剩余挑战次数 10」在 1147 基准上的位置
+_DC_TIMES_TPL_RE = None
+
+
+def _douchong_left(context, frame) -> int | None:
+    """读斗宠大会的「今日剩余挑战次数 N」。读不到返回 None。"""
+    import re as _re
+    try:
+        detail = context.run_recognition_direct(
+            "OCR", JOCR(roi=_scale_roi(_DC_TIMES_ROI, frame)), frame)
+    except Exception as error:                        # noqa: BLE001
+        _log("斗宠读次数失败：%s" % error)
+        return None
+    for item in _boxes_of(detail):
+        text = (item[0] or "").strip()
+        if "挑战次数" not in text:
+            continue
+        m = _re.search(r"挑战次数\s*[：:]?\s*(\d+)", text)
+        if m:
+            return int(m.group(1))
+    return None
+
+
+
+
+# 三球头像整组的模板（119x120）。用模板匹配而不是固定 roi：
+# 固定 roi 只在窗口比例恰好 1.593 时成立，别的机器窗口比例一变就整体错位。
+_DC_TPL = "richanghuodong/douchong_dagang.png"
+_DC_ROW_ROI = [300, 90, 660, 400]          # 搜五组头像的区域（1147 基准）
+_DC_COL_STEP = 158.5                       # 组间距（1147 基准），实测 158~159
+_DC_GROUPS = 5                             # 一共五组
+
+
+def _douchong_reclick(context) -> bool:
+    """在大地图菜单上重新找一次斗宠图标并点下去。
+
+    图标点了没反应时（游戏卡一下 / 点击没落下去），画面会一直停在大地图，
+    这时候直接重发一次点击就行，不用回入口再绕一圈。
+    """
+    path = os.path.join(_SHOP_ROOT, "resource", "base", "image",
+                        "richanghuodong", "douchongdahui.png")
+    try:
+        tpl = cv2.imdecode(np.fromfile(path, dtype=np.uint8), cv2.IMREAD_COLOR)
+        frame = _grab_raw(context)
+    except Exception as error:                        # noqa: BLE001
+        _log("重点图标：读模板/取帧失败 %s" % error)
+        return False
+    if tpl is None or frame is None or getattr(frame, "shape", None) is None:
+        return False
+    kx = frame.shape[1] / 1147.0
+    ky = frame.shape[0] / 720.0
+    roi = [290, 90, 660, 500]                         # 活动菜单区域（1147 基准）
+    x, y = int(round(roi[0] * kx)), int(round(roi[1] * ky))
+    w, h = int(round(roi[2] * kx)), int(round(roi[3] * ky))
+    sub = frame[y:y + h, x:x + w]
+    if sub.size == 0:
+        return False
+    th = int(round(tpl.shape[0] * ky))
+    tw = int(round(tpl.shape[1] * kx))
+    if th > sub.shape[0] or tw > sub.shape[1]:
+        return False
+    scaled = cv2.resize(tpl, (tw, th), interpolation=cv2.INTER_AREA)
+    # 这些图标模板都是绿幕版，必须带 mask 匹配：不带的话背景图会掺进来，
+    # 同一张图实测只有 0.536，带上就 0.838。
+    _blue, _green, _red = cv2.split(tpl.astype(np.int16))
+    matte = np.where((_green > 200) & (_red < 80) & (_blue < 80), 0, 255).astype(np.uint8)
+    matte = cv2.resize(matte, (tw, th), interpolation=cv2.INTER_NEAREST)
+    res = cv2.matchTemplate(sub, scaled, cv2.TM_CCOEFF_NORMED, mask=matte)
+    _min_v, max_v, _min_p, max_p = cv2.minMaxLoc(res)
+    _log("重点图标：匹配 best=%.3f at=(%d,%d)" % (max_v, max_p[0], max_p[1]))
+    if max_v < 0.70:
+        return False
+    cx = (x + max_p[0] + tw / 2.0) / kx
+    cy = (y + max_p[1] + th / 2.0) / ky
+    # 同理：交给 MAA 换算，不要再乘窗口比例
+    wx, wy = int(round(cx)), int(round(cy))
+    _log("重点图标：点击 @ (%d, %d)" % (wx, wy))
+    try:
+        context.tasker.controller.post_swipe(wx, wy, wx, wy, 80).wait()
+    except Exception as error:                        # noqa: BLE001
+        _log("重点图标：点击失败 %s" % error)
+        return False
+    return True
+
+
+_DC_WIN_ROI = [380, 0, 410, 130]          # 「挑战成功」标题（1147 基准）
+_DC_BACK_ROI = [480, 545, 190, 100]        # 「返回」按钮（1147 基准）
+
+
+def _douchong_won(context, frame) -> bool:
+    """结算页有没有「挑战成功」四个字。"""
+    try:
+        detail = context.run_recognition_direct(
+            "OCR", JOCR(roi=_scale_roi(_DC_WIN_ROI, frame)), frame)
+    except Exception as error:                        # noqa: BLE001
+        _log("斗宠判结算失败：%s" % error)
+        return False
+    for item in _boxes_of(detail):
+        if "挑战成功" in (item[0] or ""):
+            return True
+    return False
+
+
+def _douchong_back(context, frame) -> bool:
+    """结算页点「返回」，回到挑战列表。"""
+    try:
+        detail = context.run_recognition_direct(
+            "OCR", JOCR(roi=_scale_roi(_DC_BACK_ROI, frame)), frame)
+    except Exception as error:                        # noqa: BLE001
+        _log("斗宠找返回失败：%s" % error)
+        return False
+    for item in _boxes_of(detail):
+        text = (item[0] or "").strip()
+        if text != "返回" and "返回" not in text:
+            continue
+        box = item[1]
+        cx = int(box[0]) + int(box[2]) // 2
+        cy = int(box[1]) + int(box[3]) // 2
+        # box 是当前帧坐标（1147 基准），post_swipe 也收 1147 基准
+        try:
+            context.tasker.controller.post_swipe(cx, cy, cx, cy, 80).wait()
+        except Exception as error:                    # noqa: BLE001
+            _log("斗宠点返回失败：%s" % error)
+            return False
+        _log("斗宠：点返回 @ (%d, %d)" % (cx, cy))
+        return True
+    return False
+
+
+def _douchong_target(frame, start_group=None):
+    """从第 start_group 组开始往左找，返回第一个那组的中心（1147 基准）。
+
+    不传 start_group 就是「最右边那组」（第 5 组）。
+
+    五组头像位置固定、每组排版和尺寸都一样，所以拿任意一组当模板都能匹配上，
+    再按组间距往右推到第 5 组。模板匹配比固定 roi 稳——roi 依赖窗口比例，
+    模板只依赖「这一组长什么样」。
+    """
+    path = os.path.join(_SHOP_ROOT, "resource", "base", "image", _DC_TPL)
+    try:
+        tpl = cv2.imdecode(np.fromfile(path, dtype=np.uint8), cv2.IMREAD_COLOR)
+    except Exception as error:                        # noqa: BLE001
+        _log("斗宠找头像：模板读不到 %s（%s）" % (path, error))
+        return None
+    if tpl is None:
+        _log("斗宠找头像：模板解码失败 %s" % path)
+        return None
+    kx = frame.shape[1] / 1147.0
+    ky = frame.shape[0] / 720.0
+    x, y, w, h = _DC_ROW_ROI
+    x, y = int(round(x * kx)), int(round(y * ky))
+    w, h = int(round(w * kx)), int(round(h * ky))
+    sub = frame[y:y + h, x:x + w]
+    if sub.size == 0:
+        _log("斗宠找头像：搜索区为空 roi=%s frame=%s" % (_DC_ROW_ROI, getattr(frame, "shape", None)))
+        return None
+    th = int(round(tpl.shape[0] * ky))
+    tw = int(round(tpl.shape[1] * kx))
+    if th > sub.shape[0] or tw > sub.shape[1]:
+        _log("斗宠找头像：模板比搜索区大 tpl=%dx%d sub=%dx%d" % (tw, th, sub.shape[1], sub.shape[0]))
+        return None
+    scaled = cv2.resize(tpl, (tw, th), interpolation=cv2.INTER_AREA)
+    res = cv2.matchTemplate(sub, scaled, cv2.TM_CCOEFF_NORMED)
+    _min_v, max_v, _min_p, max_p = cv2.minMaxLoc(res)
+    _log("斗宠找头像：匹配 best=%.3f at=(%d,%d) 模板 %dx%d" % (max_v, max_p[0], max_p[1], tw, th))
+    if max_v < 0.70:
+        _log("斗宠找头像：分数不够（%.3f < 0.70）" % max_v)
+        return None
+    # 五组等距排开，组间距恒定：直接按组数算目标那一组的 x。
+    # 不能拿搜索区右边界去试探——搜索区比整行窄，会少算一组。
+    step = _DC_COL_STEP * kx
+    left = max_p[0]
+    hit_group = max(1, min(_DC_GROUPS, int(round(left / step)) + 1))
+    want = start_group if start_group else _DC_GROUPS
+    want = max(1, min(_DC_GROUPS, int(want)))
+    cx = (x + left + step * (want - hit_group) + tw / 2.0) / kx
+    cy = (y + max_p[1] + th / 2.0) / ky
+    _log("斗宠找头像：命中第 %d 组，点第 %d 组（共 %d 组）@ (%.0f, %.0f)"
+         % (hit_group, want, _DC_GROUPS, cx, cy))
+    return (cx, cy)
+
+
+def _scale_roi(roi, frame):
+    """把 1147 基准的 roi 换算到当前帧。"""
+    kx = frame.shape[1] / 1147.0
+    ky = frame.shape[0] / 720.0
+    x, y, w, h = roi
+    return [int(round(x * kx)), int(round(y * ky)), int(round(w * kx)), int(round(h * ky))]
+
+
+def _shop_left(context, frame=None) -> int | None:
+    """读「今日剩余购买次数 N」，读不到返回 None。
+
+    必须用原始尺寸帧：`神秘商店_读次数` 的 roi 会被 apply_view_scale
+    按窗口尺寸放大，拿 1147 的帧去配 1410 的 roi 只会读到空气。
+    """
+    import re as _re
+
+    if frame is None:
+        frame = _grab_raw(context)
+    if frame is None:
+        return None
+    detail = context.run_recognition("神秘商店_读次数", frame)
+    texts = [t for t, _b in _boxes_of(detail)]
+    for text in texts:
+        if "购买次数" not in text:
+            continue
+        m = _re.search(r"购买次数\s*[：:]?\s*(\d+)", text)
+        if m:
+            return int(m.group(1))
+    for text in texts:
+        m = _re.search(r"(\d+)", text)
+        if m:
+            return int(m.group(1))
+    return None
+
+
+# 全部按 1147x720 基准写。用户当初在 1263 宽的截图上量的，这里等比缩回来，
+# 运行时 _match_in 再按实际帧尺寸放大。
+def _gui(msg: str) -> None:
+    """推一行到 MFA 的日志窗。
+
+    agent 的 stdout 不进 GUI，但 **stderr 会**——`Toolkit.init_option is
+    deprecated` 那条 Warning 就是这么出现在日志里的。所以这里统一走 stderr，
+    不依赖任何文件路径，别的用户装到哪个目录都能用。
+    """
+    try:
+        # MFA 的 HandleOutputLine 只把 `info:` / `warn:` / `err:` 这类前缀的
+        # 行放进日志窗（MaaProcessor.CheckShouldLog），没有前缀的会被当成
+        # 内部日志丢掉——所以这里必须带 info:。
+        print("info: [商店] " + msg, file=sys.stderr, flush=True)
+    except Exception:                                     # noqa: BLE001
+        pass
+
+
+_SHOP_BUY_ROI = {
+    1: [183, 485, 90, 40],
+    2: [355, 485, 90, 40],
+    3: [526, 485, 90, 40],
+    4: [697, 485, 90, 40],
+    5: [868, 485, 90, 40],
+}
+_SHOP_Q_ROI = {
+    2: [305, 294, 190, 210],
+    3: [475, 294, 190, 210],
+    4: [646, 294, 190, 210],
+    5: [817, 294, 190, 210],
+}
+_SHOP_SCALES = tuple(round(0.85 + 0.05 * i, 2) for i in range(15))
+_SHOP_BUY_TPL = "richanghuodong/goumai.png"
+
+
+def _match_in(frame, roi, tpl_rel, threshold=0.70):
+    """在 roi（1147x720 基准）里多尺度找模板，返回 (分数, 点击点)。
+
+    帧尺寸和 1147x720 不一样时自动等比放大 roi：窗口一变大，
+    按 1147 写的 roi 就会偏到隔壁那格去。
+    """
+    if cv2 is None or frame is None:
+        return 0.0, None
+    src = str(_SHOP_ROOT / "resource" / "base" / "image" / tpl_rel)
+    try:
+        tpl = cv2.imdecode(np.fromfile(src, dtype=np.uint8), cv2.IMREAD_COLOR)
+    except Exception as error:                            # noqa: BLE001
+        _log("读模板失败(%s)：%s" % (tpl_rel, error))
+        return 0.0, None
+    if tpl is None:
+        return 0.0, None
+    fh, fw = int(frame.shape[0]), int(frame.shape[1])
+    kx, ky = fw / 1147.0, fh / 720.0
+    x, y, w, h = (int(round(v * k)) for v, k in zip(roi, (kx, ky, kx, ky)))
+    sub = frame[max(0, y):max(0, y) + h, max(0, x):max(0, x) + w]
+    if sub.size == 0:
+        return 0.0, None
+    best_score, best_pt = 0.0, None
+    for scale in _SHOP_SCALES:
+        tw = int(round(tpl.shape[1] * scale * kx))
+        th = int(round(tpl.shape[0] * scale * ky))
+        if tw < 16 or th < 16 or tw > sub.shape[1] or th > sub.shape[0]:
+            continue
+        small = cv2.resize(tpl, (tw, th), interpolation=cv2.INTER_AREA)
+        res = cv2.matchTemplate(sub, small, cv2.TM_CCOEFF_NORMED)
+        _, score, _, loc = cv2.minMaxLoc(res)
+        if score > best_score:
+            best_score = score
+            best_pt = (max(0, x) + loc[0] + tw // 2, max(0, y) + loc[1] + th // 2)
+    if best_score < threshold:
+        return best_score, None
+    return best_score, best_pt
+
+
+def _douchong_wait_left(context, tries=6, gap=0.5) -> int | None:
+    """重试读斗宠挑战次数，读到就返回，超时返回 None。
+
+    刚点完「返回」那一帧还是结算页，次数行还没画出来。
+    """
+    for _ in range(tries):
+        try:
+            frame = _grab_raw(context)
+        except Exception as error:                    # noqa: BLE001
+            _log("斗宠重读取帧失败：%s" % error)
+            return None
+        left = _douchong_left(context, frame) if frame is not None else None
+        if left is not None:
+            return left
+        time.sleep(gap)
+    return None
+
+
+@AgentServer.custom_action("douchong_run")
+class DouChongRun(CustomAction):
+    """斗宠大会：识别右上角「今日剩余挑战次数」，不为 0 就点最右边那组三个圆的几何中心。
+
+    次数为 0 就收工。次数读不到时按「还能打」处理——宁可多打一次，
+    也不要因为一次 OCR 抖动就把当天的次数全丢了。
+    """
+
+    def run(self, context, argv) -> bool:
+        rounds = 0
+        pick_group = 5                          # 当前想打哪一组，默认最右边那组
+        fail_streak = 0                         # 连续几次点了没进战斗
+        for round_no in range(1, 60):
+            try:
+                frame = _grab_raw(context)
+            except Exception as error:                # noqa: BLE001
+                _log("斗宠第%d轮：取帧失败 %s" % (round_no, error))
+                return True
+            if frame is None or getattr(frame, "shape", None) is None:
+                _log("斗宠第%d轮：没拿到画面" % round_no)
+                return True
+
+            # 先看是不是我已经进战斗了。进去了就等结算，不看挑战列表。
+            if _douchong_won(context, frame):
+                _log("斗宠第%d轮：战斗结束，挑战成功" % round_no)
+                if not _douchong_back(context, frame):
+                    _log("斗宠：没找到返回按钮，收工")
+                    return True
+                rounds += 1
+                fail_streak = 0
+                pick_group = 5                  # 打完一轮从第 5 组重新开始
+                time.sleep(1.0)
+                continue
+
+            left = _douchong_left(context, frame)
+            _log("斗宠第%d轮：剩余挑战次数 %s，这一轮打第 %d 组"
+                 % (round_no, "读不到" if left is None else left, pick_group))
+
+            if left is None:
+                # 读不到次数：可能在战斗里、可能在结算页、也可能界面还没切完。
+                # 三种情况都不能当成「次数用完」，先等一下再读，最多等 20 秒。
+                waited = 0.0
+                while left is None and waited < 20.0:
+                    time.sleep(1.0)
+                    waited += 1.0
+                    try:
+                        frame = _grab_raw(context)
+                    except Exception as error:            # noqa: BLE001
+                        _log("斗宠：等待中取帧失败 %s" % error)
+                        continue
+                    if frame is None or getattr(frame, "shape", None) is None:
+                        continue
+                    if _douchong_won(context, frame):
+                        _log("斗宠：等待 %.0f 秒后看到结算页" % waited)
+                        break
+                    left = _douchong_left(context, frame)
+                    if left is not None:
+                        _log("斗宠：等待 %.0f 秒后读到次数 %s" % (waited, left))
+                if left is None:
+                    _log("斗宠：等了 %.0f 秒仍未认到次数/结算，继续下一轮" % waited)
+                    continue
+            if left <= 0:
+                _log("斗宠：次数用完，收工（打了 %d 次）" % rounds)
+                return True
+
+            pt = _douchong_target(frame, pick_group)
+            if pt is None:
+                # 想打的那组没有对手，往前退一组；退到底都没有就收工
+                if pick_group > 1:
+                    _log("斗宠：第 %d 组没有对手，改打第 %d 组" % (pick_group, pick_group - 1))
+                    pick_group -= 1
+                    continue
+                _log("斗宠第%d轮：一组对手都找不到，收工" % round_no)
+                return True
+            wx, wy = int(round(pt[0])), int(round(pt[1]))
+            _log("斗宠：点击第 %d 组 @ (%d, %d)" % (pick_group, wx, wy))
+            try:
+                context.tasker.controller.post_swipe(wx, wy, wx, wy, 80).wait()
+            except Exception as error:                # noqa: BLE001
+                _log("斗宠：点击失败 %s" % error)
+                return True
+            time.sleep(1.5)
+
+            # 点完看有没有进战斗：还停在挑战列表（能读到次数）就是没进去
+            try:
+                after = _grab_raw(context)
+            except Exception as error:                # noqa: BLE001
+                _log("斗宠：点击后取帧失败 %s" % error)
+                return True
+            if after is None or getattr(after, "shape", None) is None:
+                return True
+            if _douchong_won(context, after):
+                _log("斗宠：第 %d 组进了战斗" % pick_group)
+                fail_streak = 0
+                continue
+            if _douchong_left(context, after) is not None:
+                fail_streak += 1
+                _log("斗宠：点了第 %d 组没进战斗（连续 %d 次），下一轮换第 %d 组"
+                     % (pick_group, fail_streak, max(1, pick_group - 1)))
+                if pick_group > 1:
+                    pick_group -= 1
+                if fail_streak > 6:
+                    _log("斗宠：连点 %d 次都没进战斗，收工" % fail_streak)
+                    return True
+            # 既不是挑战成功、也读不到次数 —— 多半是战斗界面正在打，下一轮再判
+            time.sleep(1.2)
+        _log("斗宠：达到 60 轮上限，收工")
+        return True
+
+
+# 竞技场：右上角「今日剩余挑战次数 N」
+_JJ_TIMES_ROI = [750, 143, 265, 40]    # 「今日剩余挑战次数 N」实测在 y 148~175、x 772~990
+_JJ_TONG_ROI = [960, 230, 180, 160]   # 第 5 组「通」附近，比图标大一圈留漂移空间
+_JJ_READY_ROI = [750, 143, 265, 40]    # 「今日剩余挑战次数 N」，只有竞技场主页有
+
+# ---------- 扫荡须弥山（城南/城东/城北，城西不做） ----------
+# 入口界面：左侧四个城按钮 + 右侧副本面板（含「进入副本」和「速通」）
+_XM_CITY_ROI = {
+    "城南": [176, 173, 108, 54],       # 字的精确边界 x178..280 y175..224，四周留 2px
+    "城东": [200, 290, 117, 54],       # x202..314 y292..341
+    "城北": [200, 403, 83, 54],        # x202..280 y405..454
+}
+_XM_TITLE_ROI = [400, 90, 350, 70]         # 顶部中间的「守卫须弥山」大字
+_XM_ENTER_ROI = [360, 495, 310, 70]         # 「进入副本」大按钮
+_XM_SUTONG_TPL = "richanghuodong/sutong.png"   # 速通按钮（OCR 对这块小字读不出来，改模板匹配）
+_XM_SUTONG_ROI = [540, 470, 90, 90]         # 「速通」小按钮：字在 x555..600 y520..545，带上上面的剑图标
+_XM_FIGHT_ROI = [600, 300, 500, 300]        # 副本内的战斗区域，用来判是否进了副本
+_XM_ST_TIMES_ROI = [280, 468, 230, 32]      # 速通弹窗里的「今天剩余次数：N」
+_XM_ST_AGAIN_TPL = "richanghuodong/sutong_again.png"   # 「再次速通」按钮
+_XM_ST_AGAIN_ROI = [300, 510, 190, 90]
+_FG_TIMES_ROI = [400, 503, 420, 32]     # 福果来面板「今日剩余奖励次数：N次」
+_XM_CLOSE_ROI = [860, 20, 100, 90]          # 弹窗右上角红叉
+_XM_CHALLENGE_ROI = [320, 448, 290, 40]     # 城面板上的「今日可挑战次数：N」（字在 y452..480 x325..590）
+_XM_ST_START_ROI = [320, 520, 220, 60]      # 速通界面的「开始速通」按钮
+
+
+def _dump_frame(frame, tag: str) -> None:
+    """把当前帧 + roi 框落盘到 debug/xumishan/。"""
+    try:
+        d = os.path.join(_SHOP_ROOT, "debug", "xumishan")
+        os.makedirs(d, exist_ok=True)
+        stamp = time.strftime("%H%M%S")
+        path = os.path.join(d, "%s_%s.png" % (stamp, tag))
+        cv2.imencode(".png", frame)[1].tofile(path)
+        _log("须弥山：已存图 %s" % path)
+    except Exception as error:                        # noqa: BLE001
+        _log("须弥山：存图失败 %s" % error)
+
+
+def _sx_roi(box) -> tuple:
+    """把 OCR 框格式化成 (x, y, w, h)，日志用。"""
+    try:
+        return (int(box[0]), int(box[1]), int(box[2]), int(box[3]))
+    except Exception:                                 # noqa: BLE001
+        return tuple(box) if box else ()
+
+
+def _xm_click_close(context, frame) -> bool:
+    """点弹窗右上角的红叉关掉它。
+
+    不用 adventure.py 里的 _find_close_x：那个依赖 cv2 多尺度模板，
+    而这里只需要点一下，直接用固定点就行。
+    """
+    if frame is None or getattr(frame, "shape", None) is None:
+        kx = ky = 1.0                      # 没帧就按 1147 基准点，不能因为没帧就动不了
+    else:
+        kx = frame.shape[1] / 1147.0
+        ky = frame.shape[0] / 720.0
+    cx, cy = int(round(905 * kx)), int(round(60 * ky))
+    try:
+        context.tasker.controller.post_swipe(cx, cy, cx, cy, 80).wait()
+    except Exception as error:                        # noqa: BLE001
+        _log("须弥山：关弹窗失败 %s" % error)
+        return False
+    _log("须弥山：点叉 @ (%d, %d)" % (cx, cy))
+    time.sleep(1.2)
+    return True
+
+
+def _xm_click_text(context, frame, roi, keyword) -> bool:
+    """在 roi 里 OCR 找到含 keyword 的字，点它的中心。"""
+    if frame is None or getattr(frame, "shape", None) is None:
+        _log("须弥山：没帧，认不了「%s」" % keyword)
+        return False
+    try:
+        detail = context.run_recognition_direct(
+            "OCR", JOCR(roi=_scale_roi(roi, frame)), frame)
+    except Exception as error:                        # noqa: BLE001
+        _log("须弥山：认「%s」失败 %s" % (keyword, error))
+        return False
+    for item in _boxes_of(detail):
+        text = (item[0] or "").strip()
+        if keyword not in text:
+            continue
+        box = item[1]
+        if len(box) < 4:
+            continue
+        cx = int(box[0]) + int(box[2]) // 2
+        cy = int(box[1]) + int(box[3]) // 2
+        try:
+            context.tasker.controller.post_swipe(cx, cy, cx, cy, 80).wait()
+        except Exception as error:                    # noqa: BLE001
+            _log("须弥山：点「%s」失败 %s" % (text, error))
+            return False
+        _log("须弥山：点「%s」 @ (%d, %d)" % (text, cx, cy))
+        return True
+    _log("须弥山：roi=%s 里没认出「%s」，OCR 读到：%s"
+         % (roi, keyword, [(t, _sx_roi(b)) for t, b in _boxes_of(detail)]))
+    # 没认出就把这一帧落盘：只看日志分不清是 roi 偏了还是 OCR 读错
+    _dump_frame(frame, "miss_%s" % keyword)
+    return False
+
+
+def _xm_click_template(context, frame, tpl_name, roi) -> bool:
+    """用模板匹配找按钮，点它的中心。
+
+    OCR 对「速通」这种 20px 小字不可靠（读成 Y、读成单字、读成空），
+    而这个按钮的图案是固定的，模板匹配更稳。
+    """
+    if frame is None or getattr(frame, "shape", None) is None:
+        _log("须弥山：没帧，找不了 %s" % tpl_name)
+        return False
+    path = os.path.join(_SHOP_ROOT, "resource", "base", "image", tpl_name)
+    try:
+        tpl = cv2.imdecode(np.fromfile(path, dtype=np.uint8), cv2.IMREAD_COLOR)
+    except Exception as error:                        # noqa: BLE001
+        _log("须弥山：读模板失败 %s" % error)
+        return False
+    if tpl is None:
+        _log("须弥山：模板解码失败 %s" % path)
+        return False
+    fh, fw = frame.shape[:2]
+    kx, ky = fw / 1147.0, fh / 720.0
+    x, y, w, h = roi
+    X, Y = int(round(x * kx)), int(round(y * ky))
+    W, H = int(round(w * kx)), int(round(h * ky))
+    sub = frame[Y:Y + H, X:X + W]
+    if sub.size == 0:
+        _log("须弥山：搜索区为空")
+        return False
+    tw, th = int(round(tpl.shape[1] * kx)), int(round(tpl.shape[0] * ky))
+    if tw > sub.shape[1] or th > sub.shape[0]:
+        _log("须弥山：模板比搜索区大 %dx%d > %dx%d"
+             % (tw, th, sub.shape[1], sub.shape[0]))
+        return False
+    tmpl = cv2.resize(tpl, (tw, th), interpolation=cv2.INTER_AREA)
+    # 模板带绿幕：把纯绿当透明处理，否则绿色也会参与匹配，分数会掉到底
+    _b, _g, _r = cv2.split(tpl.astype(np.int16))
+    matte = np.where((_g > 200) & (_r < 80) & (_b < 80), 0, 255).astype(np.uint8)
+    matte = cv2.resize(matte, (tw, th), interpolation=cv2.INTER_NEAREST)
+    try:
+        if matte.mean() > 10:
+            res = cv2.matchTemplate(sub, tmpl, cv2.TM_CCOEFF_NORMED, mask=matte)
+        else:
+            res = cv2.matchTemplate(sub, tmpl, cv2.TM_CCOEFF_NORMED)
+        _mn, mx, _mp, mp = cv2.minMaxLoc(res)
+    except Exception as error:                        # noqa: BLE001
+        _log("须弥山：匹配失败 %s" % error)
+        return False
+    _log("须弥山：%s best=%.3f at=(%d,%d)" % (tpl_name, mx, X + mp[0], Y + mp[1]))
+    if mx < 0.70:
+        return False
+    cx = X + mp[0] + tw // 2
+    cy = Y + mp[1] + th // 2
+    try:
+        context.tasker.controller.post_swipe(cx, cy, cx, cy, 80).wait()
+    except Exception as error:                        # noqa: BLE001
+        _log("须弥山：点 %s 失败" % tpl_name)
+        return False
+    _log("须弥山：点 %s @ (%d, %d)" % (tpl_name, cx, cy))
+    return True
+
+
+def _xm_st_times(context, frame) -> int | None:
+    """读速通界面的「今天剩余次数：N」。"""
+    if frame is None or getattr(frame, "shape", None) is None:
+        return None
+    try:
+        detail = context.run_recognition_direct(
+            "OCR", JOCR(roi=_scale_roi(_XM_ST_TIMES_ROI, frame)), frame)
+    except Exception as error:                        # noqa: BLE001
+        _log("速通：读次数失败 %s" % error)
+        return None
+    texts = [(item[0] or "").strip() for item in _boxes_of(detail)]
+    done = "次数" not in " ".join(texts)
+    if done:
+        return None
+    for text in texts:
+        m = re.search(r"\u6b21\u6570\s*[\uff1a:]?\s*(\d+)", text)
+        if m:
+            return int(m.group(1))
+    if not done:
+        for text in texts:
+            if text.isdigit():
+                return int(text)
+    return None
+
+
+def _xm_ready(context, frame) -> bool:
+    """判断是不是真在须弥山界面：认顶部中间「守卫须弥山」几个大字。
+
+    大地图菜单里的图标文字叫「守卫须弥山」，所以单纯认这四个字会误判；
+    这里叠上 roi 限定在顶部中间那一块——菜单里的图标文字在第 2 行第 2 列（y≈260），不会落进来。
+    """
+    try:
+        detail = context.run_recognition_direct(
+            "OCR", JOCR(roi=_scale_roi(_XM_TITLE_ROI, frame)), frame)
+    except Exception as error:                        # noqa: BLE001
+        _log("须弥山判界面失败：%s" % error)
+        return False
+    for item in _boxes_of(detail):
+        text = (item[0] or "").strip()
+        if "守卫须弥山" in text or "须弥山" in text:
+            _log("须弥山：看到「%s」，确认已进入" % text)
+            return True
+    return False
+
+
+@AgentServer.custom_action("xumishan_run")
+class XuMiShanRun(CustomAction):
+    """扫荡须弥山：城南→城东→城北依次扫完，城西不做。
+
+    每个城的流程：点城名 → 点「速通」 → 看剩余次数 → >0 就点「开始速通」。
+    次数为 0 就关掉弹窗换下一个城。
+    """
+
+    def run(self, context, argv) -> bool:
+        try:
+            return self._run(context, argv)
+        except Exception as error:                    # noqa: BLE001
+            _log("须弥山：崩了 %s: %s" % (type(error).__name__, error))
+            _log(traceback.format_exc().replace("\n", " | "))
+            return True
+
+    def _run(self, context, argv) -> bool:
+        total = 0
+        frame = _grab_raw(context)
+        wait_ms = 0
+        for _ in range(10):
+            _log("须弥山：第 %d 次判界面" % (wait_ms // 500 + 1))
+            if _xm_ready(context, frame):
+                break
+            time.sleep(0.5)
+            wait_ms += 500
+            frame = _grab_raw(context)
+            if frame is None or getattr(frame, "shape", None) is None:
+                break
+        _log("须弥山：等界面加载 %dms 后开始判断" % wait_ms)
+        if wait_ms >= 5000:
+            _log("须弥山：5 秒内没看到「守卫须弥山」，没进入须弥山")
+            return True
+
+        for city, roi in _XM_CITY_ROI.items():
+            _log("须弥山：进 %s" % city)
+            frame = _grab_raw(context)
+            if not _xm_click_text(context, frame, roi, city):
+                _log("须弥山：%s 没找到城名" % city)
+                continue
+            # 等界面真切过去（能读到「今日可挑战次数」）再往下走
+            ch, frame = _xm_wait(
+                context, lambda f: _xm_challenge_times(context, f))
+            _log("须弥山：%s 今日可挑战次数 %s"
+                 % (city, "读不到" if ch is None else ch))
+            if ch is None:
+                _log("须弥山：%s 点完没切过去，跳过" % city)
+                continue
+            if ch <= 0:
+                _xm_focus("今日 %s 已完成" % city)
+                continue
+
+            # 点速通
+            if not _xm_click_template(context, frame, _XM_SUTONG_TPL, _XM_SUTONG_ROI):
+                _log("须弥山：%s 没找到速通" % city)
+                continue
+
+            # 等速通弹窗弹出来（能读到「今天剩余次数」）
+            left, frame = _xm_wait(
+                context, lambda f: _xm_st_times(context, f))
+            _log("须弥山：%s 速通剩余次数 %s"
+                 % (city, "读不到" if left is None else left))
+            if left is None or left <= 0:
+                _xm_focus("今日 %s 已完成" % city)
+                _xm_click_close(context, frame)
+                time.sleep(0.8)
+                continue
+
+            # 点「开始速通」或「再次速通」
+            if not _xm_click_template(context, frame, _XM_ST_AGAIN_TPL, _XM_ST_AGAIN_ROI):
+                if not _xm_click_text(context, frame, _XM_ST_START_ROI, "速通"):
+                    _log("须弥山：%s 没找到开始速通" % city)
+                    _xm_click_close(context, frame)
+                    continue
+            total += 1
+            _log("须弥山：%s 速通了第 %d 次" % (city, total))
+            time.sleep(2.5)
+            frame = _grab_raw(context)
+            _xm_click_close(context, frame)
+            time.sleep(1.0)
+            # 关掉弹窗后再读一次次数，用完就自己跳到下一个城
+            frame = _grab_raw(context)
+            ch2 = _xm_challenge_times(context, frame)
+            _log("须弥山：%s 速通后今日可挑战次数 %s"
+                 % (city, "读不到" if ch2 is None else ch2))
+            if ch2 is not None and ch2 <= 0:
+                _xm_focus("今日 %s 已完成" % city)
+        _log("须弥山：全部完成，共速通 %d 次" % total)
+        return True
+
+
+def _xm_wait(context, probe, tries=10, gap=0.4):
+    """等某个 OCR 条件成立，返回 (value, frame)。
+
+    点完一下去 sleep 几百毫秒再取帧是赔钱行为：界面没动就会读到上一层的东西。
+    这里反过来：一直取帧试，直到 probe 真的能读出东西才往下走。
+    """
+    frame = None
+    for _ in range(tries):
+        frame = _grab_raw(context)
+        try:
+            value = probe(frame)
+        except Exception as error:                    # noqa: BLE001
+            _log("须弥山：探测出错 %s" % error)
+            value = None
+        if value is not None:
+            return value, frame
+        time.sleep(gap)
+    return None, frame
+
+
+def _xm_focus(msg: str) -> None:
+    """推一行到 MFA 日志窗。
+
+    MFA 的 MaaProcessor.CheckShouldLog 只放行带级别前缀的行
+    （info: / warn: / err: …），不带前缀的 stderr 行不会进日志窗。
+    """
+    _log(msg)
+    try:
+        print("info: " + msg, file=sys.stderr, flush=True)
+    except Exception:                                 # noqa: BLE001
+        pass
+
+
+def _xm_challenge_times(context, frame) -> int | None:
+    """读城面板上的「今日可挑战次数：N」。"""
+    if frame is None or getattr(frame, "shape", None) is None:
+        return None
+    try:
+        detail = context.run_recognition_direct(
+            "OCR", JOCR(roi=_scale_roi(_XM_CHALLENGE_ROI, frame)), frame)
+    except Exception as error:                        # noqa: BLE001
+        _log("须弥山：读可挑战次数失败 %s" % error)
+        return None
+    texts = [(item[0] or "").strip() for item in _boxes_of(detail)]
+    for text in texts:
+        m = re.search(r"\u53ef\u6311\u6218\u6b21\u6570\s*[\uff1a:]?\s*(\d+)", text)
+        if m:
+            return int(m.group(1))
+    if any("挑战次数" in t for t in texts):
+        for t in texts:
+            if t.isdigit():
+                return int(t)
+    return None
+
+
+def _jingjichang_left(context, frame) -> int | None:
+    """读竞技场的「今日剩余挑战次数 N」。读不到返回 None。
+
+    宁可返回 None 也不要瞎猜：之前在菜单/大地图上跑，roi 落在右侧活动区，
+    里面随便一个 0 被当成次数，任务 1 秒就「次数用完」收工了。
+    所以纯数字兜底必须先真的读到「挑战次数」这行才认。
+    """
+    try:
+        detail = context.run_recognition_direct(
+            "OCR", JOCR(roi=_scale_roi(_JJ_TIMES_ROI, frame)), frame)
+    except Exception as error:                        # noqa: BLE001
+        _log("竞技场读次数失败：%s" % error)
+        return None
+    texts = [(item[0] or "").strip() for item in _boxes_of(detail)]
+    for text in texts:
+        m = re.search(r"挑战次数\s*[：:]?\s*(\d+)", text)
+        if m:
+            return int(m.group(1))
+    # 「今日剩余挑战次数」和数字被 OCR 拆成两段时，才允许取那个纯数字
+    if any("挑战次数" in text for text in texts):
+        for text in texts:
+            if text.isdigit():
+                return int(text)
+    return None
+
+
+def _jingjichang_tong(context, frame):
+    """找最右那组旁边那颗「通」圆章，返回点击点（1147 基准）或 None。
+
+    用模板匹配而不是固定 roi：那颗「通」的位置不固定，固定 roi 会打偏。
+    roi 开得比第 5 组图标大一圈，把位置漂移的空间留出来。
+    """
+    path = os.path.join(_SHOP_ROOT, "resource", "base", "image",
+                        "richanghuodong", "jingjichang_tong.png")
+    try:
+        tpl = cv2.imdecode(np.fromfile(path, dtype=np.uint8), cv2.IMREAD_COLOR)
+    except Exception as error:                        # noqa: BLE001
+        _log("竞技场读通模板失败：%s" % error)
+        return None
+    if tpl is None:
+        return None
+    kx = frame.shape[1] / 1147.0
+    ky = frame.shape[0] / 720.0
+    x, y, w, h = _JJ_TONG_ROI
+    x, y = int(round(x * kx)), int(round(y * ky))
+    w, h = int(round(w * kx)), int(round(h * ky))
+    sub = frame[y:y + h, x:x + w]
+    if sub.size == 0:
+        return None
+    tw = int(round(tpl.shape[1] * kx))
+    th = int(round(tpl.shape[0] * ky))
+    if tw > sub.shape[1] or th > sub.shape[0]:
+        _log("竞技场：模板比搜索区大 tpl=%dx%d sub=%dx%d" % (tw, th, sub.shape[1], sub.shape[0]))
+        return None
+    scaled = cv2.resize(tpl, (tw, th), interpolation=cv2.INTER_AREA)
+    _b, _g, _r = cv2.split(tpl.astype(np.int16))
+    matte = np.where((_g > 200) & (_r < 80) & (_b < 80), 0, 255).astype(np.uint8)
+    matte = cv2.resize(matte, (tw, th), interpolation=cv2.INTER_NEAREST)
+    res = cv2.matchTemplate(sub, scaled, cv2.TM_CCOEFF_NORMED, mask=matte)
+    _mn, mx, _mp, mp = cv2.minMaxLoc(res)
+    _log("竞技场找通：best=%.3f at=(%d,%d)" % (mx, x + mp[0], y + mp[1]))
+    if mx < 0.70:
+        _log("竞技场找通：分数不够（%.3f）" % mx)
+        return None
+    cx = (x + mp[0] + tw / 2.0) / kx
+    cy = (y + mp[1] + th / 2.0) / ky
+    _log("竞技场找通：点 (%.0f, %.0f)" % (cx, cy))
+    return (cx, cy)
+
+
+def _jingjichang_ready(context, frame) -> bool:
+    """判断是不是真在竞技场界面。
+
+    认「今日剩余挑战次数」这行字：只有竞技场主页有。
+    不能认「竞技场」三个字——大地图菜单里的图标文字就叫竞技场，
+    07:21 那次就是在菜单上把图标名当成了标题。
+    """
+    try:
+        detail = context.run_recognition_direct(
+            "OCR", JOCR(roi=_scale_roi(_JJ_READY_ROI, frame)), frame)
+    except Exception as error:                        # noqa: BLE001
+        _log("竞技场判界面失败：%s" % error)
+        return False
+    for item in _boxes_of(detail):
+        text = (item[0] or "").strip()
+        if "挑战次数" in text:
+            _log("竞技场：看到「%s」，确认已进入" % text)
+            return True
+    return False
+
+
+@AgentServer.custom_action("jingjichang_run")
+class JingJiChangRun(CustomAction):
+    """扫荡竞技场：一直点最右边那个通的圆圈，直到剩余挑战次数为 0。
+
+    竞技场不需要处理结算页：点完通之后直接回到同一个界面，
+    继续点下一个通就行。
+    """
+
+    def run(self, context, argv) -> bool:
+        try:
+            return self._run(context, argv)
+        except Exception as error:                    # noqa: BLE001
+            import traceback
+            _log("竞技场：崩了 %s: %s" % (type(error).__name__, error))
+            _log(traceback.format_exc().replace("\n", " | "))
+            return True
+
+    def _run(self, context, argv) -> bool:
+        _log("竞技场：进入 run（box=%s）" % (list(getattr(argv, "box", []) or []),))
+        rounds = 0
+        for round_no in range(1, 200):
+            _log("竞技场第%d轮：开始截屏" % round_no)
+            try:
+                frame = _grab_raw(context)
+            except Exception as error:                # noqa: BLE001
+                _log("竞技场：截屏异常 %s" % error)
+                return True
+            shape = getattr(frame, "shape", None)
+            _log("竞技场第%d轮：帧 %s" % (round_no, shape))
+            if frame is None or shape is None:
+                _log("竞技场第%d轮：没拿到画面" % round_no)
+                return True
+
+            # 刚点完图标那一帧可能还是菜单，先等竞技场界面出来再判。
+            # 认「今日剩余挑战次数」这行字——大地图菜单里没有它。
+            if round_no == 1:
+                wait_ms = 0
+                for _ in range(10):                       # 最多等 5 秒
+                    _log("竞技场：第 %d 次判界面" % (wait_ms // 500 + 1))
+                    if _jingjichang_ready(context, frame):
+                        break
+                    time.sleep(0.5)
+                    wait_ms += 500
+                    try:
+                        frame = _grab_raw(context)
+                    except Exception as error:            # noqa: BLE001
+                        _log("竞技场：等待中截屏异常 %s" % error)
+                        break
+                    if getattr(frame, "shape", None) is None:
+                        break
+                _log("竞技场：等界面加载 %dms 后开始判断" % wait_ms)
+                if wait_ms >= 5000:
+                    _log("竞技场：5 秒内没看到挑战次数，没进入竞技场")
+                    return True
+
+            left = _jingjichang_left(context, frame)
+            _log("竞技场第%d轮：剩余挑战次数 %s" % (round_no, "读不到" if left is None else left))
+            if left is not None and left <= 0:
+                _log("竞技场：次数用完，收工（打了 %d 次）" % rounds)
+                return True
+
+            pt = _jingjichang_tong(context, frame)
+            _log("竞技场第%d轮：通位置 %s" % (round_no, pt))
+            if pt is None:
+                _log("竞技场第%d轮：没找到通，收工" % round_no)
+                return True
+            wx, wy = int(round(pt[0])), int(round(pt[1]))
+            _log("竞技场第%d轮：点通 @ (%d, %d)" % (round_no, wx, wy))
+            try:
+                context.tasker.controller.post_swipe(wx, wy, wx, wy, 80).wait()
+            except Exception as error:                # noqa: BLE001
+                _log("竞技场：点击失败 %s" % error)
+                return True
+            rounds += 1
+            # 不再固定等 2 秒：一直取帧试，能重新认出「通」就往下走（最多等 2 秒）
+            waited = 0
+            while waited < 2000:
+                time.sleep(0.15)
+                waited += 150
+                probe = _grab_raw(context)
+                if probe is None or getattr(probe, "shape", None) is None:
+                    continue
+                if _jingjichang_tong(context, probe) is not None:
+                    break
+            _log("竞技场第%d轮：等了 %dms" % (round_no, waited))
+        _log("竞技场：达到 200 轮上限，收工")
+        return True
+
+
+@AgentServer.custom_action("shop_run")
+class ShopRun(CustomAction):
+    """神秘商店整个购买流程，一次做完。
+
+    为什么不用 pipeline 的 next/on_error 分支：MAA 在节点识别失败后会先逐个
+    试 next 里的候选，而「回去补第一档」那条分支上的节点永远能命中，结果
+    第二档永远轮不到——05:58 那次就是这么卡死在第一档的。
+
+    性能：`set_screenshot_use_raw_size(True)` 之后截图会从 FramePool 的
+    21ms 掉到 Win32 的 ~2 秒（06:15 那次每一步都是 2 秒），所以整个过程
+    只在开头取一次原始尺寸帧来算缩放比，之后循环全用 1147 的快速帧。
+    """
+
+    def run(self, context, argv) -> bool:
+        records: list[str] = []
+        for round_no in range(1, 40):
+            try:
+                from script_task import capture
+                frame = capture(context)
+            except Exception as error:                    # noqa: BLE001
+                _log("商店第%d轮：截图失败 %s" % (round_no, error))
+                return self._finish(records)
+            if frame is None or getattr(frame, "shape", None) is None:
+                _log("商店第%d轮：没拿到画面" % round_no)
+                return self._finish(records)
+            left = _shop_left(context, frame)
+            _log("商店第%d轮：剩余次数 %s" % (round_no, "读不到" if left is None else left))
+            if left is not None and left <= 0:
+                _log("商店：次数用完，收工")
+                return self._finish(records)
+            bought = False
+            # 从第 5 档往回找：第 1 档买完会立刻补货，
+            # 从前往后找的话它永远抢先，后面四档一次都轮不到。
+            for tier in range(5, 0, -1):
+                score, pt = _match_in(frame, _SHOP_BUY_ROI[tier], _SHOP_BUY_TPL)
+                if pt is None:
+                    continue
+                # pt 是 1147 基准，post_swipe 也是 1147 基准（MAA 自己换算）
+                cx, cy = int(round(pt[0])), int(round(pt[1]))
+                name = ""
+                try:
+                    name = _shop_item_name(context, [cx - 30, cy + 20, 60, 20], frame)
+                except Exception:                         # noqa: BLE001
+                    pass
+                label = "购买第%d档 %s" % (tier, name) if name else "购买第%d档" % tier
+                if tier >= 4:
+                    label = "**%s**" % label
+                records.append(label)
+                _gui(label)
+                _log("商店：%s（%.3f）点击 (%d, %d)" % (label, score, cx, cy))
+                try:
+                    context.tasker.controller.post_swipe(cx, cy, cx, cy, 80).wait()
+                except Exception as error:                # noqa: BLE001
+                    _log("商店：点击失败 %s" % error)
+                    return self._finish(records)
+                time.sleep(0.55)
+                bought = True
+                break
+            if not bought:
+                _log("商店：五档都没有可买的了，收工")
+                return self._finish(records)
+        _log("商店：达到 40 轮上限，收工")
+        return self._finish(records)
+
+    @staticmethod
+    def _finish(records: list[str]) -> bool:
+        _write_shop_gui("\n".join(records) or "商店：没买到东西")
+        return True
+
+
+@AgentServer.custom_action("shop_buy")
+class ShopBuy(CustomAction):
+    """买一档：先看今日剩余购买次数，>0 才点识别框。
+
+    每一档购买前都要重新读次数——次数可能在前面几档买完就到 0 了，
+    再点下去只会白点。返回 False 让 pipeline 走 on_error 收工。
+    """
+
+    def run(self, context, argv) -> bool:
+        left = _shop_left(context)
+        _log("购买前次数检查：%s" % ("读不到" if left is None else left))
+        if left is not None and left <= 0:
+            _log("购买次数已用完，不买了")
+            return False
+        box = list(getattr(argv, "box", []) or [])
+        if len(box) < 4:
+            _log("购买：没拿到识别框")
+            return False
+        cx = int(box[0]) + int(box[2]) // 2
+        cy = int(box[1]) + int(box[3]) // 2
+        context.tasker.controller.post_click(cx, cy).wait()
+        _log("购买：点击 (%d, %d)" % (cx, cy))
+        params = _as_dict(getattr(argv, "custom_action_param", None))
+        tier = int(params.get("tier") or 0)
+        name = _shop_item_name(context, box)
+        label = ("购买第%d档 %s" % (tier, name)) if name else ("购买第%d档" % tier)
+        if tier >= 4:
+            label = "**%s**" % label
+        _write_shop_gui(label)
+        _log("商品名：%s" % (name or "读不到"))
+        time.sleep(0.4)
+        return True
+
+
+def _fg_left(context, frame) -> int | None:
+    """读福果来面板上的「今日剩余奖励次数：N次」，读不到返回 None。"""
+    if frame is None or getattr(frame, "shape", None) is None:
+        return None
+    try:
+        detail = context.run_recognition_direct(
+            "OCR", JOCR(roi=_scale_roi(_FG_TIMES_ROI, frame)), frame)
+    except Exception as error:                        # noqa: BLE001
+        _log("福果来读次数失败：%s" % error)
+        return None
+    texts = [(item[0] or "").strip() for item in _boxes_of(detail)]
+    for text in texts:
+        m = re.search(r"\u5956\u52b1\u6b21\u6570\s*[\uff1a:]?\s*(\d+)", text)
+        if m:
+            return int(m.group(1))
+    # 文字和数字被 OCR 拆成两段时，才允许取那个纯数字
+    if any("\u6b21\u6570" in text for text in texts):
+        for text in texts:
+            m = re.search(r"^(\d+)$", text)
+            if m:
+                return int(m.group(1))
+    return None
+
+
+@AgentServer.custom_action("fuguo_enter_check")
+class FuguoEnterCheck(CustomAction):
+    """点「进入副本」前先看剩余奖励次数。
+
+    次数为 0 返回 False：pipeline 走 on_error 到结束节点，
+    同时把「本日福果来已完成」推到 MFA 日志窗。
+    读不到次数时按还有次数处理，宁可多跑一轮也不要漏跑。
+    """
+
+    def run(self, context, argv) -> bool:
+        from script_task import capture
+
+        meta = sys.argv[-1] if len(sys.argv) > 0 else ""
+        del meta
+
+        frame = capture(context)
+        left = _fg_left(context, frame)
+        _log("福果来次数：%s" % ("读不到" if left is None else left))
+        if left is not None and left <= 0:
+            print("info: [福果来] 本日福果来已完成", file=sys.stderr, flush=True)
+            return False
+        return True
+
+
+@AgentServer.custom_action("shop_remaining")
+class ShopRemaining(CustomAction):
+    """读神秘商店「今日剩余购买次数 N」，返回 False 表示次数用完该收工。
+
+    为什么不用 OCR 的 expected 直接匹配「0」：剩余次数是变量，写死一个值
+    只能对上那一次。这里拿整行文字再正则抠数字，读不到时按「还有次数」处理
+    （宁可多买一轮，也不要漏买）。
+    """
+
+    def run(self, context, argv) -> bool:
+        try:
+            from script_task import capture
+            import re as _re
+
+            frame = capture(context)
+            detail = context.run_recognition("神秘商店_读次数", frame)
+            text = ""
+            for t, _b in _boxes_of(detail):
+                if "购买次数" in t:
+                    text = t
+                    break
+            if not text:
+                for t, _b in _boxes_of(detail):
+                    text = t
+                    break
+            m = _re.search(r"购买次数\s*[：:]?\s*(\d+)", text)
+            if not m:
+                m = _re.search(r"(\d+)", text)
+            if not m:
+                _log("购买次数：没读到数字（OCR=%r），按还有次数处理" % text)
+                return True
+            left = int(m.group(1))
+            _log("购买次数：剩余 %d" % left)
+            if left <= 0:
+                _log("购买次数已用完，收工")
+                return False
+            return True
+        except Exception as error:  # noqa: BLE001
+            _log("购买次数：识别异常 %s，按还有次数处理" % error)
+            return True
 
 
 @AgentServer.custom_action("fuguo_check_score")
@@ -1038,6 +2292,21 @@ class FuguoRun(CustomAction):
             _log("找不到游戏窗口")
             return False
         _log("窗口句柄 0x%X，开始接果子" % hwnd)
+
+        # 切场景那一两秒画面是黑的，直接跑会在一张没有八戒的图上空转，
+        # 表现就是「进去了但不动」。先等认出八戒（头巾）再正式开循环。
+        wait_until = time.time() + 10.0
+        while time.time() < wait_until:
+            if context.tasker.stopping:
+                _log("等待进场时被停止")
+                return True
+            probe = _grab(context)
+            if probe is not None and _player_x(probe) is not None:
+                _log("进场就绪，开始接果子")
+                break
+            time.sleep(0.2)
+        else:
+            _log("等了 10 秒仍没认出八戒，照常开始（可能这一局画面异常）")
 
         holding = {"A": False, "D": False}
         prev_fruits = None

@@ -1,0 +1,184 @@
+{
+  "伽岚（万世冥阁）-点击万世冥阁": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "begin",
+          "file": "@task:task-cec278429a196341000ce6276792c544",
+          "task_binding_id": "task-cec278429a196341000ce6276792c544",
+          "playback_node": "伽岚（万世冥阁）-回放战斗",
+          "navigation": {
+            "kind": "stage",
+            "target_node": "伽岚（万世冥阁）-关卡入口",
+            "label": "伽岚（万世冥阁）"
+          },
+          "settings_node": "脚本任务设置",
+          "exit_mode": "battle_only",
+          "failure_retry": {
+            "enabled": false,
+            "max_retries": 3
+          },
+          "round_flow": {
+            "scene_node": "Nav_InStage",
+            "load_timeout_ms": 15000,
+            "repeat_node": "伽岚（万世冥阁）-刷取次数"
+          },
+          "result_guard": {
+            "failed_next": [
+              "Result_Failed"
+            ],
+            "succeeded_next": [
+              "Result_Succeeded"
+            ],
+            "revive_next": [
+              "Result_RevivePrompt"
+            ],
+            "error_next": [
+              "Result_MonitorStopped"
+            ]
+          }
+        }
+      }
+    },
+    "next": [
+      "伽岚（万世冥阁）-点击万世冥阁",
+      "停止运行"
+    ],
+    "post_delay": 0,
+    "max_hit": 1,
+    "pre_delay": 0
+  },
+  "伽岚（万世冥阁）-刷取次数": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "loop_count",
+        "custom_action_param": {
+          "label": "伽岚（万世冥阁）"
+        }
+      }
+    },
+    "next": [],
+    "post_delay": 0,
+    "max_hit": 1,
+    "pre_delay": 0
+  },
+  "伽岚（万世冥阁）-关卡入口": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          "Nav_ClearMap",
+          {
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": [
+                          "万世冥阁.png",
+                          "万世冥阁（高亮）.png"
+                        ],
+                        "roi": [
+                          "54.5%",
+                          "54.2%",
+                          "18.3%",
+                          "24.3%"
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": [
+                          "navigation/stages/s61-frame1.png",
+                          "navigation/stages/s61-frame3.png"
+                        ],
+                        "method": 5,
+                        "roi": [
+                          "54.5%",
+                          "54.2%",
+                          "18.3%",
+                          "24.3%"
+                        ]
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "box_index": 1
+      }
+    },
+    "pre_delay": 0,
+    "post_delay": 1000,
+    "timeout": 10000,
+    "action": {
+      "type": "LongPress",
+      "param": {
+        "duration": 100
+      }
+    },
+    "next": []
+  },
+  "伽岚（万世冥阁）-识别场景1": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          "Nav_InStage"
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0,
+    "pre_delay": 0
+  },
+  "伽岚（万世冥阁）-回放战斗": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          "Nav_InStage"
+        ]
+      }
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "battle_play",
+        "custom_action_param": {
+          "script_binding": {
+            "recorded_return_next": [
+              "Round_PlayDone"
+            ]
+          },
+          "file": "@task:task-cec278429a196341000ce6276792c544"
+        }
+      }
+    },
+    "next": [
+      "Round_PlayDone"
+    ],
+    "post_delay": 0,
+    "pre_delay": 0
+  }
+}

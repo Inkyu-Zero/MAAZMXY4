@@ -235,6 +235,13 @@ class BattlePlay(CustomAction):
             return False
 
     def run_managed(self, context, argv) -> bool:
+        # 战斗回放同样按 1147x720 的 roi 工作，先把截图缩放定死。
+        try:
+            from view_scale import ensure_view_scale
+
+            ensure_view_scale(context.tasker.controller)
+        except Exception:  # noqa: BLE001
+            pass
         # The compact round runs in this Agent process and needs the typed
         # cleanup error in order to forbid an automatic recovery restart.
         raw = getattr(argv, "custom_action_param", None)

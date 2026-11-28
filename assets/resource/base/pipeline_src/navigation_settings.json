@@ -1,0 +1,368 @@
+{
+  "Nav_SettingsMenu": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "sub_name": "continue",
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/settings/continue.png",
+                "threshold": 0.8,
+                "green_mask": true,
+                "roi": [
+                  "34.9%",
+                  "18.1%",
+                  "32.3%",
+                  "30.6%"
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/settings/return.png",
+                "green_mask": true,
+                "roi": "continue",
+                "roi_offset": [
+                  -15,
+                  35,
+                  30,
+                  95
+                ]
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0
+  },
+  "Nav_SettingsReturn": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "sub_name": "continue",
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/settings/continue.png",
+                "threshold": 0.8,
+                "green_mask": true,
+                "roi": [
+                  "34.9%",
+                  "18.1%",
+                  "32.3%",
+                  "30.6%"
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/settings/return.png",
+                "green_mask": true,
+                "roi": "continue",
+                "roi_offset": [
+                  -15,
+                  35,
+                  30,
+                  95
+                ]
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
+        ],
+        "box_index": 1
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "next": [],
+    "timeout": 5000,
+    "post_delay": 350
+  },
+  "Nav_SettingsContinue": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "sub_name": "continue",
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/settings/continue.png",
+                "threshold": 0.8,
+                "green_mask": true,
+                "roi": [
+                  "34.9%",
+                  "18.1%",
+                  "32.3%",
+                  "30.6%"
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/settings/return.png",
+                "green_mask": true,
+                "roi": "continue",
+                "roi_offset": [
+                  -15,
+                  35,
+                  30,
+                  95
+                ]
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "next": [],
+    "timeout": 5000,
+    "post_delay": 350
+  },
+  "Nav_SettingsSubpanel": {
+    "recognition": {
+      "type": "Or",
+      "param": {
+        "any_of": [
+          {
+            "recognition": {
+              "type": "And",
+              "param": {
+                "all_of": [
+                  {
+                    "sub_name": "sound_title",
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "navigation/settings/sound-title.png",
+                        "roi": [
+                          "24.4%",
+                          "2.1%",
+                          "49.7%",
+                          "34.7%"
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "navigation/settings/sound-label.png",
+                        "roi": "sound_title",
+                        "roi_offset": [
+                          -117,
+                          96,
+                          100,
+                          25
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": [
+                          "navigation/settings/close-1_up.png",
+                          "navigation/settings/close-2_over.png",
+                          "navigation/settings/close-3_down.png"
+                        ],
+                        "green_mask": true,
+                        "roi": [
+                          "65.4%",
+                          "0.0%",
+                          "10.5%",
+                          "32.6%"
+                        ]
+                      }
+                    }
+                  }
+                ],
+                "box_index": 2
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "And",
+              "param": {
+                "all_of": [
+                  {
+                    "sub_name": "detail_title",
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "navigation/settings/detail-title.png",
+                        "roi": [
+                          "24.4%",
+                          "2.1%",
+                          "49.7%",
+                          "34.7%"
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "navigation/settings/detail-label.png",
+                        "roi": "detail_title",
+                        "roi_offset": [
+                          -29,
+                          77,
+                          100,
+                          25
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": [
+                          "navigation/settings/close-1_up.png",
+                          "navigation/settings/close-2_over.png",
+                          "navigation/settings/close-3_down.png"
+                        ],
+                        "green_mask": true,
+                        "roi": [
+                          "65.4%",
+                          "0.0%",
+                          "10.5%",
+                          "32.6%"
+                        ]
+                      }
+                    }
+                  }
+                ],
+                "box_index": 2
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "And",
+              "param": {
+                "all_of": [
+                  {
+                    "sub_name": "damage_title",
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "navigation/settings/damage-title.png",
+                        "roi": [
+                          "24.4%",
+                          "2.1%",
+                          "49.7%",
+                          "34.7%"
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "navigation/settings/damage-label.png",
+                        "roi": "damage_title",
+                        "roi_offset": [
+                          21,
+                          80,
+                          100,
+                          25
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": [
+                          "navigation/settings/close-1_up.png",
+                          "navigation/settings/close-2_over.png",
+                          "navigation/settings/close-3_down.png"
+                        ],
+                        "green_mask": true,
+                        "roi": [
+                          "65.4%",
+                          "0.0%",
+                          "10.5%",
+                          "32.6%"
+                        ]
+                      }
+                    }
+                  }
+                ],
+                "box_index": 2
+              }
+            }
+          }
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0
+  },
+  "Nav_CloseSettingsSubpanel": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          "Nav_SettingsSubpanel",
+          "Result_NoRevivePrompt"
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "next": [],
+    "timeout": 5000,
+    "post_delay": 350
+  }
+}

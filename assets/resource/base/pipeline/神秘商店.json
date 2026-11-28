@@ -1,0 +1,468 @@
+{
+    "神秘商店_入口": {
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "adventure_entry_route",
+                "custom_action_param": {
+                    "back_node": "Adventure_返回地图",
+                    "close_click_node": "Adventure_点红叉",
+                    "close_node": "Adventure_识别红叉",
+                    "entry_node": "神秘商店_入口",
+                    "icon_node": "神秘商店_点图标",
+                    "menu_hsv": [
+                        55,
+                        150,
+                        50,
+                        80,
+                        255,
+                        190
+                    ],
+                    "menu_node": "神秘商店_识别菜单",
+                    "panels": [],
+                    "pipeline": "神秘商店.json",
+                    "settings_node": "Adventure_点设置",
+                    "wu_node": "Adventure_识别无双",
+                    "map_node": "Adventure_识别世界",
+                    "world_node": "Adventure_识别南瞻部洲"
+                }
+            }
+        },
+        "timeout": 20000,
+        "next": [
+            "神秘商店_识别菜单"
+        ],
+        "on_error": [
+            "神秘商店_识别菜单"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 0,
+                "y": 199
+            }
+        }
+    },
+    "神秘商店_点图标": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    290,
+                    90,
+                    660,
+                    500
+                ],
+                "template": [
+                    "richanghuodong/shenmishangdian.png"
+                ],
+                "green_mask": true,
+                "threshold": 0.7
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 1500,
+        "next": [
+            "神秘商店_购买流程"
+        ],
+        "on_error": [
+            "神秘商店_入口"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 640,
+                "y": 122
+            }
+        }
+    },
+    "神秘商店_识别菜单": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    290,
+                    90,
+                    660,
+                    500
+                ],
+                "template": [
+                    "richanghuodong/shenmishangdian.png"
+                ],
+                "green_mask": true,
+                "threshold": 0.7
+            }
+        },
+        "timeout": 800,
+        "next": [
+            "神秘商店_点图标"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 320,
+                "y": 0
+            }
+        },
+        "on_error": [
+            "神秘商店_入口"
+        ]
+    },
+    "神秘商店_购买第一档": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    163,
+                    485,
+                    92,
+                    54
+                ],
+                "template": [
+                    "richanghuodong/goumai.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "shop_buy",
+                "custom_action_param": {
+                    "tier": 1
+                }
+            }
+        },
+        "next": [
+            "神秘商店_检查第二档开放"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 949,
+                "y": 188
+            }
+        },
+        "on_error": [
+            "神秘商店_结束"
+        ]
+    },
+    "神秘商店_检查第二档开放": {
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "shop_check_tier",
+                "custom_action_param": {
+                    "tier": 2,
+                    "roi": [
+                        290,
+                        248,
+                        145,
+                        311
+                    ]
+                }
+            }
+        },
+        "next": [
+            "神秘商店_读购买次数"
+        ],
+        "on_error": [
+            "神秘商店_购买第二档"
+        ],
+        "timeout": 3000
+    },
+    "神秘商店_购买第二档": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    324,
+                    492,
+                    76,
+                    43
+                ],
+                "template": [
+                    "richanghuodong/goumai.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "shop_buy",
+                "custom_action_param": {
+                    "tier": 2
+                }
+            }
+        },
+        "on_error": [
+            "神秘商店_结束"
+        ],
+        "next": [
+            "神秘商店_检查第三档开放"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 1564,
+                "y": 226
+            }
+        }
+    },
+    "神秘商店_检查第三档开放": {
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "shop_check_tier",
+                "custom_action_param": {
+                    "tier": 3,
+                    "roi": [
+                        451,
+                        254,
+                        135,
+                        303
+                    ]
+                }
+            }
+        },
+        "next": [
+            "神秘商店_读购买次数"
+        ],
+        "on_error": [
+            "神秘商店_购买第三档"
+        ],
+        "timeout": 3000
+    },
+    "神秘商店_购买第三档": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    473,
+                    482,
+                    91,
+                    57
+                ],
+                "template": [
+                    "richanghuodong/goumai.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "shop_buy",
+                "custom_action_param": {
+                    "tier": 3
+                }
+            }
+        },
+        "next": [
+            "神秘商店_检查第四档开放"
+        ],
+        "on_error": [
+            "神秘商店_结束"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 2161,
+                "y": 270
+            }
+        }
+    },
+    "神秘商店_检查第四档开放": {
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "shop_check_tier",
+                "custom_action_param": {
+                    "tier": 4,
+                    "roi": [
+                        607,
+                        254,
+                        135,
+                        300
+                    ]
+                }
+            }
+        },
+        "next": [
+            "神秘商店_读购买次数"
+        ],
+        "on_error": [
+            "神秘商店_购买第四档"
+        ],
+        "timeout": 3000
+    },
+    "神秘商店_购买第四档": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    630,
+                    487,
+                    95,
+                    49
+                ],
+                "template": [
+                    "richanghuodong/goumai.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "shop_buy",
+                "custom_action_param": {
+                    "tier": 4
+                }
+            }
+        },
+        "on_error": [
+            "神秘商店_结束"
+        ],
+        "next": [
+            "神秘商店_检查第五档开放"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 2796,
+                "y": 324
+            }
+        }
+    },
+    "神秘商店_检查第五档开放": {
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "shop_check_tier",
+                "custom_action_param": {
+                    "tier": 5,
+                    "roi": [
+                        756,
+                        249,
+                        144,
+                        306
+                    ]
+                }
+            }
+        },
+        "next": [
+            "神秘商店_读购买次数"
+        ],
+        "on_error": [
+            "神秘商店_购买第五档"
+        ],
+        "timeout": 3000
+    },
+    "神秘商店_购买第五档": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    779,
+                    485,
+                    95,
+                    52
+                ],
+                "template": [
+                    "richanghuodong/goumai.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "shop_buy",
+                "custom_action_param": {
+                    "tier": 5
+                }
+            }
+        },
+        "next": [
+            "神秘商店_购买第一档"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 3418,
+                "y": 379
+            }
+        },
+        "on_error": [
+            "神秘商店_结束"
+        ]
+    },
+    "神秘商店_读次数": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": [
+                    "今日剩余购买次数"
+                ],
+                "roi": [
+                    150,
+                    205,
+                    300,
+                    32
+                ]
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "timeout": 1500
+    },
+    "神秘商店_读购买次数": {
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "shop_remaining"
+            }
+        },
+        "next": [
+            "神秘商店_购买第一档"
+        ],
+        "on_error": [
+            "神秘商店_结束"
+        ],
+        "timeout": 5000
+    },
+    "神秘商店_结束": {
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "next": []
+    },
+    "神秘商店_购买流程": {
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "shop_run"
+            }
+        },
+        "next": [
+            "神秘商店_结束"
+        ],
+        "on_error": [
+            "神秘商店_结束"
+        ],
+        "timeout": 120000
+    }
+}

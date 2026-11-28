@@ -1,0 +1,539 @@
+{
+  "航海寻宝_入口": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "voyage_run"
+      }
+    },
+    "next": [
+      "航海寻宝_收尾"
+    ],
+    "on_error": [
+      "航海寻宝_收尾"
+    ]
+  },
+  "航海寻宝_结束": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "StopTask"
+    },
+    "next": []
+  },
+  "航海寻宝_导航入口": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "adventure_entry_route",
+        "custom_action_param": {
+          "entry_node": "航海寻宝_导航入口",
+          "icon_node": "航海寻宝_点图标",
+          "close_node": "航海寻宝_识别红叉",
+          "close_click_node": "航海寻宝_点红叉",
+          "back_node": "航海寻宝_返回地图",
+          "settings_node": "航海寻宝_点设置",
+          "menu_node": "航海寻宝_识别菜单",
+          "panels": [
+            {
+              "node": "航海寻宝_面板",
+              "target": "航海寻宝_面板"
+            }
+          ],
+          "pipeline": "航海寻宝.json",
+          "wu_node": "航海寻宝_识别无双",
+          "world_node": "航海寻宝_识别世界",
+          "world_click_node": "航海寻宝_点南瞻部洲",
+          "map_node": "航海寻宝_识别世界图标"
+        }
+      }
+    },
+    "next": [
+      "航海寻宝_点图标"
+    ],
+    "timeout": 20000
+  },
+  "航海寻宝_点图标": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "voyage_click_icon"
+      }
+    },
+    "next": [
+      "航海寻宝_次数为零",
+      "航海寻宝_次数有剩"
+    ],
+    "timeout": 8000,
+    "post_delay": 250,
+    "post_wait_freezes": {
+      "time": 250,
+      "timeout": 2500,
+      "rate_limit": 200
+    }
+  },
+  "航海寻宝_起航": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "expected": [
+          "起航"
+        ]
+      }
+    },
+    "action": {
+      "type": "Click"
+    },
+    "next": [
+      "航海寻宝_入口"
+    ],
+    "timeout": 2500,
+    "post_delay": 300,
+    "post_wait_freezes": {
+      "time": 200,
+      "timeout": 3000,
+      "rate_limit": 200
+    }
+  },
+  "航海寻宝_再起航": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "expected": [
+          "起航"
+        ]
+      }
+    },
+    "action": {
+      "type": "Click"
+    },
+    "next": [
+      "航海寻宝_入口"
+    ],
+    "on_error": [
+      "航海寻宝_收尾"
+    ],
+    "timeout": 3000,
+    "post_delay": 600,
+    "post_wait_freezes": {
+      "time": 300,
+      "timeout": 4000,
+      "rate_limit": 200
+    }
+  },
+  "航海寻宝_执行日": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "adventure_weekday_gate",
+        "custom_action_param": {
+          "weekday": 0
+        }
+      }
+    },
+    "next": [
+      "航海寻宝_导航入口"
+    ],
+    "on_error": [
+      "航海寻宝_结束"
+    ],
+    "timeout": 3000
+  },
+  "航海寻宝_返回地图": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "expected": [
+          "返回地图"
+        ]
+      }
+    },
+    "action": {
+      "type": "Click"
+    },
+    "next": [
+      "航海寻宝_导航入口"
+    ],
+    "on_error": [
+      "航海寻宝_导航入口"
+    ],
+    "timeout": 800,
+    "post_delay": 200,
+    "post_wait_freezes": {
+      "time": 200,
+      "timeout": 3000,
+      "rate_limit": 200
+    }
+  },
+  "航海寻宝_识别红叉": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "ui/close_x.png"
+        ],
+        "roi": [
+          "61.0%",
+          "0.0%",
+          "39.0%",
+          "36.1%"
+        ],
+        "threshold": 0.7,
+        "green_mask": true
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "航海寻宝_点红叉"
+    ],
+    "timeout": 500
+  },
+  "航海寻宝_点红叉": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "ui/close_x.png"
+        ],
+        "roi": [
+          "61.0%",
+          "0.0%",
+          "39.0%",
+          "36.1%"
+        ],
+        "threshold": 0.7,
+        "green_mask": true
+      }
+    },
+    "action": {
+      "type": "Click"
+    },
+    "next": [
+      "航海寻宝_导航入口"
+    ],
+    "on_error": [
+      "航海寻宝_导航入口"
+    ],
+    "post_delay": 400,
+    "timeout": 1200
+  },
+  "航海寻宝_点设置": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "ui/settings_05.png"
+        ],
+        "green_mask": true,
+        "threshold": 0.7
+      }
+    },
+    "action": {
+      "type": "Click"
+    },
+    "next": [
+      "航海寻宝_返回地图"
+    ],
+    "on_error": [
+      "航海寻宝_返回地图"
+    ],
+    "timeout": 800,
+    "post_delay": 800
+  },
+  "航海寻宝_领取奖励": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "expected": [
+          "^领取奖励$"
+        ]
+      }
+    },
+    "action": {
+      "type": "Click"
+    },
+    "next": [
+      "航海寻宝_次数为零",
+      "航海寻宝_领取后起航"
+    ],
+    "timeout": 2500,
+    "post_delay": 600,
+    "post_wait_freezes": {
+      "time": 300,
+      "timeout": 4000,
+      "rate_limit": 200
+    }
+  },
+  "航海寻宝_领取后起航": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "expected": [
+          "起航"
+        ]
+      }
+    },
+    "action": {
+      "type": "Click"
+    },
+    "next": [
+      "航海寻宝_入口"
+    ],
+    "on_error": [
+      "航海寻宝_次数为零"
+    ],
+    "timeout": 2500,
+    "post_delay": 300,
+    "post_wait_freezes": {
+      "time": 200,
+      "timeout": 3000,
+      "rate_limit": 200
+    }
+  },
+  "航海寻宝_收尾": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "expected": [
+          "返回地图"
+        ]
+      }
+    },
+    "action": {
+      "type": "Click"
+    },
+    "next": [
+      "航海寻宝_导航入口"
+    ],
+    "on_error": [
+      "航海寻宝_结束"
+    ],
+    "timeout": 2500
+  },
+  "航海寻宝_次数为零": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "expected": [
+          "剩余可领取次数\\s*[：:]\\s*[0O〇○]"
+        ],
+        "roi": [
+          "19.2%",
+          "59.0%",
+          "38.4%",
+          "6.9%"
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "航海寻宝_结束_领完"
+    ],
+    "timeout": 1500,
+    "on_error": [
+      "航海寻宝_次数有剩"
+    ]
+  },
+  "航海寻宝_次数有剩": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "expected": [
+          "剩余可领取次数\\s*[：:]\\s*[1-9]"
+        ],
+        "roi": [
+          "19.2%",
+          "59.0%",
+          "38.4%",
+          "6.9%"
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "航海寻宝_起航",
+      "航海寻宝_领取奖励"
+    ],
+    "timeout": 1500
+  },
+  "航海寻宝_结束_单次": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "adventure_voyage_done",
+        "custom_action_param": {
+          "mode": "once"
+        }
+      }
+    },
+    "focus": {
+      "Node.Action.Succeeded": {
+        "content": "./debug/adventure/voyage_done.md",
+        "display": "log"
+      }
+    },
+    "next": [
+      "航海寻宝_结束"
+    ]
+  },
+  "航海寻宝_结束_领完": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "adventure_voyage_done",
+        "custom_action_param": {
+          "mode": "cleared"
+        }
+      }
+    },
+    "focus": {
+      "Node.Action.Succeeded": {
+        "content": "./debug/adventure/voyage_done.md",
+        "display": "log"
+      }
+    },
+    "next": [
+      "航海寻宝_结束"
+    ]
+  },
+  "航海寻宝_面板": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "expected": [
+          "剩余可领取次数"
+        ],
+        "roi": [
+          "19.2%",
+          "59.0%",
+          "38.4%",
+          "6.9%"
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "航海寻宝_面板"
+    ],
+    "timeout": 1200
+  },
+  "航海寻宝_识别菜单": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "expected": [
+          "航海寻宝"
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "航海寻宝_点图标"
+    ],
+    "timeout": 800
+  },
+  "航海寻宝_识别返回地图": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "expected": [
+          "返回地图"
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "航海寻宝_返回地图"
+    ],
+    "timeout": 800
+  },
+  "航海寻宝_识别无双": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "ui/wushuang.png"
+        ],
+        "roi": [
+          "0.0%",
+          "77.8%",
+          "19.2%",
+          "22.2%"
+        ],
+        "threshold": 0.7
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "timeout": 500
+  },
+  "航海寻宝_点南瞻部洲": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "expected": [
+          "南瞻部洲"
+        ]
+      }
+    },
+    "action": {
+      "type": "Click"
+    },
+    "next": [
+      "航海寻宝_导航入口"
+    ],
+    "on_error": [
+      "航海寻宝_导航入口"
+    ],
+    "post_delay": 400,
+    "timeout": 2000
+  },
+  "航海寻宝_识别世界图标": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "ui/world_03.png"
+        ],
+        "green_mask": true,
+        "threshold": 0.8
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "timeout": 500
+  }
+}

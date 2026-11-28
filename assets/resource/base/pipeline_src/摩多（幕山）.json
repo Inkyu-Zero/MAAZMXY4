@@ -1,0 +1,162 @@
+{
+  "摩多（幕山）-点击幕山": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "begin",
+          "file": "@task:task-a6d033b0de18710531a9524e34afbdde",
+          "task_binding_id": "task-a6d033b0de18710531a9524e34afbdde",
+          "playback_node": "摩多（幕山）-回放战斗",
+          "navigation": {
+            "kind": "stage",
+            "target_node": "摩多（幕山）-关卡入口",
+            "label": "摩多（幕山）"
+          },
+          "settings_node": "脚本任务设置",
+          "exit_mode": "battle_only",
+          "failure_retry": {
+            "enabled": false,
+            "max_retries": 3
+          },
+          "round_flow": {
+            "scene_node": "Nav_InStage",
+            "load_timeout_ms": 15000,
+            "repeat_node": "摩多（幕山）-刷取次数"
+          },
+          "result_guard": {
+            "failed_next": [
+              "Result_Failed"
+            ],
+            "succeeded_next": [
+              "Result_Succeeded"
+            ],
+            "revive_next": [
+              "Result_RevivePrompt"
+            ],
+            "error_next": [
+              "Result_MonitorStopped"
+            ]
+          }
+        }
+      }
+    },
+    "next": [
+      "摩多（幕山）-点击幕山",
+      "停止运行"
+    ],
+    "post_delay": 0,
+    "max_hit": 1,
+    "pre_delay": 0
+  },
+  "摩多（幕山）-刷取次数": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "loop_count",
+        "custom_action_param": {
+          "label": "摩多（幕山）"
+        }
+      }
+    },
+    "next": [],
+    "post_delay": 0,
+    "max_hit": 1,
+    "pre_delay": 0
+  },
+  "摩多（幕山）-关卡入口": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": [
+                  "navigation/mainline/s045-f1.png",
+                  "navigation/mainline/s045-f2.png",
+                  "navigation/mainline/s045-f3.png"
+                ],
+                "roi": [
+                  "49.3%",
+                  "30.4%",
+                  "10.1%",
+                  "17.5%"
+                ],
+                "method": 5,
+                "green_mask": false
+              }
+            }
+          },
+          "Nav_Province_town4",
+          "GameManagement_NormalMap",
+          "Nav_ClearMap"
+        ],
+        "box_index": 0
+      }
+    },
+    "pre_delay": 0,
+    "action": {
+      "type": "LongPress",
+      "param": {
+        "duration": 100
+      }
+    },
+    "post_delay": 1000,
+    "timeout": 10000,
+    "next": []
+  },
+  "摩多（幕山）-识别场景1": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          "Nav_InStage"
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0,
+    "pre_delay": 0
+  },
+  "摩多（幕山）-回放战斗": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          "Nav_InStage"
+        ]
+      }
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "battle_play",
+        "custom_action_param": {
+          "script_binding": {
+            "recorded_return_next": [
+              "Round_PlayDone"
+            ]
+          },
+          "file": "@task:task-a6d033b0de18710531a9524e34afbdde"
+        }
+      }
+    },
+    "next": [
+      "Round_PlayDone"
+    ],
+    "post_delay": 0,
+    "pre_delay": 0
+  }
+}

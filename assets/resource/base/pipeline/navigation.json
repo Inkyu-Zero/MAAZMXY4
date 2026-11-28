@@ -14,9 +14,9 @@
           "navigation/panels/daily-pause-caption.png"
         ],
         "roi": [
+          301,
           300,
-          300,
-          550,
+          551,
           120
         ]
       }
@@ -242,7 +242,7 @@
       "type": "ColorMatch",
       "param": {
         "roi": [
-          456,
+          457,
           233,
           2,
           2
@@ -480,7 +480,7 @@
                         "roi": [
                           370,
                           175,
-                          480,
+                          479,
                           255
                         ]
                       }
@@ -556,7 +556,7 @@
                       "type": "ColorMatch",
                       "param": {
                         "roi": [
-                          363,
+                          362,
                           208,
                           2,
                           2
@@ -589,7 +589,7 @@
                 "roi": [
                   370,
                   175,
-                  480,
+                  479,
                   255
                 ],
                 "method": 5
@@ -677,7 +677,7 @@
               "type": "ColorMatch",
               "param": {
                 "roi": [
-                  98,
+                  97,
                   36,
                   2,
                   2
@@ -748,7 +748,7 @@
                 "roi": [
                   461,
                   600,
-                  215,
+                  214,
                   69
                 ],
                 "method": 5
@@ -834,7 +834,7 @@
                 "roi": [
                   522,
                   277,
-                  105,
+                  106,
                   78
                 ],
                 "method": 1,
@@ -1020,7 +1020,7 @@
                 "roi": [
                   522,
                   88,
-                  105,
+                  106,
                   53
                 ],
                 "method": 5
@@ -1215,7 +1215,7 @@
               "type": "ColorMatch",
               "param": {
                 "roi": [
-                  503,
+                  504,
                   160,
                   2,
                   2
@@ -1242,7 +1242,7 @@
               "param": {
                 "template": "navigation/templates/arhat/title.png",
                 "roi": [
-                  503,
+                  504,
                   109,
                   157,
                   57
@@ -1300,7 +1300,7 @@
                 "roi": [
                   447,
                   97,
-                  254,
+                  253,
                   60
                 ],
                 "method": 5
@@ -1409,7 +1409,7 @@
               "type": "ColorMatch",
               "param": {
                 "roi": [
-                  339,
+                  340,
                   147,
                   6,
                   6
@@ -1821,7 +1821,7 @@
                 "roi": [
                   166,
                   153,
-                  113,
+                  114,
                   81
                 ],
                 "method": 5
@@ -1919,7 +1919,7 @@
                 "roi": [
                   166,
                   263,
-                  113,
+                  114,
                   81
                 ],
                 "method": 5
@@ -1992,7 +1992,7 @@
                 "roi": [
                   166,
                   374,
-                  113,
+                  114,
                   81
                 ],
                 "method": 5
@@ -2088,7 +2088,7 @@
               "param": {
                 "template": "navigation/templates/bounty/daily-tab.png",
                 "roi": [
-                  43,
+                  42,
                   125,
                   126,
                   59
@@ -2639,7 +2639,7 @@
               "param": {
                 "template": "navigation/templates/profile-sell/quality-label.png",
                 "roi": [
-                  355,
+                  356,
                   214,
                   145,
                   42
@@ -2792,7 +2792,7 @@
               "type": "ColorMatch",
               "param": {
                 "roi": [
-                  597,
+                  596,
                   241,
                   2,
                   2
@@ -3207,7 +3207,7 @@
                         "roi": [
                           370,
                           175,
-                          480,
+                          479,
                           255
                         ],
                         "method": 5
@@ -3303,7 +3303,7 @@
                 "roi": [
                   460,
                   376,
-                  66,
+                  67,
                   50
                 ],
                 "method": 5
@@ -3599,7 +3599,7 @@
               "type": "ColorMatch",
               "param": {
                 "roi": [
-                  566,
+                  565,
                   413,
                   2,
                   2
@@ -3628,7 +3628,7 @@
                 "roi": [
                   543,
                   377,
-                  74,
+                  75,
                   49
                 ],
                 "method": 5
@@ -3669,7 +3669,7 @@
                 "roi": [
                   166,
                   263,
-                  113,
+                  114,
                   81
                 ],
                 "method": 5
@@ -3710,7 +3710,7 @@
                 "roi": [
                   166,
                   374,
-                  113,
+                  114,
                   81
                 ],
                 "method": 5
@@ -3751,7 +3751,7 @@
                 "roi": [
                   166,
                   153,
-                  113,
+                  114,
                   81
                 ],
                 "method": 5
@@ -3792,7 +3792,7 @@
                 "roi": [
                   166,
                   374,
-                  113,
+                  114,
                   81
                 ],
                 "method": 5
@@ -3832,7 +3832,7 @@
                 "roi": [
                   166,
                   153,
-                  113,
+                  114,
                   81
                 ],
                 "method": 5
@@ -3872,7 +3872,7 @@
                 "roi": [
                   166,
                   263,
-                  113,
+                  114,
                   81
                 ],
                 "method": 5
@@ -4410,7 +4410,7 @@
               "param": {
                 "template": "navigation/templates/profile/close.png",
                 "roi": [
-                  971,
+                  972,
                   26,
                   71,
                   70
@@ -4475,7 +4475,7 @@
               "param": {
                 "template": "navigation/templates/treasure/close.png",
                 "roi": [
-                  901,
+                  902,
                   75,
                   73,
                   68
@@ -4670,7 +4670,7 @@
               "param": {
                 "template": "navigation/templates/time-boat/close.png",
                 "roi": [
-                  987,
+                  988,
                   140,
                   71,
                   72
@@ -4777,7 +4777,7 @@
                 "roi": [
                   880,
                   91,
-                  74,
+                  75,
                   74
                 ],
                 "method": 5
@@ -4817,7 +4817,7 @@
                 "roi": [
                   880,
                   91,
-                  74,
+                  75,
                   74
                 ],
                 "method": 5
@@ -4853,7 +4853,7 @@
               "type": "ColorMatch",
               "param": {
                 "roi": [
-                  901,
+                  902,
                   142,
                   2,
                   2
@@ -4880,7 +4880,7 @@
               "param": {
                 "template": "navigation/templates/fortune/close.png",
                 "roi": [
-                  901,
+                  902,
                   74,
                   72,
                   71
@@ -4945,7 +4945,7 @@
               "param": {
                 "template": "navigation/templates/bounty/close.png",
                 "roi": [
-                  995,
+                  994,
                   23,
                   71,
                   74
@@ -5143,7 +5143,7 @@
                 "roi": [
                   1069,
                   6,
-                  74,
+                  75,
                   71
                 ],
                 "method": 5
@@ -5184,7 +5184,7 @@
                 "roi": [
                   880,
                   91,
-                  74,
+                  75,
                   74
                 ],
                 "method": 5
@@ -5225,7 +5225,7 @@
                 "roi": [
                   880,
                   91,
-                  74,
+                  75,
                   74
                 ],
                 "method": 5
@@ -5265,7 +5265,7 @@
                 "roi": [
                   880,
                   91,
-                  74,
+                  75,
                   74
                 ],
                 "method": 5
@@ -5330,7 +5330,7 @@
                 "roi": [
                   915,
                   132,
-                  74,
+                  75,
                   69
                 ],
                 "method": 5
@@ -5496,7 +5496,7 @@
               "type": "ColorMatch",
               "param": {
                 "roi": [
-                  964,
+                  963,
                   44,
                   2,
                   2
@@ -5628,7 +5628,7 @@
                 "roi": [
                   522,
                   277,
-                  105,
+                  106,
                   78
                 ],
                 "method": 1,
@@ -5645,7 +5645,7 @@
                 "roi": [
                   522,
                   277,
-                  105,
+                  106,
                   78
                 ]
               }
@@ -5794,7 +5794,7 @@
               "param": {
                 "template": "navigation/templates/map-a/activity.png",
                 "roi": [
-                  691,
+                  690,
                   17,
                   63,
                   67
@@ -5948,7 +5948,7 @@
                 "roi": [
                   83,
                   294,
-                  98,
+                  97,
                   98
                 ]
               }
@@ -6231,9 +6231,9 @@
                   "navigation/panels/daily-pause-caption.png"
                 ],
                 "roi": [
+                  301,
                   300,
-                  300,
-                  550,
+                  551,
                   120
                 ]
               }
@@ -6264,7 +6264,7 @@
                       "param": {
                         "template": "navigation/templates/daily-expanded/menu-arena.png",
                         "roi": [
-                          378,
+                          379,
                           378,
                           64,
                           48
@@ -6321,7 +6321,7 @@
               "param": {
                 "template": "navigation/hubs/town1-1.png",
                 "roi": [
-                  456,
+                  457,
                   481,
                   156,
                   119
@@ -6769,7 +6769,7 @@
               "param": {
                 "template": "navigation/scroll/town6-23.png",
                 "roi": [
-                  542,
+                  543,
                   120,
                   156,
                   480
@@ -6923,7 +6923,7 @@
               "param": {
                 "template": "navigation/scroll/town6-07.png",
                 "roi": [
-                  737,
+                  738,
                   120,
                   156,
                   480
@@ -6965,7 +6965,7 @@
               "param": {
                 "template": "navigation/scroll/town6-11.png",
                 "roi": [
-                  737,
+                  738,
                   120,
                   156,
                   480
@@ -7105,7 +7105,7 @@
               "param": {
                 "template": "navigation/scroll/town6-24.png",
                 "roi": [
-                  737,
+                  738,
                   120,
                   156,
                   480
@@ -7119,7 +7119,7 @@
               "param": {
                 "template": "navigation/scroll/town6-25.png",
                 "roi": [
-                  737,
+                  738,
                   120,
                   156,
                   480

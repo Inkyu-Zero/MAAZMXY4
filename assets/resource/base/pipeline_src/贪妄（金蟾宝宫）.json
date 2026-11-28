@@ -1,0 +1,162 @@
+{
+  "贪妄（金蟾宝宫）-点击金蟾宝宫": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "begin",
+          "file": "@task:task-fadb4b054dd0c275a98a79e1be1af69b",
+          "task_binding_id": "task-fadb4b054dd0c275a98a79e1be1af69b",
+          "playback_node": "贪妄（金蟾宝宫）-回放战斗",
+          "navigation": {
+            "kind": "stage",
+            "target_node": "贪妄（金蟾宝宫）-关卡入口",
+            "label": "贪妄（金蟾宝宫）"
+          },
+          "settings_node": "脚本任务设置",
+          "exit_mode": "battle_only",
+          "failure_retry": {
+            "enabled": false,
+            "max_retries": 3
+          },
+          "round_flow": {
+            "scene_node": "Nav_InStage",
+            "load_timeout_ms": 15000,
+            "repeat_node": "贪妄（金蟾宝宫）-刷取次数"
+          },
+          "result_guard": {
+            "failed_next": [
+              "Result_Failed"
+            ],
+            "succeeded_next": [
+              "Result_Succeeded"
+            ],
+            "revive_next": [
+              "Result_RevivePrompt"
+            ],
+            "error_next": [
+              "Result_MonitorStopped"
+            ]
+          }
+        }
+      }
+    },
+    "next": [
+      "贪妄（金蟾宝宫）-点击金蟾宝宫",
+      "停止运行"
+    ],
+    "post_delay": 0,
+    "max_hit": 1,
+    "pre_delay": 0
+  },
+  "贪妄（金蟾宝宫）-刷取次数": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "loop_count",
+        "custom_action_param": {
+          "label": "贪妄（金蟾宝宫）"
+        }
+      }
+    },
+    "next": [],
+    "post_delay": 0,
+    "max_hit": 1,
+    "pre_delay": 0
+  },
+  "贪妄（金蟾宝宫）-关卡入口": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": [
+                  "navigation/mainline/s065-f1.png",
+                  "navigation/mainline/s065-f2.png",
+                  "navigation/mainline/s065-f3.png"
+                ],
+                "roi": [
+                  "16.8%",
+                  "51.2%",
+                  "13.6%",
+                  "23.5%"
+                ],
+                "method": 5,
+                "green_mask": false
+              }
+            }
+          },
+          "Nav_Province_town6",
+          "GameManagement_NormalMap",
+          "Nav_ClearMap"
+        ],
+        "box_index": 0
+      }
+    },
+    "pre_delay": 0,
+    "action": {
+      "type": "LongPress",
+      "param": {
+        "duration": 100
+      }
+    },
+    "post_delay": 1000,
+    "timeout": 10000,
+    "next": []
+  },
+  "贪妄（金蟾宝宫）-识别场景1": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          "Nav_InStage"
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0,
+    "pre_delay": 0
+  },
+  "贪妄（金蟾宝宫）-回放战斗": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          "Nav_InStage"
+        ]
+      }
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "battle_play",
+        "custom_action_param": {
+          "script_binding": {
+            "recorded_return_next": [
+              "Round_PlayDone"
+            ]
+          },
+          "file": "@task:task-fadb4b054dd0c275a98a79e1be1af69b"
+        }
+      }
+    },
+    "next": [
+      "Round_PlayDone"
+    ],
+    "post_delay": 0,
+    "pre_delay": 0
+  }
+}

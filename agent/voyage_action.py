@@ -52,22 +52,24 @@ def _safe_print(text: str) -> None:
 # 这套跑图脚本依赖 dxcam / onnxruntime / scipy，MFA 自带的 runtimes/python 里没有；
 # 用它自己那个解释器会把 ImportError 变成「任务瞬间结束」，所以指定系统 Python。
 def _python_candidates() -> list:
-    """找系统装的 Python 3.12 / 3.11（跑图脚本要 dxcam / onnxruntime / scipy）。
+    """挑一个能跑图脚本的解释器（要 dxcam / onnxruntime / scipy）。
 
-    不能写死路径：发布包会被装到别人机器上，用户名不同。
+    **只用发布包自带的 Python**，不找系统解释器。理由：
+    - `runtimes/python` 里带着 voyage-site（onnxruntime / scipy / pywin32）
+    - 系统 Python 是干净的，拿它跑必然 ImportError 或 9009
+    - Windows 上 `python.exe` 还常常是微软商店的占位别名，一执行就退 9009
+
+    顺序：本进程的解释器 → 相对 agent/ 往上两级的 runtimes/python。
     """
     found = []
-    local = os.environ.get("LOCALAPPDATA")
-    if local:
-        base = Path(local) / "Programs" / "Python"
-        for name in ("Python312", "Python311"):
-            exe = base / name / "python.exe"
-            if exe.is_file():
-                found.append(exe)
-    for name in ("python3.12", "python3.11", "python"):
-        which = shutil.which(name)
-        if which:
-            found.append(Path(which))
+    if sys.executable and os.path.isfile(sys.executable):
+        found.append(Path(sys.executable))
+    here = Path(__file__).resolve()
+    for parent in list(here.parents)[:4]:
+        exe = parent / "runtimes" / "python" / "python.exe"
+        if exe.is_file():
+            found.append(exe)
+            break
     return found
 
 
@@ -94,7 +96,7 @@ def _log(msg: str) -> None:
             _LOG_FILE = d / ("voyage_%s.log" % time.strftime("%Y%m%d_%H%M%S"))
         try:
             with open(_LOG_FILE.parent / "voyage.log", "a", encoding="utf-8") as fp:
-                fp.write(line + "\n")
+                fp.write(msg + "\n")
         except Exception:
             pass
         with open(_LOG_FILE, "a", encoding="utf-8") as fp:
@@ -177,7 +179,7 @@ class VoyageRun(CustomAction):
                     _safe_print(line)
                     try:
                         with open(_LOG_FILE, "a", encoding="utf-8") as fp:
-                            fp.write(line + "\n")
+                            fp.write(msg + "\n")
                     except Exception:
                         pass
                 if context.tasker.stopping:

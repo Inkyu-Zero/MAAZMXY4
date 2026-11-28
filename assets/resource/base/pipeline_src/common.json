@@ -1,0 +1,10 @@
+{
+  "停止运行": {
+    "action": {
+      "type": "StopTask"
+    },
+    "recognition": {
+      "type": "DirectHit"
+    }
+  }
+}

@@ -1,0 +1,161 @@
+{
+  "烛时（钟晷极地）-点击钟晷极地": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "begin",
+          "file": "@task:task-84721e228779a69a61fb97bd2e1fc9ca",
+          "task_binding_id": "task-84721e228779a69a61fb97bd2e1fc9ca",
+          "playback_node": "烛时（钟晷极地）-回放战斗",
+          "navigation": {
+            "kind": "stage",
+            "target_node": "烛时（钟晷极地）-关卡入口",
+            "label": "烛时（钟晷极地）"
+          },
+          "settings_node": "脚本任务设置",
+          "exit_mode": "battle_only",
+          "failure_retry": {
+            "enabled": false,
+            "max_retries": 3
+          },
+          "round_flow": {
+            "scene_node": "Nav_InStage",
+            "load_timeout_ms": 15000,
+            "repeat_node": "烛时（钟晷极地）-刷取次数"
+          },
+          "result_guard": {
+            "failed_next": [
+              "Result_Failed"
+            ],
+            "succeeded_next": [
+              "Result_Succeeded"
+            ],
+            "revive_next": [
+              "Result_RevivePrompt"
+            ],
+            "error_next": [
+              "Result_MonitorStopped"
+            ]
+          }
+        }
+      }
+    },
+    "next": [
+      "烛时（钟晷极地）-点击钟晷极地",
+      "停止运行"
+    ],
+    "post_delay": 0,
+    "max_hit": 1,
+    "pre_delay": 0
+  },
+  "烛时（钟晷极地）-刷取次数": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "loop_count",
+        "custom_action_param": {
+          "label": "烛时（钟晷极地）"
+        }
+      }
+    },
+    "next": [],
+    "post_delay": 0,
+    "max_hit": 1,
+    "pre_delay": 0
+  },
+  "烛时（钟晷极地）-关卡入口": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": [
+                  "navigation/mainline/s038-f1.png",
+                  "navigation/mainline/s038-f3.png"
+                ],
+                "roi": [
+                  "55.9%",
+                  "12.8%",
+                  "13.9%",
+                  "20.4%"
+                ],
+                "method": 5,
+                "green_mask": false
+              }
+            }
+          },
+          "Nav_Province_town3",
+          "GameManagement_NormalMap",
+          "Nav_ClearMap"
+        ],
+        "box_index": 0
+      }
+    },
+    "pre_delay": 0,
+    "action": {
+      "type": "LongPress",
+      "param": {
+        "duration": 100
+      }
+    },
+    "post_delay": 1000,
+    "timeout": 10000,
+    "next": []
+  },
+  "烛时（钟晷极地）-识别场景1": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          "Nav_InStage"
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0,
+    "pre_delay": 0
+  },
+  "烛时（钟晷极地）-回放战斗": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          "Nav_InStage"
+        ]
+      }
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "battle_play",
+        "custom_action_param": {
+          "script_binding": {
+            "recorded_return_next": [
+              "Round_PlayDone"
+            ]
+          },
+          "file": "@task:task-84721e228779a69a61fb97bd2e1fc9ca"
+        }
+      }
+    },
+    "next": [
+      "Round_PlayDone"
+    ],
+    "post_delay": 0,
+    "pre_delay": 0
+  }
+}

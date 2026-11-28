@@ -1,0 +1,59 @@
+{
+  "悬赏（追捕飞贼）-刷取次数": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "begin",
+          "file": "@task:task-b870345faa9eb39595389c1c99e46cd9",
+          "task_binding_id": "task-b870345faa9eb39595389c1c99e46cd9",
+          "playback_node": "Bounty_Play",
+          "navigation": {
+            "kind": "bounty",
+            "target_node": "Bounty_Target",
+            "label": "悬赏（追捕飞贼）",
+            "title": "追捕飞贼",
+            "title_aliases": []
+          },
+          "settings_node": "脚本任务设置",
+          "exit_mode": "battle_only",
+          "failure_retry": {
+            "enabled": false,
+            "max_retries": 3
+          },
+          "round_flow": {
+            "scene_node": "Nav_InStage",
+            "load_timeout_ms": 15000,
+            "repeat_node": "悬赏（追捕飞贼）-刷取次数",
+            "resume_node": "Bounty_ResumeStage"
+          },
+          "result_guard": {
+            "failed_next": [
+              "Result_Failed"
+            ],
+            "succeeded_next": [
+              "Result_Succeeded"
+            ],
+            "revive_next": [
+              "Result_RevivePrompt"
+            ],
+            "error_next": [
+              "Result_MonitorStopped"
+            ]
+          }
+        }
+      }
+    },
+    "next": [
+      "悬赏（追捕飞贼）-刷取次数",
+      "停止运行"
+    ],
+    "post_delay": 0,
+    "max_hit": 1,
+    "pre_delay": 0
+  }
+}

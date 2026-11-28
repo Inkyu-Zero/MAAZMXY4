@@ -47,6 +47,16 @@ try:
 except Exception:  # noqa: BLE001
     pass
 
+try:
+    import view_scale
+except Exception:  # noqa: BLE001
+    view_scale = None
+
+try:
+    import dev_reload
+except Exception:  # noqa: BLE001
+    dev_reload = None
+
 
 def main():
     Toolkit.init_option("./")
@@ -57,6 +67,16 @@ def main():
         sys.exit(1)
         
     socket_id = sys.argv[-1]
+
+    # 兜底：控制器每次发事件都把截图缩放设成短边 720（幂等）。
+    # 各任务入口还会主动调一次 ensure_view_scale，sink 只是保险。
+    if view_scale is not None:
+        view_scale.install_sink()
+
+    # 开发期热重载（MAA_DEV_RELOAD=1 才开）：改 agent/*.py 自动断开重连，
+    # 不用重启 MFA。默认关闭，不影响正常使用。
+    if dev_reload is not None:
+        dev_reload.start(socket_id)
 
     AgentServer.start_up(socket_id)
     AgentServer.join()

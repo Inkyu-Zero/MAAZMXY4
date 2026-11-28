@@ -1,0 +1,858 @@
+{
+  "Result_Failed": {
+    "recognition": {
+      "type": "Or",
+      "param": {
+        "any_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/outcomes/failed-title.png",
+                "roi": [
+                  "17.4%",
+                  "16.7%",
+                  "68.0%",
+                  "52.8%"
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/outcomes/arena-failed-title.png",
+                "roi": [
+                  "31.0%",
+                  "0.3%",
+                  "38.4%",
+                  "18.8%"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0
+  },
+  "Result_FailedReturn": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "navigation/outcomes/failed-return.png",
+                        "roi": [
+                          "43.6%",
+                          "62.5%",
+                          "48.0%",
+                          "27.8%"
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": [
+                          "navigation/outcomes/failed-return-1_up.png",
+                          "navigation/outcomes/failed-return-2_over.png",
+                          "navigation/outcomes/failed-return-3_down.png"
+                        ],
+                        "roi": [
+                          "34.9%",
+                          "55.6%",
+                          "61.0%",
+                          "36.1%"
+                        ],
+                        "green_mask": true
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "navigation/outcomes/arena-failed-return.png",
+                        "roi": [
+                          "41.4%",
+                          "75.0%",
+                          "18.3%",
+                          "13.9%"
+                        ]
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "Result_Failed",
+          "Result_NoRevivePrompt"
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "next": [],
+    "timeout": 10000,
+    "post_delay": 500
+  },
+  "Result_Succeeded": {
+    "recognition": {
+      "type": "Or",
+      "param": {
+        "any_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/outcomes/succeeded-title.png",
+                "roi": [
+                  "17.4%",
+                  "16.7%",
+                  "68.0%",
+                  "52.8%"
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/outcomes/arena-succeeded-title.png",
+                "roi": [
+                  "30.5%",
+                  "0.0%",
+                  "40.1%",
+                  "18.1%"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0
+  },
+  "Result_SucceededReturn": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "navigation/outcomes/succeeded-return.png",
+                        "roi": [
+                          "43.6%",
+                          "62.5%",
+                          "48.0%",
+                          "27.8%"
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": [
+                          "navigation/outcomes/succeeded-return-1_up.png",
+                          "navigation/outcomes/succeeded-return-2_over.png",
+                          "navigation/outcomes/succeeded-return-3_down.png"
+                        ],
+                        "roi": [
+                          "34.9%",
+                          "55.6%",
+                          "61.0%",
+                          "36.1%"
+                        ],
+                        "green_mask": true
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "navigation/outcomes/arena-succeeded-return.png",
+                        "roi": [
+                          "41.8%",
+                          "75.7%",
+                          "16.6%",
+                          "12.5%"
+                        ]
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "Result_Succeeded",
+          "Result_NoRevivePrompt"
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "next": [],
+    "timeout": 10000,
+    "post_delay": 500
+  },
+  "Nav_TaskMap": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "任务.png",
+        "roi": [
+          "0.0%",
+          "80.6%",
+          "100.0%",
+          "19.4%"
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0
+  },
+  "Nav_QuestPanel": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "^任务$"
+                ],
+                "roi": [
+                  "39.2%",
+                  "2.8%",
+                  "24.4%",
+                  "13.9%"
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "悬赏任务"
+                ],
+                "roi": [
+                  "15.7%",
+                  "11.8%",
+                  "43.6%",
+                  "13.9%"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0
+  },
+  "Nav_AcceptedBounties": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "expected": [
+          "完成悬赏任务"
+        ],
+        "roi": [
+          "15.7%",
+          "18.1%",
+          "30.5%",
+          "13.9%"
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0
+  },
+  "Nav_OpenQuest": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          "Nav_ClearMap",
+          "Result_NoRevivePrompt"
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "next": [],
+    "timeout": 10000,
+    "post_delay": 350
+  },
+  "Nav_PausedTaskMap": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": [
+                  "bounty-candle/pause.png",
+                  "bounty-candle/pause-cloudy.png",
+                  "navigation/panels/daily-pause-caption.png"
+                ],
+                "roi": [
+                  "26.2%",
+                  "41.7%",
+                  "48.0%",
+                  "16.7%"
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "任务.png"
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0
+  },
+  "Nav_ResumeTaskMap": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": [
+                  "bounty-candle/pause.png",
+                  "bounty-candle/pause-cloudy.png",
+                  "navigation/panels/daily-pause-caption.png"
+                ],
+                "roi": [
+                  "26.2%",
+                  "41.7%",
+                  "48.0%",
+                  "16.7%"
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "任务.png"
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "next": [],
+    "timeout": 10000,
+    "post_delay": 350
+  },
+  "Nav_SelectBountyTab": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "^悬赏任务$"
+                ],
+                "roi": [
+                  "15.7%",
+                  "11.8%",
+                  "43.6%",
+                  "13.9%"
+                ]
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "next": [],
+    "timeout": 10000,
+    "post_delay": 350
+  },
+  "Nav_BlockedDialog": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "expected": [
+          "验证码|请输入密码|账号密码登录|扫码登录|背包已满|网络连接.*断|连接.*失败|余额不足"
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0
+  },
+  "Nav_CloseQuest": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/panels/quest-close.png",
+                "roi": [
+                  "75.0%",
+                  "2.8%",
+                  "15.7%",
+                  "20.8%"
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "And",
+              "param": {
+                "all_of": [
+                  {
+                    "recognition": {
+                      "type": "OCR",
+                      "param": {
+                        "expected": [
+                          "^任务$"
+                        ],
+                        "roi": [
+                          "39.2%",
+                          "2.8%",
+                          "24.4%",
+                          "13.9%"
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "OCR",
+                      "param": {
+                        "expected": [
+                          "悬赏任务"
+                        ],
+                        "roi": [
+                          "15.7%",
+                          "11.8%",
+                          "43.6%",
+                          "13.9%"
+                        ]
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "next": [],
+    "timeout": 10000,
+    "post_delay": 350
+  },
+  "Result_RevivePrompt": {
+    "recognition": {
+      "type": "Custom",
+      "param": {
+        "custom_recognition": "battle_no_revive",
+        "custom_recognition_param": "revive"
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0
+  },
+  "Result_NoRevivePrompt": {
+    "recognition": {
+      "type": "Custom",
+      "param": {
+        "custom_recognition": "battle_no_revive"
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0
+  },
+  "Result_DeclineRevive": {
+    "recognition": {
+      "type": "Or",
+      "param": {
+        "any_of": [
+          "Result_ReviveLayoutP1",
+          "Result_ReviveLayoutP2"
+        ]
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "next": [],
+    "timeout": 15000,
+    "pre_delay": 0,
+    "post_delay": 250
+  },
+  "Result_ReviveWindow": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "sub_name": "frame_corner",
+            "recognition": {
+              "type": "And",
+              "param": {
+                "all_of": [
+                  "Nav_CachedModal",
+                  "Nav_CommonConfirm"
+                ],
+                "box_index": 1
+              }
+            }
+          },
+          "Result_RevivePrompt"
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0
+  },
+  "Result_ReviveLayoutP1": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "sub_name": "revive_window",
+            "recognition": {
+              "type": "And",
+              "param": {
+                "all_of": [
+                  "Result_ReviveWindow"
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": [
+                  "navigation/outcomes/revive-layout-p1-up.png",
+                  "navigation/outcomes/revive-layout-p1-over.png",
+                  "navigation/outcomes/revive-layout-p1-down.png"
+                ],
+                "threshold": 0.9,
+                "roi": "revive_window",
+                "roi_offset": [
+                  10,
+                  155,
+                  472,
+                  -8
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "DirectHit",
+              "param": {
+                "roi": "revive_window",
+                "roi_offset": [
+                  357,
+                  188,
+                  -37,
+                  -42
+                ]
+              }
+            }
+          }
+        ],
+        "box_index": 2
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0
+  },
+  "Result_ReviveLayoutP2": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "sub_name": "revive_window",
+            "recognition": {
+              "type": "And",
+              "param": {
+                "all_of": [
+                  "Result_ReviveWindow"
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": [
+                  "navigation/outcomes/revive-layout-p2-up.png",
+                  "navigation/outcomes/revive-layout-p2-over.png",
+                  "navigation/outcomes/revive-layout-p2-down.png"
+                ],
+                "threshold": 0.9,
+                "roi": "revive_window",
+                "roi_offset": [
+                  10,
+                  155,
+                  472,
+                  -8
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "DirectHit",
+              "param": {
+                "roi": "revive_window",
+                "roi_offset": [
+                  454,
+                  188,
+                  -37,
+                  -42
+                ]
+              }
+            }
+          }
+        ],
+        "box_index": 2
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0
+  },
+  "Result_ReviveEvidence": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "navigation/outcomes/revive-normal-caption.png",
+          "navigation/outcomes/revive-vip-caption.png"
+        ],
+        "roi": [
+          "17.4%",
+          "23.6%",
+          "69.7%",
+          "54.2%"
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0
+  },
+  "Nav_ModalPresent": {
+    "recognition": {
+      "type": "Or",
+      "param": {
+        "any_of": [
+          "Nav_CommonConfirm",
+          "Result_ReviveEvidence"
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0
+  },
+  "Nav_CachedModal": {
+    "recognition": {
+      "type": "Custom",
+      "param": {
+        "custom_recognition": "battle_no_revive",
+        "custom_recognition_param": "present"
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0
+  },
+  "Result_MonitorUnrecognizedDialog": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "unrecognized_dialog"
+        }
+      }
+    },
+    "next": [],
+    "post_delay": 0
+  },
+  "Result_MonitorStopped": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "fatal",
+          "reason": "battle_monitor_stopped"
+        }
+      }
+    },
+    "next": [],
+    "post_delay": 0
+  },
+  "Result_FailedClear": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          "Result_Failed",
+          "Result_NoRevivePrompt"
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0
+  }
+}

@@ -1,20 +1,20 @@
 {
-    "九转炼丹-入口": {
-        "recognition": "DirectHit",
-        "action": "Custom",
-        "custom_action": "jzld_run",
-        "next": [
-            "九转炼丹-结束"
-        ],
-        "focus": {
-            "Node.Action.Succeeded": {
-                "content": "./debug/jzld/score.log",
-                "display": "log"
-            }
-        }
-    },
-    "九转炼丹-结束": {
-        "recognition": "DirectHit",
-        "action": "StopTask"
+  "九转炼丹-入口": {
+    "recognition": "DirectHit",
+    "action": "Custom",
+    "custom_action": "jzld_run",
+    "next": [
+      "九转炼丹-结束"
+    ],
+    "focus": {
+      "Node.Action.Succeeded": {
+        "content": "./debug/jzld/score.log",
+        "display": "log"
+      }
     }
+  },
+  "九转炼丹-结束": {
+    "recognition": "DirectHit",
+    "action": "StopTask"
+  }
 }

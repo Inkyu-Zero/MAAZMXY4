@@ -3,7 +3,7 @@
   "name": "MAA造梦西游4",
   "label": "MAAZMXY4",
   "github": "https://github.com/Inkyu-Zero/MAAZMXY4",
-  "version": "2.5.5",
+  "version": "2.5.6",
   "license": "本项目基于 MaaFramework 开发，作者 InkyuZero（GitHub: Inkyu-Zero/MAAZMXY4）。采用 PolyForm Noncommercial 1.0.0 许可：完全免费，允许个人使用与免费分享，禁止任何形式的售卖与商业用途。",
   "resource": [
     {
@@ -1332,6 +1332,26 @@
       "entry": "福果来_入口",
       "option": [],
       "description": "任务会自己从当前界面走回大地图、展开活动菜单、点进「福果来」并进入副本；请在开始前把游戏停在任意普通地图界面。"
+    },
+    {
+      "name": "扫荡竞技场",
+      "entry": "扫荡竞技场_入口",
+      "description": "任务会自己从当前界面走回大地图、展开活动菜单、点进「竞技场」；请在开始前把游戏停在任意普通地图界面。"
+    },
+    {
+      "name": "斗宠大会",
+      "entry": "斗宠大会_入口",
+      "description": "任务会自己从当前界面走回大地图、展开活动菜单、点进「斗宠大会」；请在开始前把游戏停在任意普通地图界面。"
+    },
+    {
+      "name": "神秘商店",
+      "entry": "神秘商店_入口",
+      "description": "任务会自己从当前界面走回大地图、展开活动菜单、点进「神秘商店」；请在开始前把游戏停在任意普通地图界面。"
+    },
+    {
+      "name": "扫荡须弥山",
+      "entry": "扫荡须弥山_入口",
+      "description": "任务会自己从当前界面走回大地图、展开活动菜单、点进「守卫须弥山」；请在开始前把游戏停在任意普通地图界面。"
     }
   ],
   "option": {
@@ -2198,6 +2218,32 @@
         "mouse": "SendMessage",
         "keyboard": "SendMessage"
       }
+    }
+  ],
+  "group": [
+    {
+      "name": "南瞻部洲",
+      "label": "南瞻部洲"
+    },
+    {
+      "name": "东胜神洲",
+      "label": "东胜神洲"
+    },
+    {
+      "name": "西牛贺洲",
+      "label": "西牛贺洲"
+    },
+    {
+      "name": "北俱芦洲",
+      "label": "北俱芦洲"
+    },
+    {
+      "name": "幽冥血海",
+      "label": "幽冥血海"
+    },
+    {
+      "name": "六欲魔天",
+      "label": "六欲魔天"
     }
   ]
 }

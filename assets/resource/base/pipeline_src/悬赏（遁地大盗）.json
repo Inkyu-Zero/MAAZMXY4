@@ -1,0 +1,63 @@
+{
+  "悬赏（遁地大盗）-刷取次数": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "begin",
+          "file": "@task:task-1a8c308b34915cf0f660aed26af263ca",
+          "task_binding_id": "task-1a8c308b34915cf0f660aed26af263ca",
+          "playback_node": "Bounty_Play",
+          "navigation": {
+            "kind": "bounty",
+            "target_node": "Bounty_Target",
+            "label": "悬赏（遁地大盗）",
+            "title": "遁地大盗",
+            "title_aliases": [
+              "遁地大盜",
+              "捉拿大盗",
+              "捉拿大盜"
+            ]
+          },
+          "settings_node": "脚本任务设置",
+          "exit_mode": "battle_only",
+          "failure_retry": {
+            "enabled": false,
+            "max_retries": 3
+          },
+          "round_flow": {
+            "scene_node": "Nav_InStage",
+            "load_timeout_ms": 15000,
+            "repeat_node": "悬赏（遁地大盗）-刷取次数",
+            "resume_node": "Bounty_ResumeStage"
+          },
+          "result_guard": {
+            "failed_next": [
+              "Result_Failed"
+            ],
+            "succeeded_next": [
+              "Result_Succeeded"
+            ],
+            "revive_next": [
+              "Result_RevivePrompt"
+            ],
+            "error_next": [
+              "Result_MonitorStopped"
+            ]
+          }
+        }
+      }
+    },
+    "next": [
+      "悬赏（遁地大盗）-刷取次数",
+      "停止运行"
+    ],
+    "post_delay": 0,
+    "max_hit": 1,
+    "pre_delay": 0
+  }
+}

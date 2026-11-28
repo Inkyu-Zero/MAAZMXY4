@@ -248,6 +248,11 @@ def begin_round(context, parameters, state, *, frame=None):
         raise ValueError('请选择该任务支持的脚本完成方式。')
     if prepare_playback_controller(context.tasker.controller, recording['base']):
         frame = None
+    # 结算尺寸前先把截图缩放定死：窗口尺寸随盒子走，靠缩放统一到短边 720，
+    # 下面的 roi 和录制脚本才不用跟着窗口大小变。
+    from view_scale import ensure_view_scale
+
+    ensure_view_scale(context.tasker.controller)
     frame = capture(context) if frame is None else frame
     height, width = frame.shape[:2]
     if min(height, width) != 720:

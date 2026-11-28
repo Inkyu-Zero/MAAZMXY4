@@ -24,7 +24,7 @@
               "param": {
                 "template": "navigation/outcomes/arena-failed-title.png",
                 "roi": [
-                  355,
+                  356,
                   2,
                   440,
                   135
@@ -59,7 +59,7 @@
                         "roi": [
                           500,
                           450,
-                          550,
+                          551,
                           200
                         ]
                       }
@@ -178,7 +178,7 @@
                         "roi": [
                           500,
                           450,
-                          550,
+                          551,
                           200
                         ]
                       }
@@ -209,7 +209,7 @@
                       "param": {
                         "template": "navigation/outcomes/arena-succeeded-return.png",
                         "roi": [
-                          480,
+                          479,
                           545,
                           190,
                           90
@@ -359,9 +359,9 @@
                   "navigation/panels/daily-pause-caption.png"
                 ],
                 "roi": [
+                  301,
                   300,
-                  300,
-                  550,
+                  551,
                   120
                 ]
               }
@@ -400,9 +400,9 @@
                   "navigation/panels/daily-pause-caption.png"
                 ],
                 "roi": [
+                  301,
                   300,
-                  300,
-                  550,
+                  551,
                   120
                 ]
               }
@@ -765,7 +765,7 @@
         "roi": [
           200,
           170,
-          800,
+          799,
           390
         ]
       }

@@ -7,7 +7,7 @@
           "navigation/scroll/town5-02.png"
         ],
         "roi": [
-          20,
+          19,
           410,
           1020,
           120
@@ -85,7 +85,7 @@
           "navigation/scroll/town6-25.png"
         ],
         "roi": [
-          160,
+          159,
           350,
           880,
           225

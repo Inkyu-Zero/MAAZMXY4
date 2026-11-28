@@ -676,7 +676,9 @@ class JzldRun(CustomAction):
             # 「脚本与当前720截图尺寸不一致，请使用相同游戏布局重新录制。」
             # （真实踩过：更新后先跑炼丹、再跑悬赏，悬赏一开始就失败。）
             try:
-                context.tasker.controller.set_screenshot_use_raw_size(False)
+                from view_scale import ensure_view_scale
+
+                ensure_view_scale(context.tasker.controller)
             except Exception:  # noqa: BLE001
                 pass
             _RES_SET[0] = False

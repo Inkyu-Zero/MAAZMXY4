@@ -1,0 +1,147 @@
+{
+    "Adventure_识别红叉": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "ui/close_x.png"
+                ],
+                "roi": [
+                    700,
+                    0,
+                    447,
+                    260
+                ],
+                "threshold": 0.65,
+                "green_mask": true
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "next": [
+            "Adventure_点红叉"
+        ],
+        "timeout": 500
+    },
+    "Adventure_点红叉": {
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "adventure_close_x"
+            }
+        },
+        "timeout": 8000
+    },
+    "Adventure_点设置": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "ui/settings_05.png"
+                ],
+                "green_mask": true,
+                "threshold": 0.7
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "Adventure_返回地图"
+        ],
+        "on_error": [
+            "Adventure_返回地图"
+        ],
+        "timeout": 800,
+        "post_delay": 800
+    },
+    "Adventure_返回地图": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": [
+                    "返回地图"
+                ],
+                "roi": [
+                    700,
+                    470,
+                    447,
+                    100
+                ],
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 1200,
+        "post_delay": 200,
+        "post_wait_freezes": {
+            "time": 200,
+            "timeout": 3000,
+            "rate_limit": 200
+        }
+    },
+    "Adventure_识别无双": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "ui/wushuang.png"
+                ],
+                "roi": [
+                    0,
+                    560,
+                    220,
+                    160
+                ],
+                "threshold": 0.7
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "timeout": 500
+    },
+    "Adventure_识别世界": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "ui/world_03.png"
+                ],
+                "green_mask": true,
+                "threshold": 0.8
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "timeout": 500
+    },
+    "Adventure_识别南瞻部洲": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "ui/nanzhanbuzhou.png"
+                ],
+                "roi": [
+                    600,
+                    480,
+                    400,
+                    240
+                ],
+                "threshold": 0.7
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "timeout": 500
+    }
+}

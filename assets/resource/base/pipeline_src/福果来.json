@@ -1,0 +1,462 @@
+{
+  "福果来_点图标": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "fuguo_find_icon"
+      }
+    },
+    "next": [
+      "福果来_进入副本"
+    ],
+    "on_error": [
+      "福果来_入口"
+    ],
+    "timeout": 1500
+  },
+  "福果来_入口": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "adventure_entry_route",
+        "custom_action_param": {
+          "entry_node": "福果来_入口",
+          "icon_node": "福果来_点图标",
+          "close_node": "福果来_识别红叉",
+          "close_click_node": "福果来_点红叉",
+          "back_node": "福果来_返回地图",
+          "settings_node": "福果来_点设置",
+          "menu_node": "福果来_识别菜单",
+          "panels": [
+            {
+              "node": "福果来_面板",
+              "target": "福果来_面板"
+            }
+          ],
+          "pipeline": "福果来.json",
+          "wu_node": "福果来_识别无双",
+          "map_node": "福果来_识别世界图标",
+          "menu_hsv": [
+            55,
+            150,
+            50,
+            80,
+            255,
+            190
+          ]
+        }
+      }
+    },
+    "next": [
+      "福果来_点图标"
+    ],
+    "timeout": 20000
+  },
+  "福果来_识别菜单": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "expected": [
+          "福果来"
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "福果来_点图标"
+    ],
+    "timeout": 800
+  },
+  "福果来_返回地图": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "expected": [
+          "返回地图"
+        ]
+      }
+    },
+    "action": {
+      "type": "Click"
+    },
+    "next": [
+      "福果来_入口"
+    ],
+    "on_error": [
+      "福果来_入口"
+    ],
+    "timeout": 800,
+    "post_delay": 200,
+    "post_wait_freezes": {
+      "time": 200,
+      "timeout": 3000,
+      "rate_limit": 200
+    }
+  },
+  "福果来_识别红叉": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "ui/close_x.png"
+        ],
+        "roi": [
+          "61.0%",
+          "0.0%",
+          "39.0%",
+          "36.1%"
+        ],
+        "threshold": 0.7,
+        "green_mask": true
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "福果来_点红叉"
+    ],
+    "timeout": 500
+  },
+  "福果来_点红叉": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "ui/close_x.png"
+        ],
+        "roi": [
+          "61.0%",
+          "0.0%",
+          "39.0%",
+          "36.1%"
+        ],
+        "threshold": 0.7,
+        "green_mask": true
+      }
+    },
+    "action": {
+      "type": "Click"
+    },
+    "next": [
+      "福果来_入口"
+    ],
+    "on_error": [
+      "福果来_入口"
+    ],
+    "post_delay": 400,
+    "timeout": 1200
+  },
+  "福果来_点设置": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "ui/settings_05.png"
+        ],
+        "green_mask": true,
+        "threshold": 0.7
+      }
+    },
+    "action": {
+      "type": "Click"
+    },
+    "next": [
+      "福果来_返回地图"
+    ],
+    "on_error": [
+      "福果来_返回地图"
+    ],
+    "timeout": 800,
+    "post_delay": 800
+  },
+  "福果来_进入副本": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "expected": [
+          "进入副本"
+        ]
+      }
+    },
+    "action": {
+      "type": "Click"
+    },
+    "next": [
+      "福果来_确认进入"
+    ],
+    "on_error": [
+      "福果来_入口"
+    ],
+    "timeout": 20000,
+    "post_wait_freezes": {
+      "time": 800,
+      "timeout": 20000,
+      "rate_limit": 200
+    }
+  },
+  "福果来_确认进入": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "expected": [
+          "倒计时"
+        ],
+        "roi": [
+          "43.6%",
+          "0.0%",
+          "41.8%",
+          "12.5%"
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "福果来_副本内"
+    ],
+    "on_error": [
+      "福果来_本日已完成"
+    ],
+    "timeout": 4000,
+    "pre_delay": 800
+  },
+  "福果来_副本内": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "fuguo_run"
+      }
+    },
+    "next": [
+      "福果来_结算"
+    ],
+    "on_error": [
+      "福果来_入口"
+    ]
+  },
+  "福果来_结算": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "fuguo_check_score"
+      }
+    },
+    "next": [
+      "福果来_领取奖励"
+    ],
+    "on_error": [
+      "福果来_重跑"
+    ],
+    "timeout": 5000,
+    "focus": {
+      "Node.Action.Succeeded": {
+        "content": "./debug/fuguo/score.md",
+        "display": "log"
+      }
+    }
+  },
+  "福果来_读积分": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "expected": [
+          "积分"
+        ]
+      }
+    }
+  },
+  "福果来_领取奖励": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "expected": [
+          "领取奖励"
+        ]
+      }
+    },
+    "action": {
+      "type": "Click"
+    },
+    "next": [
+      "福果来_结束"
+    ],
+    "timeout": 3000
+  },
+  "福果来_重跑": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "expected": [
+          "返回地图"
+        ]
+      }
+    },
+    "action": {
+      "type": "Click"
+    },
+    "next": [
+      "福果来_入口"
+    ],
+    "on_error": [
+      "福果来_入口"
+    ],
+    "timeout": 3000
+  },
+  "福果来_本日已完成": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "fuguo_daily_done"
+      }
+    },
+    "next": [
+      "福果来_结束"
+    ],
+    "focus": {
+      "Node.Action.Succeeded": {
+        "content": "./debug/fuguo/score.md",
+        "display": "log"
+      }
+    },
+    "timeout": 3000
+  },
+  "福果来_结束": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "StopTask"
+    },
+    "next": []
+  },
+  "福果来_面板": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "expected": [
+          "剩余奖励次数"
+        ],
+        "roi": [
+          "17.4%",
+          "55.6%",
+          "55.8%",
+          "18.1%"
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "福果来_面板"
+    ],
+    "timeout": 1200,
+    "on_error": [
+      "福果来_入口"
+    ]
+  },
+  "福果来_挑战成功": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "expected": [
+          "挑战成功"
+        ]
+      }
+    }
+  },
+  "福果来_识别返回地图": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "expected": [
+          "返回地图"
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "福果来_返回地图"
+    ],
+    "timeout": 800
+  },
+  "福果来_识别无双": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "ui/wushuang.png"
+        ],
+        "roi": [
+          "0.0%",
+          "77.8%",
+          "19.2%",
+          "22.2%"
+        ],
+        "threshold": 0.7
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "timeout": 500
+  },
+  "福果来_点南瞻部洲": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "expected": [
+          "南瞻部洲"
+        ]
+      }
+    },
+    "action": {
+      "type": "Click"
+    },
+    "next": [
+      "福果来_入口"
+    ],
+    "on_error": [
+      "福果来_入口"
+    ],
+    "post_delay": 400,
+    "timeout": 2000
+  },
+  "福果来_识别世界图标": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "ui/world_03.png"
+        ],
+        "green_mask": true,
+        "threshold": 0.8
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "timeout": 500
+  }
+}

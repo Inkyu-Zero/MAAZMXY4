@@ -1,0 +1,274 @@
+{
+  "Round_PlayDone": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0,
+    "pre_delay": 0
+  },
+  "Nav_BountyDetailTitle": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "expected": [
+          "^__unconfigured_bounty__$"
+        ],
+        "roi": [
+          "43.6%",
+          "22.9%",
+          "37.5%",
+          "10.4%"
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0,
+    "pre_delay": 0
+  },
+  "Bounty_Target": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "^前往副本$"
+                ],
+                "roi": [
+                  "41.8%",
+                  "76.4%",
+                  "30.5%",
+                  "13.9%"
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "OCR",
+                      "param": {
+                        "expected": [
+                          "^已接受$"
+                        ],
+                        "roi": [
+                          "17.4%",
+                          "27.1%",
+                          "27.9%",
+                          "11.8%"
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "OCR",
+                      "param": {
+                        "expected": [
+                          "^已[接搜]受$"
+                        ],
+                        "roi": [
+                          "36.6%",
+                          "30.6%",
+                          "5.8%",
+                          "5.6%"
+                        ],
+                        "only_rec": true
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "Nav_AcceptedBounties",
+          "Nav_BountyDetailTitle",
+          "Result_NoRevivePrompt"
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "LongPress",
+      "param": {
+        "duration": 100
+      }
+    },
+    "next": [],
+    "post_delay": 2000,
+    "pre_delay": 0
+  },
+  "Bounty_ResumeStage": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          "Bounty_StagePause",
+          "Nav_InStage"
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click"
+    },
+    "next": [],
+    "post_delay": 350,
+    "pre_delay": 0
+  },
+  "Bounty_StageSettings": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "^继续游戏$"
+                ],
+                "roi": [
+                  "37.5%",
+                  "18.1%",
+                  "26.2%",
+                  "15.3%"
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "^返回地图$"
+                ],
+                "roi": [
+                  "37.5%",
+                  "29.2%",
+                  "26.2%",
+                  "15.3%"
+                ]
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0,
+    "pre_delay": 0
+  },
+  "Bounty_StagePause": {
+    "recognition": {
+      "type": "Or",
+      "param": {
+        "any_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/pause.png",
+                "method": 1,
+                "threshold": 0.045,
+                "roi": [
+                  "30.5%",
+                  "43.8%",
+                  "39.2%",
+                  "13.2%"
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/pause-cloudy.png",
+                "method": 1,
+                "threshold": 0.045,
+                "roi": [
+                  "30.5%",
+                  "43.8%",
+                  "39.2%",
+                  "13.2%"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0,
+    "pre_delay": 0
+  },
+  "Bounty_Play": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          "Nav_InStage"
+        ]
+      }
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "battle_play",
+        "custom_action_param": {
+          "script_binding": {
+            "recorded_return_next": [
+              "Round_PlayDone"
+            ]
+          }
+        }
+      }
+    },
+    "next": [
+      "Round_PlayDone"
+    ],
+    "post_delay": 0,
+    "pre_delay": 0
+  },
+  "Bounty_OpenSettings": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          "Nav_BattleControls",
+          "Result_NoRevivePrompt"
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click"
+    },
+    "next": [],
+    "post_delay": 500,
+    "pre_delay": 0
+  }
+}

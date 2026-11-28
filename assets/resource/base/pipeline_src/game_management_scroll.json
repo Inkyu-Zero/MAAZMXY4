@@ -1,0 +1,211 @@
+{
+  "GameManagement_town5_Terrain": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "navigation/scroll/town5-02.png"
+        ],
+        "roi": [
+          "1.7%",
+          "56.9%",
+          "88.9%",
+          "16.7%"
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": []
+  },
+  "GameManagement_town5_Drag": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          "Nav_TaskMap",
+          "GameManagement_NormalMap",
+          "GameManagement_town5_Terrain",
+          "Result_NoRevivePrompt"
+        ],
+        "box_index": 2
+      }
+    },
+    "action": {
+      "type": "Swipe",
+      "param": {
+        "begin": true,
+        "end": true,
+        "end_offset": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "duration": 900,
+        "end_hold": 200
+      }
+    },
+    "next": [],
+    "post_delay": 350,
+    "timeout": 3000,
+    "pre_delay": 0
+  },
+  "GameManagement_town6_Terrain": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "navigation/scroll/town6-00.png",
+          "navigation/scroll/town6-01.png",
+          "navigation/scroll/town6-02.png",
+          "navigation/scroll/town6-03.png",
+          "navigation/scroll/town6-04.png",
+          "navigation/scroll/town6-05.png",
+          "navigation/scroll/town6-06.png",
+          "navigation/scroll/town6-07.png",
+          "navigation/scroll/town6-08.png",
+          "navigation/scroll/town6-09.png",
+          "navigation/scroll/town6-10.png",
+          "navigation/scroll/town6-11.png",
+          "navigation/scroll/town6-12.png",
+          "navigation/scroll/town6-13.png",
+          "navigation/scroll/town6-14.png",
+          "navigation/scroll/town6-15.png",
+          "navigation/scroll/town6-16.png",
+          "navigation/scroll/town6-17.png",
+          "navigation/scroll/town6-18.png",
+          "navigation/scroll/town6-19.png",
+          "navigation/scroll/town6-20.png",
+          "navigation/scroll/town6-21.png",
+          "navigation/scroll/town6-22.png",
+          "navigation/scroll/town6-23.png",
+          "navigation/scroll/town6-24.png",
+          "navigation/scroll/town6-25.png"
+        ],
+        "roi": [
+          "13.9%",
+          "48.6%",
+          "76.7%",
+          "31.2%"
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": []
+  },
+  "GameManagement_town6_Drag": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          "Nav_TaskMap",
+          "GameManagement_NormalMap",
+          "GameManagement_town6_Terrain",
+          "Result_NoRevivePrompt"
+        ],
+        "box_index": 2
+      }
+    },
+    "action": {
+      "type": "Swipe",
+      "param": {
+        "begin": true,
+        "end": true,
+        "end_offset": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "duration": 900,
+        "end_hold": 200
+      }
+    },
+    "next": [],
+    "post_delay": 350,
+    "timeout": 3000,
+    "pre_delay": 0
+  },
+  "GameManagement_town5_DragBack": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          "Nav_TaskMap",
+          "GameManagement_NormalMap",
+          "GameManagement_town5_Terrain",
+          "Result_NoRevivePrompt"
+        ],
+        "box_index": 2
+      }
+    },
+    "action": {
+      "type": "Swipe",
+      "param": {
+        "begin": true,
+        "end": true,
+        "end_offset": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "duration": 900,
+        "end_hold": 200
+      }
+    },
+    "next": [],
+    "post_delay": 350,
+    "timeout": 3000,
+    "pre_delay": 0
+  },
+  "GameManagement_NormalMap": {
+    "recognition": {
+      "type": "Or",
+      "param": {
+        "any_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/normal-mode.png",
+                "roi": [
+                  "85.4%",
+                  "80.6%",
+                  "14.6%",
+                  "19.4%"
+                ],
+                "green_mask": true
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "^切至噩梦$"
+                ],
+                "roi": [
+                  "78.5%",
+                  "77.8%",
+                  "21.5%",
+                  "22.2%"
+                ],
+                "threshold": 0.85
+              }
+            }
+          }
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": []
+  }
+}

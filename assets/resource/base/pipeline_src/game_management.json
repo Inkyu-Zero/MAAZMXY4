@@ -1,0 +1,841 @@
+{
+  "GameManagement_StartGame": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/login-start.png",
+                "roi": [
+                  "39.9%",
+                  "82.6%",
+                  "20.6%",
+                  "12.5%"
+                ],
+                "method": 1,
+                "threshold": 0.045
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/login-logo.png",
+                "roi": [
+                  "2.0%",
+                  "2.6%",
+                  "24.1%",
+                  "24.7%"
+                ],
+                "method": 1,
+                "threshold": 0.045
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "post_delay": 400,
+    "next": [],
+    "timeout": 3000
+  },
+  "GameManagement_SavePage": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "bounty-candle/save-header.png",
+        "roi": [
+          "39.9%",
+          "10.7%",
+          "21.9%",
+          "11.1%"
+        ],
+        "method": 1,
+        "threshold": 0.045
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "post_delay": 0,
+    "next": [],
+    "timeout": 3000
+  },
+  "GameManagement_MapReady": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "任务.png"
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "post_delay": 0,
+    "next": [],
+    "timeout": 3000
+  },
+  "GameManagement_ResumeMap": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "bounty-candle/pause.png",
+                        "method": 1,
+                        "threshold": 0.045
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "bounty-candle/pause-cloudy.png",
+                        "method": 1,
+                        "threshold": 0.045
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": [
+                  "任务.png"
+                ]
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "post_delay": 350,
+    "next": [],
+    "timeout": 3000
+  },
+  "GameManagement_Slot1": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "[Ll][Vv][.· :]*[0-9]+"
+                ],
+                "roi": [
+                  "28.6%",
+                  "21.4%",
+                  "20.1%",
+                  "7.8%"
+                ],
+                "threshold": 0.65
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/save-header.png",
+                "roi": [
+                  "39.9%",
+                  "10.7%",
+                  "21.9%",
+                  "11.1%"
+                ],
+                "method": 1,
+                "threshold": 0.045
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/save-1.png",
+                "roi": [
+                  "22.4%",
+                  "22.6%",
+                  "7.4%",
+                  "13.1%"
+                ],
+                "method": 1,
+                "threshold": 0.045
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": [
+          418,
+          213,
+          1,
+          1
+        ]
+      }
+    },
+    "post_delay": 400,
+    "next": [],
+    "timeout": 3000
+  },
+  "GameManagement_Slot2": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "[Ll][Vv][.· :]*[0-9]+"
+                ],
+                "roi": [
+                  "57.1%",
+                  "21.4%",
+                  "20.1%",
+                  "7.8%"
+                ],
+                "threshold": 0.65
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/save-header.png",
+                "roi": [
+                  "39.9%",
+                  "10.7%",
+                  "21.9%",
+                  "11.1%"
+                ],
+                "method": 1,
+                "threshold": 0.045
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/save-2.png",
+                "roi": [
+                  "50.8%",
+                  "22.6%",
+                  "7.4%",
+                  "13.1%"
+                ],
+                "method": 1,
+                "threshold": 0.045
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": [
+          744,
+          213,
+          1,
+          1
+        ]
+      }
+    },
+    "post_delay": 400,
+    "next": [],
+    "timeout": 3000
+  },
+  "GameManagement_Slot3": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "[Ll][Vv][.· :]*[0-9]+"
+                ],
+                "roi": [
+                  "28.6%",
+                  "37.8%",
+                  "20.1%",
+                  "7.8%"
+                ],
+                "threshold": 0.65
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/save-header.png",
+                "roi": [
+                  "39.9%",
+                  "10.7%",
+                  "21.9%",
+                  "11.1%"
+                ],
+                "method": 1,
+                "threshold": 0.045
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/save-3.png",
+                "roi": [
+                  "22.4%",
+                  "38.9%",
+                  "7.4%",
+                  "13.1%"
+                ],
+                "method": 1,
+                "threshold": 0.045
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": [
+          418,
+          330,
+          1,
+          1
+        ]
+      }
+    },
+    "post_delay": 400,
+    "next": [],
+    "timeout": 3000
+  },
+  "GameManagement_Slot4": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "[Ll][Vv][.· :]*[0-9]+"
+                ],
+                "roi": [
+                  "57.1%",
+                  "37.8%",
+                  "20.1%",
+                  "7.8%"
+                ],
+                "threshold": 0.65
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/save-header.png",
+                "roi": [
+                  "39.9%",
+                  "10.7%",
+                  "21.9%",
+                  "11.1%"
+                ],
+                "method": 1,
+                "threshold": 0.045
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/save-4.png",
+                "roi": [
+                  "50.8%",
+                  "38.9%",
+                  "7.4%",
+                  "13.1%"
+                ],
+                "method": 1,
+                "threshold": 0.045
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": [
+          744,
+          330,
+          1,
+          1
+        ]
+      }
+    },
+    "post_delay": 400,
+    "next": [],
+    "timeout": 3000
+  },
+  "GameManagement_Slot5": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "[Ll][Vv][.· :]*[0-9]+"
+                ],
+                "roi": [
+                  "28.6%",
+                  "54.2%",
+                  "20.1%",
+                  "7.8%"
+                ],
+                "threshold": 0.75
+              }
+            }
+          },
+          "GameManagement_SavePage"
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "next": [],
+    "post_delay": 400,
+    "timeout": 3000
+  },
+  "GameManagement_Slot6": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "[Ll][Vv][.· :]*[0-9]+"
+                ],
+                "roi": [
+                  "57.1%",
+                  "54.2%",
+                  "20.1%",
+                  "7.8%"
+                ],
+                "threshold": 0.75
+              }
+            }
+          },
+          "GameManagement_SavePage"
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "next": [],
+    "post_delay": 400,
+    "timeout": 3000
+  },
+  "GameManagement_Slot7": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "[Ll][Vv][.· :]*[0-9]+"
+                ],
+                "roi": [
+                  "28.6%",
+                  "70.6%",
+                  "20.1%",
+                  "7.8%"
+                ],
+                "threshold": 0.75
+              }
+            }
+          },
+          "GameManagement_SavePage"
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "next": [],
+    "post_delay": 400,
+    "timeout": 3000
+  },
+  "GameManagement_Slot8": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "[Ll][Vv][.· :]*[0-9]+"
+                ],
+                "roi": [
+                  "57.1%",
+                  "70.6%",
+                  "20.1%",
+                  "7.8%"
+                ],
+                "threshold": 0.75
+              }
+            }
+          },
+          "GameManagement_SavePage"
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "next": [],
+    "post_delay": 400,
+    "timeout": 3000
+  },
+  "GameManagement_Loading": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "正在加载"
+                ],
+                "roi": [
+                  "28.8%",
+                  "66.7%",
+                  "43.6%",
+                  "19.4%"
+                ],
+                "threshold": 0.75
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "[0-9]+%"
+                ],
+                "roi": [
+                  "28.8%",
+                  "66.7%",
+                  "43.6%",
+                  "19.4%"
+                ],
+                "threshold": 0.75
+              }
+            }
+          }
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0
+  },
+  "GameManagement_BoxLogin": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "^造梦西游4$"
+                ],
+                "roi": [
+                  "7.0%",
+                  "70.8%",
+                  "31.4%",
+                  "18.1%"
+                ],
+                "threshold": 0.75
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "^造梦西游5$"
+                ],
+                "roi": [
+                  "36.6%",
+                  "70.8%",
+                  "33.1%",
+                  "18.1%"
+                ],
+                "threshold": 0.75
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "^账号$"
+                ],
+                "roi": [
+                  "30.5%",
+                  "33.3%",
+                  "14.8%",
+                  "15.3%"
+                ],
+                "threshold": 0.75
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "^密码$"
+                ],
+                "roi": [
+                  "30.5%",
+                  "43.1%",
+                  "14.8%",
+                  "15.3%"
+                ],
+                "threshold": 0.75
+              }
+            }
+          }
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0
+  },
+  "GameManagement_OpenAccounts": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "^造梦西游4$"
+                ],
+                "roi": [
+                  "7.0%",
+                  "70.8%",
+                  "31.4%",
+                  "18.1%"
+                ],
+                "threshold": 0.75
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "^造梦西游5$"
+                ],
+                "roi": [
+                  "36.6%",
+                  "70.8%",
+                  "33.1%",
+                  "18.1%"
+                ],
+                "threshold": 0.75
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "^账号$"
+                ],
+                "roi": [
+                  "30.5%",
+                  "33.3%",
+                  "14.8%",
+                  "15.3%"
+                ],
+                "threshold": 0.75
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "^密码$"
+                ],
+                "roi": [
+                  "30.5%",
+                  "43.1%",
+                  "14.8%",
+                  "15.3%"
+                ],
+                "threshold": 0.75
+              }
+            }
+          }
+        ]
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": [
+          604,
+          165,
+          4,
+          4
+        ]
+      }
+    },
+    "next": [],
+    "post_delay": 300
+  },
+  "GameManagement_Blocking": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "expected": [
+          "验证码|密码错误|账号.*不正确|登录失败|登陆失败|安全验证|异地登录|账号不存在"
+        ],
+        "roi": [
+          "0.0%",
+          "0.0%",
+          "100.0%",
+          "100.0%"
+        ],
+        "threshold": 0.75
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0
+  },
+  "GameManagement_Resume": {
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "game_management_login"
+      }
+    },
+    "next": [],
+    "post_delay": 0
+  }
+}

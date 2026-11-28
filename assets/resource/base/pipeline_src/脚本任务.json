@@ -1,0 +1,17 @@
+{
+  "脚本任务设置": {
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "configuration",
+          "failure_retry": {
+            "enabled": false,
+            "max_retries": 3
+          }
+        }
+      }
+    }
+  }
+}

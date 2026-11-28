@@ -1,0 +1,60 @@
+{
+  "悬赏（守卫宝烛）-初始化": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "begin",
+          "file": "@task:bounty-candle",
+          "task_binding_id": "bounty-candle",
+          "playback_node": "Bounty_Play",
+          "navigation": {
+            "kind": "bounty",
+            "target_node": "Bounty_Target",
+            "label": "悬赏（守卫宝烛）",
+            "title": "守卫宝烛",
+            "title_aliases": []
+          },
+          "settings_node": "脚本任务设置",
+          "exit_mode": "recorded_return",
+          "failure_retry": {
+            "enabled": false,
+            "max_retries": 3
+          },
+          "round_flow": {
+            "scene_node": "Nav_InStage",
+            "load_timeout_ms": 15000,
+            "resume_node": "Bounty_ResumeStage"
+          },
+          "result_guard": {
+            "failed_next": [
+              "Result_Failed"
+            ],
+            "succeeded_next": [
+              "Result_Succeeded"
+            ],
+            "revive_next": [
+              "Result_RevivePrompt"
+            ],
+            "error_next": [
+              "Result_MonitorStopped"
+            ]
+          },
+          "execution": {
+            "binding_id": "bounty-candle",
+            "resume_entry": "GameManagement_Resume",
+            "settings_node": "脚本任务设置"
+          }
+        }
+      }
+    },
+    "next": [],
+    "post_delay": 0,
+    "max_hit": 1,
+    "pre_delay": 0
+  }
+}

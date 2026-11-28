@@ -954,47 +954,49 @@ _DOT_COUNT = 10
 
 
 def _find_close_button(image):
-    """在右上区域找红叉关闭按钮：取红色像素最密的一小块。
+    """在右上角找关闭按钮，返回 [(x, y), ...]，按红色像素多少排序。
 
-    各界面红叉位置不一样（采集在 1105,42；时光之舟在 1015,148），所以不去
-    猜固定坐标。红叉是实心红圆 + 白叉，红色像素远多于别处的红字，取最大簇
-    就是它。
+    生存大冒险有两层弹窗，两个叉位置完全一样。返回多个候选，调用方挨个点。
     """
     shape = getattr(image, "shape", None)
     if shape is None or len(shape) < 2:
-        return None
+        return []
     height, width = int(shape[0]), int(shape[1])
     cell = 10
     counts = {}
-    # 红叉在最右侧一竖条里，但各界面位置差得远：采集 1113、时光之舟 1031、
-    # 航海面板 881、翅膀面板 914，所以起点只能放到 0.76。工具栏右侧那些红色
-    # 图标是实心的、红叉是空心的，靠下面那一步区分。
-    for y in range(0, int(height * 0.30), 2):
+    x_lo, x_hi = int(width * 0.76), int(width)
+    y_lo, y_hi = 0, int(height * 0.30)
+    for y in range(y_lo, y_hi, 2):
         row = image[y]
-        for x in range(int(width * 0.76), width, 2):
+        for x in range(x_lo, x_hi, 2):
             pixel = row[x]
             if int(pixel[2]) > 170 and int(pixel[1]) < 85 and int(pixel[0]) < 85:
-                key = (y // cell, x // cell)
-                counts[key] = counts.get(key, 0) + 1
+                counts[(y // cell, x // cell)] = counts.get((y // cell, x // cell), 0) + 1
     if not counts:
-        return None
-    key = max(counts, key=counts.get)
-    if counts[key] < 20:
-        return None
-    # 格子中心只有 10px 精度，红叉直径才 ~34px，偏一点就点空。
-    top, left = key[0] * cell, key[1] * cell
-    sum_x = sum_y = total = 0
-    for y in range(max(0, top - cell), min(height, top + 2 * cell)):
-        row = image[y]
-        for x in range(max(0, left - cell), min(width, left + 2 * cell)):
-            pixel = row[x]
-            if int(pixel[2]) > 170 and int(pixel[1]) < 85 and int(pixel[0]) < 85:
-                sum_x += x
-                sum_y += y
-                total += 1
-    if not total:
-        return (left + cell // 2, top + cell // 2)
-    return (sum_x // total, sum_y // total)
+        _log("红叉：右上角没有红色像素")
+        return []
+    points = []
+    for key, hits in sorted(counts.items(), key=lambda kv: -kv[1]):
+        if hits < 20:
+            break
+        top, left = key[0] * cell, key[1] * cell
+        sum_x = sum_y = total = 0
+        for y in range(max(0, top - cell), min(height, top + 2 * cell)):
+            row = image[y]
+            for x in range(max(x_lo, left - cell), min(x_hi, left + 2 * cell)):
+                pixel = row[x]
+                if int(pixel[2]) > 170 and int(pixel[1]) < 85 and int(pixel[0]) < 85:
+                    sum_x += x
+                    sum_y += y
+                    total += 1
+        pt = (sum_x // total, sum_y // total) if total else (left + cell // 2, top + cell // 2)
+        if any(abs(pt[0] - q[0]) < 20 and abs(pt[1] - q[1]) < 20 for q in points):
+            continue
+        points.append(pt)
+        if len(points) >= 2:
+            break
+    _log("红叉：找到 %d 个候选 %s" % (len(points), points))
+    return points
 
 
 def _question_from_progress(image) -> int:
@@ -1053,6 +1055,48 @@ def _entry_retry(entry_node: str) -> int:
     return count
 
 
+def _find_toolbar_arrow(image):
+    """在右上角工具栏里找展开/收起菜单的三角箭头，返回 (x, y) 或 None。
+
+    之前是按 (0.750w, 0.076h) 硬算一个点，屏幕最左边
+    还有一个圆形黄色按钮形状也像箭头。这里只在右上角
+    那一块里做模板匹配，找不到就不点。
+    """
+    if image is None or getattr(image, "shape", None) is None:
+        return None
+    try:
+        import cv2 as _cv2
+        import numpy as _np
+        tpl_path = os.path.join(_ROOT, "resource", "base", "image", "survival", "arrow.png")
+        tpl = _cv2.imdecode(_np.fromfile(tpl_path, dtype=_np.uint8), _cv2.IMREAD_COLOR)
+    except Exception as error:                        # noqa: BLE001
+        _log("入口：读箭头模板失败 %s" % error)
+        return None
+    if tpl is None:
+        return None
+    h, w = image.shape[:2]
+    x0, y0 = int(round(w * 0.70)), int(round(h * 0.0))
+    x1, y1 = int(round(w * 0.80)), int(round(h * 0.12))
+    sub = image[y0:y1, x0:x1]
+    if sub.size == 0:
+        return None
+    best_score, best_pt = 0.0, None
+    for scale in (0.85, 0.9, 1.0, 1.1):
+        tw, th = int(round(tpl.shape[1] * scale)), int(round(tpl.shape[0] * scale))
+        if tw < 8 or th < 8 or tw > sub.shape[1] or th > sub.shape[0]:
+            continue
+        small = _cv2.resize(tpl, (tw, th), interpolation=_cv2.INTER_AREA)
+        res = _cv2.matchTemplate(sub, small, _cv2.TM_CCOEFF_NORMED)
+        _, score, _, loc = _cv2.minMaxLoc(res)
+        if score > best_score:
+            best_score = score
+            best_pt = (x0 + loc[0] + tw // 2, y0 + loc[1] + th // 2)
+    _log("入口：工具栏箭头 best=%.3f at %s" % (best_score, best_pt))
+    if best_score < 0.70 or best_pt is None:
+        return None
+    return best_pt
+
+
 @AgentServer.custom_action("adventure_entry_route")
 class AdventureEntryRoute(CustomAction):
     """定位一次当前界面，直接把入口的 next 改到对应分支。
@@ -1103,6 +1147,8 @@ class AdventureEntryRoute(CustomAction):
             _log("入口截图失败：" + str(error))
         close_node = str(conf.get("close_node") or "生存大冒险_识别红叉")
         close_click = str(conf.get("close_click_node") or "生存大冒险_点红叉")
+        # 通用导航节点做完事要回本任务入口，否则任务会被当成走完
+        self._return_home(context, entry_node, settings_node, back_node, close_click)
         # 先看是不是已经停在目标界面上了。这些界面的右上角都有红叉，
         # 要是先判红叉会把它点掉，白跑一圈重新点进来。
         # panels 是 [{node, target}] 的有序列表，逐个识别，命中就用它的 target 当 next。
@@ -1128,6 +1174,21 @@ class AdventureEntryRoute(CustomAction):
                     _log("入口：已在「%s」界面，直接继续" % node)
                     return self._route(context, entry_node, "已在目标界面", panel_target)
 
+        # 结算页优先：「返回地图」只在挑战成功/失败的结算页上出现，判据唯一。
+        # 放最前面是因为结算页上没有红叉、没开菜单、没有无双和世界图标，
+        # 走后面的分支只会空转到 _entry_retry 上限然后任务失败。
+        back = str(conf.get("back_node") or "")
+        if back and image is not None:
+            try:
+                found = context.run_recognition(back, image)
+                if getattr(found, "hit", False) and getattr(found, "box", None):
+                    _log("入口：结算页，点返回地图")
+                    _click_box(context, found.box)
+                    time.sleep(0.8)
+                    return self._route(context, entry_node, "结算页点返回地图", entry_node)
+            except Exception as error:                  # noqa: BLE001
+                _log("返回地图识别失败：" + str(error))
+
 
         # 菜单已经展开时（点过箭头但没点图标），画面上就有「福果来」那行字，
         # 直接交给「点图标」，省掉再点一下箭头把菜单关掉的来回。
@@ -1135,10 +1196,22 @@ class AdventureEntryRoute(CustomAction):
             try:
                 found = context.run_recognition(close_node, image)
                 if getattr(found, "hit", False) and getattr(found, "box", None):
-                    _log("入口：识别到关闭按钮，交给 pipeline 点掉")
-                    return self._route(context, entry_node, "有红叉", close_click)
+                    # 自己点，不走 pipeline 的 close_click：那个节点是
+                    # adventure_close_x，也要再取一帧，来这里已经有一帧了。
+                    _log("入口：识别到红叉，直接点掉")
+                    _click_box(context, found.box)
+                    time.sleep(0.8)
+                    return self._route(context, entry_node, "点了红叉", entry_node)
             except Exception as error:                  # noqa: BLE001
                 _log("红叉识别失败：" + str(error))
+            # pipeline 的模板识别受截图尺寸影响很大（只要 1147），
+            # 这里用颜色直接找一遍兜底：找到就自己点掉，
+            # 不再给 pipeline 点一次反应的机会。
+            hit_points = _find_close_button(image)
+            if hit_points:
+                _close_window(context, image)
+                _log("入口：颜色兜底点掉红叉 %s" % (hit_points,))
+                return self._route(context, entry_node, "颜色点红叉", entry_node)
 
         menu_node = str(conf.get("menu_node") or "")
         if menu_node and image is not None:
@@ -1176,8 +1249,10 @@ class AdventureEntryRoute(CustomAction):
         target, reason = map_node, "没认出来"
         if image is not None and getattr(image, "shape", None) is not None:
             height, width = int(image.shape[0]), int(image.shape[1])
-            cx, cy = int(round(width * 0.750)), int(round(height * 0.076))
-            _log("入口：点开菜单箭头 @ (%d, %d)" % (cx, cy))
+            pt = _find_toolbar_arrow(image)
+            if pt is None:
+                return self._route(context, entry_node, "右上角没看到箭头", settings_node)
+            cx, cy = pt
             try:
                 context.tasker.controller.post_click(cx, cy).wait()
             except Exception as error:                  # noqa: BLE001
@@ -1219,6 +1294,29 @@ class AdventureEntryRoute(CustomAction):
         if target == map_node:
             target, reason = settings_node, "点设置再返回地图"
         return self._route(context, entry_node, reason, target)
+
+    @staticmethod
+    def _return_home(context, entry_node, settings_node, back_node, close_click):
+        """把通用导航节点接回本任务入口。
+
+        通用节点（点红叉 / 点设置 / 返回地图）是几个任务共用的，
+        它们自己不知道该回哪一个入口。不接回去的话，MAA 执行完
+        那一个节点就把任务当成走完、直接返回成功 —— 09:00 那次
+        「点设置」一跑完任务就 Succeeded 就是这个原因。
+        """
+        overrides = {}
+        for node_name in (close_click, settings_node, back_node):
+            if node_name:
+                overrides[node_name] = {"next": [entry_node]}
+        if not overrides:
+            return
+        try:
+            done = context.override_pipeline(overrides)
+            _log("入口：通用节点接回 %s（%s）"
+                 % (entry_node, "成功" if done else "失败"))
+        except Exception as error:                      # noqa: BLE001
+            _log("入口：接回失败 %s" % error)
+
 
     @staticmethod
     def _route(context, entry_node, why, target):
@@ -1293,40 +1391,184 @@ class AdventureGotoMap(CustomAction):
         _log("导航回地图失败：" + str(last))
         return False
 
+def _click_box(context, box) -> bool:
+    """点识别框中心，用 swipe 而不是 click。
+
+    post_click 在这个环境里只入队、不产生 touch_down，游戏收不到。
+    """
+    try:
+        x, y, w, h = (int(v) for v in list(box)[:4])
+    except Exception:                                 # noqa: BLE001
+        return False
+    cx, cy = x + w // 2, y + h // 2
+    try:
+        context.tasker.controller.post_swipe(cx, cy, cx, cy, 80).wait()
+        _log("点击 (%d, %d)" % (cx, cy))
+        return True
+    except Exception as error:                        # noqa: BLE001
+        _log("点击失败 %s" % error)
+        return False
+
+
+def _safe_capture(context):
+    """取一帧，失败返回 None。"""
+    try:
+        from script_task import capture
+        return capture(context)
+    except Exception as error:                        # noqa: BLE001
+        _log("取帧失败：%s" % error)
+        return None
+
+
+def _same(a, b) -> bool:
+    """两帧是不是基本没变（粗比平均差）。"""
+    try:
+        import numpy as _np
+        x = _np.asarray(a, dtype=_np.float32)
+        y = _np.asarray(b, dtype=_np.float32)
+    except Exception:                                 # noqa: BLE001
+        return False
+    if x.size == 0 or x.shape != y.shape:
+        return False
+    return float(_np.abs(x - y).mean()) < 3.0
+
+
+def _watch_still(context, base, seconds=1.0, gap=0.2) -> bool:
+    """连续看 seconds 秒，期间每一帧都和 base 一样才算「界面没变化」。
+
+    只看一眼容易被动画/过场骗过去（弹窗正在关，那一帧还没画完）。
+    """
+    import time as _t
+    deadline = _t.time() + seconds
+    while _t.time() < deadline:
+        _t.sleep(gap)
+        frame = _safe_capture(context)
+        if frame is None:
+            return False
+        if not _same(frame, base):
+            return False
+    return True
+
+
     @classmethod
-    def _close_window(cls, context):
+    def _close_window(cls, context, image=None):
+        """点右上角的红叉。点完挪开光标，再看 1 秒界面有没有变。"""
         controller = context.tasker.controller
-        image = getattr(controller, "cached_image", None)
-        point = _find_close_button(image)
-        if point is not None:
-            _log("关闭当前窗口：点击 (%d, %d)" % point)
+        if image is None:
+            image = getattr(controller, "cached_image", None)
+        shape = getattr(image, "shape", None)
+        height, width = (int(shape[0]), int(shape[1])) if shape is not None and len(shape) >= 2 else (720, 1147)
+        points = _find_close_button(image)
+        if not points:
+            _log("关闭窗口：没找到红叉")
+            return
+        import random as _rnd
+        for idx, pt in enumerate(points, 1):
+            _log("关闭当前窗口：(%d, %d)" % pt)
+            # 用 swipe 原地按 80ms 代替 click：post_click 在 MFA 侧只入队、
+            # 不产生 touch_down，游戏收不到点击。
             try:
-                controller.post_click(point[0], point[1]).wait()
+                controller.post_swipe(pt[0], pt[1], pt[0], pt[1], 80).wait()
             except Exception as error:
                 _log("关闭窗口点击失败：" + str(error))
-        elif getattr(image, "shape", None) is None or len(getattr(image, "shape", ())) < 2:
-            _log("没有截图，跳过关窗口（交给 pipeline 的「点设置」节点）")
-        else:
-            # 副本内的场景（血条+技能栏那种）既认不出来也没有右上角红叉。
-            # 退出方式是点底部齿轮「设置」，它弹出的设置菜单导航库认得，
-            # 自带 Nav_SettingsReturn（从设置菜单返回地图）。
-            shape = getattr(image, "shape", None)
-            height, width = (shape[0], shape[1]) if shape is not None and len(shape) >= 2 else (720, 1147)
-            x = int(round(width * 0.606))
-            y = int(round(height * 0.935))
-            _log("没找到关闭按钮，点设置 (%d, %d)" % (x, y))
+            # 点完把光标挪走：两层弹窗的两个叉位置完全一样，
+            # 鼠标停在上面会让下面那个一直高亮。
             try:
-                controller.post_click(x, y).wait()
+                spot_x = _rnd.randint(int(width * 0.10), int(width * 0.35))
+                spot_y = _rnd.randint(int(height * 0.55), int(height * 0.75))
+                controller.post_swipe(spot_x, spot_y, spot_x, spot_y, 80).wait()
             except Exception as error:
-                _log("点设置失败：" + str(error))
-            # 导航库有个 Nav_SettingsReturn 出口名，但 navigation.json 里根本
-            # 没有对应节点，点完设置它什么都不点，白等一轮确认（实测 8 秒）。
-            # 这里自己点设置菜单里的「返回地图」。
-            # 「返回地图」交给 pipeline 的 生存大冒险_返回地图 节点去点：
-            # 在这里先 run_recognition 再 post_click，MAA 的 Python 绑定会抛
-            # access violation（实测两次），把识别和点击分到两个动作里才稳。
-            _log("设置菜单已打开，交给 pipeline 点「返回地图」")
-        time.sleep(0.7)
+                _log("挪光标失败：" + str(error))
+            if not _watch_still(context, image, seconds=1.0):
+                _log("关闭窗口：界面已变化（第 %d 次）" % idx)
+                return
+            _log("关闭窗口：第 %d 次没反应" % idx)
+        _log("关闭窗口：都试过，界面还是没变")
+
+
+@AgentServer.custom_action("adventure_click_back")
+class AdventureClickBack(CustomAction):
+    """点结算页的「返回地图」，点完再检查是否真的回到了地图。
+
+    领完奖励后停在结算页，不点这个按钮任务就算结束，下一个任务
+    进来还得再手工收拾一遍。
+    """
+
+    def run(self, context, argv) -> bool:
+        from script_task import capture
+        for attempt in range(1, 4):
+            try:
+                image = capture(context)
+            except Exception as error:                  # noqa: BLE001
+                _log("点返回地图取帧失败：" + str(error))
+                return False
+            try:
+                found = context.run_recognition("Adventure_返回地图", image)
+            except Exception as error:                  # noqa: BLE001
+                _log("返回地图识别失败：" + str(error))
+                found = None
+            if not getattr(found, "hit", False) or not getattr(found, "box", None):
+                _log("点返回地图：第 %d 次没看到按钮，收工" % attempt)
+                return True
+            _click_box(context, found.box)
+            _log("点返回地图：第 %d 次点击" % attempt)
+            time.sleep(0.8)
+        return True
+
+
+@AgentServer.custom_action("adventure_close_twice")
+class AdventureCloseTwice(CustomAction):
+    """生存大冒险结束时的两层弹窗：点红叉 -> 点屏幕中间 -> 再点红叉。
+
+    中间那一下是为了让下面那层弹窗「活过来」——两个叉位置完全一样，
+    鼠标停在上一个位置时下层那个一直是高亮态，直接连点会点空。
+    """
+
+    def run(self, context, argv) -> bool:
+        from script_task import capture
+        controller = context.tasker.controller
+        for round_no in (1, 2):
+            try:
+                image = capture(context)
+            except Exception as error:                  # noqa: BLE001
+                _log("关弹窗第 %d 次取帧失败：%s" % (round_no, error))
+                break
+            points = _find_close_button(image)
+            if not points:
+                _log("关弹窗第 %d 次：没找到红叉" % round_no)
+                break
+            _close_window(context, image)
+            _log("关弹窗第 %d 次：点掉红叉 %s" % (round_no, points[0]))
+            time.sleep(0.6)
+            height, width = image.shape[0], image.shape[1]
+            mid_x, mid_y = width // 2, height // 2
+            try:
+                controller.post_swipe(mid_x, mid_y, mid_x, mid_y, 80).wait()
+                _log("关弹窗第 %d 次：点一下中间 (%d, %d)" % (round_no, mid_x, mid_y))
+            except Exception as error:                  # noqa: BLE001
+                _log("关弹窗点中间失败：%s" % error)
+            time.sleep(0.6)
+        return True
+
+
+@AgentServer.custom_action("adventure_close_x")
+class AdventureCloseX(CustomAction):
+    """点掉右上角的红叉。
+
+    为什么不用节点自带的 Click：Click 走 post_click，在这个环境里只入队、
+    不产生 touch_down，游戏收不到；也没法点完把光标挪开。两层弹窗的两个
+    叉位置完全一样，光标停在上面会让下面那个一直高亮。
+    """
+
+    def run(self, context, argv) -> bool:
+        from script_task import capture
+        try:
+            image = capture(context)
+        except Exception as error:                      # noqa: BLE001
+            _log("点红叉取帧失败：" + str(error))
+            image = None
+        AdventureEntryRoute._close_window(context, image)
+        return True
 
 
 @AgentServer.custom_action("adventure_click_settings")

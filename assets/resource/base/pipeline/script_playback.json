@@ -1,6 +1,8 @@
 {
   "GenericScriptPlayback": {
     "action": "StopTask",
-    "focus": {"start": "通用脚本播放需要配套前端，请安装本项目完整客户端。"}
+    "focus": {
+      "start": "通用脚本播放需要配套前端，请安装本项目完整客户端。"
+    }
   }
 }

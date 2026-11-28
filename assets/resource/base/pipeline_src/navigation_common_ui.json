@@ -1,0 +1,62 @@
+{
+  "Nav_CommonConfirm": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "sub_name": "panel_corner",
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/dialogs/confirm-left.png",
+                "roi": [
+                  "0.0%",
+                  "9.7%",
+                  "50.1%",
+                  "47.2%"
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/dialogs/confirm-right.png",
+                "roi": "panel_corner",
+                "roi_offset": [
+                  200,
+                  -8,
+                  650,
+                  16
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/dialogs/confirm-bottom.png",
+                "roi": "panel_corner",
+                "roi_offset": [
+                  -8,
+                  100,
+                  16,
+                  400
+                ]
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0
+  }
+}
